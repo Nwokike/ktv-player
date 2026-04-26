@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+build/
+dist/
+*.egg-info/
+
+# Databases
+*.db
+*.db-wal
+*.db-shm
+
+# Flet
+.flet/
+assets/lottie/*.json
+channels_cache.json
+
+# IDEs
+.vscode/
+.idea/
