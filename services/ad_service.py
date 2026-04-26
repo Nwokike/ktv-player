@@ -35,14 +35,22 @@ class AdManager:
         if self.interstitial and self.interstitial in self.page.overlay:
             self.page.overlay.remove(self.interstitial)
 
-        self.interstitial = fta.InterstitialAd(
-            unit_id=self.get_interstitial_unit_id(),
-            on_load=lambda e: print("Interstitial loaded"),
-            on_error=lambda e: print(f"Interstitial error: {e.data}"),
-            on_close=self._handle_close
-        )
-        self.page.overlay.append(self.interstitial)
-        await self.page.update_async()
+        try:
+            self.interstitial = fta.InterstitialAd(
+                unit_id=self.get_interstitial_unit_id(),
+                on_load=lambda e: print("Interstitial loaded"),
+                on_error=lambda e: print(f"Interstitial error: {e.data}"),
+                on_close=self._handle_close
+            )
+            self.page.overlay.append(self.interstitial)
+        except ft.FletUnsupportedPlatformException:
+            print(f"Ads not supported on {self.page.platform}. Ad logic will be bypassed.")
+            self.interstitial = None
+        except Exception as e:
+            print(f"Unexpected ad error: {e}")
+            self.interstitial = None
+            
+        self.page.update()
 
     async def _handle_close(self, e):
         print("Interstitial closed")

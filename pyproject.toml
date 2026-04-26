@@ -34,3 +34,17 @@ target-version = "py313"
 [tool.coverage.run]
 source = ["core", "services", "database", "components", "views"]
 omit = ["tests/*"]
+
+[tool.flet]
+app_name = "KTV Player"
+product_name = "KTV Player"
+org_domain = "com.nwokike"
+
+[tool.flet.android]
+package_name = "com.nwokike.ktvplayer"
+build_number = 1
+build_version = "1.0.0"
+
+[tool.flet.android.manifest_application]
+# Test AdMob App ID (Android)
+"com.google.android.gms.ads.APPLICATION_ID" = "ca-app-pub-3940256099942544~3347511713"

@@ -19,4 +19,4 @@ class LifecycleManager:
             # App moved to foreground
             print("App Resumed")
             
-        await self.page.update_async()
+        self.page.update()

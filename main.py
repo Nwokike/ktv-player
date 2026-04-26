@@ -27,7 +27,7 @@ async def main(page: ft.Page):
 
     async def navigate(route: str):
         page.route = route
-        await page.update_async()
+        page.update()
 
     async def play_stream(url: str):
         # 1. Save to history
@@ -45,14 +45,14 @@ async def main(page: ft.Page):
 
     async def load_channels():
         state.is_loading = True
-        await page.update_async()
+        page.update()
         
         # Try local cache first
         cached = iptv_service.load_cached_channels()
         if cached:
             state.channels = cached
             state.is_loading = False
-            await page.update_async()
+            page.update()
         
         # Fetch fresh list from IPTV-org (Waterfall: Category fallback)
         urls = [
@@ -68,7 +68,7 @@ async def main(page: ft.Page):
                 break
         
         state.is_loading = False
-        await page.update_async()
+        page.update()
 
     def route_change(e: ft.RouteChangeEvent):
         page.views.clear()
@@ -126,4 +126,4 @@ async def main(page: ft.Page):
     await navigate("/")
 
 if __name__ == "__main__":
-    ft.app(target=main, assets_dir="assets")
+    ft.run(main, assets_dir="assets")

@@ -8,7 +8,7 @@ def mock_page():
     page = MagicMock(spec=ft.Page)
     page.platform = ft.PagePlatform.ANDROID
     page.overlay = []
-    page.update_async = AsyncMock()
+    page.update = MagicMock()
     return page
 
 @pytest.mark.asyncio
@@ -31,7 +31,7 @@ async def test_interstitial_preloading(mock_page):
     
     assert len(mock_page.overlay) == 1
     assert ad_manager.interstitial is not None
-    mock_page.update_async.assert_called()
+    mock_page.update.assert_called()
 
 @pytest.mark.asyncio
 async def test_banner_creation(mock_page):
