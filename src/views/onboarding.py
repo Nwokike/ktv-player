@@ -50,7 +50,7 @@ def OnboardingView(on_complete: callable):
                 width=400,
                 border_radius=15,
                 bgcolor="surface_variant",
-                prefix_icon=ft.Icons.LOCATION_ON,
+                leading_icon=ft.Icons.LOCATION_ON,
             ),
             
             ft.Divider(height=20, color=ft.Colors.TRANSPARENT),

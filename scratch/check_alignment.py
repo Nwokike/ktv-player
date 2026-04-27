@@ -1,3 +1,6 @@
 import flet as ft
-print(f"MainAxisAlignment: {dir(ft.MainAxisAlignment)}")
-print(f"CrossAxisAlignment: {dir(ft.CrossAxisAlignment)}")
+try:
+    d = ft.Dropdown(options=[ft.dropdown.Option("Test")])
+    print("Dropdown with options created")
+except Exception as e:
+    print(f"Dropdown options error: {e}")
