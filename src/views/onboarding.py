@@ -1,5 +1,6 @@
 import flet as ft
 import asyncio
+from core.theme import AppColors
 from core.state import state
 from core.theme import AppColors
 from channels.provider import channel_provider
@@ -20,12 +21,12 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
     
     async def handle_submit(e):
         if not terms_checked.current.value:
-            e.page.show_snack_bar(ft.SnackBar(ft.Text("Please accept the terms to continue.")))
+            e.page.show_dialog(ft.SnackBar(ft.Text("Please accept the terms to continue.")))
             return
             
         country_name = selected_country.current.value
         if not country_name:
-            e.page.show_snack_bar(ft.SnackBar(ft.Text("Please select your country.")))
+            e.page.show_dialog(ft.SnackBar(ft.Text("Please select your country.")))
             return
             
         # Save settings

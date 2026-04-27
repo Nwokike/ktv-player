@@ -57,17 +57,20 @@ class IPTVService:
             return []
 
     async def load_all_sources(self):
-        """Main entry point to load all channels into state."""
+        """Main entry point to load all channels into state with parallel fetching."""
+        # Start fetching built-in channels (very fast)
         built_in = await self.fetch_built_in_channels()
-        
-        # Add to state.channels (or we can categorize here)
         all_channels = built_in
         
-        # Load custom playlists from DB
+        # Load custom playlists from DB in parallel
         playlists = await db_manager.get_playlists()
-        for p in playlists:
-            if p["is_active"]:
-                ext_channels = await self.fetch_playlist(p["url"])
+        active_playlist_urls = [p["url"] for p in playlists if p["is_active"]]
+        
+        if active_playlist_urls:
+            # Fetch all active playlists concurrently
+            tasks = [self.fetch_playlist(url) for url in active_playlist_urls]
+            results = await asyncio.gather(*tasks)
+            for ext_channels in results:
                 all_channels.extend(ext_channels)
         
         # Load individual custom channels from DB

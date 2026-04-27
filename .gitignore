@@ -20,3 +20,6 @@ channels_cache.json
 # IDEs
 .vscode/
 .idea/
+/data/
+/temp/
+scratch/

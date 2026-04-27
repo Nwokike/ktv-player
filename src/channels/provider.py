@@ -42,7 +42,6 @@ class ChannelProvider:
         return by_country
 
     def get_channels_by_category(self) -> Dict[str, List[ChannelData]]:
-        # For simplicity, we use the 'group' field in ChannelData
         by_category = {}
         for channel in self.get_all_channels():
             cat = channel.group

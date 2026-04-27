@@ -40,17 +40,16 @@ async def main(page: ft.Page):
     state.has_accepted_terms = await db_manager.get_setting("has_accepted_terms", "false") == "true"
     state.is_first_launch = not state.has_accepted_terms
 
-    def navigate(route: str):
-        """Sync navigation helper."""
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", DeprecationWarning)
-            page.go(route)
+    async def navigate(route: str):
+        """Async navigation helper."""
+        await page.push_route(route)
 
     async def play_stream(url: str):
         await db_manager.save_history(url)
         state.add_to_history(url)
-        encoded_url = base64.b64encode(url.encode()).decode()
-        navigate(f"/play?url={encoded_url}")
+        # Use urlsafe base64 to avoid issues with + and /
+        encoded_url = base64.urlsafe_b64encode(url.encode()).decode()
+        await navigate(f"/play?url={encoded_url}")
 
     async def load_channels():
         state.is_loading = True
@@ -64,25 +63,28 @@ async def main(page: ft.Page):
         """Handles the splash screen timeout."""
         await asyncio.sleep(3)
         dest = "/dashboard" if not state.is_first_launch else "/onboarding"
-        navigate(dest)
+        await navigate(dest)
 
     # Expose load_channels to views
     page.load_channels = load_channels
 
     async def route_change(e: ft.RouteChangeEvent | None = None):
         route = page.route
-        page.views.clear()
         parsed_url = urllib.parse.urlparse(route)
+        
+        # Only clear stack for root-level navigations
+        if parsed_url.path in ["/", "/dashboard", "/onboarding"]:
+            page.views.clear()
         
         if parsed_url.path == "/":
             page.views.append(build_splash_view())
             page.run_task(start_splash_timer)
         
         elif parsed_url.path == "/onboarding":
-            page.views.append(build_onboarding_view(on_complete=lambda: navigate("/dashboard")))
+            page.views.append(build_onboarding_view(on_complete=lambda: page.run_task(navigate, "/dashboard")))
         
         elif parsed_url.path == "/dashboard":
-            page.views.append(build_dashboard_view(on_play=play_stream))
+            page.views.append(build_dashboard_view(page=page, on_play=play_stream))
             if not state.channels:
                 page.run_task(load_channels)
         
@@ -91,12 +93,12 @@ async def main(page: ft.Page):
             encoded_url = params.get("url", [None])[0]
             if encoded_url:
                 try:
-                    url = base64.b64decode(encoded_url).decode()
-                    page.views.append(build_player_view(url=url, on_back=lambda: navigate("/dashboard")))
+                    url = base64.urlsafe_b64decode(encoded_url).decode()
+                    page.views.append(build_player_view(url=url, on_back=lambda: page.run_task(navigate, "/dashboard")))
                 except Exception as ex:
-                    navigate("/dashboard")
+                    page.run_task(navigate, "/dashboard")
             else:
-                navigate("/dashboard")
+                page.run_task(navigate, "/dashboard")
 
         page.update()
 
@@ -104,7 +106,7 @@ async def main(page: ft.Page):
         if len(page.views) > 1:
             page.views.pop()
             top_view = page.views[-1]
-            navigate(top_view.route)
+            page.run_task(navigate, top_view.route)
 
     page.on_route_change = route_change
     page.on_view_pop = view_pop

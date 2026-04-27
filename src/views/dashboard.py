@@ -1,12 +1,12 @@
 import flet as ft
 from core.state import state
 from core.theme import AppColors
-from components.ui.glass_container import GlassContainer
 from components.ui.shimmer_loader import ShimmerList
+from components.ui.glass_container import GlassContainer
 from database.manager import db_manager
 
-def build_dashboard_view(on_play: callable) -> ft.View:
-    """Builds the dashboard view."""
+def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
+    """Builds the dashboard view with TV-optimized grid layout and real-time search."""
     
     # Internal state for the view
     view_state = {
@@ -23,9 +23,8 @@ def build_dashboard_view(on_play: callable) -> ft.View:
     categories_content = ft.Column(expand=True, scroll=ft.ScrollMode.AUTO)
     custom_content = ft.Column(expand=True, scroll=ft.ScrollMode.AUTO)
 
-    def close_dialog(page):
-        page.dialog.open = False
-        page.update()
+    def close_dialog(e_page):
+        e_page.pop_dialog()
 
     def handle_type_change(e):
         view_state["add_type"] = list(e.selection)[0]
@@ -40,10 +39,9 @@ def build_dashboard_view(on_play: callable) -> ft.View:
             else:
                 await db_manager.add_custom_channel(name, url)
             
-            e.page.dialog.open = False
+            close_dialog(e.page)
             new_name.current.value = ""
             new_url.current.value = ""
-            e.page.update()
             
             if hasattr(e.page, "load_channels"):
                 await e.page.load_channels()
@@ -69,10 +67,30 @@ def build_dashboard_view(on_play: callable) -> ft.View:
         ],
     )
 
-    def show_dialog(page):
-        page.dialog = add_dialog
-        add_dialog.open = True
-        page.update()
+    def create_channel_card(c):
+        return GlassContainer(
+            content=ft.Column([
+                ft.Image(
+                    src=c.get('logo'),
+                    width=90,
+                    height=90,
+                    fit=ft.BoxFit.CONTAIN,
+                    border_radius=25,
+                    error_content=ft.Icon(ft.Icons.TV, size=40)
+                ),
+                ft.Text(
+                    c.get('name', 'Unknown'),
+                    size=11,
+                    weight=ft.FontWeight.W_400,
+                    text_align=ft.TextAlign.CENTER,
+                    max_lines=1,
+                    overflow=ft.TextOverflow.ELLIPSIS
+                )
+            ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=5),
+            padding=12,
+            border_radius=25,
+            on_click=lambda e, url=c.get('url'): e.page.run_task(on_play, url),
+        )
 
     def update_tab_content(tab_index: int):
         target = [countries_content, categories_content, custom_content][tab_index]
@@ -91,11 +109,11 @@ def build_dashboard_view(on_play: callable) -> ft.View:
                 {"name": "Global Index", "url": "https://iptv-org.github.io/iptv/index.m3u"},
             ]
 
-            async def import_source(source, page):
+            async def import_source(source, e_page):
                 url = source.get("url") or f"https://iptv-org.github.io/iptv/countries/{source['code']}.m3u"
                 await db_manager.add_playlist(source["name"], url)
-                if hasattr(page, "load_channels"):
-                    await page.load_channels()
+                if hasattr(e_page, "load_channels"):
+                    await e_page.load_channels()
 
             target.controls.append(
                 ft.Column([
@@ -103,7 +121,7 @@ def build_dashboard_view(on_play: callable) -> ft.View:
                         leading=ft.Icon(ft.Icons.ADD_LINK, color=AppColors.PRIMARY),
                         title=ft.Text("Add Custom Playlist or Channel"),
                         subtitle=ft.Text("Import external M3U playlists or individual stream URLs"),
-                        on_click=lambda e: show_dialog(e.page)
+                        on_click=lambda e: e.page.show_dialog(add_dialog)
                     ),
                     ft.Divider(height=30),
                     ft.Text("Quick Import from Community Sources", weight=ft.FontWeight.BOLD, size=16),
@@ -117,9 +135,18 @@ def build_dashboard_view(on_play: callable) -> ft.View:
                 ], scroll=ft.ScrollMode.AUTO, expand=True)
             )
         else:
-            # Grouped Data (Countries or Categories)
             groups = {}
+            query = view_state["search_query"].lower()
+            MAX_SEARCH_RESULTS = 50
+            results_count = 0
+            
             for c in state.channels:
+                if query and query not in c.get('name', '').lower():
+                    continue
+                if query:
+                    results_count += 1
+                    if results_count > MAX_SEARCH_RESULTS: break
+
                 key = c.get('group', 'General')
                 if key not in groups: groups[key] = []
                 groups[key].append(c)
@@ -131,70 +158,91 @@ def build_dashboard_view(on_play: callable) -> ft.View:
 
             for name in group_names:
                 channels = groups[name]
-                filtered_channels = [c for c in channels if view_state["search_query"].lower() in c.get('name', '').lower()]
-                if not filtered_channels: continue
-                
                 target.controls.append(
                     ft.ExpansionTile(
-                        title=ft.Text(name),
-                        expanded=(tab_index == 0 and name == state.user_country or len(group_names) == 1),
+                        title=ft.Text(f"{name} ({len(channels)})", weight=ft.FontWeight.BOLD),
+                        expanded=(tab_index == 0 and name == state.user_country or (query != "" and results_count < 10)),
                         controls=[
-                            ft.ListTile(
-                                leading=ft.Image(src=c.get('logo'), width=30, height=30, fit=ft.BoxFit.CONTAIN, 
-                                               error_content=ft.Icon(ft.Icons.TV)),
-                                title=ft.Text(c.get('name', 'Unknown')),
-                                trailing=ft.Icon(ft.Icons.PLAY_ARROW_ROUNDED),
-                                on_click=lambda e, url=c.get('url'): on_play(url)
-                            ) for c in filtered_channels
+                            ft.GridView(
+                                controls=[create_channel_card(c) for c in channels],
+                                runs_count=3,
+                                max_extent=160,
+                                spacing=15,
+                                run_spacing=15,
+                                padding=15,
+                            )
                         ]
                     )
                 )
 
+    # Use TabBarView to hold the content
+    tab_view_container = ft.TabBarView(
+        controls=[countries_content, categories_content, custom_content],
+        expand=True
+    )
+
     def handle_tab_change(e):
         view_state["selected_tab"] = int(e.data)
         update_tab_content(view_state["selected_tab"])
+        # Selected index is typically synced by the parent Tabs or manually if needed
         e.page.update()
 
-    # Initial population of all tabs
+    tab_bar = ft.TabBar(
+        tabs=[
+            ft.Tab(label="Countries", icon=ft.Icons.PUBLIC),
+            ft.Tab(label="Categories", icon=ft.Icons.CATEGORY),
+            ft.Tab(label="Custom", icon=ft.Icons.PLAYLIST_ADD),
+        ]
+    )
+
+    # CRITICAL: TabBar and TabBarView MUST be inside ft.Tabs
+    tabs_wrapper = ft.Tabs(
+        length=3,
+        selected_index=view_state["selected_tab"],
+        content=ft.Column([
+            tab_bar,
+            tab_view_container
+        ], expand=True, spacing=0),
+        expand=True,
+        on_change=handle_tab_change
+    )
+
+    def on_search_change(e):
+        view_state["search_query"] = e.data
+        update_tab_content(view_state["selected_tab"])
+        e.page.update()
+
+    search_bar = ft.SearchBar(
+        view_elevation=4,
+        divider_color=ft.Colors.OUTLINE,
+        on_change=on_search_change,
+        bar_hint_text="Search channels...",
+        bar_leading=ft.Icon(ft.Icons.SEARCH_ROUNDED),
+    )
+
     update_tab_content(0)
     update_tab_content(1)
     update_tab_content(2)
 
-    tabs_control = ft.Tabs(
-        length=3,
-        selected_index=view_state["selected_tab"],
-        on_change=handle_tab_change,
-        content=ft.Column([
-            ft.TabBar(
-                tabs=[
-                    ft.Tab(label="Countries", icon=ft.Icons.PUBLIC),
-                    ft.Tab(label="Categories", icon=ft.Icons.CATEGORY),
-                    ft.Tab(label="Custom", icon=ft.Icons.PLAYLIST_ADD),
-                ],
-            ),
-            ft.TabBarView(
-                controls=[
-                    countries_content,
-                    categories_content,
-                    custom_content
-                ],
-                expand=True
-            )
-        ], expand=True)
-    )
-
     main_col = ft.Column([
         ft.Row([
-            ft.Image(src="/icon.png", width=40, height=40),
-            ft.IconButton(ft.Icons.SEARCH_ROUNDED, on_click=lambda _: None),
+            ft.Image(src="/icon.png", width=40, height=40, border_radius=12),
+            ft.Text("KTV Player", size=20, weight=ft.FontWeight.BOLD),
+            ft.Row([
+                ft.IconButton(
+                    icon=ft.Icons.LIGHT_MODE if page.theme_mode == ft.ThemeMode.DARK else ft.Icons.DARK_MODE,
+                    on_click=lambda _: setattr(page, "theme_mode", 
+                                             ft.ThemeMode.LIGHT if page.theme_mode == ft.ThemeMode.DARK else ft.ThemeMode.DARK) or page.update()
+                )
+            ])
         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
         
-        tabs_control,
+        search_bar,
+        tabs_wrapper,
         
-        # Discovery Footer
         ft.Container(
             content=ft.Column([
-                ft.Text("Looking for more? Discover community playlists on GitHub", size=12, italic=True),
+                ft.Text("Discover community playlists on GitHub", size=12, italic=True),
                 ft.FilledButton(
                     "Discover Community Channels",
                     icon=ft.Icons.EXPLORE,
@@ -204,8 +252,9 @@ def build_dashboard_view(on_play: callable) -> ft.View:
             ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
             padding=10,
             alignment=ft.Alignment(0, 0),
+            visible=False
         )
-    ], spacing=10, expand=True)
+    ], spacing=15, expand=True)
 
     return ft.View(
         route="/dashboard",
