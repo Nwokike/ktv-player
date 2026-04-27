@@ -121,8 +121,12 @@ async def main(page: ft.Page):
     
     # Trigger initial route
     print(f"Initial route: {page.route}")
-    await page.push_route("/")
+    if page.route == "/" or page.route == "":
+        await route_change(None)
+    else:
+        await page.push_route(page.route)
     page.update()
 
 if __name__ == "__main__":
+    print("Executing ft.run(main)...")
     ft.run(main, assets_dir="assets")
