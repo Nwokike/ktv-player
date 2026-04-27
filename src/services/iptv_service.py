@@ -69,7 +69,7 @@ class IPTVService:
         if active_playlist_urls:
             # Fetch all active playlists concurrently
             tasks = [self.fetch_playlist(url) for url in active_playlist_urls]
-            results = await asyncio.gather(*tasks)
+            results = await asyncio.to_thread(asyncio.run, asyncio.gather(*tasks)) if not asyncio.get_event_loop().is_running() else await asyncio.gather(*tasks)
             for ext_channels in results:
                 all_channels.extend(ext_channels)
         

@@ -141,15 +141,27 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
             results_count = 0
             
             for c in state.channels:
-                if query and query not in c.get('name', '').lower():
+                name_match = query in c.get('name', '').lower()
+                
+                # Semicolon splitting for better category logic as requested
+                original_group = c.get('group', 'General')
+                parts = [p.strip() for p in original_group.split(';')]
+                
+                # Determine display group based on tab
+                if tab_index == 0: # Countries
+                    display_group = parts[0] if c.get('country_code') else "Global"
+                else: # Categories
+                    display_group = parts[-1] if len(parts) > 1 else (parts[0] if not c.get('country_code') else "General")
+
+                if query and not name_match and query not in display_group.lower():
                     continue
+                
                 if query:
                     results_count += 1
                     if results_count > MAX_SEARCH_RESULTS: break
 
-                key = c.get('group', 'General')
-                if key not in groups: groups[key] = []
-                groups[key].append(c)
+                if display_group not in groups: groups[display_group] = []
+                groups[display_group].append(c)
             
             group_names = sorted(groups.keys())
             if tab_index == 0 and state.user_country in group_names:
@@ -184,7 +196,6 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
     def handle_tab_change(e):
         view_state["selected_tab"] = int(e.data)
         update_tab_content(view_state["selected_tab"])
-        # Selected index is typically synced by the parent Tabs or manually if needed
         e.page.update()
 
     tab_bar = ft.TabBar(
@@ -195,7 +206,7 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
         ]
     )
 
-    # CRITICAL: TabBar and TabBarView MUST be inside ft.Tabs
+    # Tabs wrapper
     tabs_wrapper = ft.Tabs(
         length=3,
         selected_index=view_state["selected_tab"],
@@ -218,42 +229,27 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
         on_change=on_search_change,
         bar_hint_text="Search channels...",
         bar_leading=ft.Icon(ft.Icons.SEARCH_ROUNDED),
+        expand=True,
     )
 
     update_tab_content(0)
     update_tab_content(1)
     update_tab_content(2)
 
-    main_col = ft.Column([
-        ft.Row([
-            ft.Image(src="/icon.png", width=40, height=40, border_radius=12),
-            ft.Text("KTV Player", size=20, weight=ft.FontWeight.BOLD),
-            ft.Row([
-                ft.IconButton(
-                    icon=ft.Icons.LIGHT_MODE if page.theme_mode == ft.ThemeMode.DARK else ft.Icons.DARK_MODE,
-                    on_click=lambda _: setattr(page, "theme_mode", 
-                                             ft.ThemeMode.LIGHT if page.theme_mode == ft.ThemeMode.DARK else ft.ThemeMode.DARK) or page.update()
-                )
-            ])
-        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-        
+    # Header with Logo and SearchBar on the SAME ROW
+    header = ft.Row([
+        ft.Image(src="/icon.png", width=40, height=40, border_radius=12),
         search_bar,
-        tabs_wrapper,
-        
-        ft.Container(
-            content=ft.Column([
-                ft.Text("Discover community playlists on GitHub", size=12, italic=True),
-                ft.FilledButton(
-                    "Discover Community Channels",
-                    icon=ft.Icons.EXPLORE,
-                    on_click=lambda e: e.page.launch_url("https://github.com/iptv-org/iptv"),
-                    style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=10))
-                )
-            ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
-            padding=10,
-            alignment=ft.Alignment(0, 0),
-            visible=False
+        ft.IconButton(
+            icon=ft.Icons.LIGHT_MODE if page.theme_mode == ft.ThemeMode.DARK else ft.Icons.DARK_MODE,
+            on_click=lambda _: setattr(page, "theme_mode", 
+                                     ft.ThemeMode.LIGHT if page.theme_mode == ft.ThemeMode.DARK else ft.ThemeMode.DARK) or page.update()
         )
+    ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, spacing=20)
+
+    main_col = ft.Column([
+        header,
+        tabs_wrapper,
     ], spacing=15, expand=True)
 
     return ft.View(
