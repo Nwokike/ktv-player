@@ -58,12 +58,16 @@ async def main(page: ft.Page):
         # Root / Splash
         if parsed_url.path == "/" or parsed_url.path == "":
             dest = "/dashboard" if not state.is_first_launch else "/onboarding"
-            async def on_splash_complete():
+            
+            page.views.append(
+                ft.View("/", [SplashView()], padding=0)
+            )
+            
+            async def splash_timeout():
+                await asyncio.sleep(3)
                 await page.push_route(dest)
                 
-            page.views.append(
-                ft.View("/", [SplashView(on_complete=on_splash_complete)], padding=0)
-            )
+            page.run_task(splash_timeout)
         
         # Onboarding
         elif parsed_url.path == "/onboarding":

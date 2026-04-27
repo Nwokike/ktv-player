@@ -1,10 +1,9 @@
 import flet as ft
 from flet_lottie import Lottie
-import asyncio
 from core.theme import AppColors
 
-def SplashView(on_complete: callable):
-    # This view will display a Lottie animation for 3 seconds then call on_complete
+def SplashView():
+    # This view will display a Lottie animation for 3 seconds
     
     # Use the official logo
     logo = ft.Image(
@@ -13,10 +12,6 @@ def SplashView(on_complete: callable):
         height=150,
         fit="contain",
     )
-
-    async def animate_splash(e):
-        await asyncio.sleep(3)
-        await on_complete()
 
     return ft.Container(
         content=ft.Column([
@@ -28,5 +23,4 @@ def SplashView(on_complete: callable):
         alignment=ft.Alignment(0, 0),
         expand=True,
         bgcolor="background",
-        on_mount=lambda e: e.page.run_task(animate_splash(e))
     )
