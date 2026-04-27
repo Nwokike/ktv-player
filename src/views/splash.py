@@ -25,7 +25,7 @@ def SplashView(on_complete: callable):
             ft.Text("Immersive High-Speed Rendering", color="on_surface_variant"),
             ft.ProgressBar(width=200, color=AppColors.SECONDARY, bgcolor="surface_variant"),
         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=20),
-        alignment=ft.alignment.center,
+        alignment=ft.alignment.CENTER,
         expand=True,
         bgcolor=ft.Colors.BACKGROUND,
         on_mount=lambda e: e.page.run_task(animate_splash(e))
