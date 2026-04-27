@@ -13,7 +13,7 @@ class ShimmerList(ft.Column):
             height=60,
             bgcolor=ft.Colors.SURFACE_CONTAINER,
             border_radius=10,
-            animate_opacity=ft.animation.Animation(1000, ft.AnimationCurve.EASE_IN_OUT),
+            animate_opacity=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT),
         )
 
     def did_mount(self):

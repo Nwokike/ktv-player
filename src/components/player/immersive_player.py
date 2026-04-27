@@ -31,7 +31,7 @@ class ImmersivePlayer(ft.Stack):
         self.close_btn = ft.Container(
             content=ft.IconButton(
                 icon=ft.Icons.CLOSE,
-                icon_color=AppColors.TEXT_PRIMARY,
+                icon_color=ft.Colors.WHITE,
                 on_click=self.on_close,
             ),
             alignment=ft.Alignment(1, -1),

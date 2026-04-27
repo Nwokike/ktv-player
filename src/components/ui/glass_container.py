@@ -19,4 +19,4 @@ class GlassContainer(ft.Container):
         self.blur = ft.Blur(10, 10, ft.BlurTileMode.MIRROR)
         self.expand = expand
         self.on_click = on_click
-        self.animate = ft.animation.Animation(300, ft.AnimationCurve.DECELERATE)
+        self.animate = ft.Animation(300, ft.AnimationCurve.DECELERATE)

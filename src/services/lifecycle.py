@@ -7,16 +7,19 @@ class LifecycleManager:
         self.page.on_app_lifecycle_state_change = self._handle_lifecycle_change
 
     async def _handle_lifecycle_change(self, e: ft.AppLifecycleStateChangeEvent):
-        print(f"Lifecycle state: {e.state}")
+        # In some Flet versions, it's e.data, in others e.state
+        state_str = getattr(e, "state", e.data)
+        print(f"Lifecycle state changed: {state_str}")
         
-        if e.state == ft.AppLifecycleState.PAUSE:
+        if state_str in ["pause", "hidden"]:
             # App moved to background
-            # We can trigger a 'pause' event here if a video is playing
-            print("App Paused - Video should pause")
-            state.is_loading = False # Or some other signal
+            print("App backgrounded - cleanup if needed")
+            state.is_loading = False
             
-        elif e.state == ft.AppLifecycleState.RESUME:
+        elif state_str in ["resume", "visible"]:
             # App moved to foreground
             print("App Resumed")
             
-        self.page.update()
+        await self.page.update_async() if asyncio.iscoroutinefunction(self.page.update) else self.page.update()
+
+import asyncio

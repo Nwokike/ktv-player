@@ -18,7 +18,10 @@ class AppColors:
     LIGHT_TEXT = "#1A1D2D"
     LIGHT_TEXT_DIM = "#64748B"
 
-    # Glassmorphism & Shimmer (Shared or Dynamic)
+    # Additional Roles
+    TEXT_PRIMARY = ft.Colors.WHITE
+    TEXT_SECONDARY = ft.Colors.ON_SURFACE_VARIANT
+
     @staticmethod
     def get_glass_bg(page: ft.Page):
         return ft.Colors.with_opacity(0.1, ft.Colors.WHITE if page.theme_mode == ft.ThemeMode.DARK else ft.Colors.BLACK)
@@ -61,3 +64,4 @@ class AppTheme:
             ),
             visual_density=ft.VisualDensity.COMFORTABLE,
         )
+
