@@ -32,7 +32,7 @@ async def main(page: ft.Page):
     state.is_first_launch = not state.has_accepted_terms
 
     async def navigate(route: str):
-        await page.push_route(route)
+        page.go(route)
 
     async def play_stream(url: str):
         await db_manager.save_history(url)
@@ -65,14 +65,14 @@ async def main(page: ft.Page):
             
             async def splash_timeout():
                 await asyncio.sleep(3)
-                await page.push_route(dest)
+                page.go(dest)
                 
             page.run_task(splash_timeout)
         
         # Onboarding
         elif parsed_url.path == "/onboarding":
             async def on_onboarding_complete():
-                await page.push_route("/dashboard")
+                page.go("/dashboard")
 
             page.views.append(
                 ft.View("/onboarding", [OnboardingView(on_complete=on_onboarding_complete)], padding=0)
@@ -94,33 +94,31 @@ async def main(page: ft.Page):
                 try:
                     url = base64.b64decode(encoded_url).decode()
                     async def on_player_back():
-                        await page.push_route("/dashboard")
+                        page.go("/dashboard")
 
                     page.views.append(
                         ft.View(page.route, [PlayerView(url=url, on_back=on_player_back)], padding=0)
                     )
                 except Exception as ex:
                     print(f"URL Decode Error: {ex}")
-                    await page.push_route("/dashboard")
+                    page.go("/dashboard")
             else:
-                await page.push_route("/dashboard")
-
-        page.update()
+                page.go("/dashboard")
 
     async def view_pop(e: ft.ViewPopEvent):
         page.views.pop()
         top_view = page.views[-1]
-        await page.push_route(top_view.route)
+        page.go(top_view.route)
 
     page.on_route_change = route_change
     page.on_view_pop = view_pop
     
     # Initial Navigation
-    # Initial Navigation
     if page.route == "/":
         await route_change(None)
     else:
-        await page.push_route(page.route)
+        page.go(page.route)
+    page.update()
 
 if __name__ == "__main__":
     ft.run(main, assets_dir="assets")

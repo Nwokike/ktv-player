@@ -70,7 +70,7 @@ def OnboardingView(on_complete: callable):
             
             ft.Divider(height=40, color=ft.Colors.TRANSPARENT),
             
-            ft.ElevatedButton(
+            ft.Button(
                 "Start Watching",
                 on_click=handle_submit,
                 style=ft.ButtonStyle(

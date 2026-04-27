@@ -44,7 +44,7 @@ class DashboardView(ft.Container):
             ], tight=True, spacing=15, width=400),
             actions=[
                 ft.TextButton("Cancel", on_click=self.close_dialog),
-                ft.ElevatedButton("Add", on_click=self.handle_add, bgcolor=AppColors.PRIMARY, color="white"),
+                ft.Button("Add", on_click=self.handle_add, bgcolor=AppColors.PRIMARY, color="white"),
             ],
         )
 

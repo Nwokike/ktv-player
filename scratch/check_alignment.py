@@ -1,6 +1,3 @@
 import flet as ft
-try:
-    d = ft.Dropdown(options=[ft.dropdown.Option("Test")])
-    print("Dropdown with options created")
-except Exception as e:
-    print(f"Dropdown options error: {e}")
+print(f"TextThemeStyle: {dir(ft.TextThemeStyle)}")
+print(f"ImageFit: {[n for n in dir(ft) if 'Fit' in n]}")
