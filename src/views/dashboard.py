@@ -181,7 +181,7 @@ class DashboardView(ft.Container):
                                        text_align=ft.TextAlign.CENTER, color="on_surface_variant")
                             ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
                             padding=40,
-                            alignment=ft.alignment.CENTER
+                            alignment=ft.Alignment(0, 0)
                         )
                     ]
                 ),
@@ -203,7 +203,7 @@ class DashboardView(ft.Container):
                 )
             ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
             padding=10,
-            alignment=ft.alignment.CENTER
+            alignment=ft.Alignment(0, 0)
         ) if self.selected_tab < 2 else ft.Container()
 
         self.content = ft.Column([header, tabs, content, ft.Divider(height=1) if self.selected_tab < 2 else ft.Container(), footer], spacing=10, expand=True)

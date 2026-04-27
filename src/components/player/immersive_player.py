@@ -61,7 +61,7 @@ def ImmersivePlayer(
                     icon_color=AppColors.TEXT_PRIMARY,
                     on_click=on_close,
                 ),
-                alignment=ft.alignment.TOP_RIGHT,
+                alignment=ft.Alignment(1, -1),
                 padding=20,
             )
         ],
