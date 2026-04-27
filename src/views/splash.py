@@ -22,5 +22,5 @@ def SplashView():
         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=20),
         alignment=ft.Alignment(0, 0),
         expand=True,
-        bgcolor="background",
+        bgcolor=ft.Colors.WHITE,
     )

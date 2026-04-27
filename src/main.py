@@ -32,7 +32,7 @@ async def main(page: ft.Page):
     state.is_first_launch = not state.has_accepted_terms
 
     async def navigate(route: str):
-        page.go(route)
+        await page.push_route(route)
 
     async def play_stream(url: str):
         await db_manager.save_history(url)
@@ -52,6 +52,7 @@ async def main(page: ft.Page):
         page.update()
 
     async def route_change(e: ft.RouteChangeEvent):
+        print(f"Route changing to: {page.route}")
         page.views.clear()
         parsed_url = urllib.parse.urlparse(page.route)
         
@@ -65,14 +66,14 @@ async def main(page: ft.Page):
             
             async def splash_timeout():
                 await asyncio.sleep(3)
-                page.go(dest)
+                await page.push_route(dest)
                 
             page.run_task(splash_timeout)
         
         # Onboarding
         elif parsed_url.path == "/onboarding":
             async def on_onboarding_complete():
-                page.go("/dashboard")
+                await page.push_route("/dashboard")
 
             page.views.append(
                 ft.View("/onboarding", [OnboardingView(on_complete=on_onboarding_complete)], padding=0)
@@ -94,21 +95,21 @@ async def main(page: ft.Page):
                 try:
                     url = base64.b64decode(encoded_url).decode()
                     async def on_player_back():
-                        page.go("/dashboard")
+                        await page.push_route("/dashboard")
 
                     page.views.append(
                         ft.View(page.route, [PlayerView(url=url, on_back=on_player_back)], padding=0)
                     )
                 except Exception as ex:
                     print(f"URL Decode Error: {ex}")
-                    page.go("/dashboard")
+                    await page.push_route("/dashboard")
             else:
-                page.go("/dashboard")
+                await page.push_route("/dashboard")
 
     async def view_pop(e: ft.ViewPopEvent):
         page.views.pop()
         top_view = page.views[-1]
-        page.go(top_view.route)
+        await page.push_route(top_view.route)
 
     page.on_route_change = route_change
     page.on_view_pop = view_pop
@@ -117,7 +118,7 @@ async def main(page: ft.Page):
     if page.route == "/":
         await route_change(None)
     else:
-        page.go(page.route)
+        await page.push_route(page.route)
     page.update()
 
 if __name__ == "__main__":
