@@ -2,6 +2,7 @@ import flet as ft
 import flet_video as fv
 from core.theme import AppColors
 
+@ft.component
 def ImmersivePlayer(
     resource: str,
     on_close: callable = None,
@@ -19,7 +20,7 @@ def ImmersivePlayer(
     # Brightness Overlay (Simulated)
     brightness_overlay = ft.Container(
         expand=True,
-        bgcolor=ft.colors.BLACK,
+        bgcolor=ft.Colors.BLACK,
         opacity=0.0, # 0.0 is brightest, 1.0 is darkest
         visible=True,
     )
@@ -28,7 +29,7 @@ def ImmersivePlayer(
     def handle_vertical_drag(e: ft.DragUpdateEvent):
         # Determine if left side (brightness) or right side (volume)
         # Assuming player fills the width. We use global_x / page width.
-        width = e.page.window_width if e.page.window_width else 1920
+        width = page.window_width if page.window_width else 1920
         is_left_side = e.global_x < (width / 2)
         
         delta = e.delta_y / 200 # Adjust sensitivity
@@ -52,7 +53,7 @@ def ImmersivePlayer(
             ft.GestureDetector(
                 on_vertical_drag_update=handle_vertical_drag,
                 on_double_tap=lambda _: video.jump_to(0), # Or seek logic
-                content=ft.Container(expand=True, bgcolor=ft.colors.TRANSPARENT),
+                content=ft.Container(expand=True, bgcolor=ft.Colors.TRANSPARENT),
             ),
             # Close button
             ft.Container(
@@ -61,7 +62,7 @@ def ImmersivePlayer(
                     icon_color=AppColors.TEXT_PRIMARY,
                     on_click=on_close,
                 ),
-                alignment=ft.Alignment(1, -1),
+                alignment=ft.alignment.top_right,
                 padding=20,
             )
         ],

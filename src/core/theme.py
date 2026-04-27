@@ -34,9 +34,9 @@ class AppTheme:
             color_scheme=ft.ColorScheme(
                 primary=AppColors.PRIMARY,
                 secondary=AppColors.SECONDARY,
-                surface=ft.Colors.WHITE,
-                on_surface=ft.Colors.BLACK,
-                on_surface_variant=ft.Colors.GREY_700,
+                surface=AppColors.DARK_BG,
+                on_surface=AppColors.DARK_TEXT,
+                on_surface_variant=AppColors.DARK_TEXT_DIM,
                 error=AppColors.ERROR,
                 on_primary=ft.Colors.WHITE,
                 on_secondary=ft.Colors.BLACK,

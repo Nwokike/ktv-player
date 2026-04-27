@@ -1,6 +1,7 @@
 import flet as ft
 from core.theme import AppColors
 
+@ft.component
 def GlassContainer(
     content: ft.Control,
     padding: float = 20,
@@ -12,8 +13,8 @@ def GlassContainer(
         content=content,
         padding=padding,
         border_radius=border_radius,
-        bgcolor=ft.Colors.with_opacity(0.05, "on_surface"),
-        border=ft.border.all(0.5, ft.Colors.with_opacity(0.1, "on_surface")),
+        bgcolor=ft.Colors.with_opacity(0.05, ft.colors.ON_SURFACE),
+        border=ft.border.all(0.5, ft.Colors.with_opacity(0.1, ft.colors.ON_SURFACE)),
         blur=ft.Blur(10, 10, ft.BlurStyle.OUTER),
         expand=expand,
         on_click=on_click,

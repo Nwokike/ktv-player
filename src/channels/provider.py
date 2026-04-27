@@ -13,7 +13,6 @@ class ChannelProvider:
 
     def _load_all_modules(self):
         """Scan the data directory and load all .py modules."""
-        print(f"Loading channel modules from {self.data_dir}...")
         for filename in os.listdir(self.data_dir):
             if filename.endswith(".py") and not filename.startswith("__"):
                 module_name = filename[:-3]
@@ -24,7 +23,6 @@ class ChannelProvider:
                 spec.loader.exec_module(module)
                 
                 self.modules[module_name] = module
-        print(f"Loaded {len(self.modules)} channel modules.")
 
     def get_all_channels(self) -> List[ChannelData]:
         all_channels = []
