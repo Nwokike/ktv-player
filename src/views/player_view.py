@@ -2,13 +2,15 @@ import flet as ft
 from components.player.immersive_player import ImmersivePlayer
 from core.theme import AppColors
 
-@ft.component
-def PlayerView(url: str, on_back: callable):
-    return ft.Container(
-        content=ImmersivePlayer(
-            resource=url,
-            on_close=on_back
-        ),
-        bgcolor=ft.Colors.BLACK,
-        expand=True,
-    )
+class PlayerView(ft.Container):
+    def __init__(self, url: str, on_back: callable):
+        super().__init__()
+        self.url = url
+        self.on_back = on_back
+        self.expand = True
+        self.bgcolor = ft.Colors.BLACK
+        
+        self.content = ImmersivePlayer(
+            resource=self.url,
+            on_close=self.on_back
+        )
