@@ -84,5 +84,5 @@ def OnboardingView(on_complete: callable):
         ], alignment=ft.MainAxisAlignment.CENTER, horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=10),
         padding=40,
         expand=True,
-        bgcolor=ft.Colors.BACKGROUND,
+        bgcolor="background",
     )

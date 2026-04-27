@@ -27,6 +27,6 @@ def SplashView(on_complete: callable):
         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=20),
         alignment=ft.Alignment(0, 0),
         expand=True,
-        bgcolor=ft.Colors.BACKGROUND,
+        bgcolor="background",
         on_mount=lambda e: e.page.run_task(animate_splash(e))
     )

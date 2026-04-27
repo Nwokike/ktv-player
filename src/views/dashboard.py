@@ -11,7 +11,7 @@ class DashboardView(ft.Container):
         self.on_play = on_play
         self.expand = True
         self.padding = 20
-        self.bgcolor = ft.Colors.BACKGROUND
+        self.bgcolor = "background"
         
         # State
         self.selected_tab = 0
