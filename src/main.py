@@ -56,7 +56,9 @@ async def main(page: ft.Page):
         if parsed_url.path == "/" or parsed_url.path == "":
             dest = "/dashboard" if not state.is_first_launch else "/onboarding"
             page.views.append(
-                ft.View("/", [SplashView()], padding=0, bgcolor=ft.Colors.WHITE)
+                ft.View("/", [SplashView()], padding=0, bgcolor=ft.Colors.WHITE,
+                        vertical_alignment=ft.MainAxisAlignment.CENTER,
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER)
             )
             
             async def splash_timeout():
@@ -72,7 +74,9 @@ async def main(page: ft.Page):
                 await page.push_route("/dashboard")
 
             page.views.append(
-                ft.View("/onboarding", [OnboardingView(on_complete=on_onboarding_complete)], padding=0, bgcolor=ft.Colors.WHITE)
+                ft.View("/onboarding", [OnboardingView(on_complete=on_onboarding_complete)], padding=0, bgcolor=ft.Colors.WHITE,
+                        vertical_alignment=ft.MainAxisAlignment.CENTER,
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER)
             )
         
         # Dashboard
