@@ -1,0 +1,135 @@
+from channels.base import ChannelData
+
+group_name = "Netherlands"
+country_code = "NL"
+
+channels = [
+    ChannelData(
+        name="NPO 1 Ⓖ",
+        url="http://resolver.streaming.api.nos.nl/livestream?url=/live/npo/tvlive/npo1/npo1.isml/.m3u8",
+        logo="https://i.imgur.com/pUBy4Pb.png",
+        group="Netherlands",
+        country_code="NL",
+        epg_id="NPO1.nl"
+    ),
+    ChannelData(
+        name="NPO 2 Ⓖ",
+        url="http://resolver.streaming.api.nos.nl/livestream?url=/live/npo/tvlive/npo2/npo2.isml/.m3u8",
+        logo="https://i.imgur.com/Vl2G1H3.png",
+        group="Netherlands",
+        country_code="NL",
+        epg_id="NPO2.nl"
+    ),
+    ChannelData(
+        name="NPO 3 Ⓖ",
+        url="http://resolver.streaming.api.nos.nl/livestream?url=/live/npo/tvlive/npo3/npo3.isml/.m3u8",
+        logo="https://i.imgur.com/dVB4Pqc.png",
+        group="Netherlands",
+        country_code="NL",
+        epg_id="NPO3.nl"
+    ),
+    ChannelData(
+        name="Omrop Fryslân",
+        url="https://d3pvma9xb2775h.cloudfront.net/live/omropfryslan/f8f68bd5/playlist.m3u8",
+        logo="https://i.imgur.com/0VKJLAK.png",
+        group="Netherlands",
+        country_code="NL",
+        epg_id="OmropFryslanTV.nl"
+    ),
+    ChannelData(
+        name="RTV Noord",
+        url="https://media.rtvnoord.nl/live/rtvnoord/tv/playlist.m3u8",
+        logo="https://i.imgur.com/pO5Mexa.png",
+        group="Netherlands",
+        country_code="NL",
+        epg_id="RTVNoord.nl"
+    ),
+    ChannelData(
+        name="RTV Drenthe",
+        url="https://cdn.rtvdrenthe.nl/live/rtvdrenthe/tv/1080p/prog_index.m3u8",
+        logo="https://i.imgur.com/GaGqM4z.png",
+        group="Netherlands",
+        country_code="NL",
+        epg_id="RTVDrenthe.nl"
+    ),
+    ChannelData(
+        name="RTV Oost",
+        url="https://d34cg2bnc08ruf.cloudfront.net/live/rtvoost/tv/index.m3u8",
+        logo="https://i.imgur.com/8ropV29.png",
+        group="Netherlands",
+        country_code="NL",
+        epg_id="RTVOost.nl"
+    ),
+    ChannelData(
+        name="Omroep Gelderland",
+        url="https://d2od87akyl46nm.cloudfront.net/live/omroepgelderland/tvgelderland-hls/index.m3u8",
+        logo="https://i.imgur.com/TPlyvUQ.png",
+        group="Netherlands",
+        country_code="NL",
+        epg_id="OmroepGelderlandTV.nl"
+    ),
+    ChannelData(
+        name="RTV Utrecht",
+        url="http://media.rtvutrecht.nl/live/rtvutrecht/rtvutrecht/index.m3u8",
+        logo="https://i.imgur.com/c0I24N6.png",
+        group="Netherlands",
+        country_code="NL",
+        epg_id="RTVUtrecht.nl"
+    ),
+    ChannelData(
+        name="Omroep Flevoland Ⓢ",
+        url="https://d5ms27yy6exnf.cloudfront.net/live/omroepflevoland/tv/index.m3u8",
+        logo="https://i.imgur.com/d1CmTcI.png",
+        group="Netherlands",
+        country_code="NL",
+        epg_id="OmroepFlevolandTV.nl"
+    ),
+    ChannelData(
+        name="NH Nieuws",
+        url="https://rrr.sz.xlcdn.com/?account=nhnieuws&file=live&type=live&service=wowza&protocol=https&output=playlist.m3u8",
+        logo="https://i.imgur.com/SQPVOwn.png",
+        group="Netherlands",
+        country_code="NL",
+        epg_id=""
+    ),
+    ChannelData(
+        name="RTV Rijnmond",
+        url="https://dcur8bjarl5c2.cloudfront.net/live/rijnmond/tv/index.m3u8",
+        logo="https://i.imgur.com/TNhUVEm.png",
+        group="Netherlands",
+        country_code="NL",
+        epg_id="RTVRijnmond.nl"
+    ),
+    ChannelData(
+        name="Omroep West",
+        url="https://d1axml5ozykh3g.cloudfront.net/live/omroepwest/tv/index.m3u8",
+        logo="https://i.imgur.com/aax1HPH.png",
+        group="Netherlands",
+        country_code="NL",
+        epg_id="OmroepWestTV.nl"
+    ),
+    ChannelData(
+        name="Omroep Zeeland",
+        url="http://d3isaxd2t6q8zm.cloudfront.net/live/omroepzeeland/tv/index.m3u8",
+        logo="https://i.imgur.com/8aLDyUI.png",
+        group="Netherlands",
+        country_code="NL",
+        epg_id="OmroepZeelandTV.nl"
+    ),
+    ChannelData(
+        name="Omroep Brabant",
+        url="http://d3slqp9xhts6qb.cloudfront.net/live/omroepbrabant/tv/index.m3u8",
+        logo="https://i.imgur.com/Jv7IjHJ.png",
+        group="Netherlands",
+        country_code="NL",
+        epg_id="OmroepBrabantTV.nl"
+    ),
+    ChannelData(
+        name="L1 Ⓢ",
+        url="http://d34pj260kw1xmk.cloudfront.net/live/l1/tv/index.m3u8",
+        logo="https://i.imgur.com/Jyhn1iP.png",
+        group="Netherlands",
+        country_code="NL",
+        epg_id="L1TV.nl"
+    ),
+]

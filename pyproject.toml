@@ -32,7 +32,7 @@ line-length = 100
 target-version = "py313"
 
 [tool.coverage.run]
-source = ["core", "services", "database", "components", "views"]
+source = ["src/core", "src/services", "src/database", "src/components", "src/views"]
 omit = ["tests/*"]
 
 [tool.flet]
@@ -47,4 +47,4 @@ build_version = "1.0.0"
 
 [tool.flet.android.manifest_application]
 # Test AdMob App ID (Android)
-"com.google.android.gms.ads.APPLICATION_ID" = "ca-app-pub-3940256099942544~3347511713"
+# "com.google.android.gms.ads.APPLICATION_ID" = "ca-app-pub-3940256099942544~3347511713"

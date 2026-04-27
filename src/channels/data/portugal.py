@@ -1,0 +1,103 @@
+from channels.base import ChannelData
+
+group_name = "Portugal"
+country_code = "PT"
+
+channels = [
+    ChannelData(
+        name="RTP1",
+        url="https://streaming-live.rtp.pt/liverepeater/smil:rtp1HD.smil/playlist.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/RTP1_-_Logo_2016.svg/640px-RTP1_-_Logo_2016.svg.png",
+        group="Portugal",
+        country_code="PT",
+        epg_id="RTP1.pt"
+    ),
+    ChannelData(
+        name="RTP2 Ⓖ",
+        url="https://streaming-live.rtp.pt/liverepeater/rtp2HD.smil/playlist.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/en/4/4d/Rtp2_2016_logo.png",
+        group="Portugal",
+        country_code="PT",
+        epg_id="RTP2.pt"
+    ),
+    ChannelData(
+        name="SIC",
+        url="https://d1zx6l1dn8vaj5.cloudfront.net/out/v1/b89cc37caa6d418eb423cf092a2ef970/index.m3u8",
+        logo="https://i.imgur.com/SPMqiDG.png",
+        group="Portugal",
+        country_code="PT",
+        epg_id="SIC.pt"
+    ),
+    ChannelData(
+        name="RTP Açores",
+        url="https://streaming-live.rtp.pt/liverepeater/smil:rtpacoresHD.smil/playlist.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/RTP_A%C3%A7ores_%282016%29.svg/640px-RTP_A%C3%A7ores_%282016%29.svg.png",
+        group="Portugal",
+        country_code="PT",
+        epg_id="RTPAcores.pt"
+    ),
+    ChannelData(
+        name="RTP Madeira Ⓢ",
+        url="https://streaming-live.rtp.pt/liverepeater/smil:rtpmadeira.smil/playlist.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/en/a/ac/RTP_Madeira_2016.png",
+        group="Portugal",
+        country_code="PT",
+        epg_id="RTPMadeira.pt"
+    ),
+    ChannelData(
+        name="RTP3",
+        url="https://streaming-live.rtp.pt/livetvhlsDVR/rtpnHDdvr.smil/playlist.m3u8?DVR=",
+        logo="https://upload.wikimedia.org/wikipedia/commons/b/b9/Rtp3.png",
+        group="Portugal",
+        country_code="PT",
+        epg_id="RTP3.pt"
+    ),
+    ChannelData(
+        name="RTP África",
+        url="https://streaming-live.rtp.pt/liverepeater/smil:rtpafrica.smil/playlist.m3u8",
+        logo="https://i.imgur.com/ISFNy17.png",
+        group="Portugal",
+        country_code="PT",
+        epg_id="RTPAfrica.pt"
+    ),
+    ChannelData(
+        name="RTP Mundo",
+        url="https://streaming-live.rtp.pt/liverepeater/smil:rtpi.smil/playlist.m3u8",
+        logo="https://i.imgur.com/mJ3gyqx.png",
+        group="Portugal",
+        country_code="PT",
+        epg_id="RTPInternacional.pt"
+    ),
+    ChannelData(
+        name="Porto Canal Ⓢ",
+        url="https://streamer-a01.videos.sapo.pt/live/portocanal/playlist.m3u8",
+        logo="https://i.imgur.com/wsyvP2H.png",
+        group="Portugal",
+        country_code="PT",
+        epg_id="PortoCanal.pt"
+    ),
+    ChannelData(
+        name="ADtv Ⓢ",
+        url="https://playout172.livextend.cloud/liveiframe/_definst_/ngrp:liveartvabr_abr/playlist.m3u8",
+        logo="https://i.imgur.com/FvlcU3z.png",
+        group="Portugal",
+        country_code="PT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="CNN Portugal",
+        url="https://sktv-forwarders.7m.pl/get.php?x=CNN_Portugal",
+        logo="https://i.imgur.com/NYH39xs.png",
+        group="Portugal",
+        country_code="PT",
+        epg_id="CNNPortugal.pt"
+    ),
+    ChannelData(
+        name="Euronews em Português Ⓨ",
+        url="https://www.youtube.com/euronewspt/live",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Euronews_2022.svg/640px-Euronews_2022.svg.png",
+        group="Portugal",
+        country_code="PT",
+        epg_id="EuronewsPortuguese.fr"
+    ),
+]

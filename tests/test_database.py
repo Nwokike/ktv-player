@@ -5,7 +5,7 @@ from database.manager import DatabaseManager
 
 @pytest.fixture
 async def db_manager():
-    db_path = "test_ktv.db"
+    db_path = "test_ktv_main.db"
     manager = DatabaseManager(db_path)
     await manager.init_db()
     yield manager
@@ -18,6 +18,35 @@ async def test_history_persistence(db_manager):
     await db_manager.save_history(test_url)
     history = await db_manager.get_history()
     assert test_url in history
+
+@pytest.mark.asyncio
+async def test_settings_persistence(db_manager):
+    await db_manager.set_setting("user_country", "Nigeria")
+    val = await db_manager.get_setting("user_country")
+    assert val == "Nigeria"
+    
+    # Test default value
+    val_default = await db_manager.get_setting("non_existent", "default_val")
+    assert val_default == "default_val"
+
+@pytest.mark.asyncio
+async def test_playlist_management(db_manager):
+    await db_manager.add_playlist("Test Playlist", "http://example.com/playlist.m3u")
+    playlists = await db_manager.get_playlists()
+    
+    assert len(playlists) == 1
+    assert playlists[0]["name"] == "Test Playlist"
+    assert playlists[0]["url"] == "http://example.com/playlist.m3u"
+    assert playlists[0]["is_active"] == 1
+
+@pytest.mark.asyncio
+async def test_custom_channel_management(db_manager):
+    await db_manager.add_custom_channel("Single Channel", "http://test.com/stream.m3u8", "My Group")
+    channels = await db_manager.get_custom_channels()
+    
+    assert len(channels) == 1
+    assert channels[0]["name"] == "Single Channel"
+    assert channels[0]["group"] == "My Group"
 
 @pytest.mark.asyncio
 async def test_wal_mode(db_manager):

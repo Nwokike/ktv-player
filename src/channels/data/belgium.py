@@ -1,0 +1,111 @@
+from channels.base import ChannelData
+
+group_name = "Belgium"
+country_code = "BE"
+
+channels = [
+    ChannelData(
+        name="RTL-Be",
+        url="https://rtltvi-lh.akamaihd.net/i/TVI_1@319659/master.m3u8",
+        logo="https://i.imgur.com/xMhSvax.png",
+        group="Belgium",
+        country_code="BE",
+        epg_id="BelRTL.be"
+    ),
+    ChannelData(
+        name="La Une",
+        url="http://4ce5e2d62ee2c10e43c709f9b87c44d5.streamhost.cc/m3u8/Belgium/29797c9f3f4fa00.m3u8",
+        logo="https://i.imgur.com/hJodwJt.png",
+        group="Belgium",
+        country_code="BE",
+        epg_id="LaUne.be"
+    ),
+    ChannelData(
+        name="Tipik",
+        url="http://4ce5e2d62ee2c10e43c709f9b87c44d5.streamhost.cc/m3u8/Belgium/5dee2de1f4661ce.m3u8",
+        logo="https://i.imgur.com/PVbVj8o.png",
+        group="Belgium",
+        country_code="BE",
+        epg_id="Tipik.be"
+    ),
+    ChannelData(
+        name="Club RTL",
+        url="http://4ce5e2d62ee2c10e43c709f9b87c44d5.streamhost.cc/m3u8/Belgium/9ef55f75bc15308.ts",
+        logo="https://i.imgur.com/e9GkFwY.png",
+        group="Belgium",
+        country_code="BE",
+        epg_id="ClubRTL.be"
+    ),
+    ChannelData(
+        name="La Trois",
+        url="http://4ce5e2d62ee2c10e43c709f9b87c44d5.streamhost.cc/m3u8/Belgium/6f940c7da9a562e.ts",
+        logo="https://i.imgur.com/kC3pJtA.png",
+        group="Belgium",
+        country_code="BE",
+        epg_id="LaTrois.be"
+    ),
+    ChannelData(
+        name="Plug RTL",
+        url="http://4ce5e2d62ee2c10e43c709f9b87c44d5.streamhost.cc/m3u8/Belgium/de5c6896d356f8e.ts",
+        logo="https://i.imgur.com/iAZZWkZ.png",
+        group="Belgium",
+        country_code="BE",
+        epg_id="PlugRTL.be"
+    ),
+    ChannelData(
+        name="LN24",
+        url="https://live.cdn.ln24.be/out/v1/b191621c8b9a436cad37bb36a82d2e1c/index.m3u8",
+        logo="https://i.imgur.com/hePpxnn.png",
+        group="Belgium",
+        country_code="BE",
+        epg_id="LN24.be"
+    ),
+    ChannelData(
+        name="BX1",
+        url="https://59959724487e3.streamlock.net/stream/live/playlist.m3u8",
+        logo="https://i.imgur.com/YjKqWru.png",
+        group="Belgium",
+        country_code="BE",
+        epg_id="BX1.be"
+    ),
+    ChannelData(
+        name="EEN",
+        url="https://live-vrt.rabah.net/groupc/live/8edf3bdf-7db3-41c3-a318-72cb7f82de66/live_aes.isml/playlist.m3u8",
+        logo="https://i.imgur.com/66GQlc7.png",
+        group="Belgium",
+        country_code="BE",
+        epg_id="Een.be"
+    ),
+    ChannelData(
+        name="Canvas",
+        url="http://4ce5e2d62ee2c10e43c709f9b87c44d5.streamhost.cc/m3u8/Belgium/09916e3a88db175.ts",
+        logo="https://i.imgur.com/GQkhACx.png",
+        group="Belgium",
+        country_code="BE",
+        epg_id="Canvas.be"
+    ),
+    ChannelData(
+        name="VTM",
+        url="http://4ce5e2d62ee2c10e43c709f9b87c44d5.streamhost.cc/m3u8/Belgium/c5cafdbfc4d28d3.ts",
+        logo="https://i.imgur.com/fUxRP9x.png",
+        group="Belgium",
+        country_code="BE",
+        epg_id="VTM.be"
+    ),
+    ChannelData(
+        name="VIER",
+        url="http://4ce5e2d62ee2c10e43c709f9b87c44d5.streamhost.cc/m3u8/Belgium/3f1f349cb9cf765.ts",
+        logo="https://i.imgur.com/bFTXP2e.png",
+        group="Belgium",
+        country_code="BE",
+        epg_id=""
+    ),
+    ChannelData(
+        name="VIJF",
+        url="http://4ce5e2d62ee2c10e43c709f9b87c44d5.streamhost.cc/m3u8/Belgium/7f59a4dfcc56366.ts",
+        logo="https://i.imgur.com/DTJLkiP.png",
+        group="Belgium",
+        country_code="BE",
+        epg_id=""
+    ),
+]

@@ -4,10 +4,31 @@ from core.theme import AppColors, AppTheme
 
 def test_color_tokens():
     assert AppColors.PRIMARY.startswith("#")
-    assert AppColors.BACKGROUND == "#0F111A"
+    assert AppColors.DARK_BG == "#0F111A"
+    assert AppColors.LIGHT_BG == "#F5F7FA"
 
-def test_theme_generation():
-    theme = AppTheme.get_theme()
+def test_dark_theme_generation():
+    theme = AppTheme.get_dark_theme()
     assert isinstance(theme, ft.Theme)
-    assert theme.color_scheme.primary == AppColors.PRIMARY
-    assert theme.visual_density == ft.VisualDensity.COMFORTABLE
+    assert theme.color_scheme.surface == AppColors.DARK_BG
+    assert theme.color_scheme.on_surface == AppColors.DARK_TEXT
+
+def test_light_theme_generation():
+    theme = AppTheme.get_light_theme()
+    assert isinstance(theme, ft.Theme)
+    assert theme.color_scheme.surface == AppColors.LIGHT_BG
+    assert theme.color_scheme.on_surface == AppColors.LIGHT_TEXT
+
+def test_dynamic_helpers():
+    from unittest.mock import MagicMock
+    page = MagicMock()
+    page.theme_mode = ft.ThemeMode.DARK
+    
+    glass_dark = AppColors.get_glass_bg(page)
+    shimmer_dark = AppColors.get_shimmer_base(page)
+    
+    page.theme_mode = ft.ThemeMode.LIGHT
+    glass_light = AppColors.get_glass_bg(page)
+    shimmer_light = AppColors.get_shimmer_base(page)
+    
+    assert shimmer_dark != shimmer_light

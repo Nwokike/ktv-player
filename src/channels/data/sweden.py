@@ -1,0 +1,135 @@
+from channels.base import ChannelData
+
+group_name = "Sweden"
+country_code = "SE"
+
+channels = [
+    ChannelData(
+        name="SVT 1 Ⓖ",
+        url="https://ed2.cdn.svt.se/ed7/d1/c/se/svt1/manifest.mpd?defaultSubLang=1",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/SVT1_logo_2016.svg/800px-SVT1_logo_2016.svg.png",
+        group="Sweden",
+        country_code="SE",
+        epg_id="SVT1.se"
+    ),
+    ChannelData(
+        name="SVT 2 Ⓖ",
+        url="https://ed2.cdn.svt.se/ed7/d1/c/se/svt2/manifest.mpd?defaultSubLang=1",
+        logo="https://i.imgur.com/iB3veGx.png",
+        group="Sweden",
+        country_code="SE",
+        epg_id="SVT2.se"
+    ),
+    ChannelData(
+        name="ATG Live Ⓢ",
+        url="https://httpcache0-00688-cacheliveedge0.dna.qbrick.com/00688-cacheliveedge0/out/u/atg_sdi_1_free.m3u8",
+        logo="https://i.imgur.com/bPWFXkL.png",
+        group="Sweden",
+        country_code="SE",
+        epg_id="ATGLive.se"
+    ),
+    ChannelData(
+        name="Expressen TV",
+        url="https://cdn0-03837-liveedge0.dna.ip-only.net/03837-liveedge0/smil:03837-tx2/playlist.m3u8",
+        logo="https://i.imgur.com/8EjMSr7.png",
+        group="Sweden",
+        country_code="SE",
+        epg_id="ExpressenTV.se"
+    ),
+    ChannelData(
+        name="Kanal 10 Sverige",
+        url="https://rrr.sz.xlcdn.com/?account=cn_kanal10media&file=live_transcoded&type=live&service=wowza&protocol=https&output=playlist.m3u8",
+        logo="https://i.imgur.com/vlh699v.png",
+        group="Sweden",
+        country_code="SE",
+        epg_id="Kanal10.se"
+    ),
+    ChannelData(
+        name="SVT 24 Ⓖ",
+        url="https://ed2.cdn.svt.se/ed7/d1/c/se/svtb/manifest.mpd?defaultSubLang=1",
+        logo="https://i.imgur.com/o9M7Tiq.png",
+        group="Sweden",
+        country_code="SE",
+        epg_id="SVT24.se"
+    ),
+    ChannelData(
+        name="Kunskapskanalen Ⓖ",
+        url="https://ed2.cdn.svt.se/ed7/d1/c/se/svtk/manifest.mpd?defaultSubLang=1",
+        logo="https://i.imgur.com/9YBxoGc.png",
+        group="Sweden",
+        country_code="SE",
+        epg_id="Kunskapskanalen.se"
+    ),
+    ChannelData(
+        name="Di TV",
+        url="https://cdn0-03837-liveedge0.dna.ip-only.net/03837-liveedge0/smil:03837-tx4/playlist.m3u8",
+        logo="https://i.imgur.com/zApTDWn.png",
+        group="Sweden",
+        country_code="SE",
+        epg_id="DiTV.se"
+    ),
+    ChannelData(
+        name="Öppna Kanalen Stockholm Ⓢ",
+        url="https://edg03-prd-se-ixn.solidtango.com/edge/451iw2h/playlist.m3u8",
+        logo="https://i.imgur.com/GWlstv5.png",
+        group="Sweden",
+        country_code="SE",
+        epg_id="OppnaKanalenStockholm.se"
+    ),
+    ChannelData(
+        name="Öppna Kanalen Malmö Ⓢ",
+        url="https://edg01-prd-de-ixn.solidtango.com/edge/_8ynhbua3_/8ynhbua3/manifest.m3u8",
+        logo="https://i.imgur.com/sjw8dsM.jpg",
+        group="Sweden",
+        country_code="SE",
+        epg_id="TVMalmo.se"
+    ),
+    ChannelData(
+        name="Västmanlands TV",
+        url="https://edg01-prd-se-dcs.solidtango.com/edge/lo9yf4l5/playlist.m3u8",
+        logo="https://i.imgur.com/EXBaQ88.jpg",
+        group="Sweden",
+        country_code="SE",
+        epg_id="VastmanlandsTV.se"
+    ),
+    ChannelData(
+        name="Sundskanalen",
+        url="https://stream.sundskanalen.se/live/view/index.m3u8",
+        logo="https://i.imgur.com/8uT0p3q.jpg",
+        group="Sweden",
+        country_code="SE",
+        epg_id="Sundskanalen.se"
+    ),
+    ChannelData(
+        name="Öppna Kanalen Skövde",
+        url="https://edg01-prd-de-ixn.solidtango.com/edge/_c6697zkv_/c6697zkv/manifest.m3u8",
+        logo="https://i.imgur.com/1LkYbaQ.png",
+        group="Sweden",
+        country_code="SE",
+        epg_id="OppnaKanalenSkovde.se"
+    ),
+    ChannelData(
+        name="Lokal-TV Uddevalla / Fyrbodal-TV Ⓨ",
+        url="https://www.youtube.com/@LtvuSeTube/live",
+        logo="https://i.imgur.com/cnLkbOT.png",
+        group="Sweden",
+        country_code="SE",
+        epg_id="LTVU.se"
+    ),
+    ChannelData(
+        name="Aryen TV",
+        url="https://aryen.tv/live/tv/playlist.m3u8",
+        logo="https://i.imgur.com/qUg7edz.png",
+        group="Sweden",
+        country_code="SE",
+        epg_id="AryenTV.se"
+    ),
+    ChannelData(
+        name="Suryoyo Sat",
+        url="https://player-api.new.livestream.com/accounts/10187302/events/6785118/broadcasts/237816618.secure.m3u8",
+        logo="https://i.imgur.com/naCNjaB.png",
+        group="Sweden",
+        country_code="SE",
+        epg_id="SuryoyoSat.se"
+    ),
+]

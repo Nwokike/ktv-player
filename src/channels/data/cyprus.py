@@ -1,0 +1,95 @@
+from channels.base import ChannelData
+
+group_name = "Cyprus"
+country_code = "CY"
+
+channels = [
+    ChannelData(
+        name="RIK 1 Ⓢ",
+        url="http://l6.cloudskep.com/tvb6/rik1-1/mpeg.2ts",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Logo_RIK_1_2017.svg/640px-Logo_RIK_1_2017.svg.png",
+        group="Cyprus",
+        country_code="CY",
+        epg_id="RIK1.cy"
+    ),
+    ChannelData(
+        name="RIK 2 Ⓢ",
+        url="http://l6.cloudskep.com/tvb6/rik2-1/mpeg.2ts",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Logo_RIK_2_2017.svg/640px-Logo_RIK_2_2017.svg.png",
+        group="Cyprus",
+        country_code="CY",
+        epg_id="RIK2.cy"
+    ),
+    ChannelData(
+        name="RIK HD",
+        url="http://l6.cloudskep.com/tvb6/rikhd1/mpeg.2ts",
+        logo="https://upload.wikimedia.org/wikipedia/el/7/7d/RIKHD2.png",
+        group="Cyprus",
+        country_code="CY",
+        epg_id="RIKHD.cy"
+    ),
+    ChannelData(
+        name="RIK Sat",
+        url="https://l3.cloudskep.com/cybcsat/abr/playlist.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Logo_RIK_Sat_2017.svg/640px-Logo_RIK_Sat_2017.svg.png",
+        group="Cyprus",
+        country_code="CY",
+        epg_id="RIKSat.cy"
+    ),
+    ChannelData(
+        name="BRT 1",
+        url="https://sc-kuzeykibrissmarttv.ercdn.net/brt1hd/bant1/playlist.m3u8",
+        logo="https://i.imgur.com/gOPAi2c.png",
+        group="Cyprus",
+        country_code="CY",
+        epg_id="BRT1.cy"
+    ),
+    ChannelData(
+        name="BRT 2",
+        url="https://sc-kuzeykibrissmarttv.ercdn.net/brt2hd/bant1/playlist.m3u8",
+        logo="https://i.imgur.com/t5kbIuj.png",
+        group="Cyprus",
+        country_code="CY",
+        epg_id="BRT2.cy"
+    ),
+    ChannelData(
+        name="Ada TV Ⓢ",
+        url="https://sc-kuzeykibrissmarttv.ercdn.net/adatv/bant1/playlist.m3u8",
+        logo="https://i.imgur.com/LPQfdz2.png",
+        group="Cyprus",
+        country_code="CY",
+        epg_id="AdaTV.cy"
+    ),
+    ChannelData(
+        name="Kıbrıs Genç TV Ⓢ",
+        url="https://sc-kuzeykibrissmarttv.ercdn.net/kibrisgenctv/bant1/playlist.m3u8",
+        logo="https://i.imgur.com/eBdQn9h.png",
+        group="Cyprus",
+        country_code="CY",
+        epg_id="KibrisGencTV.cy"
+    ),
+    ChannelData(
+        name="Kanal T Ⓢ",
+        url="https://sc-kuzeykibrissmarttv.ercdn.net/kanalt/bantp1/playlist.m3u8",
+        logo="https://i.imgur.com/4bA4pXT.png",
+        group="Cyprus",
+        country_code="CY",
+        epg_id="KibrisKanalT.cy"
+    ),
+    ChannelData(
+        name="Kıbrıs TV Ⓢ",
+        url="https://sc-kuzeykibrissmarttv.ercdn.net/kibristv/bant1/playlist.m3u8",
+        logo="https://i.imgur.com/5MJZPTo.png",
+        group="Cyprus",
+        country_code="CY",
+        epg_id="KibrisTV.cy"
+    ),
+    ChannelData(
+        name="TV 2020 Ⓢ",
+        url="https://sc-kuzeykibrissmarttv.ercdn.net/tv2020/bantp1/playlist.m3u8",
+        logo="https://i.imgur.com/rtfsNdd.png",
+        group="Cyprus",
+        country_code="CY",
+        epg_id="TV2020.cy"
+    ),
+]

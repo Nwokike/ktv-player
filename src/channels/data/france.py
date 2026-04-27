@@ -1,0 +1,135 @@
+from channels.base import ChannelData
+
+group_name = "France"
+country_code = "FR"
+
+channels = [
+    ChannelData(
+        name="Arte Ⓖ",
+        url="https://artesimulcast.akamaized.net/hls/live/2031003/artelive_fr/index.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Arte_Logo_2017.svg/12px-Arte_Logo_2017.svg.png",
+        group="France",
+        country_code="FR",
+        epg_id="ARTEFrench.fr"
+    ),
+    ChannelData(
+        name="C8 Ⓓ",
+        url="https://www.dailymotion.com/video/x5gv5rr",
+        logo="https://i.imgur.com/LXhXF8l.png",
+        group="France",
+        country_code="FR",
+        epg_id="C8.fr"
+    ),
+    ChannelData(
+        name="NRJ 12",
+        url="https://nrj12.nrjaudio.fm/hls/live/2038374/nrj_12/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/NRJ12_logo_2015.svg/749px-NRJ12_logo_2015.svg.png",
+        group="France",
+        country_code="FR",
+        epg_id="NRJ12.fr"
+    ),
+    ChannelData(
+        name="LCP",
+        url="https://lcp.fr/le-live-lcp-tnt-5433",
+        logo="https://upload.wikimedia.org/wikipedia/fr/thumb/6/6a/Logo_LCP-AN_-_Public_S%C3%A9nat_%282019%29.svg/53px-Logo_LCP-AN_-_Public_S%C3%A9nat_%282019%29.svg.png",
+        group="France",
+        country_code="FR",
+        epg_id="LCP.fr"
+    ),
+    ChannelData(
+        name="Public Sénat",
+        url="https://www.publicsenat.fr/direct",
+        logo="https://i.imgur.com/bJOdFT1.png",
+        group="France",
+        country_code="FR",
+        epg_id="PublicSenat.fr"
+    ),
+    ChannelData(
+        name="CNews Ⓓ",
+        url="https://www.dailymotion.com/video/x3b68jn",
+        logo="https://i.imgur.com/UMRGAHx.png",
+        group="France",
+        country_code="FR",
+        epg_id="CNews.fr"
+    ),
+    ChannelData(
+        name="franceinfo: Ⓨ",
+        url="https://www.youtube.com/c/franceinfo/live",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Franceinfo.svg/640px-Franceinfo.svg.png",
+        group="France",
+        country_code="FR",
+        epg_id="Franceinfo.fr"
+    ),
+    ChannelData(
+        name="France 24 Ⓨ",
+        url="https://www.youtube.com/c/FRANCE24/live",
+        logo="https://i.imgur.com/61MSiq9.png",
+        group="France",
+        country_code="FR",
+        epg_id="France24French.fr"
+    ),
+    ChannelData(
+        name="Euronews Français Ⓨ",
+        url="https://www.youtube.com/euronewsfr/live",
+        logo="https://i.imgur.com/3Lr5iAj.png",
+        group="France",
+        country_code="FR",
+        epg_id="EuronewsFrench.fr"
+    ),
+    ChannelData(
+        name="Africanews Ⓨ",
+        url="https://www.youtube.com/c/Africanewsfr/live",
+        logo="https://i.imgur.com/xocvePC.png",
+        group="France",
+        country_code="FR",
+        epg_id="Africanews.cg"
+    ),
+    ChannelData(
+        name="L'Équipe ⒹⒼ",
+        url="https://www.dailymotion.com/video/x2lefik",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/L%27%C3%89quipe_wordmark.svg/640px-L%27%C3%89quipe_wordmark.svg.png",
+        group="France",
+        country_code="FR",
+        epg_id="LEquipe.fr"
+    ),
+    ChannelData(
+        name="France Inter Ⓨ",
+        url="https://www.youtube.com/c/FranceInter/live",
+        logo="https://i.imgur.com/d9Ncl8m.png",
+        group="France",
+        country_code="FR",
+        epg_id="FranceInter.fr"
+    ),
+    ChannelData(
+        name="CGTN Français",
+        url="https://news.cgtn.com/resource/live/french/cgtn-f.m3u8",
+        logo="https://i.imgur.com/fMsJYzl.png",
+        group="France",
+        country_code="FR",
+        epg_id="CGTNFrench.cn"
+    ),
+    ChannelData(
+        name="TV5 Monde Info",
+        url="https://ott.tv5monde.com/Content/HLS/Live/channel(info",
+        logo="https://i.imgur.com/NcysrWH.png",
+        group="France",
+        country_code="FR",
+        epg_id="TV5MondeInfo.fr"
+    ),
+    ChannelData(
+        name="TV5 Monde FBS",
+        url="https://ott.tv5monde.com/Content/HLS/Live/channel(fbs",
+        logo="https://i.imgur.com/uPmwTo9.png",
+        group="France",
+        country_code="FR",
+        epg_id="TV5MondeFranceBelgiumSwitzerland.fr"
+    ),
+    ChannelData(
+        name="TV5 Monde Europe",
+        url="https://ott.tv5monde.com/Content/HLS/Live/channel(europe",
+        logo="https://i.imgur.com/uPmwTo9.png",
+        group="France",
+        country_code="FR",
+        epg_id="TV5MondeEurope.fr"
+    ),
+]

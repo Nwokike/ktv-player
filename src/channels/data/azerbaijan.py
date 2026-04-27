@@ -1,0 +1,175 @@
+from channels.base import ChannelData
+
+group_name = "Azerbaijan"
+country_code = "AZ"
+
+channels = [
+    ChannelData(
+        name="ARB 24",
+        url="http://85.132.81.184:8080/arb/live/index.m3u8",
+        logo="https://i.imgur.com/mtvIFyq.png",
+        group="Azerbaijan",
+        country_code="AZ",
+        epg_id="ARB24.az"
+    ),
+    ChannelData(
+        name="ARB Günəş Ⓢ",
+        url="https://www.tvkaista.net/stream-forwarder/get.php?x=ARMGunes",
+        logo="https://i.imgur.com/dSg7KUK.png",
+        group="Azerbaijan",
+        country_code="AZ",
+        epg_id="ArbGunes.az"
+    ),
+    ChannelData(
+        name="ARB Ⓢ",
+        url="http://109.205.166.68/server124/arb/index.m3u8",
+        logo="https://i.imgur.com/E97M2OL.png",
+        group="Azerbaijan",
+        country_code="AZ",
+        epg_id="ARB.az"
+    ),
+    ChannelData(
+        name="Azad TV Ⓢ",
+        url="https://www.tvkaista.net/stream-forwarder/get.php?x=ATVAz",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/ATV_%282012-h.h.%29.png/474px-ATV_%282012-h.h.%29.png",
+        group="Azerbaijan",
+        country_code="AZ",
+        epg_id="AzadTV.az"
+    ),
+    ChannelData(
+        name="AzStarTV",
+        url="http://live.azstartv.com/azstar/smil:azstar.smil/playlist.m3u8",
+        logo="https://i.imgur.com/di3XX5L.png",
+        group="Azerbaijan",
+        country_code="AZ",
+        epg_id="AzStarTV.ca"
+    ),
+    ChannelData(
+        name="AZTV Ⓢ",
+        url="https://www.tvkaista.net/stream-forwarder/get.php?x=AZTV",
+        logo="https://i.imgur.com/snBMMeH.png",
+        group="Azerbaijan",
+        country_code="AZ",
+        epg_id="AZTV.az"
+    ),
+    ChannelData(
+        name="Baku TV",
+        url="https://rtmp.baku.tv/live/bakutv_720p.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Baku_TV_%282018%29.png/640px-Baku_TV_%282018%29.png",
+        group="Azerbaijan",
+        country_code="AZ",
+        epg_id="BakuTV.az"
+    ),
+    ChannelData(
+        name="CBC",
+        url="https://stream.cbctv.az:5443/LiveApp/streams/cbctv.m3u8",
+        logo="https://i.imgur.com/wVT0dwO.png",
+        group="Azerbaijan",
+        country_code="AZ",
+        epg_id="CBC.az"
+    ),
+    ChannelData(
+        name="CBC Sport Ⓖ",
+        url="https://mn-nl.mncdn.com/cbcsports_live/cbcsports/playlist.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/az/0/04/CBC_Sport_TV_loqo.png",
+        group="Azerbaijan",
+        country_code="AZ",
+        epg_id="CBCSport.az"
+    ),
+    ChannelData(
+        name="Dünya TV Ⓢ",
+        url="https://www.tvkaista.net/stream-forwarder/get.php?x=Dunya",
+        logo="https://upload.wikimedia.org/wikipedia/az/5/5d/D%C3%BCnya_TV_%282019-h.h.%29.png",
+        group="Azerbaijan",
+        country_code="AZ",
+        epg_id="DunyaTV.az"
+    ),
+    ChannelData(
+        name="İctimai TV Ⓢ",
+        url="http://109.205.166.68/server124/ictimai_tv/index.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/%C4%B0ctimai_TV_%282021-h.h.%29.svg/470px-%C4%B0ctimai_TV_%282021-h.h.%29.svg.png",
+        group="Azerbaijan",
+        country_code="AZ",
+        epg_id="IctimaiTV.az"
+    ),
+    ChannelData(
+        name="İdman TV Ⓢ",
+        url="http://109.205.166.68/server124/idman_az/index.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/az/thumb/8/88/%C4%B0dman_Az%C9%99rbaycan_TV_loqo_%282019-h.h.%29.png/640px-%C4%B0dman_Az%C9%99rbaycan_TV_loqo_%282019-h.h.%29.png",
+        group="Azerbaijan",
+        country_code="AZ",
+        epg_id="IdmanTV.az"
+    ),
+    ChannelData(
+        name="Kanal S",
+        url="https://www.tvkaista.net/stream-forwarder/get.php?x=KanalS",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Kanal_S_%282022%29.png/616px-Kanal_S_%282022%29.png",
+        group="Azerbaijan",
+        country_code="AZ",
+        epg_id="KanalS.az"
+    ),
+    ChannelData(
+        name="Mədəniyyət TV Ⓢ",
+        url="https://str.yodacdn.net/medeniyyet/index.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/f/fc/M%C9%99d%C9%99niyy%C9%99t_TV_logo.png",
+        group="Azerbaijan",
+        country_code="AZ",
+        epg_id="MedeniyyetTV.az"
+    ),
+    ChannelData(
+        name="Real TV",
+        url="https://www.tvkaista.net/stream-forwarder/get.php?x=RealTV",
+        logo="https://i.imgur.com/e2KFL0R.png",
+        group="Azerbaijan",
+        country_code="AZ",
+        epg_id="RealTV.az"
+    ),
+    ChannelData(
+        name="Space TV Ⓢ",
+        url="http://109.205.166.68/server124/space_tv/index.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Space_TV_loqosu_%282023-h.h.%29.png/296px-Space_TV_loqosu_%282023-h.h.%29.png",
+        group="Azerbaijan",
+        country_code="AZ",
+        epg_id="SpaceTV.az"
+    ),
+    ChannelData(
+        name="TMB Azərbaycan",
+        url="https://www.tvkaista.net/stream-forwarder/get.php?x=TMBAzerbaijan",
+        logo="https://upload.wikimedia.org/wikipedia/az/c/c2/TMB_TV_loqosu.png",
+        group="Azerbaijan",
+        country_code="AZ",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Xəzər TV Ⓢ",
+        url="https://www.tvkaista.net/stream-forwarder/get.php?x=Xezer",
+        logo="https://upload.wikimedia.org/wikipedia/commons/a/a5/X%C9%99z%C9%99r_TV_%282023%29.png",
+        group="Azerbaijan",
+        country_code="AZ",
+        epg_id="XezerTV.az"
+    ),
+    ChannelData(
+        name="Səhiyyə TV",
+        url="https://www.tvkaista.net/stream-forwarder/get.php?x=SehiyyeTV",
+        logo="https://upload.wikimedia.org/wikipedia/az/thumb/c/cd/S%C9%99hiyy%C9%99_TV.png/640px-S%C9%99hiyy%C9%99_TV.png",
+        group="Azerbaijan",
+        country_code="AZ",
+        epg_id="SehiyyeTV.az"
+    ),
+    ChannelData(
+        name="VIP HD",
+        url="https://www.tvkaista.net/stream-forwarder/get.php?x=AZ_VIP",
+        logo="https://tvtolive.com/wp-content/uploads/VIP-TV-tvtolive.com_.jpg",
+        group="Azerbaijan",
+        country_code="AZ",
+        epg_id=""
+    ),
+    ChannelData(
+        name="MTV Azerbaijan Ⓢ",
+        url="https://www.tvkaista.net/stream-forwarder/get.php?x=MTVAzerbaijan",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/MTV_Az%C9%99rbaycan_%282022%29.png/622px-MTV_Az%C9%99rbaycan_%282022%29.png",
+        group="Azerbaijan",
+        country_code="AZ",
+        epg_id="MTVAzerbaijan.az"
+    ),
+]

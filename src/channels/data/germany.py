@@ -1,0 +1,287 @@
+from channels.base import ChannelData
+
+group_name = "Germany"
+country_code = "DE"
+
+channels = [
+    ChannelData(
+        name="Das Erste Ⓖ",
+        url="https://daserste-live.ard-mcdn.de/daserste/live/hls/de/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Das_Erste_2014.svg/640px-Das_Erste_2014.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="DasErste.de"
+    ),
+    ChannelData(
+        name="ZDF Ⓖ",
+        url="http://zdf-hls-15.akamaized.net/hls/live/2016498/de/veryhigh/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/ZDF_logo.svg/640px-ZDF_logo.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="ZDF.de"
+    ),
+    ChannelData(
+        name="3sat Ⓖ",
+        url="https://zdf-hls-18.akamaized.net/hls/live/2016501/dach/veryhigh/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/3sat_2019.svg/640px-3sat_2019.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="3sat.de"
+    ),
+    ChannelData(
+        name="ARD Alpha Ⓖ",
+        url="https://mcdn.br.de/br/fs/ard_alpha/hls/de/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/ARD_alpha.svg/640px-ARD_alpha.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="ARDalpha.de"
+    ),
+    ChannelData(
+        name="ARTE Ⓖ",
+        url="https://artesimulcast.akamaized.net/hls/live/2030993/artelive_de/index.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Arte_Logo_2017.svg/186px-Arte_Logo_2017.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="ARTEDeutsch.de"
+    ),
+    ChannelData(
+        name="DELUXE MUSIC",
+        url="https://sdn-global-live-streaming-packager-cache.3qsdn.com/13456/13456_264_live.m3u8",
+        logo="https://i.imgur.com/E65GQN9.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="DeluxeMusic.de"
+    ),
+    ChannelData(
+        name="DELUXE MUSIC DANCE BY KONTOR",
+        url="https://sdn-global-live-streaming-packager-cache.3qsdn.com/64733/64733_264_live.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Deluxe_Dance_by_Kontor_Logo_2023.svg/666px-Deluxe_Dance_by_Kontor_Logo_2023.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="DeluxeMusicDanceByKontor.de"
+    ),
+    ChannelData(
+        name="DELUXE MUSIC RAP",
+        url="https://sdn-global-live-streaming-packager-cache.3qsdn.com/65183/65183_264_live.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Deluxe_Rap_Logo_2023.svg/666px-Deluxe_Rap_Logo_2023.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="DeLuxeMusicRap.de"
+    ),
+    ChannelData(
+        name="SCHLAGER DELUXE",
+        url="https://sdn-global-live-streaming-packager-cache.3qsdn.com/26658/26658_264_live.m3u8",
+        logo="https://i.imgur.com/YPpgUOg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="SchlagerDeluxe.de"
+    ),
+    ChannelData(
+        name="Euronews Deutsch Ⓨ",
+        url="https://www.youtube.com/euronewsde/live",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Euronews_2022.svg/640px-Euronews_2022.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="EuronewsGerman.fr"
+    ),
+    ChannelData(
+        name="KiKa Ⓖ",
+        url="https://kikageohls.akamaized.net/hls/live/2022693/livetvkika_de/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Kika_2012.svg/640px-Kika_2012.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="KIKA.de"
+    ),
+    ChannelData(
+        name="ONE Ⓖ",
+        url="https://mcdn-one.ard.de/ardone/hls/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/One_2022.svg/640px-One_2022.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="One.de"
+    ),
+    ChannelData(
+        name="Phoenix Ⓖ",
+        url="https://zdf-hls-19.akamaized.net/hls/live/2016502/de/veryhigh/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Phoenix-logo-2018.svg/640px-Phoenix-logo-2018.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="Phoenix.de"
+    ),
+    ChannelData(
+        name="Tagesschau24",
+        url="https://tagesschau.akamaized.net/hls/live/2020115/tagesschau/tagesschau_1/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Tagesschau24-2012.svg/640px-Tagesschau24-2012.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="tagesschau24.de"
+    ),
+    ChannelData(
+        name="Welt",
+        url="https://w-live2weltcms.akamaized.net/hls/live/2041019/Welt-LivePGM/index.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Welt_TV_Logo_2016.svg/640px-Welt_TV_Logo_2016.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="Welt.de"
+    ),
+    ChannelData(
+        name="ZDFinfo Ⓖ",
+        url="https://zdf-hls-17.akamaized.net/hls/live/2016500/de/veryhigh/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/ZDFinfo_2011.svg/640px-ZDFinfo_2011.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="ZDFinfo.de"
+    ),
+    ChannelData(
+        name="ZDFneo Ⓖ",
+        url="https://zdf-hls-16.akamaized.net/hls/live/2016499/de/veryhigh/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/ZDFneo2017_Logo.svg/569px-ZDFneo2017_Logo.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="ZDFneo.de"
+    ),
+    ChannelData(
+        name="BR Nord Ⓖ",
+        url="https://mcdn.br.de/br/fs/bfs_nord/hls/de/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Logo_BR_Fernsehen_2021.svg/768px-Logo_BR_Fernsehen_2021.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="BRFernsehenNord.de"
+    ),
+    ChannelData(
+        name="BR Süd Ⓖ",
+        url="https://brcdn.vo.llnwd.net/br/fs/bfs_sued/hls/de/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Logo_BR_Fernsehen_2021.svg/768px-Logo_BR_Fernsehen_2021.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="BRFernsehenSud.de"
+    ),
+    ChannelData(
+        name="HR Ⓖ",
+        url="https://hrhls.akamaized.net/hls/live/2024525/hrhls/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/HR-Fernsehen_Logo_2023.svg/640px-HR-Fernsehen_Logo_2023.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="HRFernsehen.de"
+    ),
+    ChannelData(
+        name="MDR Sachsen Ⓖ",
+        url="https://mdrtvsnhls.akamaized.net/hls/live/2016928/mdrtvsn/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/MDR_Logo_2017.svg/640px-MDR_Logo_2017.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="MDRFernsehenSachsen.de"
+    ),
+    ChannelData(
+        name="MDR Sachsen-Anhalt Ⓖ",
+        url="https://mdrtvsahls.akamaized.net/hls/live/2016879/mdrtvsa/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/MDR_Logo_2017.svg/640px-MDR_Logo_2017.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="MDRFernsehenSachsenAnhalt.de"
+    ),
+    ChannelData(
+        name="MDR Thüringen Ⓖ",
+        url="https://mdrtvthhls.akamaized.net/hls/live/2016880/mdrtvth/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/MDR_Logo_2017.svg/640px-MDR_Logo_2017.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="MDRFernsehenThuringen.de"
+    ),
+    ChannelData(
+        name="NDR Hamburg Ⓖ",
+        url="https://mcdn.ndr.de/ndr/hls/ndr_fs/ndr_hh/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Logo_NDR_Fernsehen_2017.svg/578px-Logo_NDR_Fernsehen_2017.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="NDRFernsehenHamburg.de"
+    ),
+    ChannelData(
+        name="NDR Mecklenburg-Vorpommern Ⓖ",
+        url="https://mcdn.ndr.de/ndr/hls/ndr_fs/ndr_mv/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Logo_NDR_Fernsehen_2017.svg/578px-Logo_NDR_Fernsehen_2017.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="NDRFernsehenMecklenburgVorpommern.de"
+    ),
+    ChannelData(
+        name="NDR Niedersachsen Ⓖ",
+        url="https://mcdn.ndr.de/ndr/hls/ndr_fs/ndr_nds/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Logo_NDR_Fernsehen_2017.svg/578px-Logo_NDR_Fernsehen_2017.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="NDRFernsehenNiedersachsen.de"
+    ),
+    ChannelData(
+        name="NDR Schleswig-Holstein Ⓖ",
+        url="https://mcdn.ndr.de/ndr/hls/ndr_fs/ndr_sh/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Logo_NDR_Fernsehen_2017.svg/578px-Logo_NDR_Fernsehen_2017.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="NDRFernsehenSchleswigHolstein.de"
+    ),
+    ChannelData(
+        name="Radio Bremen Ⓖ",
+        url="https://rbhlslive.akamaized.net/hls/live/2020435/rbfs/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Logo_Radio_Bremen.svg/640px-Logo_Radio_Bremen.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="RadioBremenFernsehen.de"
+    ),
+    ChannelData(
+        name="RBB Berlin Ⓖ",
+        url="https://rbb-hls-berlin.akamaized.net/hls/live/2017824/rbb_berlin/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Rbb_Fernsehen_Logo_2017.08.svg/640px-Rbb_Fernsehen_Logo_2017.08.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="RBBBerlin.de"
+    ),
+    ChannelData(
+        name="RBB Brandenburg Ⓖ",
+        url="https://rbb-hls-brandenburg.akamaized.net/hls/live/2017825/rbb_brandenburg/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Rbb_Fernsehen_Logo_2017.08.svg/640px-Rbb_Fernsehen_Logo_2017.08.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="RBBBrandenburg.de"
+    ),
+    ChannelData(
+        name="SR Ⓖ",
+        url="https://srfs.akamaized.net/hls/live/689649/srfsgeo/index.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/SR_Fernsehen_Logo_2023.svg/538px-SR_Fernsehen_Logo_2023.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="SRFernsehen.de"
+    ),
+    ChannelData(
+        name="SWR Baden-Württemberg Ⓖ",
+        url="https://swrbwd-hls.akamaized.net/hls/live/2018672/swrbwd/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/SWR_Logo_2023.svg/640px-SWR_Logo_2023.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="SWRFernsehenBadenWurttemberg.de"
+    ),
+    ChannelData(
+        name="SWR Rheinland-Pfalz Ⓖ",
+        url="https://swrrpd-hls.akamaized.net/hls/live/2018676/swrrpd/master.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/SWR_Logo_2023.svg/640px-SWR_Logo_2023.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="SWRFernsehenRheinlandPfalz.de"
+    ),
+    ChannelData(
+        name="WDR Ⓖ",
+        url="https://wdrfs247.akamaized.net/hls/live/681509/wdr_msl4_fs247/index.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Wdr_fernsehen_logo_2016.svg/640px-Wdr_fernsehen_logo_2016.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="WDR.de"
+    ),
+    ChannelData(
+        name="NDR International",
+        url="https://ndrint.akamaized.net/hls/live/2020766/ndr_int/index.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Logo_NDR_Fernsehen_2017.svg/578px-Logo_NDR_Fernsehen_2017.svg.png",
+        group="Germany",
+        country_code="DE",
+        epg_id="NDRFernsehenInternational.de"
+    ),
+]

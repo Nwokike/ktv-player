@@ -1,0 +1,143 @@
+from channels.base import ChannelData
+
+group_name = "Belarus"
+country_code = "BY"
+
+channels = [
+    ChannelData(
+        name="Беларусь 1",
+        url="https://ngtrk.dc.beltelecom.by/ngtrk/smil:belarus1.smil/playlist.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Belarus_1_logo.svg/742px-Belarus_1_logo.svg.png",
+        group="Belarus",
+        country_code="BY",
+        epg_id="Belarus1.by"
+    ),
+    ChannelData(
+        name="Беларусь 2",
+        url="https://ngtrk.dc.beltelecom.by/ngtrk/smil:belarus2.smil/playlist.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Belarus_2_logo.svg/742px-Belarus_2_logo.svg.png",
+        group="Belarus",
+        country_code="BY",
+        epg_id="Belarus2.by"
+    ),
+    ChannelData(
+        name="Беларусь 3",
+        url="https://ngtrk.dc.beltelecom.by/ngtrk/smil:belarus3.smil/playlist.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Belarus_3_logo.svg/742px-Belarus_3_logo.svg.png",
+        group="Belarus",
+        country_code="BY",
+        epg_id="Belarus3.by"
+    ),
+    ChannelData(
+        name="ОНТ Ⓢ",
+        url="https://stream.dc.beltelecom.by/ont/ont/playlist.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/%D0%9B%D0%BE%D0%B3%D0%BE%D1%82%D0%B8%D0%BF_%D1%82%D0%B5%D0%BB%D0%B5%D0%BA%D0%B0%D0%BD%D0%B0%D0%BB%D0%B0_%C2%AB%D0%9E%D0%9D%D0%A2%C2%BB.svg/991px-%D0%9B%D0%BE%D0%B3%D0%BE%D1%82%D0%B8%D0%BF_%D1%82%D0%B5%D0%BB%D0%B5%D0%BA%D0%B0%D0%BD%D0%B0%D0%BB%D0%B0_%C2%AB%D0%9E%D0%9D%D0%A2%C2%BB.svg.png",
+        group="Belarus",
+        country_code="BY",
+        epg_id="ONT.by"
+    ),
+    ChannelData(
+        name="Беларусь 5",
+        url="https://ngtrk.dc.beltelecom.by/ngtrk/smil:belarus5.smil/playlist.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Belarus_5_logo.svg/742px-Belarus_5_logo.svg.png",
+        group="Belarus",
+        country_code="BY",
+        epg_id="Belarus5.by"
+    ),
+    ChannelData(
+        name="СТВ",
+        url="https://ctv.dc.beltelecom.by/ctv/ctv.stream/playlist.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/%D0%9B%D0%BE%D0%B3%D0%BE%D1%82%D0%B8%D0%BF_%D0%B1%D0%B5%D0%BB%D0%BE%D1%80%D1%83%D1%81%D1%81%D0%BA%D0%BE%D0%B3%D0%BE_%D1%82%D0%B5%D0%BB%D0%B5%D0%BA%D0%B0%D0%BD%D0%B0%D0%BB%D0%B0_%C2%AB%D0%A1%D0%A2%D0%92%C2%BB.svg/640px-%D0%9B%D0%BE%D0%B3%D0%BE%D1%82%D0%B8%D0%BF_%D0%B1%D0%B5%D0%BB%D0%BE%D1%80%D1%83%D1%81%D1%81%D0%BA%D0%BE%D0%B3%D0%BE_%D1%82%D0%B5%D0%BB%D0%B5%D0%BA%D0%B0%D0%BD%D0%B0%D0%BB%D0%B0_%C2%AB%D0%A1%D0%A2%D0%92%C2%BB.svg.png",
+        group="Belarus",
+        country_code="BY",
+        epg_id="STV.by"
+    ),
+    ChannelData(
+        name="Беларусь 24",
+        url="https://ngtrk.dc.beltelecom.by/ngtrk/smil:belarus24.smil/playlist.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Belarus_24_logo.svg/742px-Belarus_24_logo.svg.png",
+        group="Belarus",
+        country_code="BY",
+        epg_id="Belarus24.by"
+    ),
+    ChannelData(
+        name="Беларусь 5 Интернет",
+        url="https://ngtrk.dc.beltelecom.by/ngtrk/smil:belarus5int.smil/playlist.m3u8",
+        logo="https://i.imgur.com/rzPQ9Iz.png",
+        group="Belarus",
+        country_code="BY",
+        epg_id="Belarus5Internet.by"
+    ),
+    ChannelData(
+        name="1Mus",
+        url="http://hz1.teleport.cc/HLS/HD.m3u8",
+        logo="https://i.imgur.com/PozF9MT.png",
+        group="Belarus",
+        country_code="BY",
+        epg_id="FirstMusicChannel.by"
+    ),
+    ChannelData(
+        name="8 Kanal Vitebsk Ⓢ",
+        url="http://95.46.208.8:24433/art",
+        logo="https://i.imgur.com/tjwBSTF.jpg",
+        group="Belarus",
+        country_code="BY",
+        epg_id="8kanal.by"
+    ),
+    ChannelData(
+        name="Belros Ⓢ",
+        url="https://live2.mediacdn.ru/sr1/tro/playlist.m3u8",
+        logo="https://i.imgur.com/HWqxjGl.png",
+        group="Belarus",
+        country_code="BY",
+        epg_id="BelRos.ru"
+    ),
+    ChannelData(
+        name="Belarus 4 Vitebsk Ⓢ",
+        url="http://95.46.208.8:26258/belarus4",
+        logo="https://i.imgur.com/TW6Ap71.png",
+        group="Belarus",
+        country_code="BY",
+        epg_id="Belarus4Vitebsk.by"
+    ),
+    ChannelData(
+        name="Hawe TV Vitebsk Ⓢ",
+        url="http://95.46.208.8:26259/nashe",
+        logo="https://i.imgur.com/HOb5m5f.jpg",
+        group="Belarus",
+        country_code="BY",
+        epg_id="NasheTV.by"
+    ),
+    ChannelData(
+        name="Pervyy Muzykal'nyy BY Ⓢ",
+        url="http://rtmp.one.by:1200",
+        logo="https://i.imgur.com/7tFiG6S.jpg",
+        group="Belarus",
+        country_code="BY",
+        epg_id="FirstMusicChannel.by"
+    ),
+    ChannelData(
+        name="Planeta RTR Ⓢ",
+        url="https://a3569455801-s26881.cdn.ngenix.net/live/smil:rtrp.smil/chunklist_b1600000.m3u8",
+        logo="https://i.imgur.com/yqRuEJd.png",
+        group="Belarus",
+        country_code="BY",
+        epg_id="RTRBelarus.by"
+    ),
+    ChannelData(
+        name="Radio HIT Orsk",
+        url="http://hithd.camsh.orsk.ru/hls/hithd.m3u8",
+        logo="https://i.imgur.com/e2RyN4r.jpg",
+        group="Belarus",
+        country_code="BY",
+        epg_id="RadioHit.ru"
+    ),
+    ChannelData(
+        name="Vitebsk Telekanal",
+        url="https://flu.vtv.by/tvt-non-by/tracks-v1a1/mono.m3u8",
+        logo="https://i.imgur.com/FXAqELU.jpg",
+        group="Belarus",
+        country_code="BY",
+        epg_id="Vitebsk.by"
+    ),
+]

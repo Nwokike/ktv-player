@@ -1,0 +1,295 @@
+from channels.base import ChannelData
+
+group_name = "United Arab Emirates"
+country_code = "AE"
+
+channels = [
+    ChannelData(
+        name="Cartoon Network Arabic",
+        url="https://shls-cartoon-net-prod-dub.shahid.net/out/v1/dc4aa87372374325a66be458f29eab0f/index.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/b/bb/Cartoon_Network_Arabic_logo.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="CartoonNetworkArabic.ae"
+    ),
+    ChannelData(
+        name="Al Arabiya Business",
+        url="https://live.alarabiya.net/alarabiapublish/aswaaq.smil/playlist.m3u8",
+        logo="https://i.imgur.com/eEV4r6J.jpg",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="AlArabiyaBusiness.ae"
+    ),
+    ChannelData(
+        name="MBC 1",
+        url="https://mbc1-enc.edgenextcdn.net/out/v1/0965e4d7deae49179172426cbfb3bc5e/index.m3u8",
+        logo="https://i.imgur.com/CiA3plN.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="MBC1.ae"
+    ),
+    ChannelData(
+        name="MBC 2 Ⓢ",
+        url="http://37.122.156.107:4000/play/a07g/index.m3u8",
+        logo="https://i.imgur.com/n9mSHuP.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="MBC2.ae"
+    ),
+    ChannelData(
+        name="MBC 3",
+        url="https://shls-mbc3-prod-dub.shahid.net/out/v1/d5bbe570e1514d3d9a142657d33d85e6/index.m3u8",
+        logo="https://i.imgur.com/PVt8OPN.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="MBC3.ae"
+    ),
+    ChannelData(
+        name="MBC 4",
+        url="https://mbc4-prod-dub-ak.akamaized.net/out/v1/c08681f81775496ab4afa2bac7ae7638/index.m3u8",
+        logo="https://i.imgur.com/BcXASJp.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="MBC4.ae"
+    ),
+    ChannelData(
+        name="MBC 5",
+        url="https://shls-mbc5-prod-dub.shahid.net/out/v1/2720564b6a4641658fdfb6884b160da2/index.m3u8",
+        logo="https://i.imgur.com/fRWaDyF.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="MBC5.ae"
+    ),
+    ChannelData(
+        name="MBC Action Ⓢ",
+        url="http://37.122.156.107:4000/play/a07h/index.m3u8",
+        logo="https://i.imgur.com/OWZAghw.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="MBCAction.ae"
+    ),
+    ChannelData(
+        name="MBC Bollywood",
+        url="https://shls-mbcbollywood-prod-dub.shahid.net/out/v1/a79c9d7ef2a64a54a64d5c4567b3462a/index.m3u8",
+        logo="https://i.imgur.com/TTAGFHG.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="MBCBollywood.ae"
+    ),
+    ChannelData(
+        name="MBC Drama",
+        url="https://mbc1-enc.edgenextcdn.net/out/v1/b0b3a0e6750d4408bb86d703d5feffd1/index.m3u8",
+        logo="https://i.imgur.com/g5PWnqp.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="MBCDrama.ae"
+    ),
+    ChannelData(
+        name="MBC Max Ⓢ",
+        url="http://37.122.156.107:4000/play/a07i/index.m3u8",
+        logo="https://i.imgur.com/A02CptP.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="MBCMax.ae"
+    ),
+    ChannelData(
+        name="MBC Persia",
+        url="https://shls-mbcpersia-prod-dub.shahid.net/out/v1/bdc7cd0d990e4c54808632a52c396946/index.m3u8",
+        logo="https://i.imgur.com/4FXiyjn.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="MBCPersia.ae"
+    ),
+    ChannelData(
+        name="Wanasah",
+        url="https://shls-wanasah-prod-dub.shahid.net/out/v1/c84ef3128e564b74a6a796e8b6287de6/index.m3u8",
+        logo="https://i.imgur.com/nLtiXNf.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="Wanasah.ae"
+    ),
+    ChannelData(
+        name="Sky News Arabia",
+        url="https://stream.skynewsarabia.com/hls/sna.m3u8",
+        logo="https://i.imgur.com/SvjU4h6.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="SkyNewsArabia.ae"
+    ),
+    ChannelData(
+        name="Baynounah TV",
+        url="https://vo-live.cdb.cdn.orange.com/Content/Channel/Baynounah/HLS/index.m3u8",
+        logo="https://static.wikia.nocookie.net/logopedia/images/6/60/Baynounah_tv_2023.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="BaynounahTV.ae"
+    ),
+    ChannelData(
+        name="Ajman TV",
+        url="https://dacastmmd.mmdlive.lldns.net/dacastmmd/8eb0e912b49142d7a01d779c9374aba9/index.m3u8",
+        logo="https://pbs.twimg.com/profile_images/1085187553563561990/KRKuK_iW_400x400.jpg",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="AjmanTV.ae"
+    ),
+    ChannelData(
+        name="Al Aan TV",
+        url="https://shls-live-ak.akamaized.net/out/v1/dfbdea4c1bf149629764e58c6ff314c8/index.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/7/76/Al_Aan_TV_new_Logo.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="AlAanTV.ae"
+    ),
+    ChannelData(
+        name="Abu Dhabi TV",
+        url="http://admdn2.cdn.mangomolo.com/adtv/smil:adtv.stream.smil/chunklist.m3u8",
+        logo="https://i.imgur.com/7cNke07.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="AbuDhabiTV.ae"
+    ),
+    ChannelData(
+        name="Abu Dhabi Sports 1",
+        url="https://vo-live.cdb.cdn.orange.com/Content/Channel/AbuDhabiSportsChannel1/HLS/index.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Abu_Dhabi_Sports_logo_2023.svg/2560px-Abu_Dhabi_Sports_logo_2023.svg.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="AbuDhabiSports2.ae"
+    ),
+    ChannelData(
+        name="Abu Dhabi Sports 2",
+        url="https://vo-live.cdb.cdn.orange.com/Content/Channel/AbuDhabiSportsChannel2/HLS/index.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Abu_Dhabi_Sports_logo_2023.svg/2560px-Abu_Dhabi_Sports_logo_2023.svg.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="AbuDhabiSports2.ae"
+    ),
+    ChannelData(
+        name="National Geographic Abu Dhabi",
+        url="https://admdn2.cdn.mangomolo.com/nagtv/smil:nagtv.stream.smil/playlist.m3u8",
+        logo="https://i.imgur.com/fNA00VF.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="NationalGeographicAbuDhabi.ae"
+    ),
+    ChannelData(
+        name="Ajman TV",
+        url="https://dacastmmd.mmdlive.lldns.net/dacastmmd/8eb0e912b49142d7a01d779c9374aba9/index.m3u8",
+        logo="https://www.lyngsat.com/logo/tv/aa/ajman-tv-ae.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="AjmanTV.ae"
+    ),
+    ChannelData(
+        name="Dubai TV",
+        url="https://dmisxthvll.cdn.mgmlcdn.com/dubaitvht/smil:dubaitv.stream.smil/playlist.m3u8",
+        logo="https://i.imgur.com/wZMkKF7.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="DubaiTV.ae"
+    ),
+    ChannelData(
+        name="Dubai One",
+        url="https://dminnvll.cdn.mangomolo.com/dubaione/smil:dubaione.stream.smil/playlist.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/7/7d/Dubaione-logo.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="DubaiOne.ae"
+    ),
+    ChannelData(
+        name="Dubai Sports 1",
+        url="https://dmitnthfr.cdn.mgmlcdn.com/dubaisports/smil:dubaisports.stream.smil/chunklist.m3u8",
+        logo="https://www.lyngsat.com/logo/tv/dd/dubai-sports-ae.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="DubaiSports1.ae"
+    ),
+    ChannelData(
+        name="Dubai Sports 2",
+        url="https://dmitwlvvll.cdn.mangomolo.com/dubaisportshd/smil:dubaisportshd.smil/index.m3u8",
+        logo="https://www.lyngsat.com/logo/tv/dd/dubai-sports-ae.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="DubaiSports2.ae"
+    ),
+    ChannelData(
+        name="Dubai Sports 3",
+        url="https://dmitwlvvll.cdn.mangomolo.com/dubaisportshd5/smil:dubaisportshd5.smil/index.m3u8",
+        logo="https://www.lyngsat.com/logo/tv/dd/dubai-sports-ae.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="DubaiSports3.ae"
+    ),
+    ChannelData(
+        name="Dubai Racing 1",
+        url="https://dmisvthvll.cdn.mgmlcdn.com/events/smil:events.stream.smil/playlist.m3u8",
+        logo="https://www.lyngsat.com/logo/tv/dd/dubai-racing-ae.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="DubaiRacing1.ae"
+    ),
+    ChannelData(
+        name="Dubai Racing 2",
+        url="https://dmithrvll.cdn.mangomolo.com/dubairacing/smil:dubairacing.smil/playlist.m3u8",
+        logo="https://www.lyngsat.com/logo/tv/dd/dubai-racing-ae.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="DubaiRacing2.ae"
+    ),
+    ChannelData(
+        name="Dubai Racing 3",
+        url="https://dmithrvll.cdn.mangomolo.com/dubaimubasher/smil:dubaimubasher.smil/playlist.m3u8",
+        logo="https://www.lyngsat.com/logo/tv/dd/dubai-racing-ae.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="DubaiRacing3.ae"
+    ),
+    ChannelData(
+        name="Dubai Zaman",
+        url="https://dmiffthvll.cdn.mangomolo.com/dubaizaman/smil:dubaizaman.stream.smil/playlist.m3u8",
+        logo="https://www.lyngsat.com/logo/tv/dd/dubai-zaman-ae.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="DubaiZaman.ae"
+    ),
+    ChannelData(
+        name="Sama Dubai",
+        url="https://dmieigthvll.cdn.mgmlcdn.com/samadubaiht/smil:samadubai.stream.smil/playlist.m3u8",
+        logo="https://i.imgur.com/bF6I3N1.jpg",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="SamaDubai.ae"
+    ),
+    ChannelData(
+        name="Noor Dubai",
+        url="https://dmiffthvll.cdn.mangomolo.com/noordubaitv/smil:noordubaitv.smil/playlist.m3u8",
+        logo="https://i.imgur.com/DLe7ZuM.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="NoorDubai.ae"
+    ),
+    ChannelData(
+        name="Sharjah TV",
+        url="https://svs.itworkscdn.net/smc1live/smc1.smil/playlist.m3u8",
+        logo="https://www.lyngsat.com/logo/tv/ss/sharjah-tv-ae.png",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="SharjahTV.ae"
+    ),
+    ChannelData(
+        name="Sharjah Sports",
+        url="https://svs.itworkscdn.net/smc4sportslive/smc4.smil/playlist.m3u8",
+        logo="https://i.imgur.com/IaRaabJ.jpg",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="SharjahSports.ae"
+    ),
+    ChannelData(
+        name="Al Wousta",
+        url="https://svs.itworkscdn.net/alwoustalive/alwoustatv.smil/playlist.m3u8",
+        logo="https://i5.satexpat.com/cha/ae/al-wousta-95x90.gif",
+        group="United Arab Emirates",
+        country_code="AE",
+        epg_id="SharjahSports.ae"
+    ),
+]

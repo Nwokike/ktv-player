@@ -1,0 +1,143 @@
+from channels.base import ChannelData
+
+group_name = "Albania"
+country_code = "AL"
+
+channels = [
+    ChannelData(
+        name="Kanali 7 Ⓢ",
+        url="https://fe.tring.al/delta/105/out/u/1200_1.m3u8",
+        logo="https://i.imgur.com/rL2v9pM.png",
+        group="Albania",
+        country_code="AL",
+        epg_id="Kanali7.al"
+    ),
+    ChannelData(
+        name="A2 CNN Albania",
+        url="https://tv.a2news.com/live/smil:a2cnnweb.stream.smil/playlist.m3u8",
+        logo="https://i.imgur.com/TgO3Lzi.png",
+        group="Albania",
+        country_code="AL",
+        epg_id="A2CNN.al"
+    ),
+    ChannelData(
+        name="ABC News Albania Ⓣ",
+        url="https://www.twitch.tv/abcnewsal",
+        logo="https://i.imgur.com/aObcudw.png",
+        group="Albania",
+        country_code="AL",
+        epg_id="ABCNewsAlbania.al"
+    ),
+    ChannelData(
+        name="AlbKanale Music TV Ⓢ",
+        url="https://albportal.net/albkanalemusic.m3u8",
+        logo="https://i.imgur.com/JdKxscs.png",
+        group="Albania",
+        country_code="AL",
+        epg_id="AlbKanaleMusicTV.al"
+    ),
+    ChannelData(
+        name="Alpo TV",
+        url="https://5d00db0e0fcd5.streamlock.net/7236/7236/playlist.m3u8",
+        logo="https://i.imgur.com/Pr4ixiA.png",
+        group="Albania",
+        country_code="AL",
+        epg_id="AlpoTV.al"
+    ),
+    ChannelData(
+        name="CNA",
+        url="https://live1.mediadesk.al/cnatvlive.m3u8",
+        logo="https://i.imgur.com/X3ukD5t.png",
+        group="Albania",
+        country_code="AL",
+        epg_id="CNA.al"
+    ),
+    ChannelData(
+        name="Euronews Albania Ⓨ",
+        url="https://www.youtube.com/@EuronewsAlbania/live",
+        logo="https://i.imgur.com/Skf6vdi.png",
+        group="Albania",
+        country_code="AL",
+        epg_id="EuronewsAlbania.al"
+    ),
+    ChannelData(
+        name="News 24 Ⓢ",
+        url="https://tv.balkanweb.com/news24/livestream/playlist.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/News_24_%28Albania%29.svg/1024px-News_24_%28Albania%29.svg.png",
+        group="Albania",
+        country_code="AL",
+        epg_id="News24.al"
+    ),
+    ChannelData(
+        name="Ora News",
+        url="https://live1.mediadesk.al/oranews.m3u8",
+        logo="https://i.imgur.com/ILZY5bJ.png",
+        group="Albania",
+        country_code="AL",
+        epg_id="OraNews.al"
+    ),
+    ChannelData(
+        name="Panorama TV Ⓢ",
+        url="http://198.244.188.94/panorama/livestream/playlist.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Panorama_logo.svg/512px-Panorama_logo.svg.png",
+        group="Albania",
+        country_code="AL",
+        epg_id="PanoramaTV.al"
+    ),
+    ChannelData(
+        name="Report TV",
+        url="https://deb10stream.duckdns.org/hls/stream.m3u8",
+        logo="https://i.imgur.com/yuRDJYY.png",
+        group="Albania",
+        country_code="AL",
+        epg_id="ReportTV.al"
+    ),
+    ChannelData(
+        name="Syri",
+        url="https://stream.syritv.al/SyriTV/index.m3u8",
+        logo="https://i.imgur.com/4zVyj1M.png",
+        group="Albania",
+        country_code="AL",
+        epg_id="Syri.al"
+    ),
+    ChannelData(
+        name="Top News Ⓣ",
+        url="https://www.twitch.tv/topnewsal",
+        logo="https://i.imgur.com/tBAXkOW.png",
+        group="Albania",
+        country_code="AL",
+        epg_id="TopNews.al"
+    ),
+    ChannelData(
+        name="Tropoja",
+        url="https://live.prostream.al/al/smil:tropojatv.smil/playlist.m3u8",
+        logo="https://i.imgur.com/D3hNOVS.png",
+        group="Albania",
+        country_code="AL",
+        epg_id="TropojaTelevizion.al"
+    ),
+    ChannelData(
+        name="TV 7 Albania",
+        url="https://5d00db0e0fcd5.streamlock.net/7064/7064/playlist.m3u8",
+        logo="https://i.imgur.com/k9WqPLZ.png",
+        group="Albania",
+        country_code="AL",
+        epg_id="TV7Albania.al"
+    ),
+    ChannelData(
+        name="TV Apollon Ⓢ",
+        url="https://live.apollon.tv/Apollon-WEB/video.m3u8?token=tnt3u76re30d2",
+        logo="https://i.imgur.com/gUz2AjM.png",
+        group="Albania",
+        country_code="AL",
+        epg_id="TVApollon.al"
+    ),
+    ChannelData(
+        name="Vizion Plus",
+        url="https://fe.tring.al/delta/105/out/u/rdghfhsfhfshs.m3u8",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Vizion_Plus.svg/512px-Vizion_Plus.svg.png",
+        group="Albania",
+        country_code="AL",
+        epg_id="VizionPlus.al"
+    ),
+]

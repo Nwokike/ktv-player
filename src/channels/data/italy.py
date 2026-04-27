@@ -1,0 +1,3111 @@
+from channels.base import ChannelData
+
+group_name = "Italy"
+country_code = "IT"
+
+channels = [
+    ChannelData(
+        name="Rai 1 Ⓖ",
+        url="https://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=2606803&output=7&forceUserAgent=rainet/4.0.5",
+        logo="https://i.imgur.com/CAx7yRm.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Rai1.it"
+    ),
+    ChannelData(
+        name="Rai 2 Ⓖ",
+        url="https://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=308718&output=7&forceUserAgent=rainet/4.0.5",
+        logo="https://i.imgur.com/zA0PTcs.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Rai2.it"
+    ),
+    ChannelData(
+        name="Rai 3 Ⓖ",
+        url="https://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=308709&output=7&forceUserAgent=rainet/4.0.5",
+        logo="https://i.imgur.com/9kuQCIi.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Rai3.it"
+    ),
+    ChannelData(
+        name="Rete 4 Ⓖ",
+        url="https://live02-seg.msf.cdn.mediaset.net/live/ch-r4/r4-clr.isml/index.m3u8",
+        logo="https://i.imgur.com/GWx2Fkl.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Rete4.it"
+    ),
+    ChannelData(
+        name="Canale 5 Ⓖ",
+        url="https://live02-seg.msf.cdn.mediaset.net/live/ch-c5/c5-clr.isml/index.m3u8",
+        logo="https://i.imgur.com/p6YdiR1.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Canale5.it"
+    ),
+    ChannelData(
+        name="Italia 1 Ⓖ",
+        url="https://live02-seg.msf.cdn.mediaset.net/live/ch-i1/i1-clr.isml/index.m3u8",
+        logo="https://i.imgur.com/oCiOxBG.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Italia1.it"
+    ),
+    ChannelData(
+        name="La7",
+        url="https://d1chghleocc9sm.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-evfku205gqrtf/Live.m3u8",
+        logo="https://i.imgur.com/F90mpSa.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="La7.it"
+    ),
+    ChannelData(
+        name="TV8 Ⓖ",
+        url="https://hlslive-web-gcdn-skycdn-it.akamaized.net/TACT/11223/tv8web/master.m3u8?hdnts=st=1764666351~exp=1829466206~acl=/*~hmac=b0e9165b6c55027903ad103c8219f363d8765eb300c0d9a339e9767fc3509556",
+        logo="https://i.imgur.com/xvoHVOU.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="TV8.it"
+    ),
+    ChannelData(
+        name="Nove",
+        url="https://d31mw7o1gs0dap.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-y5pbi2sq9r609/NOVE_IT.m3u8",
+        logo="https://i.imgur.com/Hp723RU.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Nove.it"
+    ),
+    ChannelData(
+        name="20 Mediaset Ⓖ",
+        url="https://live02-seg.msf.cdn.mediaset.net/live/ch-lb/lb-clr.isml/index.m3u8",
+        logo="https://i.imgur.com/It13jwX.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="20.it"
+    ),
+    ChannelData(
+        name="Rai 4 Ⓖ",
+        url="https://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=746966&output=7&forceUserAgent=rainet/4.0.5",
+        logo="https://i.imgur.com/XFkZRfv.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Rai4.it"
+    ),
+    ChannelData(
+        name="Iris Ⓖ",
+        url="https://live02-seg.msf.cdn.mediaset.net/live/ch-ki/ki-clr.isml/index.m3u8",
+        logo="https://i.imgur.com/Ixz1BY3.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Iris.it"
+    ),
+    ChannelData(
+        name="Rai 5 Ⓖ",
+        url="https://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=395276&output=7&forceUserAgent=rainet/4.0.5",
+        logo="https://i.imgur.com/Leu2zTO.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Rai5.it"
+    ),
+    ChannelData(
+        name="Rai Movie Ⓖ",
+        url="https://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=747002&output=7&forceUserAgent=rainet/4.0.5",
+        logo="https://i.imgur.com/RKpO8CE.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="RaiMovie.it"
+    ),
+    ChannelData(
+        name="Rai Premium Ⓖ",
+        url="https://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=746992&output=7&forceUserAgent=rainet/4.0.5",
+        logo="https://i.imgur.com/RKI4nFy.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="RaiPremium.it"
+    ),
+    ChannelData(
+        name="Cielo Ⓖ",
+        url="https://hlslive-web-gcdn-skycdn-it.akamaized.net/TACT/11219/cieloweb/master.m3u8?hdnts=st=1764666351~exp=1829466206~acl=/*~hmac=b0e9165b6c55027903ad103c8219f363d8765eb300c0d9a339e9767fc3509556",
+        logo="https://i.imgur.com/cPluF03.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="CieloTV.it"
+    ),
+    ChannelData(
+        name="27 Twentyseven Ⓖ",
+        url="https://live02-seg.msf.cdn.mediaset.net/live/ch-ts/ts-clr.isml/index.m3u8",
+        logo="https://i.imgur.com/y2PdPCK.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="27Twentyseven.it"
+    ),
+    ChannelData(
+        name="TV 2000",
+        url="https://hls-live-tv2000.akamaized.net/hls/live/2028510/tv2000/master.m3u8",
+        logo="https://i.imgur.com/x7RaK3a.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="TV2000.va"
+    ),
+    ChannelData(
+        name="La7 Cinema",
+        url="https://viamotionhsi.netplus.ch/live/eds/la7d/browser-HLS8/la7d.m3u8",
+        logo="https://i.imgur.com/khPweok.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="La7Cinema.it"
+    ),
+    ChannelData(
+        name="La 5 Ⓖ",
+        url="https://live02-seg.msf.cdn.mediaset.net/live/ch-ka/ka-clr.isml/index.m3u8",
+        logo="https://i.imgur.com/UNyJaho.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="La5.it"
+    ),
+    ChannelData(
+        name="Real Time",
+        url="https://d3562mgijzx0zq.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-kizqtzpvvl3i8/Realtime_IT.m3u8",
+        logo="https://i.imgur.com/9dcTYg1.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="RealTimeItaly.it"
+    ),
+    ChannelData(
+        name="QVC",
+        url="https://qrg.akamaized.net/hls/live/2017383/lsqvc1it/master.m3u8",
+        logo="https://i.imgur.com/Ea7iUX2.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="QVCItaly.it"
+    ),
+    ChannelData(
+        name="Food Network",
+        url="https://dk3okdd5036kz.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-o4pw0nc02sthz/Foodnetwork_IT.m3u8",
+        logo="https://i.imgur.com/i60OYr9.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="FoodNetworkItaly.it"
+    ),
+    ChannelData(
+        name="Cine34   Ⓖ",
+        url="https://live02-seg.msf.cdn.mediaset.net/live/ch-b6/b6-clr.isml/index.m3u8",
+        logo="https://i.imgur.com/YyldwhI.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Cine34.it"
+    ),
+    ChannelData(
+        name="Focus Ⓖ",
+        url="https://live02-seg.msf.cdn.mediaset.net/live/ch-fu/fu-clr.isml/index.m3u8",
+        logo="https://i.imgur.com/M4smqpF.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Focus.it"
+    ),
+    ChannelData(
+        name="RTL 102.5",
+        url="https://dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S97044836/tbbP8T1ZRPBL/playlist.m3u8",
+        logo="https://i.imgur.com/KdissvS.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="RTL1025TV.it"
+    ),
+    ChannelData(
+        name="Discovery Channel",
+        url="https://d24aqelmrau4kx.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-l1oas691aj7p2/WBTV_IT.m3u8",
+        logo="https://i.imgur.com/5IxIFJ0.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="DiscoveryChannel.it"
+    ),
+    ChannelData(
+        name="Giallo",
+        url="https://d9fqo6nfqlv2h.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-ulukbrgm1n3yb/Giallo_IT.m3u8",
+        logo="https://i.imgur.com/0PIRwZS.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Giallo.it"
+    ),
+    ChannelData(
+        name="Top Crime   Ⓖ",
+        url="https://live02-seg.msf.cdn.mediaset.net/live/ch-lt/lt-clr.isml/index.m3u8",
+        logo="https://i.imgur.com/RFIwv9O.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="TopCrime.it"
+    ),
+    ChannelData(
+        name="BOING   Ⓖ",
+        url="https://live02-seg.msf.cdn.mediaset.net/live/ch-kb/kb-clr.isml/index.m3u8",
+        logo="https://i.imgur.com/niSlrqT.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="BoingItaly.it"
+    ),
+    ChannelData(
+        name="K2",
+        url="https://d1pmpe0hs35ka5.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-39hsskpppgf72/K2_IT.m3u8",
+        logo="https://i.imgur.com/wlLgSiA.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="K2.it"
+    ),
+    ChannelData(
+        name="Rai Gulp Ⓖ",
+        url="https://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=746953&output=7&forceUserAgent=rainet/4.0.5",
+        logo="https://i.imgur.com/lu1DPVb.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="RaiGulp.it"
+    ),
+    ChannelData(
+        name="Rai YoYo Ⓖ",
+        url="https://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=746899&output=7&forceUserAgent=rainet/4.0.5",
+        logo="https://i.imgur.com/DRSa3ys.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="RaiYoyo.it"
+    ),
+    ChannelData(
+        name="Frisbee",
+        url="https://d6m7lubks416z.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-zmbstsedxme9s/Frisbee_IT.m3u8",
+        logo="https://i.imgur.com/9y1zIAe.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Frisbee.it"
+    ),
+    ChannelData(
+        name="Cartoonito Ⓖ",
+        url="https://live02-seg.msf.cdn.mediaset.net/live/ch-la/la-clr.isml/index.m3u8",
+        logo="https://i.imgur.com/oK2DcDJ.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="CartoonitoItaly.it"
+    ),
+    ChannelData(
+        name="Super!",
+        url="https://495c5a85d9074f29acffeaea9e0215eb.msvdn.net/super/super_main/super_main_hbbtv/playlist.m3u8",
+        logo="https://i.imgur.com/1124YEp.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Super.it"
+    ),
+    ChannelData(
+        name="Rai News 24 Ⓖ",
+        url="https://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=1&output=7&forceUserAgent=rainet/4.0.5",
+        logo="https://i.imgur.com/gdzGwB6.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="RaiNews24.it"
+    ),
+    ChannelData(
+        name="Italia 2 Ⓖ",
+        url="https://live02-seg.msf.cdn.mediaset.net/live/ch-i2/i2-clr.isml/index.m3u8",
+        logo="https://i.imgur.com/nq48sjO.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Italia2.it"
+    ),
+    ChannelData(
+        name="Sky TG24 Ⓖ",
+        url="https://hlslive-web-gcdn-skycdn-it.akamaized.net/TACT/12221/web/master.m3u8?hdnts=st=1764666351~exp=1829466206~acl=/*~hmac=b0e9165b6c55027903ad103c8219f363d8765eb300c0d9a339e9767fc3509556",
+        logo="https://i.imgur.com/q4d3Dah.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="SkyTG24.it"
+    ),
+    ChannelData(
+        name="TGCOM 24 Ⓖ",
+        url="https://live02-seg.msf.cdn.mediaset.net/live/ch-kf/kf-clr.isml/index.m3u8",
+        logo="https://i.imgur.com/xautVD8.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="TGCom24.it"
+    ),
+    ChannelData(
+        name="DMAX",
+        url="https://d2j2nqgg7bzth.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-02k1gv1j0ufwn/DMAX_IT.m3u8",
+        logo="https://i.imgur.com/dmEmRX7.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="DMAXItaly.it"
+    ),
+    ChannelData(
+        name="Rai Storia Ⓖ",
+        url="https://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=746990&output=7&forceUserAgent=rainet/4.0.5",
+        logo="https://i.imgur.com/K8y5q8x.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="RaiStoria.it"
+    ),
+    ChannelData(
+        name="Mediaset Extra Ⓖ",
+        url="https://live02-seg.msf.cdn.mediaset.net/live/ch-kq/kq-clr.isml/index.m3u8",
+        logo="https://i.imgur.com/mM8lopo.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="MediasetExtra.it"
+    ),
+    ChannelData(
+        name="HGTV – Home & Garden Tv",
+        url="https://d1tidto9vz737l.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-joaw4f4kh2en1/HGTV_IT.m3u8",
+        logo="https://i.imgur.com/emLNC0U.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="HGTVItaly.it"
+    ),
+    ChannelData(
+        name="Rai Scuola Ⓖ",
+        url="https://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=747011&output=7&forceUserAgent=rainet/4.0.5",
+        logo="https://i.imgur.com/tmtJW6s.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="RaiScuola.it"
+    ),
+    ChannelData(
+        name="Rai Sport Ⓖ",
+        url="https://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=358025&output=7&forceUserAgent=rainet/4.0.5",
+        logo="https://i.imgur.com/xsGljsb.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="RaiSport.it"
+    ),
+    ChannelData(
+        name="Motor Trend",
+        url="https://d205m6k582pec4.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-asg5puyzdtnqu/Motortrend_IT.m3u8",
+        logo="https://i.imgur.com/ipj2H0n.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="MotorTrend.it"
+    ),
+    ChannelData(
+        name="Sportitalia Plus",
+        url="https://sportsitalia-samsungitaly.amagi.tv/playlist.m3u8",
+        logo="https://i.imgur.com/hu56Ya5.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Sportitalia.it"
+    ),
+    ChannelData(
+        name="Travel TV",
+        url="https://streaming.softwarecreation.it/GoldTvSat/GoldTvSat/playlist.m3u8",
+        logo="https://i.imgur.com/aXAUyLN.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="TravelTV.it"
+    ),
+    ChannelData(
+        name="Donna TV Ⓢ",
+        url="https://5a1178b42cc03.streamlock.net/donnatv/donnatv/playlist.m3u8",
+        logo="https://i.imgur.com/Aa1Abme.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="DonnaTV.it"
+    ),
+    ChannelData(
+        name="SuperTennis",
+        url="https://live-embed.supertennix.hiway.media/restreamer/supertennix_client/gpu-a-c0-16/restreamer/outgest/aa3673f1-e178-44a9-a947-ef41db73211a/manifest.m3u8",
+        logo="https://i.imgur.com/GzsPlbX.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="SuperTennis.it"
+    ),
+    ChannelData(
+        name="Alma TV",
+        url="https://streaming.softwarecreation.it/AlmaTv/AlmaTv/playlist.m3u8",
+        logo="https://i.imgur.com/Y8JiDwN.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="AlmaTV.it"
+    ),
+    ChannelData(
+        name="Radio 105 TV Ⓖ",
+        url="https://live02-seg.msr.cdn.mediaset.net/live/ch-ec/ec-clr.isml/index.m3u8",
+        logo="https://i.imgur.com/3NiLKvj.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Radio105TV.it"
+    ),
+    ChannelData(
+        name="R101 TV Ⓖ",
+        url="https://live02-seg.msr.cdn.mediaset.net/live/ch-er/er-clr.isml/index.m3u8",
+        logo="https://i.imgur.com/mWeEa9T.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="R101TV.it"
+    ),
+    ChannelData(
+        name="Deejay TV",
+        url="https://4c4b867c89244861ac216426883d1ad0.msvdn.net/live/S85984808/sMO0tz9Sr2Rk/playlist.m3u8",
+        logo="https://i.imgur.com/rlaKH6k.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="DeejayTV.it"
+    ),
+    ChannelData(
+        name="RadioItaliaTV",
+        url="https://radioitaliatv.akamaized.net/hls/live/2093117/RadioitaliaTV/master.m3u8",
+        logo="https://i.imgur.com/4VCEJuJ.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="RadioItaliaTV.it"
+    ),
+    ChannelData(
+        name="Radio KISS KISS TV",
+        url="https://kk.fluid.stream/KKMulti/smil:KissKissTV.smil/playlist.m3u8",
+        logo="https://i.imgur.com/UTStxDW.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="KissKissTV.it"
+    ),
+    ChannelData(
+        name="Rai Radio 2 Visual Radio",
+        url="https://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=5674080&output=7&forceUserAgent=rainet/4.0.5",
+        logo="https://i.imgur.com/nVBet0h.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="RaiRadio2Visual.it"
+    ),
+    ChannelData(
+        name="RTL 102.5 Traffic",
+        url="https://dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S38122967/2lyQRIAAGgRR/playlist.m3u8",
+        logo="https://i.imgur.com/GH7byqm.jpeg",
+        group="Italy",
+        country_code="IT",
+        epg_id="RTL1025Traffic.it"
+    ),
+    ChannelData(
+        name="MAN-GA",
+        url="https://c65b9e710bde44819015af98e72cd7ab.msvdn.net/live/S93572876/aILSQPYFY3pF/playlist.m3u8",
+        logo="https://i.imgur.com/8a6WYU2.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Manga.it"
+    ),
+    ChannelData(
+        name="Radio24-IlSole24OreTV",
+        url="https://ilsole24ore-radiovisual.akamaized.net/hls/live/2035302/persidera/master.m3u8",
+        logo="https://i.imgur.com/NTqrdWW.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Radio24TV.it"
+    ),
+    ChannelData(
+        name="BeJoy.Kids",
+        url="https://64b16f23efbee.streamlock.net/bejoy/bejoy/playlist.m3u8",
+        logo="https://i.imgur.com/zuR9Go5.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="BeJoyKids.it"
+    ),
+    ChannelData(
+        name="Gambero Rosso",
+        url="https://2018f6355a15442ebb37007fa4f6c064.msvdn.net/live/S7530969/XWerenuxbSdW/playlist.m3u8",
+        logo="https://i.imgur.com/RApMW5x.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="GamberoRosso.it"
+    ),
+    ChannelData(
+        name="RadioFreccia",
+        url="https://dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S3160845/0tuSetc8UFkF/playlist.m3u8",
+        logo="https://i.imgur.com/J5N9F7Z.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="RadioFrecciaTV.it"
+    ),
+    ChannelData(
+        name="RDS Social TV",
+        url="https://stream.rdstv.radio/index.m3u8",
+        logo="https://i.imgur.com/TY6FhqI.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="RDSSocialTV.it"
+    ),
+    ChannelData(
+        name="Radio ZETA",
+        url="https://dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S9346184/XEx1LqlYbNic/playlist.m3u8",
+        logo="https://i.imgur.com/0MgCm1n.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="RadioZetaTV.it"
+    ),
+    ChannelData(
+        name="Radio TV Serie A con RDS",
+        url="https://stream.radioseriea.com/50773f0d0070476a8612d9984c6059d8/index.m3u8",
+        logo="https://i.imgur.com/NzDeCIx.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="RadioTVSerieA.it"
+    ),
+    ChannelData(
+        name="Sportitalia SOLOCALCIO",
+        url="https://di-g7ij0rwh.vo.lswcdn.net/sportitalia/sisolocalcio.smil/playlist.m3u8",
+        logo="https://i.imgur.com/hu56Ya5.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="SportitaliaSolocalcio.it"
+    ),
+    ChannelData(
+        name="BIKE Channel",
+        url="https://stream.prod-01.milano.nxmedge.net/argocdn/bikechannel/video.m3u8",
+        logo="https://i.imgur.com/4IzVSQI.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Bike.it"
+    ),
+    ChannelData(
+        name="Radio Montecarlo TV Ⓖ",
+        url="https://live02-seg.msr.cdn.mediaset.net/live/ch-bb/bb-clr.isml/index.m3u8",
+        logo="https://i.imgur.com/3TMMXmS.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="RadioMonteCarloTV.it"
+    ),
+    ChannelData(
+        name="Virgin Radio TV Ⓖ",
+        url="https://live02-seg.msr.cdn.mediaset.net/live/ch-ew/ew-clr.isml/index.m3u8",
+        logo="https://i.imgur.com/7Im3HI1.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="VirginRadioTV.it"
+    ),
+    ChannelData(
+        name="Senato TV",
+        url="https://senato-live.morescreens.com/SENATO_1_001/playlist.m3u8",
+        logo="https://i.imgur.com/FoQoNZW.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="SenatoTV.it"
+    ),
+    ChannelData(
+        name="Camera dei Deputati Ⓢ",
+        url="https://video-ar.radioradicale.it/diretta/camera2/playlist.m3u8",
+        logo="https://i.imgur.com/fqGn1k9.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="CameradeiDeputati.it"
+    ),
+    ChannelData(
+        name="Rai 4K Ⓖ",
+        url="https://raievent10-elem-live.akamaized.net/hls/live/619189/raievent10/raievent10/playlist.m3u8",
+        logo="https://i.imgur.com/5gkt9DD.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Rai4K.it"
+    ),
+    ChannelData(
+        name="UniNettuno University TV Ⓖ",
+        url="https://stream6-rai-it.akamaized.net/live/uninettuno/playlist.m3u8",
+        logo="https://i.imgur.com/BOGMeio.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="UniNettunoUniversityTV.it"
+    ),
+    ChannelData(
+        name="111 Tv",
+        url="https://5db313b643fd8.streamlock.net/111/111/playlist.m3u8",
+        logo="https://i.imgur.com/4jY8yAI.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="12 Tv Parma",
+        url="https://5929b138b139d.streamlock.net/12TVParma/livestream/playlist.m3u8",
+        logo="https://i.imgur.com/xnUgx6b.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="12TVParma.it"
+    ),
+    ChannelData(
+        name="4 You Tv",
+        url="https://streamsrv2.nets-sr.com:19360/4youtv/4youtv.m3u8",
+        logo="https://i.imgur.com/NN0cSbz.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Abc Tv",
+        url="https://diretta.arcapuglia.it:8080/live/abctv/index.m3u8",
+        logo="https://i.imgur.com/nVmIeTD.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="AB Channel",
+        url="https://tsw.streamingwebtv24.it:1936/abchanneltv/abchanneltv/playlist.m3u8",
+        logo="https://i.imgur.com/k8EPLB9.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="ABChannel.it"
+    ),
+    ChannelData(
+        name="Alpauno",
+        url="https://5f22d76e220e1.streamlock.net/alpaunotv/alpaunotv/playlist.m3u8",
+        logo="https://i.imgur.com/4QKFtUa.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Alto Adige Tv",
+        url="https://5f204aff97bee.streamlock.net/AltoAdigeTV/livestream/playlist.m3u8",
+        logo="https://i.imgur.com/S2sCFQi.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="AltoAdigeTV.it"
+    ),
+    ChannelData(
+        name="Antenna 2 Bergamo",
+        url="https://58f12ffd2447a.streamlock.net/Antenna2/livestream/playlist.m3u8",
+        logo="https://i.imgur.com/NfvHIAw.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Antenna 3 Massa",
+        url="https://media2021.rtvweb.com/antenna3massa/a3/playlist.m3u8",
+        logo="https://i.imgur.com/CHDU86j.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Antenna 3 Veneto Nord Est",
+        url="https://59d7d6f47d7fc.streamlock.net/antennatreveneto/antennatreveneto.stream/playlist.m3u8",
+        logo="https://i.imgur.com/NiVHLwp.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="AntennaTreNordest.it"
+    ),
+    ChannelData(
+        name="Antenna Sud",
+        url="https://live.antennasudwebtv.it:9443/hls/vod.m3u8",
+        logo="https://i.imgur.com/b8y6ImZ.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Antenna Sud Extra",
+        url="https://live.antennasudwebtv.it:9443/hls/vod92.m3u8",
+        logo="https://i.imgur.com/6tBv8VD.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Aristanis SuperTv",
+        url="https://video2.azotosolutions.com:1936/supertvoristano/supertvoristano/playlist.m3u8",
+        logo="https://i.imgur.com/v8PlAJO.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Arte Network Orler",
+        url="https://tsw.streamingwebtv24.it:1936/artenetwork/artenetwork/playlist.m3u8",
+        logo="https://i.imgur.com/DP5y0Er.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Aurora Arte",
+        url="https://59d7d6f47d7fc.streamlock.net/auroraarte/auroraarte/playlist.m3u8",
+        logo="https://i.imgur.com/BoLZ5wG.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="AuroraArte.it"
+    ),
+    ChannelData(
+        name="Azzurra Tv Vco",
+        url="https://59d7d6f47d7fc.streamlock.net/azzurratv/azzurratv/playlist.m3u8",
+        logo="https://i.imgur.com/mSWw8uW.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="AzzurraTV.it"
+    ),
+    ChannelData(
+        name="Basilicata 1 Tv",
+        url="http://77.68.40.210:8888/hls/basilicata1.m3u8",
+        logo="https://i.imgur.com/VS6CQ88.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Bergamo Tv",
+        url="https://db142859fd5541b09de25d6507f1f2d3.msvdn.net/live/S17501676/oIxAsgEEA46M/playlist.m3u8?DVR",
+        logo="https://i.imgur.com/1doR6Vl.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="BOM Channel",
+        url="https://5f22d76e220e1.streamlock.net/canale6/canale6/playlist.m3u8",
+        logo="https://i.imgur.com/hISoOK3.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="BomChannel.it"
+    ),
+    ChannelData(
+        name="ByoBlu",
+        url="https://09bd1346f7a44cc9ac230cc1cb22ca4f.msvdn.net/live/S39249178/EnTK3KeeN1Eg/playlist.m3u8",
+        logo="https://i.imgur.com/1xaHGtU.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Cafe Tv 24",
+        url="https://srvx1.selftv.video/cafe/live/playlist.m3u8",
+        logo="https://i.imgur.com/KbcbxFw.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Calabria Uno Tv",
+        url="https://635320cd397eb.streamlock.net/live/ngrp:calabriaunolive_all/playlist.m3u8",
+        logo="https://i.imgur.com/2TK1GQ5.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Calabria tv",
+        url="https://64b16f23efbee.streamlock.net/calabriatv-clone/calabriatv-clone/playlist.m3u8",
+        logo="https://i.imgur.com/qWirucd.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Canale 10",
+        url="https://nrvideo1.newradio.it:1936/desxcerbht/desxcerbht/playlist.m3u8",
+        logo="https://i.imgur.com/KuQcjYV.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Canale 2",
+        url="https://59d7d6f47d7fc.streamlock.net/canale2/canale2/playlist.m3u8",
+        logo="https://i.imgur.com/ETqDkS1.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Canale 21",
+        url="https://0ff9dd7fe9b64bc08a5fc4ed525454c3.msvdn.net/live/S38994111/B7j0ql4XaZtE/playlist.m3u8",
+        logo="https://i.imgur.com/mU6Cq89.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Canale21.it"
+    ),
+    ChannelData(
+        name="Canale 21 Extra",
+        url="https://0ff9dd7fe9b64bc08a5fc4ed525454c3.msvdn.net/live/S42170132/sT6C3LFaD1iA/playlist.m3u8",
+        logo="https://i.imgur.com/cDAsrBl.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Canale21Extra.it"
+    ),
+    ChannelData(
+        name="Canale 7",
+        url="http://wms.shared.streamshow.it:80/canale7/canale7/playlist.m3u8",
+        logo="https://i.imgur.com/9cuOLCn.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Canale 74 Sicilia",
+        url="https://stream.cp.ets-sistemi.it:1936/canale74/canale74/playlist.m3u8",
+        logo="https://i.imgur.com/18JIVgu.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Canale 8 Campania",
+        url="https://59d7d6f47d7fc.streamlock.net/canale8/canale8/playlist.m3u8",
+        logo="https://i.imgur.com/ElAS2WC.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Canale Italia",
+        url="https://ovp-live.akamaized.net/ac115_live/canale1.smil/playlist.m3u8",
+        logo="https://i.imgur.com/QlwLRyh.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="CanaleItalia.it"
+    ),
+    ChannelData(
+        name="Carina Tv",
+        url="https://samson.streamerr.co:8081/carinatv/index.m3u8",
+        logo="https://i.imgur.com/FMGcm6I.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Casa Italia 53",
+        url="https://ovp-live.akamaized.net/ac115_live/canale3.smil/playlist.m3u8",
+        logo="https://i.imgur.com/O4GQVCk.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Casa Sanremo Tv",
+        url="https://router.xdevel.com/video0s975911-633/stream/playlist_dvr.m3u8",
+        logo="https://i.imgur.com/WL3SFTs.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Castrovillari Tv",
+        url="http://msh0062.stream.seeweb.it/live/flv:stream00.sdp/playlist.m3u8",
+        logo="https://i.imgur.com/V0kjYNG.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Cittaceleste Tv",
+        url="https://sportitaliaamd.akamaized.net/live/Cittaceleste/hls/A990687F506536598442FC5CD12C97CB78873FBA/index.m3u8",
+        logo="https://i.imgur.com/9RVriNK.jpeg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Company Tv",
+        url="https://company.fluid.stream/CompanyTV/smil:Company_ALL.smil/playlist.m3u8",
+        logo="https://i.imgur.com/IbabUDd.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Cremona 1",
+        url="https://cdn2.streamshow.it/cloud-cremona1/cremona1/playlist.m3u8",
+        logo="https://i.imgur.com/a5d0F01.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Cusano Italia Tv",
+        url="https://router.xdevel.com/video0s975363-69/stream/playlist.m3u8",
+        logo="https://i.imgur.com/9F1sVjZ.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Cusano News 7",
+        url="https://router.xdevel.com/video1s975363-1596/stream/playlist.m3u8",
+        logo="https://i.imgur.com/L49Ie1Q.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Delta Tv",
+        url="http://hbbtv-server.zivoli.it:8080/hls/deltatv/deltatv/index.m3u8",
+        logo="https://i.imgur.com/mfwVXt7.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Deluxe 139",
+        url="https://59d7d6f47d7fc.streamlock.net/pierstyle/pierstyle/playlist.m3u8",
+        logo="https://i.imgur.com/kRexw3w.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Di.Tv 80",
+        url="https://5f22d76e220e1.streamlock.net/ditv80/ditv80/playlist.m3u8",
+        logo="https://i.imgur.com/kHxTsJw.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Di.Tv 92",
+        url="https://media2021.rtvweb.com/di_tv_92/live/playlist.m3u8",
+        logo="https://i.imgur.com/g3SI08H.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Digital Tv7 Benevento",
+        url="http://streaming.senecadot.com/live/flv:tv7.sdp/playlist.m3u8",
+        logo="https://i.imgur.com/NaQkklP.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Donna Shopping Tv",
+        url="https://5f22d76e220e1.streamlock.net/fascinotv/fascinotv/playlist.m3u8",
+        logo="https://i.imgur.com/oLDvx2T.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="E'live Brescia Tv",
+        url="https://59d7d6f47d7fc.streamlock.net/elivebresciatv/elivebresciatv/playlist.m3u8",
+        logo="https://i.imgur.com/bZ3B7pi.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Easy Tv Canale 190",
+        url="https://diretta.arcapuglia.it:8080/live/easytv/index.m3u8",
+        logo="https://i.imgur.com/LKrVuRR.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Entella Tv",
+        url="https://5f22d76e220e1.streamlock.net:443/EntellaTV/EntellaTV/playlist.m3u8",
+        logo="https://i.imgur.com/1VPXKrW.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="EQUtv",
+        url="https://ippicabetflag-live.morescreens.com/IPPICA_1_003/304p.m3u8",
+        logo="https://i.imgur.com/x9Wdz7h.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Equos Tv",
+        url="https://dacastmmd.mmdlive.lldns.net/dacastmmd/2824fb123d5e44b797232c7abf8195da/playlist.m3u8",
+        logo="https://i.imgur.com/YwyfNDF.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Espansione Tv",
+        url="https://srvx1.selftv.video/espansione/smil:live.smil/playlist.m3u8",
+        logo="https://i.imgur.com/mm9HKpD.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="EspansioneTV.it"
+    ),
+    ChannelData(
+        name="Esperia Tv",
+        url="https://59d7d6f47d7fc.streamlock.net/esperiatv/esperiatv/playlist.m3u8",
+        logo="https://patbuweb.com/tivustream/chanlogoz/ita/esperiatv.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Etna Espresso Channel",
+        url="https://5db313b643fd8.streamlock.net/Etnachannelponte/Etnachannelponte/playlist.m3u8",
+        logo="https://i.imgur.com/hMUxytZ.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="è Tv Marche",
+        url="https://live.ipstream.it/etvmarche/etvmarche.stream/playlist.m3u8",
+        logo="https://i.imgur.com/vxgbFnR.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="è Tv Rete7",
+        url="https://live.ipstream.it/etv/etv.stream/playlist.m3u8",
+        logo="https://i.imgur.com/FXFzJhM.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="è Tv Umbria",
+        url="https://live.ipstream.it/etvumbria/etvumbria.stream/playlist.m3u8",
+        logo="https://i.imgur.com/DASRCe2.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Euro Tv",
+        url="https://5f22d76e220e1.streamlock.net/eurotv/eurotv/playlist.m3u8",
+        logo="https://i.imgur.com/HCl5Zbu.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Extra Tv",
+        url="https://rst2.saiuzwebnetwork.it:8081/extratvlive/index.m3u8",
+        logo="https://i.imgur.com/KCBurST.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="FM Tv Marche",
+        url="https://bbtv.intvstream.net:3988/hybrid/play.m3u8",
+        logo="https://i.imgur.com/yY01NhL.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Fano Tv",
+        url="https://diretta.arcapuglia.it:8080/live/fanotv/index.m3u8",
+        logo="https://i.imgur.com/orqEzJ6.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Fascino Tv",
+        url="https://5f22d76e220e1.streamlock.net/canale157/canale157/playlist.m3u8",
+        logo="https://i.imgur.com/4XYYY5B.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="GRP Televisione",
+        url="https://webstream.multistream.it/memfs/a3195c96-f884-4c74-924f-2648814fc0b5.m3u8",
+        logo="https://i.imgur.com/1zNPpVE.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="GarganoTv",
+        url="https://cdn80-ger.azotosolutions.com:8443/cdnedge3/smil:live3.smil/playlist.m3u8",
+        logo="https://i.imgur.com/OlJohKK.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Giornale Radio Tv",
+        url="https://5f204aff97bee.streamlock.net/GR_tv/livestream/playlist.m3u8",
+        logo="https://i.imgur.com/TMtvCLL.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Giovanni Paolo Tv",
+        url="https://media2021.rtvweb.com/giovannipaolotv/web/chunklist_w663456797.m3u8",
+        logo="https://i.imgur.com/GH5eJE6.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Globus Television",
+        url="https://cdn.cubws.com/live/globus.m3u8",
+        logo="https://i.imgur.com/yUTYqCv.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Gold Tv",
+        url="https://streaming.softwarecreation.it/GoldTv/GoldTv/playlist.m3u8",
+        logo="https://i.imgur.com/3rVi4kD.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="GoldTV.it"
+    ),
+    ChannelData(
+        name="GO-TV Channel",
+        url="https://6zklxkbbdw9b-hls-live.mariatvcdn.it/msmotor/2f759512164fc6fe4acbed6a5648993a.sdp/playlist.m3u8",
+        logo="https://i.imgur.com/xgjrAAn.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="GOTVCanale163.it"
+    ),
+    ChannelData(
+        name="GS Channel",
+        url="https://rst.saiuzwebnetwork.it:8081/retereggio/index.m3u8",
+        logo="https://i.imgur.com/ExfxCRv.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Icaro Tv Rimini",
+        url="https://59d7d6f47d7fc.streamlock.net/icarotv/icarotv/playlist.m3u8",
+        logo="https://i.imgur.com/z05VSSN.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Idea Plus",
+        url="https://rst.saiuzwebnetwork.it:19360/teleidea/teleidea.m3u8",
+        logo="https://i.imgur.com/2edmxYF.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="il61",
+        url="https://5a1178b42cc03.streamlock.net/travel/travel/playlist.m3u8",
+        logo="https://i.imgur.com/1rUZsBv.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Italia 2 Tv",
+        url="https://59d7d6f47d7fc.streamlock.net/italia2/italia2/playlist.m3u8",
+        logo="https://i.imgur.com/ISbxfY0.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Italia2TV.it"
+    ),
+    ChannelData(
+        name="Italia 7",
+        url="https://streaming.softwarecreation.it/Italia7/Italia7/playlist.m3u8",
+        logo="https://i.imgur.com/YBXkY4w.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Italia 8 Prestige",
+        url="https://5f22d76e220e1.streamlock.net/italia8prestige/italia8prestige/playlist.m3u8",
+        logo="https://i.imgur.com/uDxWI4a.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Italia Channel",
+        url="https://stream1.aswifi.it/italiachannel/stream/index.m3u8",
+        logo="https://i.imgur.com/zuuKXGv.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="ItaliaChannel.it"
+    ),
+    ChannelData(
+        name="Iunior Tv",
+        url="https://5f22d76e220e1.streamlock.net/iuniortv/iuniortv/playlist.m3u8",
+        logo="https://i.imgur.com/9jeNlLE.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="IuniorTV.it"
+    ),
+    ChannelData(
+        name="L'Altro Corriere Tv",
+        url="https://stream.cp.ets-sistemi.it:1936/laltrocorriere-tv/laltrocorriere-tv/playlist.m3u8",
+        logo="https://i.imgur.com/dgj79J3.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="La Nuova Tv",
+        url="https://5dcabf026b188.streamlock.net/lanuovatvbas/livestream/playlist.m3u8",
+        logo="https://i.imgur.com/wg8FhdN.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="La Tenda Tv",
+        url="https://2-fss-1.streamhoster.com/pl_148/206202-2980948-1/playlist.m3u8",
+        logo="https://i.imgur.com/XnBp0hT.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="La tr3 Marsala",
+        url="https://tsw.streamingwebtv24.it:1936/eslife1/eslife1/playlist.m3u8",
+        logo="https://i.imgur.com/XlxpfEx.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="LaC News 24",
+        url="https://f5842579ff984c1c98d63b8d789673eb.msvdn.net/live/S27391994/HVvPMzy/playlist.m3u8",
+        logo="https://i.imgur.com/02vCECa.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="LaC Tv Calabria",
+        url="https://f5842579ff984c1c98d63b8d789673eb.msvdn.net/live/S47282891/JWjL3xqPf4bX/playlist.m3u8",
+        logo="https://i.imgur.com/2Ef6crS.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Lab Tv",
+        url="https://customer-yzibk50951uq418a.cloudflarestream.com/a58893dee4b9922a75e41b4ec4243f84/manifest/video.m3u8",
+        logo="https://i.imgur.com/OpRS6Fl.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Lazio Tv",
+        url="https://streaming.softwarecreation.it/LazioTv/LazioTv/playlist.m3u8",
+        logo="https://i.imgur.com/DAj5Uwb.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Le Cronache Lucane Tv",
+        url="http://stucazz.com:8888/hls/cronache.m3u8",
+        logo="https://i.imgur.com/EBY3IZL.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Lira Tv",
+        url="https://a928c0678d284da5b383f29ecc5dfeec.msvdn.net/live/S57315730/8kTBWibNteJA/playlist.m3u8",
+        logo="https://i.imgur.com/S0ReVEo.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Lombardia Tv",
+        url="https://5db313b643fd8.streamlock.net/lmbiatv/lmbiatv/playlist.m3u8",
+        logo="https://i.imgur.com/aksVy9f.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Love in Venice",
+        url="http://59d7d6f47d7fc.streamlock.net/loveinvenice/loveinvenice/playlist.m3u8",
+        logo="https://i.imgur.com/lLBzzce.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Lucania Tv",
+        url="https://cdn15.streamshow.it/cloud-lucaniatv/lucaniatv/playlist.m3u8",
+        logo="https://i.imgur.com/wuUNVR5.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Made in BO",
+        url="https://srvx1.selftv.video/dmchannel/live/playlist.m3u8",
+        logo="https://i.imgur.com/WFnrMS0.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Maria Vision",
+        url="https://1601580044.rsc.cdn77.org/live/_jcn_/amls:CHANNEL_2/playlist.m3u8",
+        logo="https://i.imgur.com/fdx5YXi.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Matrix Tv",
+        url="https://5f22d76e220e1.streamlock.net/GrandeItalia/GrandeItalia/playlist.m3u8",
+        logo="https://i.imgur.com/m1HeXrn.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Mediterranea Tv",
+        url="https://stream1.aswifi.it/mediterraneatv/live/index.m3u8",
+        logo="https://i.imgur.com/GUTOqRt.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Medjugorje Italia Tv",
+        url="https://5f22d76e220e1.streamlock.net/medjugorjeitaliatv/medjugorjeitaliatv/playlist.m3u8",
+        logo="https://i.imgur.com/hkZScXf.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Medjugorje Tv Puglia",
+        url="https://diretta.arcapuglia.it:8080/live/medjugorietv/index.m3u8",
+        logo="https://i.imgur.com/IWBeddh.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Minformo Tv",
+        url="https://5db313b643fd8.streamlock.net:443/MinformoTV/MinformoTV/playlist.m3u8",
+        logo="https://i.imgur.com/VJNtnZM.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Motori Tv",
+        url="https://5f22d76e220e1.streamlock.net/servizio01/servizio01/playlist.m3u8",
+        logo="https://i.imgur.com/NWXQKbl.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="NTI Canale 271",
+        url="https://www.ntimedia.it/video/S0B/S0B_master.m3u8",
+        logo="https://i.imgur.com/zlmcUe0.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="News24 City",
+        url="https://dc3.telesveva.com:4433/news24.mp4",
+        logo="https://i.imgur.com/dak9AtV.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Nuova TV Nazionale",
+        url="https://stream4.xdevel.com/video0s975955-782/stream/playlist.m3u8",
+        logo="https://i.imgur.com/QWlRuXg.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Nuova Tv 1",
+        url="https://nuovatv.net:8443/tv/stream.m3u8",
+        logo="https://i.imgur.com/1yqTZhR.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Nuova Tv 2",
+        url="https://nuovatv.net:8443/tv2/stream.m3u8",
+        logo="https://i.imgur.com/0vauyV3.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Nuvola Tv",
+        url="https://stream.nuvola.tv:8181/memfs/4aaa6328-1879-4ebf-b18a-498146d0c61c.m3u8",
+        logo="https://i.imgur.com/EDGez2x.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Odeon 24",
+        url="https://streaming.softwarecreation.it/Odeon/Odeon/manifest.m3u8",
+        logo="https://i.imgur.com/M1tVBuH.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Ofanto Tv",
+        url="https://videostream.isgm.it:3276/live/tvofantolive.m3u8",
+        logo="https://i.imgur.com/UCgATWn.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Onda Novara Tv",
+        url="https://585b674743bbb.streamlock.net/9006/9006/playlist.m3u8",
+        logo="https://i.imgur.com/Qoh9CFy.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Onda Tv Sicilia",
+        url="https://5926fc9c7c5b2.streamlock.net/9040/9040/playlist.m3u8",
+        logo="https://i.imgur.com/0c5Y6lr.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Onda Web Radio",
+        url="http://178.33.224.197:1935/ondaradioweb/ondaradioweb/playlist.m3u8",
+        logo="https://i.imgur.com/3hTvrC8.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Ora Tv",
+        url="https://5db313b643fd8.streamlock.net/OraTv/OraTv/playlist.m3u8",
+        logo="https://i.imgur.com/clWVrvE.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Orler Tv",
+        url="https://w1.mediastreaming.it/orlertv/livestream/playlist.m3u8",
+        logo="https://i.imgur.com/dBkxD8e.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Otto Channel",
+        url="https://ottop-live-meride.akamaized.net/hls/live/2039996/ch1/playlist.m3u8",
+        logo="https://i.imgur.com/HRonD2N.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Padre Pio Tv",
+        url="https://600f07e114306.streamlock.net/PadrePioTV/livestream/playlist.m3u8",
+        logo="https://i.imgur.com/7ajxEPH.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Paradise Tv",
+        url="https://tsw.streamingwebtv24.it:1936/paradisetv/paradisetv/playlist.m3u8",
+        logo="https://i.imgur.com/okIBfIb.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Parole di Vita",
+        url="https://64b16f23efbee.streamlock.net/paroledivita/paroledivita/playlist.m3u8",
+        logo="https://i.imgur.com/M9mIiZD.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Partenope Tv",
+        url="https://diretta.arcapuglia.it:8080/live/partenope/index.m3u8",
+        logo="https://i.imgur.com/FtuWkj1.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Peer Tv Alto Adige",
+        url="https://iptv.peer.biz/live/peertv-it.m3u8",
+        logo="https://www.peer.biz/peertv-iptv/peer-tv-alto-adige.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="PeerTV.it"
+    ),
+    ChannelData(
+        name="Peer TV Südtirol",
+        url="https://iptv.peer.biz/live/peertv.m3u8",
+        logo="https://www.peer.biz/peertv-iptv/peer-tv-suedtirol.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="PeerTV.de"
+    ),
+    ChannelData(
+        name="Pop Tv",
+        url="https://stream1.aswifi.it/poptelevision/live/index.m3u8",
+        logo="https://i.imgur.com/TeolCu9.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Prima Tv Napoli",
+        url="https://57068da1deb21.streamlock.net/primatvnapoli/primatvnapoli/playlist.m3u8",
+        logo="https://i.imgur.com/yPuQeEy.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Prima Tv Sicilia",
+        url="https://5db313b643fd8.streamlock.net/PrimaTV/PrimaTV/playlist.m3u8",
+        logo="https://i.imgur.com/br45JER.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="PrimaFREE",
+        url="https://5f22d76e220e1.streamlock.net/primafree/primafree/playlist.m3u8",
+        logo="https://i.imgur.com/YrSSmOL.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Primantenna Torino",
+        url="https://5f22d76e220e1.streamlock.net/primantenna14/primantenna14/playlist.m3u8",
+        logo="https://i.imgur.com/sqEcPFs.gif",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Primocanale",
+        url="https://msh0203.stream.seeweb.it/live/flv:stream2.sdp/playlist.m3u8",
+        logo="https://i.imgur.com/xWF1A1U.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Promovideo Tv",
+        url="https://media2021.rtvweb.com/promovideo_web/promovideo/playlist.m3u8",
+        logo="https://i.imgur.com/MwK9HVG.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Quarto Canale Flegreo",
+        url="http://live.mariatvcdn.com/dialogos/171e41deedf405f10c7dd6311387fb43.sdp/playlist.m3u8",
+        logo="https://i.imgur.com/8RKY3Du.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Radio 3M InBlu",
+        url="https://stream.mariatvcdn.com/telemistrettaradio/900bfcc0f9012ea272584fd5ff5281b8.sdp/playlist.m3u8",
+        logo="https://i.imgur.com/d7O7Uqa.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Radio 51 Tv",
+        url="https://59d7d6f47d7fc.streamlock.net/canale51/canale51/chunklist_w1193883900.m3u8",
+        logo="https://uaznao.com/wp-content/uploads/2023/03/radio51.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Radio Birikina Tv",
+        url="https://tvd-bk.fluid.stream/RadioBirikinaTV/livestream/chunklist_w84398277.m3u8",
+        logo="https://uaznao.com/wp-content/uploads/2023/03/radiobirikina.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Radio Bruno Tv",
+        url="https://router.xdevel.com/video0s975758-473/stream/playlist.m3u8",
+        logo="https://i.imgur.com/y4vKE83.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Radio Ibiza",
+        url="https://str48.fluid.stream/RadioIbizaTV/livestream/playlist.m3u8",
+        logo="https://i.imgur.com/uu0DHY5.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Radio Immagine Tv",
+        url="https://media.velcom.it:8081/RadioImmagineTV/index.fmp4.m3u8",
+        logo="https://i.imgur.com/iQlXRAB.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Radio Italia Cina Tv",
+        url="https://585b674743bbb.streamlock.net/9054/9054/playlist.m3u8",
+        logo="https://i.imgur.com/QGkyrO3.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Radio Libertà",
+        url="https://router.xdevel.com/video0s975360-67/stream/playlist_dvr.m3u8",
+        logo="https://i.imgur.com/HRvPlf5.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Radio m2o Tv",
+        url="https://4c4b867c89244861ac216426883d1ad0.msvdn.net/live/S62628868/uhdWBlkC1AoO/playlist.m3u8",
+        logo="https://i.imgur.com/wl30UFj.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="m2oTV.it"
+    ),
+    ChannelData(
+        name="Radio Monte Kronio Tv (R.M.K.)",
+        url="https://648026e87a75e.streamlock.net/rmktv/rmktv/playlist.m3u8",
+        logo="https://i.imgur.com/t0I2Shi.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Radio Norba Tv",
+        url="https://router.xdevel.com/video0s975885-462/stream/playlist_dvr.m3u8",
+        logo="https://i.imgur.com/qftBPM9.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="RadionorbaTV.it"
+    ),
+    ChannelData(
+        name="Radio Piter Pan Tv",
+        url="https://tvd-piter.fluid.stream/RadioPiterpanTV/livestream/chunklist_w1866496033.m3u8",
+        logo="https://uaznao.com/wp-content/uploads/2023/03/radiopiterpan.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Radio Radio Tv",
+        url="https://200912.global.ssl.fastly.net/646b335e2291a2022444bb7c/live_22f84390fe1411ed919df3da85a483cc/rewind-14400.m3u8",
+        logo="https://i.imgur.com/iKuRg2b.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="RadioRadioTV.it"
+    ),
+    ChannelData(
+        name="Radio Radiosa Tv",
+        url="https://stream7.zivoli.it/radiosatv/radiosatv/playlist.m3u8",
+        logo="https://i.imgur.com/8kqyxvz.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Radio Roma",
+        url="https://585b674743bbb.streamlock.net/9044/9044/playlist.m3u8",
+        logo="https://i.imgur.com/RKvfStm.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Radio Roma Television",
+        url="https://5926fc9c7c5b2.streamlock.net/rtfeunawfu/rtfeunawfu/playlist.m3u8",
+        logo="https://i.imgur.com/RKvfStm.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Ran Friul",
+        url="https://5f22d76e220e1.streamlock.net/RanFriul/RanFriul/playlist.m3u8",
+        logo="https://i.imgur.com/Qs5eQPM.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="RDE Tv",
+        url="https://rst2.saiuzwebnetwork.it:8081/rdetrieste/index.m3u8",
+        logo="https://i.imgur.com/NiwPlrr.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Reggio Tv",
+        url="https://cdn10.streamshow.it/cloud-reggiotv/reggiotv/playlist.m3u8",
+        logo="https://i.imgur.com/merrg2C.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Rei Tv",
+        url="https://5f22d76e220e1.streamlock.net/reitv/reitv/playlist.m3u8",
+        logo="https://i.imgur.com/YNRWFOo.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Rete 55",
+        url="https://live1.giocabet.tv/stream/6/index.m3u8",
+        logo="https://i.imgur.com/EsZn2cj.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Rete 8 Vga",
+        url="https://604e46ac2bdee.streamlock.net:1936/rete8_1/rete8_1/playlist.m3u8",
+        logo="https://i.imgur.com/3wF2AJX.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Rete 8",
+        url="https://64b16f23efbee.streamlock.net/rete8/rete8/playlist.m3u8",
+        logo="https://i.imgur.com/bGsjPRh.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Rete 8 Sport",
+        url="https://64b16f23efbee.streamlock.net/rete8sport/rete8sport/playlist.m3u8",
+        logo="https://i.imgur.com/uUAjWlF.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Rete Biella Tv",
+        url="https://sb.top-ix.org/retebiella/streaming/playlist.m3u8",
+        logo="https://i.imgur.com/e2ryHx7.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Rete Mia",
+        url="https://5db313b643fd8.streamlock.net/rete/rete/playlist.m3u8",
+        logo="https://i.imgur.com/kCJ621Q.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Rete Oro Tv",
+        url="https://5926fc9c7c5b2.streamlock.net/9094/9094/playlist.m3u8",
+        logo="https://i.imgur.com/OCxGtwA.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Rete Sole",
+        url="https://5926fc9c7c5b2.streamlock.net/9332/9332/playlist.m3u8",
+        logo="https://i.imgur.com/u0ezKgE.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Rete Tv Italia",
+        url="https://57068da1deb21.streamlock.net/retetvitalia/retetvitalia/playlist.m3u8",
+        logo="https://i.imgur.com/lXGWoV9.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Rete Veneta",
+        url="http://wms.shared.streamshow.it/reteveneta/reteveneta/playlist.m3u8",
+        logo="https://i.imgur.com/cInhQFp.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Roma Tv 82",
+        url="https://streaming.softwarecreation.it/RomaCH71/RomaCH71/playlist.m3u8",
+        logo="https://i.imgur.com/C3UnlFF.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Rossini Tv",
+        url="https://stream.rossinitv.it/memfs/3bca4ad7-adfc-4610-ac0e-e826743ddc57.m3u8",
+        logo="https://i.imgur.com/K0Em0nx.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="RTC Quarta Rete",
+        url="https://msh0232.stream.seeweb.it/live/stream00.sdp/playlist.m3u8",
+        logo="https://i.imgur.com/rFGA6qL.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="RTC Telecalabria",
+        url="https://w1.mediastreaming.it/calabriachannel/livestream/playlist.m3u8",
+        logo="https://i.imgur.com/tTYLcuh.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id="RTCTelecalabria.it"
+    ),
+    ChannelData(
+        name="RTI Calabria",
+        url="https://stream.ets-sistemi.it:8081/rticalabria/index.m3u8",
+        logo="https://i.imgur.com/hVzEvmo.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="RTL 102.5 + Plus",
+        url="https://streamcdng14-dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S82929343/cAcsSu4Wecc5/chunklist_b5256000.m3u8",
+        logo="https://i.imgur.com/mPqDtCO.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="RTL1025Plus.it"
+    ),
+    ChannelData(
+        name="RTM Manduria",
+        url="https://5f22d76e220e1.streamlock.net/rtm/rtm/playlist.m3u8",
+        logo="https://i.imgur.com/WwzU0EP.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="RTR99 Tv",
+        url="https://5e73cf528f404.streamlock.net/RTR99TV/livestream/playlist.m3u8",
+        logo="https://i.imgur.com/mkO95pD.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Rtp Tv",
+        url="http://flash2.xdevel.com/rtptv/rtptv/playlist.m3u8",
+        logo="https://i.imgur.com/I1hYI0C.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Rttr",
+        url="https://5f204aff97bee.streamlock.net/RTTRlive/livestream/playlist.m3u8",
+        logo="https://i.imgur.com/z7xMArA.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Rtv 38 Toscana",
+        url="https://845d8509d2cb4f249dd0b2ae5755b6c2.msvdn.net/rtv38/rtv38_live_main/mainabr/playlist_dvr.m3u8",
+        logo="https://i.imgur.com/xqlhJqK.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="SL 48 Tv",
+        url="http://media.velcom.it:1935/sl48/sl48/playlist.m3u8",
+        logo="https://i.imgur.com/b58oouu.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="ST Europe Channel",
+        url="https://5f22d76e220e1.streamlock.net/steuropetv/steuropetv/playlist.m3u8",
+        logo="https://i.imgur.com/QpPgSfr.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Sardegna 1",
+        url="https://7e1cc2454f2242afabe05cc0a2f483cd.msvdn.net/live/S30721796/ZS3Xu8mn5f0J/playlist.m3u8",
+        logo="https://i.imgur.com/YNEW2h2.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Set Tv Cilento",
+        url="https://stream1.aswifi.it/settv/live/index.m3u8",
+        logo="https://i.imgur.com/qN5D1jD.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Sesta Rete",
+        url="https://stream10.xdevel.com/video0s977089-1792/stream/playlist.m3u8",
+        logo="https://i.imgur.com/0B0S2gI.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Sicilia 24 Tv",
+        url="https://5f22d76e220e1.streamlock.net/sicilia24/sicilia24/playlist.m3u8",
+        logo="https://i.imgur.com/GhQX36O.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Sicilia Tv",
+        url="https://stream9.xdevel.com/video0s976441-1226/stream/playlist.m3u8",
+        logo="https://i.imgur.com/I5FoThW.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Sienatv",
+        url="https://router.xdevel.com/video0s976727-1441/stream/playlist.m3u8",
+        logo="https://i.imgur.com/gcysky4.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Sophia Tv",
+        url="https://bild-und-ton.stream/sophiatv-it/smil:sophia-tv-it.smil/playlist.m3u8",
+        logo="https://i.imgur.com/fiLNK3b.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Stiletv",
+        url="https://proxy.media.convergenze.it/stiletv/streams/oQOFd7JglHjO1631525551097.m3u8",
+        logo="https://i.imgur.com/ZP3cJi7.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Super J Tv",
+        url="https://59d39900ebfb8.streamlock.net/SuperJtv/SuperJtv/playlist.m3u8",
+        logo="https://i.imgur.com/5oy5Nuu.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Super Six",
+        url="https://5db313b643fd8.streamlock.net/SUPERSIXLombardia/SUPERSIXLombardia/playlist.m3u8",
+        logo="https://i.imgur.com/kHSuyub.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="SuperSix.it"
+    ),
+    ChannelData(
+        name="Supertv",
+        url="http://wms.shared.streamshow.it:1935/supertv/supertv/live.m3u8",
+        logo="https://i.imgur.com/7gUZcEh.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="T9",
+        url="https://streaming.softwarecreation.it/tnove/tnove/playlist.m3u8",
+        logo="https://i.imgur.com/XzL05Py.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="TRC Santeramo",
+        url="https://stream7.livinlive.it/trc/trc/playlist.m3u8",
+        logo="https://i.imgur.com/VbYdS8P.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="TRL Tele Radio Leo",
+        url="https://5db313b643fd8.streamlock.net/TRL/TRL/playlist.m3u8",
+        logo="https://i.imgur.com/qAagkJT.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="TSD Tv Arezzo(Tele San Domenico)",
+        url="https://stream.mariatvcdn.com/tsd/7c59373bfdb38201b9215ff86f0ce6af.sdp/playlist.m3u8",
+        logo="https://i.imgur.com/WQ8eQXc.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="TVL (TV Libera Pistoia)",
+        url="http://live.mariatvcdn.com/mariatvcdn/70564e1c6884c007c76f0c128d679eed.sdp/mono.m3u8",
+        logo="https://i.imgur.com/07geF0L.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tcf Tv",
+        url="https://stream10.xdevel.com/video1s977294-1864/stream/playlist.m3u8",
+        logo="https://i.imgur.com/fiylFs2.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tci",
+        url="https://tbn-jw.cdn.vustreams.com/live/tci/live.isml/2b7d53c5-b504-4d26-b25f-a70deb8d0faf.m3u8",
+        logo="https://i.imgur.com/lCZTaKs.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Teatro Tv",
+        url="https://m.iostream.it/hls/teatrotv/teatrotv.m3u8",
+        logo="https://i.imgur.com/UsvffQL.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele A",
+        url="https://lostream.it/hls/telea/video.m3u8",
+        logo="https://i.imgur.com/l7Za9KH.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Abruzzo Tv",
+        url="http://uk4.streamingpulse.com:1935/TeleabruzzoTV/TeleabruzzoTV/playlist.m3u8",
+        logo="https://i.imgur.com/koB8J4b.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Acras",
+        url="https://5db313b643fd8.streamlock.net/teleacras/teleacras/playlist.m3u8",
+        logo="https://i.imgur.com/90Lsv8q.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Arena",
+        url="https://5e73cf528f404.streamlock.net/TeleArena/TeleArena.stream/playlist.m3u8",
+        logo="https://i.imgur.com/9hsoWMO.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Bari",
+        url="https://w1.mediastreaming.it/telebari/livestream/playlist.m3u8",
+        logo="https://i.imgur.com/HYSz4rx.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Belluno",
+        url="https://live.mariatvcdn.com/telebelluno/a3b80388da9801906adf885282e73bc3.sdp/mono.m3u8",
+        logo="https://i.imgur.com/YiM2Z7E.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Boario",
+        url="https://stream7.xdevel.com/video0s976425-1244/stream/playlist_dvr.m3u8",
+        logo="https://i.imgur.com/LlLD3L6.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Bruzzano",
+        url="https://playerssl.telemia.tv/fileadmin/hls/Telebruzzano/telebruzzano_mediachunks.m3u8",
+        logo="https://i.imgur.com/7TWbCDt.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Chiara",
+        url="http://fms.tvavicenza.it:1935/telechiara/diretta/playlist.m3u8",
+        logo="https://i.imgur.com/Q5XpnXR.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Telecolor",
+        url="https://1aadf145546f475282c5b4e658c0ac4b.msvdn.net/live/324149/hlbAWtl/playlist.m3u8",
+        logo="https://i.imgur.com/urUG78J.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="TelecolorLombardia.it"
+    ),
+    ChannelData(
+        name="Tele Cupole",
+        url="https://nrvideo1.newradio.it/euhsbdamnx/euhsbdamnx/playlist.m3u8",
+        logo="https://i.imgur.com/ZmUI9zb.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Estense",
+        url="https://5e73cf528f404.streamlock.net/TeleEstense/livestream/playlist.m3u8",
+        logo="https://i.imgur.com/X7i7DWo.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Foggia",
+        url="https://59d7d6f47d7fc.streamlock.net/telefoggia/telefoggia/playlist.m3u8",
+        logo="https://i.imgur.com/M7tqBu9.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Friuli",
+        url="https://5757bf2aa08e42248fb9b9d620f5d900.msvdn.net/live/S11646715/pE3ax0lT0rBd/playlist.m3u8",
+        logo="https://i.imgur.com/AoQxZxD.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Ischia",
+        url="https://rst.saiuzwebnetwork.it:8081/teleischia/index.m3u8",
+        logo="https://i.imgur.com/vihHVQn.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Jonio",
+        url="http://59d7d6f47d7fc.streamlock.net/telejonio/telejonio/playlist.m3u8",
+        logo="https://i.imgur.com/qJeDV8R.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Liberta' HD",
+        url="https://streaming.liberta.it/hls/liberta.m3u8",
+        logo="https://i.imgur.com/XzAB5k7.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Liguria Sud",
+        url="https://64b16f23efbee.streamlock.net/teleliguriasud/teleliguriasud/playlist.m3u8",
+        logo="https://i.imgur.com/BeLAYJ6.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Mantova",
+        url="https://5ce9406b73c33.streamlock.net/TeleMantova/livestream/playlist.m3u8",
+        logo="https://i.imgur.com/bkSPcs4.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Mia",
+        url="https://playerssl.telemia.tv/fileadmin/hls/TelemiaHD/telemia85_mediachunks.m3u8",
+        logo="https://i.imgur.com/SdXpCwL.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Mia Extra",
+        url="https://playerssl.telemia.tv/fileadmin/hls/TelemiaExtra/telemiaextra_mediachunks.m3u8",
+        logo="https://i.imgur.com/upzBG32.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Mistretta",
+        url="https://live.mariatvcdn.com/telemistretta/8fbcd205ada81b295ee6c211c3a80dde.sdp/playlist.m3u8",
+        logo="https://i.imgur.com/OJ3zUS0.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Molise",
+        url="http://185.202.128.1:1935/Telemolise4K/Telemolise4K/playlist.m3u8",
+        logo="https://i.imgur.com/u5VD0x9.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Nord Genova",
+        url="https://64b16f23efbee.streamlock.net/telenord/telenord/playlist.m3u8",
+        logo="https://i.imgur.com/I6yegEK.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Nostra",
+        url="https://13574-8.b.cdn12.com/hls/f099fa8883.ulive/_c/master.m3u8",
+        logo="https://i.imgur.com/FACahKZ.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Occidente",
+        url="https://stream9.xdevel.com/video0s976532-1292/stream/playlist.m3u8",
+        logo="https://i.imgur.com/3aOiWKa.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Oltre",
+        url="http://1se1.troydesign.eu/np_teleoltre/_definst_/channel1_np_teleoltre/playlist.m3u8?ext=.m3u8",
+        logo="https://i.imgur.com/PxtJAxs.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele One",
+        url="https://648026e87a75e.streamlock.net/teleone/teleone/playlist.m3u8",
+        logo="https://i.imgur.com/9trB6mj.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Pace Trento",
+        url="https://5a1178b42cc03.streamlock.net/telepacetrento/telepacetrento/playlist.m3u8",
+        logo="https://i.imgur.com/o5sQCpF.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Pavia",
+        url="http://wms.shared.streamshow.it:1935/telepavia/telepavia/live.m3u8",
+        logo="https://i.imgur.com/YVodo4T.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Pegaso",
+        url="https://flash2.xdevel.com/telepegasocanale812/telepegasocanale812/playlist.m3u8",
+        logo="https://i.imgur.com/FQkM8Vd.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Piadena",
+        url="https://stream3.xdevel.com/video0s975441-151/stream/playlist_dvr.m3u8",
+        logo="https://i.imgur.com/VqaPuQN.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Pordenone",
+        url="https://video.wifi4all.it/telepn/telepn.m3u8",
+        logo="https://i.imgur.com/dbYwXwg.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Quattro Trieste",
+        url="http://wms.shared.streamshow.it/telequattro/telequattro/playlist.m3u8",
+        logo="https://i.imgur.com/MFxQxve.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Radio Ercolano",
+        url="https://rst.saiuzwebnetwork.it:19360/teleradioercolano-1/teleradioercolano-1.m3u8",
+        logo="https://i.imgur.com/YPuoy8N.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Radio Pace 1",
+        url="https://jk3lz2bwlw79-hls-live.mariatvcdn.it/teleradiopace1/efcc8fc46cab26315ce3f5845d76008f.sdp/playlist.m3u8",
+        logo="https://i.imgur.com/ORkkXM8.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Radio Pace 2",
+        url="https://zkpywrbgdbeg-hls-live.mariatvcdn.it/teleradiopace2/254c9b5c52a73a94ef0f6169cbd05dc2.sdp/playlist.m3u8",
+        logo="https://i.imgur.com/U4E3eEr.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Radio Pace 3",
+        url="https://932y4273djv8-hls-live.mariatvcdn.it/teleradiopace3/d2274c22e9ee09eb2eda01ed0496f8f5.sdp/playlist.m3u8",
+        logo="https://i.imgur.com/pTqIxFD.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Radio Pace 4",
+        url="https://j78dpr7nyq5r-hls-live.mariatvcdn.it/teleradiopace4/13d74f2cfe921bfbc262697203d47d8f.sdp/playlist.m3u8",
+        logo="https://i.imgur.com/KPHHsN5.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Radio Orte",
+        url="https://flash2.xdevel.com/ortetv/ortetv/index.m3u8",
+        logo="https://i.imgur.com/uX2uxvN.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Radio Sciacca",
+        url="https://5db313b643fd8.streamlock.net/teleradiosciaccatv/teleradiosciaccatv/playlist.m3u8",
+        logo="https://i.imgur.com/suhz5mE.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Sirio",
+        url="https://www.telesirio.it/live/stream.m3u8",
+        logo="https://i.imgur.com/mDN6QX1.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Spazio Messina",
+        url="https://rtm.cyberspazio.cloud:5443/LiveApp/streams/049229794390395765037801.m3u8",
+        logo="https://i.imgur.com/Io5w6lT.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Sud Puglia",
+        url="https://64b16f23efbee.streamlock.net/telesud/telesud/playlist.m3u8",
+        logo="https://i.imgur.com/fqTLtvs.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Tricolore",
+        url="https://59d7d6f47d7fc.streamlock.net/rs2/rs2/playlist.m3u8",
+        logo="https://i.imgur.com/A2XouAd.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Tutto",
+        url="https://600f07e114306.streamlock.net/TT_TELETUTTO/smil:TT.smil/playlist.m3u8",
+        logo="https://i.imgur.com/sZxMP7g.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Tutto 2",
+        url="https://600f07e114306.streamlock.net/TT2_TELETUTTO/livestream/playlist.m3u8",
+        logo="https://i.imgur.com/mxXbMaw.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Tutto 24",
+        url="https://600f07e114306.streamlock.net/TT24_TELETUTTO/livestream/playlist.m3u8",
+        logo="https://i.imgur.com/weKWQgx.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Venezia",
+        url="https://59d7d6f47d7fc.streamlock.net/televenezia/televenezia/playlist.m3u8",
+        logo="https://i.imgur.com/SavGpCE.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele Video Agrigento (T.V.A.)",
+        url="https://59d7d6f47d7fc.streamlock.net/tva/tva/playlist.m3u8",
+        logo="https://i.imgur.com/AaPr63E.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tele8 Tv",
+        url="https://57068da1deb21.streamlock.net/teletv8/teletv8/playlist.m3u8",
+        logo="https://i.imgur.com/dM0HE6O.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="TeleAmbiente",
+        url="https://5f22d76e220e1.streamlock.net/teleambiente2024/teleambiente2024/playlist.m3u8",
+        logo="https://i.imgur.com/jxZcQhU.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Telecampione",
+        url="https://5f22d76e220e1.streamlock.net/telecampione/telecampione/playlist.m3u8",
+        logo="https://i.imgur.com/LhjwmME.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Telecittà Padova",
+        url="https://tango.wifi4all.it/telecitta/telecitta.m3u8",
+        logo="https://i.imgur.com/xvVgEaA.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Telecity Lombardia",
+        url="https://64b16f23efbee.streamlock.net/telecitylombardia/telecitylombardia/playlist.m3u8",
+        logo="https://i.imgur.com/ECvJ3ZD.jpeg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Telecity Piemonte",
+        url="https://64b16f23efbee.streamlock.net/telecitypiemonte/telecitypiemonte/playlist.m3u8",
+        logo="https://i.imgur.com/CrlzHjv.jpeg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Telecity Valle D'Aosta",
+        url="https://64b16f23efbee.streamlock.net/telecityvda/telecityvda/playlist.m3u8",
+        logo="https://i.imgur.com/T9EsAOX.jpeg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="TeleCostaSmeralda",
+        url="https://7e1cc2454f2242afabe05cc0a2f483cd.msvdn.net/tcs_live/tcs/tcs/playlist.m3u8",
+        logo="https://i.imgur.com/QLqkbss.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Telegenova",
+        url="https://64b16f23efbee.streamlock.net/telegenova/telegenova/playlist.m3u8",
+        logo="https://i.imgur.com/D6HC0So.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Teleiblea",
+        url="https://5f22d76e220e1.streamlock.net/teleiblea/teleiblea/playlist.m3u8",
+        logo="https://i.imgur.com/n1THygZ.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Teleitalia 41",
+        url="https://streaming.softwarecreation.it/teleitalia/teleitalia/playlist.m3u8",
+        logo="https://i.imgur.com/lTuPSOn.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Telejato",
+        url="https://telejato.liberotratto.com/hls/stream.m3u8",
+        logo="https://i.imgur.com/r3Dqzdj.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Teleleonessa",
+        url="http://wms.shared.streamshow.it:1935/teleleonessa/teleleonessa/live.m3u8",
+        logo="https://i.imgur.com/jq3etlV.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="TeleMajg",
+        url="https://59d7d6f47d7fc.streamlock.net/telemajg/telemajg/playlist.m3u8",
+        logo="https://i.imgur.com/9tefonp.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Telenova",
+        url="https://64b16f23efbee.streamlock.net/telenova/telenova/playlist.m3u8",
+        logo="https://i.imgur.com/x41IkJK.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="Telenova.it"
+    ),
+    ChannelData(
+        name="Telerama",
+        url="https://58d921499d3d3.streamlock.net/TeleRama/livestream/playlist.m3u8",
+        logo="https://i.imgur.com/enfqUlI.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="TeleRegione",
+        url="https://streaming.softwarecreation.it/TR118/TR118/playlist.m3u8",
+        logo="https://i.imgur.com/i5WozUP.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="TeleRegione Color",
+        url="https://live.antennasudwebtv.it:9443/hls/vodtele.m3u8",
+        logo="https://i.imgur.com/vi5Nf3S.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="TeleRegione Live",
+        url="https://5f22d76e220e1.streamlock.net/galluralive/galluralive/playlist.m3u8",
+        logo="https://i.imgur.com/DBrt8L3.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="TeleRent 7Gold",
+        url="https://router.xdevel.com/video0s86-21/stream/playlist.m3u8",
+        logo="https://i.imgur.com/YZadq0M.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="7Gold.it"
+    ),
+    ChannelData(
+        name="Telereporter",
+        url="https://5f22d76e220e1.streamlock.net/telereporter/telereporter/playlist.m3u8",
+        logo="https://i.imgur.com/WIo6SPc.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Teleromagna",
+        url="https://livetr.teleromagna.it/teleromagna/live/playlist.m3u8",
+        logo="https://i.imgur.com/4jWadI8.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Teleromagna 24",
+        url="https://livetr.teleromagna.it/mia/live/playlist.m3u8",
+        logo="https://i.imgur.com/Bpml478.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="TeleRomaDue",
+        url="https://57068da1deb21.streamlock.net/teletibur/teletibur/playlist.m3u8",
+        logo="https://i.imgur.com/78hA7ma.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Telesud Trapani",
+        url="https://64b16f23efbee.streamlock.net/telesudtrapani/telesudtrapani/playlist.m3u8",
+        logo="https://i.imgur.com/tpZvU1P.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Telesveva",
+        url="https://dc3.telesveva.com:4433/cmaf/livetv/index.mpd",
+        logo="https://i.imgur.com/SCDETZC.jpeg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Teleuniverso",
+        url="https://stream.ets-sistemi.it:19360/teleuniverso/teleuniverso.m3u8",
+        logo="https://i.imgur.com/u8E9wBb.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Televallo Trapani",
+        url="https://64b16f23efbee.streamlock.net/televallo/televallo/playlist.m3u8",
+        logo="https://i.imgur.com/P6zuiRH.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="TG Norba 24",
+        url="https://router.xdevel.com/video0s976570-1326/stream/playlist_dvr.m3u8",
+        logo="https://i.imgur.com/9MhrrJK.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="TGNorba24.it"
+    ),
+    ChannelData(
+        name="TLT Molise",
+        url="https://5f22d76e220e1.streamlock.net/tltmolise/tltmolise/playlist.m3u8",
+        logo="https://i.imgur.com/wgwD7gh.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Top Calcio 24",
+        url="https://sportitaliaamd.akamaized.net/live/Telelombardia/hls/1CCCD0BCA2F9C979BC0632230F8E31EAEA41562B/index.m3u8",
+        logo="https://i.imgur.com/DnVPKPE.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tremedia Tv",
+        url="https://stream4.xdevel.com/video0s976062-1263/stream/playlist_dvr.m3u8",
+        logo="https://i.imgur.com/dqRV1ff.jpeg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Trentino Tv",
+        url="https://5e73cf528f404.streamlock.net/TrentinoTV/livestream/playlist.m3u8",
+        logo="https://i.imgur.com/ROKOCR2.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tuscia Sabina 2000Tv",
+        url="http://ts2000tv.streaming.nextware.it:8081/ts2000tv/ts2000tv/chunks.m3u8",
+        logo="https://i.imgur.com/Tq5nEAy.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tv 12",
+        url="https://59d7d6f47d7fc.streamlock.net/tv12/tv12/playlist.m3u8",
+        logo="https://i.imgur.com/oxv08pJ.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tv Campi Flegrei",
+        url="https://tv.radiosaiuz.com:3836/live/campiflegreilive.m3u8",
+        logo="https://i.imgur.com/9d2K1nX.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tv Luna Napoli",
+        url="https://diretta.arcapuglia.it:8080/live/teleluna/index.m3u8",
+        logo="https://i.imgur.com/jxhuoyE.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tv Prato",
+        url="https://live.mariatvcdn.com/tvprato/2db0dd5674586686a867ec52c3aa8e06.sdp/mono.m3u8",
+        logo="https://i.imgur.com/zDeVpZd.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tv Qui Modena",
+        url="https://59d7d6f47d7fc.streamlock.net/tvqui/tvqui/playlist.m3u8",
+        logo="https://i.imgur.com/4bOYlfg.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tv Uno",
+        url="http://ftp.tiscali.it/francescovernata/TVUNO/monoscopioTvUNOint-1.wmv",
+        logo="https://i.imgur.com/OtCwYsh.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tv Yes",
+        url="https://stream1.aswifi.it/radioyes/live/index.m3u8",
+        logo="https://i.imgur.com/1wsO8U7.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tva Vicenza",
+        url="http://fms.tvavicenza.it:1935/live/diretta_1/playlist.m3u8",
+        logo="https://i.imgur.com/FtFuPCC.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tvm Palermo",
+        url="https://stream2.xdevel.com/video1s86-22/stream/playlist_dvr.m3u8",
+        logo="https://i.imgur.com/uqOdAXB.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tvr Xenon",
+        url="https://cdn107-ita.azotosolutions.com:8443/cdnedge4/smil:live4.smil/playlist.m3u8",
+        logo="https://i.imgur.com/kLzW1Pf.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Tvrs Tv",
+        url="https://cdn8.streamshow.it/cloud-tvrs/tvrs/playlist.m3u8",
+        logo="https://i.imgur.com/6p7hTmY.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Umbria+ TRT",
+        url="https://diretta.teleterni.it:8080//show/show.m3u8",
+        logo="https://i.imgur.com/CU6BBgs.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Umbria Tv",
+        url="https://umbriatv.stream.rubidia.it:8083/live/umbriatv/playlist.m3u8",
+        logo="https://i.imgur.com/XKCVEmK.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Uno Tv",
+        url="https://stream1.aswifi.it/unotv/live/index.m3u8",
+        logo="https://i.imgur.com/4PNbqqL.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Uno4 Tv",
+        url="https://cdn.uno4.it/index.m3u8",
+        logo="https://i.imgur.com/wfPPpBA.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Vera Tv",
+        url="http://wms.shared.streamshow.it/veratv/veratv/playlist.m3u8",
+        logo="https://i.imgur.com/djMvkvN.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="VB33",
+        url="https://live.ipstream.it/vb33/vb33.stream/playlist.m3u8",
+        logo="https://i.imgur.com/ygDuIxU.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Video Calabria",
+        url="https://a8a02dd9a49a4fc9810743615c65ab73.msvdn.net/live/S76734991/i6NeNqLYaspb/playlist.m3u8",
+        logo="https://i.imgur.com/Bc2AvIm.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="VideoCalabria.it"
+    ),
+    ChannelData(
+        name="Video Mediterraneo",
+        url="https://bfbe5f347ac4424faf719dda285bc39e.msvdn.net/live/S54897858/4gWO7tTzpK3N/playlist.m3u8",
+        logo="https://i.imgur.com/hJHC3uQ.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Video Nola",
+        url="https://videonola.aswifi.it/videonolaabr/live.m3u8",
+        logo="https://i.imgur.com/M5z5UoD.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Video Regione Sicilia",
+        url="https://57214cb172d84f8cb311b91513952b03.msvdn.net/live/S40896499/ZuaLjACsWIL4/playlist.m3u8",
+        logo="https://i.imgur.com/0szwnR3.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Video Star Tv Sicilia",
+        url="https://stream9.xdevel.com/video0s976556-1321/stream/playlist.m3u8",
+        logo="https://i.imgur.com/1ddJVZ7.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Video Touring Tv",
+        url="https://streamingvideo.auranex.cloud/memfs/70baacad-47c6-41a6-aee0-86530c31e080.m3u8",
+        logo="https://i.imgur.com/E2Feao5.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Videolina",
+        url="http://livestreaming.videolina.it/live/Videolina/playlist.m3u8",
+        logo="https://i.imgur.com/bnDZJwd.gif",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Videonovara",
+        url="https://ed04.top-ix.org/avtvlive/videonovara/streaming/playlist.m3u8",
+        logo="https://i.imgur.com/NnO7E5I.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Videotelecarnia",
+        url="https://rst2.saiuzwebnetwork.it:8081/vtccarnia/index.m3u8",
+        logo="https://i.imgur.com/r4K9JHW.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Vintage Radio Tv",
+        url="https://5f22d76e220e1.streamlock.net/vintageradiotv/vintageradiotv/playlist.m3u8",
+        logo="https://i.imgur.com/n3LtBNT.jpg",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Vuemme Tv",
+        url="https://5db313b643fd8.streamlock.net/Vuemme/Vuemme/playlist.m3u8",
+        logo="https://i.imgur.com/x5A0xU6.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Webcom Tv",
+        url="https://www.webcomiptv.it/mistserver/passionelotto/index.m3u8",
+        logo="https://i.imgur.com/KLwj2vj.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="WLTV",
+        url="https://5db313b643fd8.streamlock.net/WLTV/WLTV/playlist.m3u8",
+        logo="https://i.imgur.com/aL8jKtU.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Yvii Tv",
+        url="https://stream.wired-shop.com/hls/yviitv.m3u8",
+        logo="https://i.imgur.com/yP5AvDo.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Zerouno Tv Music",
+        url="https://5f22d76e220e1.streamlock.net/zerounotvmusic/zerounotvmusic/playlist.m3u8",
+        logo="https://i.imgur.com/r74lqW8.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Zerouno Tv News",
+        url="https://5f22d76e220e1.streamlock.net/01news/01news/playlist.m3u8",
+        logo="https://i.imgur.com/vxRzyjE.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Radio Colonna Tv Ⓨ",
+        url="https://www.youtube.com/radiocolonna/live",
+        logo="https://i.imgur.com/EcQvDfq.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="TRM h24 Ⓨ",
+        url="https://www.youtube.com/user/trmh24/live",
+        logo="https://i.imgur.com/d47CdYU.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="TRMh24.it"
+    ),
+    ChannelData(
+        name="Euronews Italian Ⓨ",
+        url="https://www.youtube.com/user/euronewsit/live",
+        logo="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Euronews_2022.svg/640px-Euronews_2022.svg.png",
+        group="Italy",
+        country_code="IT",
+        epg_id="EuronewsItalian.fr"
+    ),
+    ChannelData(
+        name="Antenna Sicilia Ⓣ",
+        url="https://www.twitch.tv/antennasicilia",
+        logo="https://i.imgur.com/8DOdqsE.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Telecolor Ⓣ",
+        url="https://www.twitch.tv/telecolorlive",
+        logo="https://i.imgur.com/rfNg6fw.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="Teleroma 56 Ⓣ",
+        url="https://www.twitch.tv/teleroma_56",
+        logo="https://i.imgur.com/wGfpUj8.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+    ChannelData(
+        name="TeleRadioStereo Ⓣ",
+        url="https://www.twitch.tv/teleradiostereo",
+        logo="https://i.imgur.com/eRNgqnA.png",
+        group="Italy",
+        country_code="IT",
+        epg_id=""
+    ),
+]
