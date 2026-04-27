@@ -2,7 +2,6 @@ import flet as ft
 from core.theme import AppTheme
 from core.state import state
 from services.iptv_service import iptv_service
-# from services.ad_service import AdManager
 from services.lifecycle import LifecycleManager
 from database.manager import db_manager
 from views.splash import SplashView
@@ -43,11 +42,8 @@ async def main(page: ft.Page):
     async def load_channels():
         state.is_loading = True
         page.update()
-        
-        # Load all sources (Built-in + Custom DB)
         all_channels = await iptv_service.load_all_sources()
         state.channels = all_channels
-        
         state.is_loading = False
         page.update()
 
@@ -59,14 +55,13 @@ async def main(page: ft.Page):
         # Root / Splash
         if parsed_url.path == "/" or parsed_url.path == "":
             dest = "/dashboard" if not state.is_first_launch else "/onboarding"
-            
-            print(f"Adding SplashView to views. Current views: {len(page.views)}")
             page.views.append(
                 ft.View("/", [SplashView()], padding=0, bgcolor=ft.Colors.WHITE)
             )
             
             async def splash_timeout():
                 await asyncio.sleep(3)
+                print(f"Splash timeout. Navigating to {dest}")
                 await page.push_route(dest)
                 
             page.run_task(splash_timeout)
@@ -76,7 +71,6 @@ async def main(page: ft.Page):
             async def on_onboarding_complete():
                 await page.push_route("/dashboard")
 
-            print(f"Adding OnboardingView to views. Current views: {len(page.views)}")
             page.views.append(
                 ft.View("/onboarding", [OnboardingView(on_complete=on_onboarding_complete)], padding=0, bgcolor=ft.Colors.WHITE)
             )
@@ -84,12 +78,12 @@ async def main(page: ft.Page):
         # Dashboard
         elif parsed_url.path == "/dashboard":
             page.views.append(
-                ft.View("/dashboard", [DashboardView(on_play=play_stream)], padding=0)
+                ft.View("/dashboard", [DashboardView(on_play=play_stream)], padding=0, bgcolor=ft.Colors.WHITE)
             )
             if not state.channels:
                 page.run_task(load_channels)
 
-        # Player (Robust parsing)
+        # Player
         elif parsed_url.path == "/play":
             params = urllib.parse.parse_qs(parsed_url.query)
             encoded_url = params.get("url", [None])[0]
@@ -98,15 +92,15 @@ async def main(page: ft.Page):
                     url = base64.b64decode(encoded_url).decode()
                     async def on_player_back():
                         await page.push_route("/dashboard")
-
                     page.views.append(
-                        ft.View(page.route, [PlayerView(url=url, on_back=on_player_back)], padding=0)
+                        ft.View(page.route, [PlayerView(url=url, on_back=on_player_back)], padding=0, bgcolor=ft.Colors.BLACK)
                     )
-                except Exception as ex:
-                    print(f"URL Decode Error: {ex}")
+                except:
                     await page.push_route("/dashboard")
             else:
                 await page.push_route("/dashboard")
+
+        page.update()
 
     async def view_pop(e: ft.ViewPopEvent):
         page.views.pop()
@@ -116,7 +110,6 @@ async def main(page: ft.Page):
     page.on_route_change = route_change
     page.on_view_pop = view_pop
     
-    # Initial Navigation
     if page.route == "/":
         await route_change(None)
     else:
@@ -124,4 +117,4 @@ async def main(page: ft.Page):
     page.update()
 
 if __name__ == "__main__":
-    ft.run(main, assets_dir="assets")
+    ft.app(target=main, assets_dir="assets")
