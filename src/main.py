@@ -1,4 +1,8 @@
 import flet as ft
+import base64
+import urllib.parse
+import asyncio
+
 from core.theme import AppTheme
 from core.state import state
 from services.iptv_service import iptv_service
@@ -8,29 +12,33 @@ from views.splash import build_splash_view
 from views.dashboard import build_dashboard_view
 from views.player_view import build_player_view
 from views.onboarding import build_onboarding_view
-import base64
-import urllib.parse
-import asyncio
 
 async def main(page: ft.Page):
     page.title = "KTV Player"
     page.favicon = "icon.png"
     
-    # Load premium typography
+    # GLOBAL ERROR HANDLER: Prevents the "Red Screen of Death" from crashing the app
+    def global_error_handler(e):
+        print(f"Caught Flet Engine Error: {e.data}")
+        page.snack_bar = ft.SnackBar(ft.Text("Stream unavailable or network timeout."), bgcolor=ft.Colors.ERROR)
+        page.snack_bar.open = True
+        page.update()
+        
+    page.on_error = global_error_handler
+
+    # Typography and Theme
     page.fonts = {
         "Outfit": "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"
     }
-    
     page.theme = AppTheme.get_light_theme()
     page.dark_theme = AppTheme.get_dark_theme()
     page.theme.font_family = "Outfit"
     page.dark_theme.font_family = "Outfit"
-    
     page.theme_mode = ft.ThemeMode.SYSTEM
     page.padding = 0
     page.spacing = 0
     
-    # Initialize Services
+    # Initialize Services (Ads intentionally left out for now)
     lifecycle_manager = LifecycleManager(page)
     await db_manager.init_db()
     
@@ -40,13 +48,12 @@ async def main(page: ft.Page):
     state.is_first_launch = not state.has_accepted_terms
 
     async def navigate(route: str):
-        """Async navigation helper."""
         await page.push_route(route)
 
     async def play_stream(url: str):
         await db_manager.save_history(url)
         state.add_to_history(url)
-        # Use urlsafe base64 to avoid issues with + and /
+        # Use urlsafe base64 to avoid issues with deep-link parameters
         encoded_url = base64.urlsafe_b64encode(url.encode()).decode()
         await navigate(f"/play?url={encoded_url}")
 
@@ -59,12 +66,10 @@ async def main(page: ft.Page):
         page.update()
 
     async def start_splash_timer():
-        """Handles the splash screen timeout."""
         await asyncio.sleep(3)
         dest = "/dashboard" if not state.is_first_launch else "/onboarding"
         await navigate(dest)
 
-    # Expose load_channels to views
     page.load_channels = load_channels
 
     async def route_change(e: ft.RouteChangeEvent | None = None):
@@ -106,15 +111,25 @@ async def main(page: ft.Page):
         page.update()
 
     def view_pop(e: ft.ViewPopEvent):
+        # FIX: The "Ghost Audio" memory leak. 
+        # Before we pop the player view, we force the video player to pause so it stops consuming data in the background.
         if len(page.views) > 1:
-            page.views.pop()
             top_view = page.views[-1]
-            page.run_task(navigate, top_view.route)
+            if top_view.route.startswith("/play"):
+                for control in top_view.controls:
+                    if hasattr(control, "pause"):
+                        try:
+                            control.pause()
+                        except Exception:
+                            pass
+            
+            page.views.pop()
+            previous_view = page.views[-1]
+            page.run_task(navigate, previous_view.route)
 
     page.on_route_change = route_change
     page.on_view_pop = view_pop
     
-    # Initial Route
     await route_change()
 
 if __name__ == "__main__":
