@@ -1,4 +1,5 @@
 import flet as ft
+import asyncio
 from core.state import state
 from core.theme import AppColors
 from components.ui.shimmer_loader import ShimmerList
@@ -8,17 +9,16 @@ from database.manager import db_manager
 def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
     """Builds the dashboard view with TV-optimized grid layout and real-time search."""
     
-    # Internal state for the view
     view_state = {
         "selected_tab": 0,
         "search_query": "",
-        "add_type": "playlist"
+        "add_type": "playlist",
+        "search_task": None # Keeps track of the active search for debouncing
     }
 
     new_name = ft.Ref[ft.TextField]()
     new_url = ft.Ref[ft.TextField]()
 
-    # Containers for each tab content
     countries_content = ft.Column(expand=True, scroll=ft.ScrollMode.AUTO)
     categories_content = ft.Column(expand=True, scroll=ft.ScrollMode.AUTO)
     custom_content = ft.Column(expand=True, scroll=ft.ScrollMode.AUTO)
@@ -92,6 +92,26 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
             on_click=lambda e, url=c.get('url'): e.page.run_task(on_play, url),
         )
 
+    def build_grid(channels):
+        """Helper to build the GridView for a specific category."""
+        return ft.GridView(
+            controls=[create_channel_card(c) for c in channels],
+            runs_count=3,
+            max_extent=160,
+            spacing=15,
+            run_spacing=15,
+            padding=15,
+        )
+
+    def handle_expansion(e, channels):
+        """Dynamic Expansion: Only builds network images and grids when the user actually opens the tile."""
+        # e.data is "true" if expanding, "false" if collapsing
+        if str(e.data).lower() == "true":
+            # Only build the UI if it hasn't been built yet
+            if not e.control.controls:
+                e.control.controls = [build_grid(channels)]
+                e.control.update()
+
     def update_tab_content(tab_index: int):
         target = [countries_content, categories_content, custom_content][tab_index]
         target.controls.clear()
@@ -143,14 +163,12 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
             for c in state.channels:
                 name_match = query in c.get('name', '').lower()
                 
-                # Semicolon splitting for better category logic as requested
                 original_group = c.get('group', 'General')
                 parts = [p.strip() for p in original_group.split(';')]
                 
-                # Determine display group based on tab
-                if tab_index == 0: # Countries
+                if tab_index == 0: 
                     display_group = parts[0] if c.get('country_code') else "Global"
-                else: # Categories
+                else: 
                     display_group = parts[-1] if len(parts) > 1 else (parts[0] if not c.get('country_code') else "General")
 
                 if query and not name_match and query not in display_group.lower():
@@ -170,24 +188,20 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
 
             for name in group_names:
                 channels = groups[name]
+                
+                # Expand automatically if it's the user's home country, or if they searched and there are few results
+                should_expand = (tab_index == 0 and name == state.user_country) or (query != "" and results_count < 10)
+                
                 target.controls.append(
                     ft.ExpansionTile(
                         title=ft.Text(f"{name} ({len(channels)})", weight=ft.FontWeight.BOLD),
-                        expanded=(tab_index == 0 and name == state.user_country or (query != "" and results_count < 10)),
-                        controls=[
-                            ft.GridView(
-                                controls=[create_channel_card(c) for c in channels],
-                                runs_count=3,
-                                max_extent=160,
-                                spacing=15,
-                                run_spacing=15,
-                                padding=15,
-                            )
-                        ]
+                        expanded=should_expand,
+                        on_change=lambda e, ch=channels: handle_expansion(e, ch),
+                        # If it should expand immediately, build it. Otherwise, leave it empty to save memory and data.
+                        controls=[build_grid(channels)] if should_expand else []
                     )
                 )
 
-    # Use TabBarView to hold the content
     tab_view_container = ft.TabBarView(
         controls=[countries_content, categories_content, custom_content],
         expand=True
@@ -195,6 +209,7 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
 
     def handle_tab_change(e):
         view_state["selected_tab"] = int(e.data)
+        # Only render the content when the tab is actually clicked
         update_tab_content(view_state["selected_tab"])
         e.page.update()
 
@@ -206,7 +221,6 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
         ]
     )
 
-    # Tabs wrapper
     tabs_wrapper = ft.Tabs(
         length=3,
         selected_index=view_state["selected_tab"],
@@ -218,10 +232,23 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
         on_change=handle_tab_change
     )
 
-    def on_search_change(e):
-        view_state["search_query"] = e.data
+    async def execute_search(query: str):
+        view_state["search_query"] = query
         update_tab_content(view_state["selected_tab"])
-        e.page.update()
+        page.update()
+
+    def on_search_change(e):
+        """Search debouncer: Waits 400ms after the user stops typing before rebuilding the UI."""
+        if view_state["search_task"] and not view_state["search_task"].done():
+            view_state["search_task"].cancel()
+
+        query = e.data
+        
+        async def delayed_search():
+            await asyncio.sleep(0.4) 
+            await execute_search(query)
+            
+        view_state["search_task"] = page.run_task(delayed_search)
 
     search_bar = ft.SearchBar(
         view_elevation=4,
@@ -232,11 +259,10 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
         expand=True,
     )
 
+    # LAZY RENDER: We removed `update_tab_content(1)` and `(2)` from here.
+    # It now only renders Tab 0 on launch, halving load times.
     update_tab_content(0)
-    update_tab_content(1)
-    update_tab_content(2)
 
-    # Header with Logo and SearchBar on the SAME ROW
     header = ft.Row([
         ft.Image(src="/icon.png", width=40, height=40, border_radius=12),
         search_bar,
