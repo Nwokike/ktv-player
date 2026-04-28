@@ -1,6 +1,5 @@
 import flet as ft
 import flet_video as fv
-from core.theme import AppColors
 
 class ImmersivePlayer(ft.Stack):
     def __init__(self, resource: str, on_close: callable = None):
@@ -9,61 +8,45 @@ class ImmersivePlayer(ft.Stack):
         self.on_close = on_close
         self.expand = True
 
-        # Video control
+        # We rely strictly on media_kit's native controls for maximum mobile performance.
+        # This handles buffering, seeking, volume, and landscape/fullscreen natively.
         self.video = fv.Video(
             playlist=[fv.VideoMedia(self.resource)],
             autoplay=True,
             expand=True,
-            show_controls=False, # We use custom controls
+            show_controls=True, 
             volume=100,
+            wakelock=True, # Prevents the phone screen from sleeping while watching
+            filter_quality=ft.FilterQuality.MEDIUM, # CRITICAL: 'HIGH' causes blurry video on Android per Flet docs
             pause_upon_entering_background_mode=True,
+            resume_upon_entering_foreground_mode=True,
         )
 
-        # Brightness Overlay (Simulated)
-        self.brightness_overlay = ft.Container(
-            expand=True,
-            bgcolor=ft.Colors.BLACK,
-            opacity=0.0, # 0.0 is brightest, 1.0 is darkest
-            visible=True,
-        )
-
-        # Close button
-        self.close_btn = ft.Container(
-            content=ft.IconButton(
-                icon=ft.Icons.CLOSE,
-                icon_color=ft.Colors.WHITE,
-                on_click=self.on_close,
-            ),
-            alignment=ft.Alignment(1, -1),
-            padding=20,
+        # A sleek, mobile-friendly back button tucked safely under the notification notch
+        self.back_btn = ft.SafeArea(
+            ft.Container(
+                content=ft.IconButton(
+                    icon=ft.Icons.ARROW_BACK_IOS_NEW_ROUNDED,
+                    icon_color=ft.Colors.WHITE,
+                    icon_size=22,
+                    # Semi-transparent background so it's visible regardless of video color
+                    bgcolor=ft.colors.with_opacity(0.4, ft.Colors.BLACK), 
+                    on_click=self.handle_close,
+                ),
+                margin=ft.margin.only(left=15, top=10),
+            )
         )
 
         self.controls = [
+            ft.Container(expand=True, bgcolor=ft.Colors.BLACK), # Deep black base layer
             self.video,
-            self.brightness_overlay,
-            ft.GestureDetector(
-                on_vertical_drag_update=self.handle_vertical_drag,
-                on_double_tap=lambda _: setattr(self.video, "jump_to", 0), # Simplified for now
-                content=ft.Container(expand=True, bgcolor=ft.Colors.TRANSPARENT),
-            ),
-            self.close_btn
+            self.back_btn
         ]
 
-    def handle_vertical_drag(self, e: ft.DragUpdateEvent):
-        # Determine if left side (brightness) or right side (volume)
-        # Using a default width if page not yet accessible, but usually it is in drag
-        width = self.page.window.width if self.page and self.page.window else 1920
-        is_left_side = e.global_x < (width / 2)
+    def handle_close(self, e):
+        # PERFORMANCE: Stop the video engine immediately to dump memory before routing back
+        if self.page:
+            self.page.run_task(self.video.stop)
         
-        delta = e.delta_y / 200 # Adjust sensitivity
-        
-        if is_left_side:
-            # Adjust Brightness Overlay
-            new_opacity = max(0.0, min(0.8, self.brightness_overlay.opacity + delta))
-            self.brightness_overlay.opacity = new_opacity
-            self.brightness_overlay.update()
-        else:
-            # Adjust Volume
-            new_vol = max(0.0, min(100.0, self.video.volume - (delta * 100)))
-            self.video.volume = new_vol
-            self.video.update()
+        if self.on_close:
+            self.on_close(e)
