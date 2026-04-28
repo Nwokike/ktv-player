@@ -40,6 +40,9 @@ app_name = "KTV Player"
 product_name = "KTV Player"
 org_domain = "com.nwokike"
 
+[tool.flet.app]
+path = "src"
+
 [tool.flet.android]
 package_name = "com.nwokike.ktvplayer"
 build_number = 1
