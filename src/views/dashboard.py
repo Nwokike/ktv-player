@@ -3,6 +3,7 @@ import asyncio
 import base64
 from core.state import state
 from core.theme import AppColors
+from components.ui.shimmer_loader import ShimmerList
 from components.ui.glass_container import GlassContainer
 from database.manager import db_manager
 
@@ -34,17 +35,17 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
         raw_url = new_url.current.value.strip()
         
         if name and raw_url:
-            # 1. Close dialog and reset inputs
+            # 1. Close the dialog and clear the text inputs
             close_dialog(e.page)
             new_name.current.value = ""
             new_url.current.value = ""
 
-            # 2. SHOW THE LOADING SPINNER IMMEDIATELY
+            # 2. TRIGGER LOADING SPINNER: Show the user that the app is working
             state.is_loading = True
             update_tab_content(view_state["selected_tab"])
             e.page.update()
 
-            # 3. Process the stealth URL
+            # 3. Base64 Stealth Logic
             stealth_codes = {
                 "#movies": "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9jYXRlZ29yaWVzL21vdmllcy5tM3U=",
                 "#sports": "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9jYXRlZ29yaWVzL3Nwb3J0cy5tM3U=",
@@ -58,21 +59,21 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
             is_stealth = shortcode_key in stealth_codes
             final_url = base64.b64decode(stealth_codes[shortcode_key]).decode('utf-8') if is_stealth else raw_url
             
-            # 4. Await Database saving
+            # 4. Save to Database
             if is_stealth or view_state["add_type"] == "playlist":
                 await db_manager.add_playlist(name, final_url)
             else:
                 await db_manager.add_custom_channel(name, final_url)
             
-            # 5. Reload core state data
+            # 5. Fetch New Channels
             if hasattr(e.page, "load_channels"):
                 await e.page.load_channels()
                 
-            # 6. FORCE REBUILD UI WITH NEW DATA (Fixes the refresh issue)
+            # 6. FIX THE REFRESH BUG: Force the UI to rebuild itself with the new channels
             state.is_loading = False
             update_tab_content(view_state["selected_tab"])
             
-            e.page.snack_bar = ft.SnackBar(ft.Text(f"{name} added successfully!"), bgcolor="green")
+            e.page.snack_bar = ft.SnackBar(ft.Text(f"{name} added successfully!"), bgcolor=ft.Colors.GREEN)
             e.page.snack_bar.open = True
             e.page.update()
 
@@ -84,9 +85,8 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                 allow_empty_selection=False,
                 on_change=handle_type_change,
                 segments=[
-                    # String icon bypasses all Flet AttributeError risks
-                    ft.Segment(value="playlist", label=ft.Text("Playlist"), icon=ft.Icon("playlist_add")),
-                    ft.Segment(value="channel", label=ft.Text("Single Channel"), icon=ft.Icon("tv")),
+                    ft.Segment(value="playlist", label=ft.Text("Playlist"), icon=ft.Icon(ft.Icons.PLAYLIST_ADD)),
+                    ft.Segment(value="channel", label=ft.Text("Single Channel"), icon=ft.Icon(ft.Icons.TV)),
                 ],
             ),
             ft.TextField(ref=new_name, label="Name", hint_text="Enter reference name"),
@@ -107,7 +107,7 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                     height=90,
                     fit=ft.BoxFit.CONTAIN,
                     border_radius=25,
-                    error_content=ft.Icon("tv", size=40)
+                    error_content=ft.Icon(ft.Icons.TV, size=40)
                 ),
                 ft.Text(
                     c.get('name', 'Unknown'),
@@ -144,14 +144,14 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
         target.controls.clear()
         
         if state.is_loading:
-            # NEW LOADING SPINNER UX
+            # --- THE LOADING SPINNER ---
             target.controls.append(
                 ft.Column([
                     ft.Container(height=80),
                     ft.ProgressRing(width=60, height=60, stroke_width=6, color=AppColors.PRIMARY),
                     ft.Container(height=20),
-                    ft.Text("Downloading channels...", color="outline", size=18, weight=ft.FontWeight.BOLD),
-                    ft.Text("Please wait, this might take a few moments.", color="outline", size=12)
+                    ft.Text("Fetching and validating channels...", color=ft.Colors.OUTLINE, size=18, weight=ft.FontWeight.BOLD),
+                    ft.Text("Please wait, massive playlists may take a moment.", color=ft.Colors.OUTLINE, size=12)
                 ], horizontal_alignment=ft.CrossAxisAlignment.CENTER)
             )
             return
@@ -160,7 +160,7 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
             # --- SETTINGS / PREFERENCES TAB ---
             async def handle_clear_history(e):
                 await db_manager.clear_history()
-                e.page.snack_bar = ft.SnackBar(ft.Text("Watch history cleared!"), bgcolor="green")
+                e.page.snack_bar = ft.SnackBar(ft.Text("Watch history cleared!"), bgcolor=ft.Colors.GREEN)
                 e.page.snack_bar.open = True
                 e.page.update()
 
@@ -176,7 +176,7 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                 state.is_loading = False
                 update_tab_content(view_state["selected_tab"])
                 
-                e.page.snack_bar = ft.SnackBar(ft.Text("Custom library reset!"), bgcolor="green")
+                e.page.snack_bar = ft.SnackBar(ft.Text("Custom library reset!"), bgcolor=ft.Colors.GREEN)
                 e.page.snack_bar.open = True
                 e.page.update()
 
@@ -205,20 +205,20 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                     ft.Divider(height=20),
                     
                     ft.Text("Localization", size=16, weight=ft.FontWeight.W_500, color=AppColors.PRIMARY),
-                    ft.Text("Select your home region to prioritize its networks at the top of your dashboard.", size=12, color="outline"),
+                    ft.Text("Select your home region to prioritize its networks at the top of your dashboard.", size=12, color=ft.Colors.OUTLINE),
                     country_dropdown,
                     
                     ft.Container(height=20),
                     
                     ft.Text("Data Management", size=16, weight=ft.FontWeight.W_500, color=AppColors.PRIMARY),
                     ft.ListTile(
-                        leading=ft.Icon("history", color="error"),
+                        leading=ft.Icon(ft.Icons.HISTORY, color=ft.Colors.RED),
                         title=ft.Text("Clear Watch History"),
                         subtitle=ft.Text("Remove all recently watched streams from memory"),
                         on_click=handle_clear_history
                     ),
                     ft.ListTile(
-                        leading=ft.Icon("delete_forever", color="error"),
+                        leading=ft.Icon(ft.Icons.DELETE_FOREVER, color=ft.Colors.RED),
                         title=ft.Text("Reset Custom Library"),
                         subtitle=ft.Text("Delete all manually added custom URLs and external playlists"),
                         on_click=handle_clear_custom
@@ -232,13 +232,13 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                 ft.Column([
                     ft.Container(
                         content=ft.Column([
-                            ft.Icon("security", size=50, color="outline"),
+                            ft.Icon(ft.Icons.SECURITY, size=50, color=ft.Colors.OUTLINE),
                             ft.Text("Personal Media Player", weight=ft.FontWeight.BOLD, size=20),
                             ft.Text(
                                 "KTV Player is a clean network utility. It does not contain pre-loaded TV streams. "
                                 "Use the button below to connect your own legal M3U playlists or individual stream links.",
                                 text_align=ft.TextAlign.CENTER,
-                                color="outline"
+                                color=ft.Colors.OUTLINE
                             )
                         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=10),
                         padding=ft.padding.only(top=40, bottom=40),
@@ -246,13 +246,13 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                     ),
                     ft.ElevatedButton(
                         text="Add Custom Configuration",
-                        icon="link",
+                        icon=ft.Icons.LINK,
                         on_click=lambda e: e.page.show_dialog(add_dialog),
                         style=ft.ButtonStyle(
                             shape=ft.RoundedRectangleBorder(radius=10),
                             padding=20,
                             bgcolor=AppColors.PRIMARY,
-                            color="white"
+                            color=ft.Colors.WHITE
                         ),
                         width=float('inf')
                     )
@@ -314,10 +314,10 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
 
     tab_bar = ft.TabBar(
         tabs=[
-            ft.Tab(label="Countries", icon="public"),
-            ft.Tab(label="Categories", icon="category"),
-            ft.Tab(label="Custom", icon="playlist_add"),
-            ft.Tab(label="Settings", icon="settings"),
+            ft.Tab(label="Countries", icon=ft.Icons.PUBLIC),
+            ft.Tab(label="Categories", icon=ft.Icons.CATEGORY),
+            ft.Tab(label="Custom", icon=ft.Icons.PLAYLIST_ADD),
+            ft.Tab(label="Settings", icon=ft.Icons.SETTINGS),
         ]
     )
 
@@ -349,10 +349,10 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
 
     search_bar = ft.SearchBar(
         view_elevation=4,
-        divider_color="outline",
+        divider_color=ft.Colors.OUTLINE,
         on_change=on_search_change,
         bar_hint_text="Search channels...",
-        bar_leading=ft.Icon("search_rounded"),
+        bar_leading=ft.Icon(ft.Icons.SEARCH_ROUNDED),
         expand=True,
     )
 
@@ -362,7 +362,7 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
         ft.Image(src="/icon.png", width=40, height=40, border_radius=12),
         search_bar,
         ft.IconButton(
-            icon="light_mode" if page.theme_mode == ft.ThemeMode.DARK else "dark_mode",
+            icon=ft.Icons.LIGHT_MODE if page.theme_mode == ft.ThemeMode.DARK else ft.Icons.DARK_MODE,
             on_click=lambda _: setattr(page, "theme_mode", 
                                      ft.ThemeMode.LIGHT if page.theme_mode == ft.ThemeMode.DARK else ft.ThemeMode.DARK) or page.update()
         )
@@ -380,7 +380,7 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                 content=main_col,
                 expand=True,
                 padding=20,
-                bgcolor="surface",
+                bgcolor=ft.Colors.SURFACE,
             )
         ],
         padding=0,
