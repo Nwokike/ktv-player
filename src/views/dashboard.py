@@ -6,7 +6,7 @@ from core.theme import AppColors
 from components.ui.glass_container import GlassContainer
 from database.manager import db_manager
 
-def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
+def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
     view_state = {
         "selected_tab": 0,
         "search_query": "",
@@ -22,8 +22,8 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
     custom_content = ft.Column(expand=True, scroll=ft.ScrollMode.AUTO)
     preferences_content = ft.Column(expand=True, scroll=ft.ScrollMode.AUTO)
 
-    def close_dialog(e_page):
-        e_page.pop_dialog()
+    def close_dialog(e_page_obj):
+        e_page_obj.pop_dialog()
 
     def handle_type_change(e):
         view_state["add_type"] = list(e.control.selected)[0]
@@ -34,13 +34,13 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
         raw_url = new_url.current.value.strip()
         
         if name and raw_url:
-            close_dialog(page)
+            close_dialog(page_obj)
             new_name.current.value = ""
             new_url.current.value = ""
 
             state.is_loading = True
             update_tab_content(view_state["selected_tab"])
-            page.update()
+            page_obj.update()
 
             stealth_codes = {
                 "#movies": "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9jYXRlZ29yaWVzL21vdmllcy5tM3U=",
@@ -60,15 +60,15 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
             else:
                 await db_manager.add_custom_channel(name, final_url)
             
-            if hasattr(e.page, "load_channels"):
-                await e.page.load_channels()
+            if hasattr(page_obj, "load_channels"):
+                await page_obj.load_channels()
                 
             state.is_loading = False
             update_tab_content(view_state["selected_tab"])
             
-            e.page.snack_bar = ft.SnackBar(ft.Text(f"{name} added successfully!"), bgcolor="#4CAF50")
-            e.page.snack_bar.open = True
-            e.page.update()
+            page_obj.snack_bar = ft.SnackBar(ft.Text(f"{name} added successfully!"), bgcolor=AppColors.SUCCESS)
+            page_obj.snack_bar.open = True
+            page_obj.update()
 
     add_dialog = ft.AlertDialog(
         title=ft.Text("Add Custom Content"),
@@ -86,7 +86,7 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
             ft.TextField(ref=new_url, label="URL", hint_text="Enter M3U8 or Playlist URL"),
         ], tight=True, spacing=15, width=400),
         actions=[
-            ft.TextButton(content="Cancel", on_click=lambda e: close_dialog(page)),
+            ft.TextButton(content="Cancel", on_click=lambda e: close_dialog(page_obj)),
             ft.FilledButton(content="Add", on_click=handle_add, style=ft.ButtonStyle(bgcolor=AppColors.PRIMARY, color=ft.Colors.WHITE)),
         ],
     )
@@ -113,7 +113,7 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
             ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=5),
             padding=12,
             border_radius=25,
-            on_click=lambda e, url=c.get('url'): e.page.run_task(on_play, url),
+            on_click=lambda e, url=c.get('url'): page_obj.run_task(on_play, url),
         )
 
     def build_grid(channels):
@@ -143,8 +143,8 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                     ft.Container(height=80),
                     ft.ProgressRing(width=60, height=60, stroke_width=6, color=AppColors.PRIMARY),
                     ft.Container(height=20),
-                    ft.Text("Fetching and validating channels...", color="#888888", size=18, weight=ft.FontWeight.BOLD),
-                    ft.Text("Please wait, massive playlists may take a moment.", color="#888888", size=12)
+                    ft.Text("Fetching and validating channels...", color=AppColors.GREY_DIM, size=18, weight=ft.FontWeight.BOLD),
+                    ft.Text("Please wait, massive playlists may take a moment.", color=AppColors.GREY_DIM, size=12)
                 ], horizontal_alignment=ft.CrossAxisAlignment.CENTER)
             )
             return
@@ -152,33 +152,33 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
         if tab_index == 3:
             async def handle_clear_history(e):
                 await db_manager.clear_history()
-                page.snack_bar = ft.SnackBar(ft.Text("Watch history cleared!"), bgcolor="#4CAF50")
-                page.snack_bar.open = True
-                page.update()
+                page_obj.snack_bar = ft.SnackBar(ft.Text("Watch history cleared!"), bgcolor=AppColors.SUCCESS)
+                page_obj.snack_bar.open = True
+                page_obj.update()
 
             async def handle_clear_custom(e):
                 state.is_loading = True
                 update_tab_content(view_state["selected_tab"])
-                page.update()
+                page_obj.update()
                 
                 await db_manager.clear_custom_content()
-                if hasattr(page, "load_channels"):
-                    await page.load_channels()
+                if hasattr(page_obj, "load_channels"):
+                    await page_obj.load_channels()
                     
                 state.is_loading = False
                 update_tab_content(view_state["selected_tab"])
                 
-                page.snack_bar = ft.SnackBar(ft.Text("Custom library reset!"), bgcolor="#4CAF50")
-                page.snack_bar.open = True
-                page.update()
+                page_obj.snack_bar = ft.SnackBar(ft.Text("Custom library reset!"), bgcolor=AppColors.SUCCESS)
+                page_obj.snack_bar.open = True
+                page_obj.update()
 
             async def handle_country_change(e):
                 val = e.control.value
                 await db_manager.set_setting("user_country", val)
                 state.user_country = val
-                page.snack_bar = ft.SnackBar(ft.Text(f"Primary country updated to {val}"))
-                page.snack_bar.open = True
-                page.update()
+                page_obj.snack_bar = ft.SnackBar(ft.Text(f"Primary country updated to {val}"))
+                page_obj.snack_bar.open = True
+                page_obj.update()
 
             unique_countries = sorted(list(set([c.get('group', '').split(';')[0].strip() for c in state.channels if c.get('country_code')])))
             if not unique_countries:
@@ -197,20 +197,20 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                     ft.Divider(height=20),
                     
                     ft.Text("Localization", size=16, weight=ft.FontWeight.W_500, color=AppColors.PRIMARY),
-                    ft.Text("Select your home region to prioritize its networks at the top of your dashboard.", size=12, color="#888888"),
+                    ft.Text("Select your home region to prioritize its networks at the top of your dashboard.", size=12, color=AppColors.GREY_DIM),
                     country_dropdown,
                     
                     ft.Container(height=20),
                     
                     ft.Text("Data Management", size=16, weight=ft.FontWeight.W_500, color=AppColors.PRIMARY),
                     ft.ListTile(
-                        leading=ft.Icon(ft.Icons.HISTORY, color="#F44336"),
+                        leading=ft.Icon(ft.Icons.HISTORY, color=AppColors.WARNING),
                         title=ft.Text("Clear Watch History"),
                         subtitle=ft.Text("Remove all recently watched streams from memory"),
                         on_click=handle_clear_history
                     ),
                     ft.ListTile(
-                        leading=ft.Icon(ft.Icons.DELETE_FOREVER, color="#F44336"),
+                        leading=ft.Icon(ft.Icons.DELETE_FOREVER, color=AppColors.WARNING),
                         title=ft.Text("Reset Custom Library"),
                         subtitle=ft.Text("Delete all manually added custom URLs and external playlists"),
                         on_click=handle_clear_custom
@@ -223,13 +223,13 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                 ft.Column([
                     ft.Container(
                         content=ft.Column([
-                            ft.Icon(ft.Icons.SECURITY, size=50, color="#888888"),
+                            ft.Icon(ft.Icons.SECURITY, size=50, color=AppColors.GREY_DIM),
                             ft.Text("Personal Media Player", weight=ft.FontWeight.BOLD, size=20),
                             ft.Text(
                                 "KTV Player is a clean network utility. It does not contain pre-loaded TV streams. "
                                 "Use the button below to connect your own legal M3U playlists or individual stream links.",
                                 text_align=ft.TextAlign.CENTER,
-                                color="#888888"
+                                color=AppColors.GREY_DIM
                             )
                         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=10),
                         padding=ft.Padding.only(top=40, bottom=40),
@@ -238,7 +238,7 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                     ft.FilledButton(
                         content="Add Custom Configuration",
                         icon=ft.Icons.LINK,
-                        on_click=lambda e: page.show_dialog(add_dialog),
+                        on_click=lambda e: page_obj.show_dialog(add_dialog),
                         style=ft.ButtonStyle(
                             shape=ft.RoundedRectangleBorder(radius=10),
                             padding=20,
@@ -301,7 +301,7 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
     def handle_tab_change(e):
         view_state["selected_tab"] = int(e.data)
         update_tab_content(view_state["selected_tab"])
-        e.page.update()
+        page_obj.update()
 
     # CRITICAL: Flet 0.84 requires 'text=' instead of 'label=' for Tabs.
     tab_bar = ft.TabBar(
@@ -327,14 +327,14 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
     # THE DASHBOARD REFRESHER: Allows main.py to command the dashboard to rebuild
     def refresh_dashboard():
         update_tab_content(view_state["selected_tab"])
-        page.update()
+        page_obj.update()
         
-    page.refresh_dashboard = refresh_dashboard
+    page_obj.refresh_dashboard = refresh_dashboard
 
     async def execute_search(query: str):
         view_state["search_query"] = query
         update_tab_content(view_state["selected_tab"])
-        page.update()
+        page_obj.update()
 
     def on_search_change(e):
         if view_state["search_task"] and not view_state["search_task"].done():
@@ -344,11 +344,11 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
         async def delayed_search():
             await asyncio.sleep(0.4) 
             await execute_search(query)
-        view_state["search_task"] = page.run_task(delayed_search)
+        view_state["search_task"] = page_obj.run_task(delayed_search)
 
     search_bar = ft.SearchBar(
         view_elevation=4,
-        divider_color="#888888",
+        divider_color=AppColors.GREY_DIM,
         on_change=on_search_change,
         bar_hint_text="Search channels...",
         bar_leading=ft.Icon(ft.Icons.SEARCH_ROUNDED),
@@ -361,11 +361,11 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
         ft.Image(src="/icon.png", width=40, height=40, border_radius=12),
         search_bar,
         ft.IconButton(
-            icon=ft.Icons.LIGHT_MODE if page.theme_mode == ft.ThemeMode.DARK else ft.Icons.DARK_MODE,
+            icon=ft.Icons.LIGHT_MODE if page_obj.theme_mode == ft.ThemeMode.DARK else ft.Icons.DARK_MODE,
             on_click=lambda _: (
-                setattr(page, "theme_mode", ft.ThemeMode.LIGHT if page.theme_mode == ft.ThemeMode.DARK else ft.ThemeMode.DARK),
-                setattr(state, "theme_mode", page.theme_mode),
-                page.update()
+                setattr(page_obj, "theme_mode", ft.ThemeMode.LIGHT if page_obj.theme_mode == ft.ThemeMode.DARK else ft.ThemeMode.DARK),
+                setattr(state, "theme_mode", page_obj.theme_mode),
+                page_obj.update()
             )
         )
     ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, spacing=20)

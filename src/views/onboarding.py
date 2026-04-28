@@ -20,14 +20,14 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
     
     async def handle_submit(e):
         if not terms_checked.current.value:
-            e.page.snack_bar = ft.SnackBar(ft.Text("Please accept the usage agreement to continue."), bgcolor="#F44336")
+            e.page.snack_bar = ft.SnackBar(ft.Text("Please accept the usage agreement to continue."), bgcolor=AppColors.WARNING)
             e.page.snack_bar.open = True
             e.page.update()
             return
             
         country_name = selected_country.current.value
         if not country_name:
-            e.page.snack_bar = ft.SnackBar(ft.Text("Please select your country."), bgcolor="#F44336")
+            e.page.snack_bar = ft.SnackBar(ft.Text("Please select your country."), bgcolor=AppColors.WARNING)
             e.page.snack_bar.open = True
             e.page.update()
             return
@@ -60,9 +60,9 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
             "Your ultimate companion for legal streaming. Let's get you set up.",
             size=16,
             text_align=ft.TextAlign.CENTER,
-            color="#888888"
+            color=AppColors.GREY_DIM
         ),
-        ft.Divider(height=20, color="transparent"),
+        ft.Divider(height=20, color=AppColors.TRANSPARENT),
         
         ft.Text("Select your Country", size=18, weight=ft.FontWeight.W_500),
         ft.Dropdown(
@@ -70,16 +70,16 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
             options=[ft.dropdown.Option(c["name"]) for c in countries],
             width=400,
             border_radius=15,
-            bgcolor="#F5F5F5" if state.theme_mode == ft.ThemeMode.LIGHT else "#1A1A1A",
+            bgcolor=AppColors.DARK_SURFACE_VARIANT if state.theme_mode == ft.ThemeMode.LIGHT else AppColors.LIGHT_SURFACE_VARIANT,
         ),
         
-        ft.Divider(height=20, color="transparent"),
+        ft.Divider(height=20, color=AppColors.TRANSPARENT),
         
         # Inline Terms of Service Box
         ft.Container(
-            content=ft.Text(terms_text, size=12, color="#888888", text_align=ft.TextAlign.LEFT),
+            content=ft.Text(terms_text, size=12, color=AppColors.GREY_DIM, text_align=ft.TextAlign.LEFT),
             padding=15,
-            bgcolor="#F5F5F5" if state.theme_mode == ft.ThemeMode.LIGHT else "#1A1A1A",
+            bgcolor=AppColors.LIGHT_SURFACE_VARIANT if state.theme_mode == ft.ThemeMode.LIGHT else AppColors.DARK_SURFACE_VARIANT,
             border_radius=10,
             width=400
         ),
@@ -89,7 +89,7 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
             ft.Text("I agree to the Usage Agreement above", size=14, weight=ft.FontWeight.W_500),
         ], alignment=ft.MainAxisAlignment.CENTER),
         
-        ft.Divider(height=20, color="transparent"),
+        ft.Divider(height=20, color=AppColors.TRANSPARENT),
         
         ft.FilledButton(
             content="Start Watching",

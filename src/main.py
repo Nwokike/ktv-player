@@ -3,7 +3,7 @@ import base64
 import urllib.parse
 import asyncio
 
-from core.theme import AppTheme
+from core.theme import AppTheme, AppColors
 from core.state import state
 from services.iptv_service import iptv_service
 from services.lifecycle import LifecycleManager
@@ -20,7 +20,7 @@ async def main(page: ft.Page):
     # GLOBAL ERROR HANDLER: Prevents the "Red Screen of Death" from crashing the app
     def global_error_handler(e):
         print(f"Caught Flet Engine Error: {e.data}")
-        page.snack_bar = ft.SnackBar(ft.Text("Stream unavailable or network timeout."), bgcolor="#F44336")
+        page.snack_bar = ft.SnackBar(ft.Text("Stream unavailable or network timeout."), bgcolor=AppColors.WARNING)
         page.snack_bar.open = True
         page.update()
         
@@ -99,7 +99,7 @@ async def main(page: ft.Page):
             page.views.append(build_onboarding_view(on_complete=lambda: page.run_task(navigate, "/dashboard")))
         
         elif parsed_url.path == "/dashboard":
-            page.views.append(build_dashboard_view(page=page, on_play=play_stream))
+            page.views.append(build_dashboard_view(page_obj=page, on_play=play_stream))
             if not state.channels:
                 page.run_task(load_channels)
         

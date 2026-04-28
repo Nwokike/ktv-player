@@ -38,7 +38,7 @@ def build_splash_view() -> ft.View:
                 spacing=10),
                 expand=True,
                 alignment=ft.Alignment(0, 0),
-                bgcolor="#202020", # Slightly lighter to match logo better
+                bgcolor=AppColors.SPLASH_BG, # Slightly lighter to match logo better
             )
         ],
         padding=0,
