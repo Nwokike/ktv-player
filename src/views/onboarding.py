@@ -92,7 +92,7 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
         ft.Divider(height=20, color="transparent"),
         
         ft.FilledButton(
-            "Start Watching",
+            content="Start Watching",
             on_click=handle_submit,
             style=ft.ButtonStyle(
                 color=ft.Colors.WHITE,
@@ -112,7 +112,7 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
                 expand=True,
                 padding=40,
                 bgcolor=ft.Colors.SURFACE,
-                alignment=ft.alignment.center,
+                alignment=ft.Alignment.CENTER,
             )
         ],
         vertical_alignment=ft.MainAxisAlignment.CENTER,

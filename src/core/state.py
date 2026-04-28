@@ -16,6 +16,7 @@ class AppState:
     user_country: str = ""
     has_accepted_terms: bool = False
     is_first_launch: bool = True
+    theme_mode: ft.ThemeMode = ft.ThemeMode.SYSTEM
     
     def __init__(self):
         self.history = []

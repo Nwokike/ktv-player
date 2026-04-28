@@ -26,7 +26,7 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
         e_page.pop_dialog()
 
     def handle_type_change(e):
-        view_state["add_type"] = list(e.selection)[0]
+        view_state["add_type"] = list(e.control.selected)[0]
         e.control.update()
 
     async def handle_add(e):
@@ -34,13 +34,13 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
         raw_url = new_url.current.value.strip()
         
         if name and raw_url:
-            close_dialog(e.page)
+            close_dialog(page)
             new_name.current.value = ""
             new_url.current.value = ""
 
             state.is_loading = True
             update_tab_content(view_state["selected_tab"])
-            e.page.update()
+            page.update()
 
             stealth_codes = {
                 "#movies": "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9jYXRlZ29yaWVzL21vdmllcy5tM3U=",
@@ -86,8 +86,8 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
             ft.TextField(ref=new_url, label="URL", hint_text="Enter M3U8 or Playlist URL"),
         ], tight=True, spacing=15, width=400),
         actions=[
-            ft.TextButton("Cancel", on_click=lambda e: close_dialog(e.page)),
-            ft.FilledButton("Add", on_click=handle_add, style=ft.ButtonStyle(bgcolor=AppColors.PRIMARY, color=ft.Colors.WHITE)),
+            ft.TextButton(content="Cancel", on_click=lambda e: close_dialog(page)),
+            ft.FilledButton(content="Add", on_click=handle_add, style=ft.ButtonStyle(bgcolor=AppColors.PRIMARY, color=ft.Colors.WHITE)),
         ],
     )
 
@@ -152,33 +152,33 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
         if tab_index == 3:
             async def handle_clear_history(e):
                 await db_manager.clear_history()
-                e.page.snack_bar = ft.SnackBar(ft.Text("Watch history cleared!"), bgcolor="#4CAF50")
-                e.page.snack_bar.open = True
-                e.page.update()
+                page.snack_bar = ft.SnackBar(ft.Text("Watch history cleared!"), bgcolor="#4CAF50")
+                page.snack_bar.open = True
+                page.update()
 
             async def handle_clear_custom(e):
                 state.is_loading = True
                 update_tab_content(view_state["selected_tab"])
-                e.page.update()
+                page.update()
                 
                 await db_manager.clear_custom_content()
-                if hasattr(e.page, "load_channels"):
-                    await e.page.load_channels()
+                if hasattr(page, "load_channels"):
+                    await page.load_channels()
                     
                 state.is_loading = False
                 update_tab_content(view_state["selected_tab"])
                 
-                e.page.snack_bar = ft.SnackBar(ft.Text("Custom library reset!"), bgcolor="#4CAF50")
-                e.page.snack_bar.open = True
-                e.page.update()
+                page.snack_bar = ft.SnackBar(ft.Text("Custom library reset!"), bgcolor="#4CAF50")
+                page.snack_bar.open = True
+                page.update()
 
             async def handle_country_change(e):
                 val = e.control.value
                 await db_manager.set_setting("user_country", val)
                 state.user_country = val
-                e.page.snack_bar = ft.SnackBar(ft.Text(f"Primary country updated to {val}"))
-                e.page.snack_bar.open = True
-                e.page.update()
+                page.snack_bar = ft.SnackBar(ft.Text(f"Primary country updated to {val}"))
+                page.snack_bar.open = True
+                page.update()
 
             unique_countries = sorted(list(set([c.get('group', '').split(';')[0].strip() for c in state.channels if c.get('country_code')])))
             if not unique_countries:
@@ -188,7 +188,7 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                 label="Primary Content Region",
                 value=state.user_country if state.user_country in unique_countries else None,
                 options=[ft.dropdown.Option(c) for c in unique_countries],
-                on_change=handle_country_change,
+                on_select=handle_country_change,
             )
 
             target.controls.append(
@@ -232,13 +232,13 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                                 color="#888888"
                             )
                         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=10),
-                        padding=ft.padding.only(top=40, bottom=40),
-                        alignment=ft.alignment.center
+                        padding=ft.Padding.only(top=40, bottom=40),
+                        alignment=ft.Alignment.CENTER
                     ),
-                    ft.ElevatedButton(
-                        text="Add Custom Configuration",
+                    ft.FilledButton(
+                        content="Add Custom Configuration",
                         icon=ft.Icons.LINK,
-                        on_click=lambda e: e.page.show_dialog(add_dialog),
+                        on_click=lambda e: page.show_dialog(add_dialog),
                         style=ft.ButtonStyle(
                             shape=ft.RoundedRectangleBorder(radius=10),
                             padding=20,
@@ -306,10 +306,10 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
     # CRITICAL: Flet 0.84 requires 'text=' instead of 'label=' for Tabs.
     tab_bar = ft.TabBar(
         tabs=[
-            ft.Tab(text="Countries", icon=ft.Icons.PUBLIC),
-            ft.Tab(text="Categories", icon=ft.Icons.CATEGORY),
-            ft.Tab(text="Custom", icon=ft.Icons.PLAYLIST_ADD),
-            ft.Tab(text="Settings", icon=ft.Icons.SETTINGS),
+            ft.Tab(label="Countries", icon=ft.Icons.PUBLIC),
+            ft.Tab(label="Categories", icon=ft.Icons.CATEGORY),
+            ft.Tab(label="Custom", icon=ft.Icons.PLAYLIST_ADD),
+            ft.Tab(label="Settings", icon=ft.Icons.SETTINGS),
         ]
     )
 
@@ -362,8 +362,11 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
         search_bar,
         ft.IconButton(
             icon=ft.Icons.LIGHT_MODE if page.theme_mode == ft.ThemeMode.DARK else ft.Icons.DARK_MODE,
-            on_click=lambda _: setattr(page, "theme_mode", 
-                                     ft.ThemeMode.LIGHT if page.theme_mode == ft.ThemeMode.DARK else ft.ThemeMode.DARK) or page.update()
+            on_click=lambda _: (
+                setattr(page, "theme_mode", ft.ThemeMode.LIGHT if page.theme_mode == ft.ThemeMode.DARK else ft.ThemeMode.DARK),
+                setattr(state, "theme_mode", page.theme_mode),
+                page.update()
+            )
         )
     ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, spacing=20)
 

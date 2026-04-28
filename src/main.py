@@ -35,6 +35,7 @@ async def main(page: ft.Page):
     page.theme.font_family = "Outfit"
     page.dark_theme.font_family = "Outfit"
     page.theme_mode = ft.ThemeMode.SYSTEM
+    state.theme_mode = page.theme_mode
     page.padding = 0
     page.spacing = 0
     
