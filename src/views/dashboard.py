@@ -1,6 +1,7 @@
 import flet as ft
 import asyncio
 import base64
+import httpx
 from core.state import state
 from core.theme import AppColors
 from components.ui.glass_container import GlassContainer
@@ -21,6 +22,28 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
     categories_content = ft.Column(expand=True, scroll=ft.ScrollMode.AUTO)
     custom_content = ft.Column(expand=True, scroll=ft.ScrollMode.AUTO)
     preferences_content = ft.Column(expand=True, scroll=ft.ScrollMode.AUTO)
+
+    # Limit background requests to prevent app freeze
+    check_semaphore = asyncio.Semaphore(10)
+
+    async def check_channel_liveliness(url: str, indicator: ft.Container):
+        if not url: return
+        async with check_semaphore:
+            try:
+                # HEAD request is fast and doesn't download video data
+                async with httpx.AsyncClient(verify=False) as client:
+                    resp = await client.head(url, timeout=2.0, follow_redirects=True)
+                    if resp.status_code < 400:
+                        indicator.bgcolor = AppColors.SUCCESS # Live = Green
+                    else:
+                        indicator.bgcolor = AppColors.ERROR # Dead = Red
+            except Exception:
+                indicator.bgcolor = AppColors.ERROR
+            
+            try:
+                indicator.update()
+            except Exception:
+                pass # Ignores errors if user navigated away while checking
 
     def close_dialog(e_page_obj):
         e_page_obj.pop_dialog()
@@ -92,15 +115,18 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
     )
 
     def create_channel_card(c):
-        return GlassContainer(
+        status_indicator = ft.Container(width=10, height=10, border_radius=5, bgcolor=AppColors.GREY_DIM)
+        
+        card = GlassContainer(
             content=ft.Column([
+                ft.Row([status_indicator], alignment=ft.MainAxisAlignment.END),
                 ft.Image(
                     src=c.get('logo'),
-                    width=90,
-                    height=90,
+                    width=70,
+                    height=70,
                     fit=ft.BoxFit.CONTAIN,
-                    border_radius=25,
-                    error_content=ft.Icon(ft.Icons.TV, size=40)
+                    border_radius=20,
+                    error_content=ft.Icon(ft.Icons.TV, size=30)
                 ),
                 ft.Text(
                     c.get('name', 'Unknown'),
@@ -110,17 +136,20 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
                     max_lines=1,
                     overflow=ft.TextOverflow.ELLIPSIS
                 )
-            ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=5),
-            padding=12,
+            ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=2),
+            padding=10,
             border_radius=25,
             on_click=lambda e, url=c.get('url'): page_obj.run_task(on_play, url),
         )
+        card.data = {"url": c.get("url"), "indicator": status_indicator}
+        return card
 
     def build_grid(channels):
         return ft.GridView(
             controls=[create_channel_card(c) for c in channels],
             runs_count=3,
             max_extent=160,
+            child_aspect_ratio=0.85, # Forces consistent tile sizing on all mobile devices
             spacing=15,
             run_spacing=15,
             padding=15,
@@ -129,8 +158,16 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
     def handle_expansion(e, channels):
         if str(e.data).lower() == "true":
             if not e.control.controls:
-                e.control.controls = [build_grid(channels)]
+                grid = build_grid(channels)
+                e.control.controls = [grid]
                 e.control.update()
+                
+                # Triggers background checking only when user expands a category!
+                for card in grid.controls:
+                    url = card.data.get("url")
+                    indicator = card.data.get("indicator")
+                    if url and indicator:
+                        page_obj.run_task(check_channel_liveliness, url, indicator)
 
     def update_tab_content(tab_index: int):
         target = [countries_content, categories_content, custom_content, preferences_content][tab_index]
@@ -220,23 +257,10 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
                 ], spacing=10, expand=True)
             )
 
-        elif tab_index == 2:
-            target.controls.append(
-                ft.Column([
-                    ft.Container(
-                        content=ft.Column([
-                            ft.Icon(ft.Icons.SECURITY, size=50, color=AppColors.GREY_DIM),
-                            ft.Text("Personal Media Player", weight=ft.FontWeight.BOLD, size=20),
-                            ft.Text(
-                                "KTV Player is a clean network utility. It does not contain pre-loaded TV streams. "
-                                "Use the button below to connect your own legal M3U playlists or individual stream links.",
-                                text_align=ft.TextAlign.CENTER,
-                                color=AppColors.GREY_DIM
-                            )
-                        ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=10),
-                        padding=ft.Padding.only(top=40, bottom=40),
-                        alignment=ft.Alignment.CENTER
-                    ),
+        else:
+            if tab_index == 2:
+                # Keep Custom tab add button at the top
+                target.controls.append(
                     ft.FilledButton(
                         content="Add Custom Configuration",
                         icon=ft.Icons.LINK,
@@ -249,23 +273,36 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
                         ),
                         width=float('inf')
                     )
-                ], scroll=ft.ScrollMode.AUTO, expand=True)
-            )
-        else:
+                )
+                target.controls.append(ft.Divider(height=20, color=AppColors.GREY_DIM))
+                
             groups = {}
             query = view_state["search_query"].lower()
             MAX_SEARCH_RESULTS = 50
             results_count = 0
             
             for c in state.channels:
+                is_custom = c.get("is_custom", False)
+                # Filter so Custom content only appears in Custom tab (and vice versa)
+                if tab_index == 2 and not is_custom:
+                    continue
+                if tab_index in (0, 1) and is_custom:
+                    continue
+
                 name_match = query in c.get('name', '').lower()
                 original_group = c.get('group', 'General')
                 parts = [p.strip() for p in original_group.split(';')]
                 
                 if tab_index == 0: 
                     display_group = parts[0] if c.get('country_code') else "Global"
-                else: 
+                elif tab_index == 1: 
                     display_group = parts[-1] if len(parts) > 1 else (parts[0] if not c.get('country_code') else "General")
+                elif tab_index == 2:
+                    display_group = original_group
+
+                # REMOVE "GENERAL" CATEGORY FROM CATEGORIES TAB 
+                if tab_index == 1 and display_group.lower() == "general":
+                    continue
 
                 if query and not name_match and query not in display_group.lower():
                     continue
@@ -308,10 +345,10 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
     # CRITICAL: Flet 0.84 requires 'text=' instead of 'label=' for Tabs.
     tab_bar = ft.TabBar(
         tabs=[
-            ft.Tab(label="Countries", icon=ft.Icons.PUBLIC),
-            ft.Tab(label="Categories", icon=ft.Icons.CATEGORY),
-            ft.Tab(label="Custom", icon=ft.Icons.PLAYLIST_ADD),
-            ft.Tab(label="Settings", icon=ft.Icons.SETTINGS),
+            ft.Tab(text="Countries", icon=ft.Icons.PUBLIC),
+            ft.Tab(text="Categories", icon=ft.Icons.CATEGORY),
+            ft.Tab(text="Custom", icon=ft.Icons.PLAYLIST_ADD),
+            ft.Tab(text="Settings", icon=ft.Icons.SETTINGS),
         ]
     )
 
@@ -377,14 +414,17 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
         tabs_wrapper,
     ], spacing=15, expand=True)
 
+    # Wrap main layout in SafeArea so the mobile notch/status bar doesn't cover the Search Bar
     return ft.View(
         route="/dashboard",
         controls=[
-            ft.Container(
-                content=main_col,
-                expand=True,
-                padding=20,
-                bgcolor=ft.Colors.SURFACE,
+            ft.SafeArea(
+                ft.Container(
+                    content=main_col,
+                    expand=True,
+                    padding=20,
+                    bgcolor=ft.Colors.SURFACE,
+                )
             )
         ],
         padding=0,
