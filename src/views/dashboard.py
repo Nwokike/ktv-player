@@ -6,8 +6,12 @@ from core.state import state
 from core.theme import AppColors
 from components.ui.glass_container import GlassContainer
 from database.manager import db_manager
+from services.ad_service import AdService
 
 def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
+    # Initialize the AdService for this view
+    ad_service = AdService(page_obj)
+
     view_state = {
         "selected_tab": 0,
         "search_query": "",
@@ -155,15 +159,40 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
         return interactive_card
 
     def build_grid(channels):
-        # We replace GridView with ResponsiveRow. This acts as a wrapper rather than a scroller.
-        # It fixes the mobile vertical swiping bug completely.
-        return ft.ResponsiveRow(
-            controls=[
+        controls = []
+        
+        for i, c in enumerate(channels):
+            # 1. Normal TV Channel Card
+            controls.append(
                 ft.Container(
                     content=create_channel_card(c),
                     col={"xs": 4, "sm": 3, "md": 2, "lg": 2, "xl": 1} # 3 per row on mobile, wrapping smoothly
-                ) for c in channels
-            ],
+                )
+            )
+            
+            # 2. THE INVISIBLE AD INJECTION: Alternating Native and Banner sizes
+            if (i + 1) % 10 == 5:
+                # Slot 6: Native-Style Medium Rectangle (300x250)
+                controls.append(
+                    ft.Container(
+                        content=ad_service.get_native_style_ad(),
+                        col={"xs": 12, "sm": 6, "md": 4, "lg": 4, "xl": 2},
+                        alignment=ft.Alignment.CENTER
+                    )
+                )
+            elif (i + 1) % 10 == 0:
+                # Slot 12: Standard Large Banner (320x100)
+                controls.append(
+                    ft.Container(
+                        content=ad_service.get_standard_banner_ad(),
+                        col={"xs": 12, "sm": 6, "md": 4, "lg": 4, "xl": 2},
+                        alignment=ft.Alignment.CENTER
+                    )
+                )
+
+        # ResponsiveRow acts as a wrapper rather than a scroller.
+        return ft.ResponsiveRow(
+            controls=controls,
             spacing=15,
             run_spacing=15,
         )
@@ -178,7 +207,8 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
                 # Retrieve the interactive card from the ResponsiveRow columns
                 for responsive_col in grid.controls:
                     card = responsive_col.content 
-                    if card and card.data:
+                    # Ensures we don't try to check liveliness on the injected Ad Containers
+                    if card and getattr(card, "data", None):
                         url = card.data.get("url")
                         indicator = card.data.get("indicator")
                         if url and indicator:
@@ -287,6 +317,9 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
                         width=float('inf')
                     )
                 )
+                target.controls.append(ft.Container(height=10))
+                # Inject a prominent banner ad before displaying custom lists
+                target.controls.append(ad_service.get_standard_banner_ad())
                 target.controls.append(ft.Divider(height=20, color=AppColors.GREY_DIM))
                 
             groups = {}
@@ -341,7 +374,7 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
                     
                     for responsive_col in grid.controls:
                         card = responsive_col.content
-                        if card and card.data:
+                        if card and getattr(card, "data", None):
                             url = card.data.get("url")
                             indicator = card.data.get("indicator")
                             if url and indicator:

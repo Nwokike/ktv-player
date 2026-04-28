@@ -46,8 +46,7 @@ build_number = 1
 build_version = "1.0.0"
 
 [tool.flet.android.manifest_application]
-# Test AdMob App ID (Android)
-# "com.google.android.gms.ads.APPLICATION_ID" = "ca-app-pub-3940256099942544~3347511713"
+"com.google.android.gms.ads.APPLICATION_ID" = "ca-app-pub-3940256099942544~3347511713"
 
 [tool.flet.android.permission]
 "android.permission.INTERNET" = true

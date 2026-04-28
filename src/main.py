@@ -7,6 +7,7 @@ from core.theme import AppTheme, AppColors
 from core.state import state
 from services.iptv_service import iptv_service
 from services.lifecycle import LifecycleManager
+from services.ad_service import AdService
 from database.manager import db_manager
 from views.splash import build_splash_view
 from views.dashboard import build_dashboard_view
@@ -39,7 +40,11 @@ async def main(page: ft.Page):
     page.padding = 0
     page.spacing = 0
     
-    # Initialize Services (Ads intentionally left out for now)
+    # Initialize Services
+    ad_service = AdService(page)
+    # Preload the first interstitial ad in the background instantly
+    page.run_task(ad_service.preload_interstitial)
+
     lifecycle_manager = LifecycleManager(page)
     await db_manager.init_db()
     
@@ -56,6 +61,10 @@ async def main(page: ft.Page):
         state.add_to_history(url)
         # Use urlsafe base64 to avoid issues with deep-link parameters
         encoded_url = base64.urlsafe_b64encode(url.encode()).decode()
+        
+        # TRIGGER PRE-ROLL INTERSTITIAL AD
+        await ad_service.show_interstitial()
+
         await navigate(f"/play?url={encoded_url}")
 
     async def load_channels():
@@ -121,7 +130,8 @@ async def main(page: ft.Page):
 
         page.update()
 
-    def view_pop(e: ft.ViewPopEvent):
+    # FIX: Changed view_pop to an async function to accommodate the ad trigger
+    async def view_pop(e: ft.ViewPopEvent):
         # FIX: The "Ghost Audio" memory leak. 
         # Before we pop the player view, we force the video player to pause so it stops consuming data in the background.
         if len(page.views) > 1:
@@ -133,10 +143,13 @@ async def main(page: ft.Page):
                             control.pause()
                         except Exception:
                             pass
+                
+                # TRIGGER POST-ROLL INTERSTITIAL AD
+                await ad_service.show_interstitial()
             
             page.views.pop()
             previous_view = page.views[-1]
-            page.run_task(navigate, previous_view.route)
+            await navigate(previous_view.route)
 
     page.on_route_change = route_change
     page.on_view_pop = view_pop

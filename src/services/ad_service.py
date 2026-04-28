@@ -43,7 +43,7 @@ class AdService:
                 spacing=5,
             ),
             width=width,
-            alignment=ft.alignment.center,
+            alignment=ft.Alignment.CENTER,
             padding=ft.Padding(0, 10, 0, 10)
         )
 
