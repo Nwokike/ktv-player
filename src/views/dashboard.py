@@ -342,13 +342,12 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
         update_tab_content(view_state["selected_tab"])
         page_obj.update()
 
-    # CRITICAL: Flet 0.84 requires 'text=' instead of 'label=' for Tabs.
     tab_bar = ft.TabBar(
         tabs=[
-            ft.Tab(text="Countries", icon=ft.Icons.PUBLIC),
-            ft.Tab(text="Categories", icon=ft.Icons.CATEGORY),
-            ft.Tab(text="Custom", icon=ft.Icons.PLAYLIST_ADD),
-            ft.Tab(text="Settings", icon=ft.Icons.SETTINGS),
+            ft.Tab(label="Countries", icon=ft.Icons.PUBLIC),
+            ft.Tab(label="Categories", icon=ft.Icons.CATEGORY),
+            ft.Tab(label="Custom", icon=ft.Icons.PLAYLIST_ADD),
+            ft.Tab(label="Settings", icon=ft.Icons.SETTINGS),
         ]
     )
 
