@@ -10,14 +10,20 @@ from channels.base import ChannelData
 
 class IPTVService:
     def __init__(self):
+        # STEALTH: Spoof a generic Chrome/Windows browser to bypass Cloudflare 403 Forbidden blocks
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
+            "Accept": "*/*",
+            "Connection": "keep-alive"
+        }
         self.client = httpx.AsyncClient(
-            timeout=httpx.Timeout(10.0, connect=5.0),
+            timeout=httpx.Timeout(15.0, connect=5.0),
             limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
-            follow_redirects=True
+            follow_redirects=True,
+            headers=headers
         )
 
     async def fetch_built_in_channels(self):
-        """Loads channels from the modular python files."""
         # Pushing to thread to prevent importlib from blocking the Flet event loop on startup
         channels = await asyncio.to_thread(channel_provider.get_all_channels)
         return [self._channel_to_dict(c) for c in channels]
@@ -44,14 +50,14 @@ class IPTVService:
             
             parser.parse_m3u(temp_file)
             return parser.get_list()
+        except Exception as e:
+            print(f"Parsing error: {e}")
+            return []
         finally:
             if os.path.exists(temp_file):
                 os.remove(temp_file)
 
     async def fetch_playlist(self, url: str) -> List[Dict]:
-        """
-        Fetches and parses an M3U playlist asynchronously.
-        """
         try:
             response = await self.client.get(url)
             response.raise_for_status()
@@ -60,27 +66,24 @@ class IPTVService:
             channels = await asyncio.to_thread(self._parse_playlist_sync, response.text)
             return channels
         except Exception as e:
-            print(f"Error fetching playlist {url}: {e}")
+            print(f"Network error fetching playlist {url}: {e}")
             return []
 
     async def load_all_sources(self):
-        """Main entry point to load all channels into state with parallel fetching."""
-        # Fetch built-in channels in a background thread
         built_in = await self.fetch_built_in_channels()
         all_channels = built_in
         
-        # Load custom playlists from DB
         playlists = await db_manager.get_playlists()
         active_playlist_urls = [p["url"] for p in playlists if p["is_active"]]
         
         if active_playlist_urls:
-            # Fetch all active playlists concurrently without file collisions
             tasks = [self.fetch_playlist(url) for url in active_playlist_urls]
-            results = await asyncio.gather(*tasks)
+            # return_exceptions=True prevents one bad/dead URL from crashing the rest of the playlist downloads
+            results = await asyncio.gather(*tasks, return_exceptions=True) 
             for ext_channels in results:
-                all_channels.extend(ext_channels)
+                if isinstance(ext_channels, list):
+                    all_channels.extend(ext_channels)
         
-        # Load individual custom channels from DB
         custom_channels = await db_manager.get_custom_channels()
         all_channels.extend(custom_channels)
         
