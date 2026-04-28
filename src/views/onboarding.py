@@ -2,7 +2,6 @@ import flet as ft
 import asyncio
 from core.theme import AppColors
 from core.state import state
-from core.theme import AppColors
 from channels.provider import channel_provider
 from database.manager import db_manager
 
@@ -21,12 +20,16 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
     
     async def handle_submit(e):
         if not terms_checked.current.value:
-            e.page.show_dialog(ft.SnackBar(ft.Text("Please accept the terms to continue.")))
+            e.page.snack_bar = ft.SnackBar(ft.Text("Please accept the usage agreement to continue."), bgcolor="#F44336")
+            e.page.snack_bar.open = True
+            e.page.update()
             return
             
         country_name = selected_country.current.value
         if not country_name:
-            e.page.show_dialog(ft.SnackBar(ft.Text("Please select your country.")))
+            e.page.snack_bar = ft.SnackBar(ft.Text("Please select your country."), bgcolor="#F44336")
+            e.page.snack_bar.open = True
+            e.page.update()
             return
             
         # Save settings
@@ -42,6 +45,14 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
         else:
             on_complete()
 
+    # The Self-Contained Legal Agreement (Protects you without external dead links)
+    terms_text = (
+        "1. KTV Player is a pure network utility and media rendering engine.\n"
+        "2. This application includes a built-in directory of legal, free-to-air public broadcasts.\n"
+        "3. You are strictly responsible for ensuring you have the legal right to access any third-party "
+        "networks you manually configure within the custom library section of this app."
+    )
+
     content = ft.Column([
         ft.Image(src="/icon.png", width=100, height=100),
         ft.Text("Welcome", size=32, weight=ft.FontWeight.BOLD),
@@ -49,9 +60,9 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
             "Your ultimate companion for legal streaming. Let's get you set up.",
             size=16,
             text_align=ft.TextAlign.CENTER,
-            color=ft.Colors.ON_SURFACE_VARIANT
+            color="#888888"
         ),
-        ft.Divider(height=40, color=ft.Colors.TRANSPARENT),
+        ft.Divider(height=20, color="transparent"),
         
         ft.Text("Select your Country", size=18, weight=ft.FontWeight.W_500),
         ft.Dropdown(
@@ -59,25 +70,26 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
             options=[ft.dropdown.Option(c["name"]) for c in countries],
             width=400,
             border_radius=15,
-            bgcolor=ft.Colors.SURFACE_CONTAINER,
+            bgcolor="#F5F5F5" if state.theme_mode == ft.ThemeMode.LIGHT else "#1A1A1A",
         ),
         
-        ft.Divider(height=20, color=ft.Colors.TRANSPARENT),
+        ft.Divider(height=20, color="transparent"),
+        
+        # Inline Terms of Service Box
+        ft.Container(
+            content=ft.Text(terms_text, size=12, color="#888888", text_align=ft.TextAlign.LEFT),
+            padding=15,
+            bgcolor="#F5F5F5" if state.theme_mode == ft.ThemeMode.LIGHT else "#1A1A1A",
+            border_radius=10,
+            width=400
+        ),
         
         ft.Row([
             ft.Checkbox(ref=terms_checked, value=False),
-            ft.Text("I agree to the Terms of Service & Privacy Policy", size=14),
+            ft.Text("I agree to the Usage Agreement above", size=14, weight=ft.FontWeight.W_500),
         ], alignment=ft.MainAxisAlignment.CENTER),
         
-        ft.Text(
-            "Disclaimer: KTV Player is a general-purpose player. We are not responsible for any 3rd party content you add.",
-            size=12,
-            italic=True,
-            text_align=ft.TextAlign.CENTER,
-            color=ft.Colors.ON_SURFACE_VARIANT
-        ),
-        
-        ft.Divider(height=40, color=ft.Colors.TRANSPARENT),
+        ft.Divider(height=20, color="transparent"),
         
         ft.FilledButton(
             "Start Watching",
@@ -100,11 +112,10 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
                 expand=True,
                 padding=40,
                 bgcolor=ft.Colors.SURFACE,
-                alignment=ft.Alignment(0, 0),
+                alignment=ft.alignment.center,
             )
         ],
         vertical_alignment=ft.MainAxisAlignment.CENTER,
         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         padding=0,
     )
-
