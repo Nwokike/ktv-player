@@ -18,10 +18,11 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
     new_name = ft.Ref[ft.TextField]()
     new_url = ft.Ref[ft.TextField]()
 
-    countries_content = ft.Column(expand=True, scroll=ft.ScrollMode.AUTO)
-    categories_content = ft.Column(expand=True, scroll=ft.ScrollMode.AUTO)
-    custom_content = ft.Column(expand=True, scroll=ft.ScrollMode.AUTO)
-    preferences_content = ft.Column(expand=True, scroll=ft.ScrollMode.AUTO)
+    # FIX 1: Use ListView instead of Column for touch-friendly mobile scrolling
+    countries_content = ft.ListView(expand=True, spacing=15)
+    categories_content = ft.ListView(expand=True, spacing=15)
+    custom_content = ft.ListView(expand=True, spacing=15)
+    preferences_content = ft.ListView(expand=True, spacing=15)
 
     check_semaphore = asyncio.Semaphore(10)
 
@@ -444,7 +445,8 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
                     expand=True,
                     padding=20,
                     bgcolor=ft.Colors.SURFACE,
-                )
+                ),
+                expand=True # FIX 2: Bind the SafeArea to screen height
             )
         ],
         padding=0,

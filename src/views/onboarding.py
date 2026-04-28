@@ -13,22 +13,14 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
     selected_country = ft.Ref[ft.Dropdown]()
     terms_checked = ft.Ref[ft.Checkbox]()
 
-    def _is_dark_mode() -> bool:
-        return state.theme_mode == ft.ThemeMode.DARK
-
     def _palette() -> dict:
-        dark = _is_dark_mode()
         return {
-            "page_bg": AppColors.DARK_BG if dark else AppColors.LIGHT_BG,
-            "surface": AppColors.DARK_SURFACE if dark else AppColors.LIGHT_SURFACE,
-            "surface_variant": (
-                AppColors.DARK_SURFACE_VARIANT
-                if dark
-                else AppColors.LIGHT_SURFACE_VARIANT
-            ),
-            "text": AppColors.DARK_TEXT if dark else AppColors.LIGHT_TEXT,
-            "text_dim": AppColors.DARK_TEXT_DIM if dark else AppColors.LIGHT_TEXT_DIM,
-            "border": AppColors.DARK_TEXT_DIM if dark else AppColors.LIGHT_TEXT_DIM,
+            "page_bg": "background",
+            "surface": "surface",
+            "surface_variant": "surfaceVariant",
+            "text": "onSurface",
+            "text_dim": "onSurfaceVariant",
+            "border": "outline",
         }
 
     palette = _palette()
@@ -82,9 +74,9 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
     content = ft.Column(
         [
             ft.Image(src="/icon.png", width=100, height=100),
-            ft.Text("Welcome", size=32, weight=ft.FontWeight.BOLD, color=palette["text"]),
+            ft.Text("Welcome", size=32, weight=ft.FontWeight.BOLD, color=palette["text"], text_align=ft.TextAlign.CENTER),
             ft.Text(
-                "Your ultimate companion for legal streaming. Let's get you set up.",
+                "A lightning-fast TV player built for seamless network streaming and custom channel addition.",
                 size=16,
                 text_align=ft.TextAlign.CENTER,
                 color=palette["text_dim"],
@@ -128,7 +120,8 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
                 padding=15,
                 bgcolor=palette["surface"],
                 border_radius=10,
-                expand=True,
+                # FIX 1: Removed 'expand=True' from this Container. 
+                # This stops it from clipping against the Column, allowing all 3 lines to show!
             ),
 
             ft.Row(
@@ -152,7 +145,7 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
                 content="Start Watching",
                 on_click=handle_submit,
                 style=ft.ButtonStyle(
-                    color=ft.Colors.WHITE,
+                    color="white", # String literal fallback to avoid Enum crash
                     bgcolor=AppColors.PRIMARY,
                     padding=20,
                     shape=ft.RoundedRectangleBorder(radius=15),

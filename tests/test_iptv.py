@@ -43,3 +43,34 @@ async def test_fetch_playlist_error_handling(iptv_service):
     with patch.object(iptv_service.client, 'get', side_effect=Exception("Network Error")):
         channels = await iptv_service.fetch_playlist("http://bad-url.com")
         assert channels == []
+
+@pytest.mark.asyncio
+async def test_fetch_playlist_success(iptv_service):
+    mock_resp = MagicMock()
+    mock_resp.text = "#EXTM3U\n#EXTINF:-1,Test\nhttp://test.com"
+    mock_resp.raise_for_status = MagicMock()
+    
+    with patch.object(iptv_service.client, 'get', new_callable=AsyncMock) as mock_get:
+        mock_get.return_value = mock_resp
+        with patch.object(iptv_service, '_parse_playlist_sync') as mock_parse:
+            mock_parse.return_value = [{"name": "Test"}]
+            channels = await iptv_service.fetch_playlist("http://good-url.com")
+            assert len(channels) == 1
+            assert channels[0]["name"] == "Test"
+
+def test_parse_playlist_sync(iptv_service):
+    # Test the internal synchronous parser
+    content = "#EXTM3U\n#EXTINF:-1,Test Channel\nhttp://stream.url"
+    with patch('services.iptv_service.M3uParser') as mock_parser_cls:
+        mock_parser = mock_parser_cls.return_value
+        mock_parser.get_list.return_value = [{"name": "Test Channel"}]
+        
+        channels = iptv_service._parse_playlist_sync(content)
+        assert len(channels) == 1
+        assert channels[0]["name"] == "Test Channel"
+
+@pytest.mark.asyncio
+async def test_close(iptv_service):
+    with patch.object(iptv_service.client, 'aclose', new_callable=AsyncMock) as mock_close:
+        await iptv_service.close()
+        mock_close.assert_called_once()

@@ -54,3 +54,40 @@ async def test_wal_mode(db_manager):
         async with db.execute("PRAGMA journal_mode") as cursor:
             row = await cursor.fetchone()
             assert row[0].upper() == "WAL"
+
+@pytest.mark.asyncio
+async def test_clear_data(db_manager):
+    # Setup data
+    await db_manager.save_history("url1")
+    await db_manager.add_playlist("P1", "url_p1")
+    await db_manager.add_custom_channel("C1", "url_c1")
+    
+    # Clear history
+    await db_manager.clear_history()
+    history = await db_manager.get_history()
+    assert len(history) == 0
+    
+    # Clear custom content
+    await db_manager.clear_custom_content()
+    playlists = await db_manager.get_playlists()
+    channels = await db_manager.get_custom_channels()
+    assert len(playlists) == 0
+    assert len(channels) == 0
+
+@pytest.mark.asyncio
+async def test_init_db_creates_dir():
+    # Use a nested path to test directory creation
+    db_path = "temp_subdir/nested/test.db"
+    manager = DatabaseManager(db_path)
+    try:
+        await manager.init_db()
+        assert os.path.exists(os.path.dirname(db_path))
+        assert os.path.exists(db_path)
+    finally:
+        if os.path.exists(db_path):
+            os.remove(db_path)
+        # Clean up directories (optional but good practice)
+        if os.path.exists("temp_subdir/nested"):
+            os.rmdir("temp_subdir/nested")
+        if os.path.exists("temp_subdir"):
+            os.rmdir("temp_subdir")

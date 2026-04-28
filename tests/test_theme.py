@@ -22,13 +22,20 @@ def test_light_theme_generation():
 def test_dynamic_helpers():
     from unittest.mock import MagicMock
     page = MagicMock()
-    page.theme_mode = ft.ThemeMode.DARK
     
+    # Dark Mode
+    page.theme_mode = ft.ThemeMode.DARK
     glass_dark = AppColors.get_glass_bg(page)
     shimmer_dark = AppColors.get_shimmer_base(page)
+    assert shimmer_dark == "#1E2132"
+    # Flet colors with opacity return a string like 'withOpacity(0.1, white)' or similar depending on flet version
+    assert "white" in str(glass_dark).lower() or "ffffff" in str(glass_dark).lower()
     
+    # Light Mode
     page.theme_mode = ft.ThemeMode.LIGHT
     glass_light = AppColors.get_glass_bg(page)
     shimmer_light = AppColors.get_shimmer_base(page)
+    assert shimmer_light == "#E2E8F0"
+    assert "black" in str(glass_light).lower() or "000000" in str(glass_light).lower()
     
     assert shimmer_dark != shimmer_light
