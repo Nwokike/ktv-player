@@ -20,7 +20,7 @@ async def main(page: ft.Page):
     # GLOBAL ERROR HANDLER: Prevents the "Red Screen of Death" from crashing the app
     def global_error_handler(e):
         print(f"Caught Flet Engine Error: {e.data}")
-        page.snack_bar = ft.SnackBar(ft.Text("Stream unavailable or network timeout."), bgcolor=ft.Colors.ERROR)
+        page.snack_bar = ft.SnackBar(ft.Text("Stream unavailable or network timeout."), bgcolor="#F44336")
         page.snack_bar.open = True
         page.update()
         
@@ -58,12 +58,22 @@ async def main(page: ft.Page):
         await navigate(f"/play?url={encoded_url}")
 
     async def load_channels():
+        # TRIGGER: Tell Dashboard to show the loading spinner
         state.is_loading = True
-        page.update()
+        if hasattr(page, "refresh_dashboard"):
+            page.refresh_dashboard()
+        else:
+            page.update()
+            
         all_channels = await iptv_service.load_all_sources()
         state.channels = all_channels
         state.is_loading = False
-        page.update()
+        
+        # TRIGGER: Tell Dashboard to hide spinner and load the grids
+        if hasattr(page, "refresh_dashboard"):
+            page.refresh_dashboard()
+        else:
+            page.update()
 
     async def start_splash_timer():
         await asyncio.sleep(3)
