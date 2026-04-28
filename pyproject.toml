@@ -1,7 +1,7 @@
 [project]
 name = "ktv-player"
 version = "0.1.0"
-description = "Add your description here"
+description = "A lightning-fast TV player built for seamless network streaming and custom channel addition."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -48,3 +48,8 @@ build_version = "1.0.0"
 [tool.flet.android.manifest_application]
 # Test AdMob App ID (Android)
 # "com.google.android.gms.ads.APPLICATION_ID" = "ca-app-pub-3940256099942544~3347511713"
+
+[tool.flet.android.permission]
+"android.permission.INTERNET" = true
+"android.permission.ACCESS_NETWORK_STATE" = true
+"android.permission.WAKE_LOCK" = true
