@@ -52,4 +52,4 @@ flet build apk src
 ```
 
 ## Legal Disclaimer
-KTV Player is purely a network utility and media player. It does not contain, host, or distribute any copyrighted media or premium broadcasts. Users are solely responsible for providing their own legal network streams and M3U playlists.
+KTV Player is a network utility and media player. It includes a built-in directory of publicly available, legal, free-to-air broadcasts. It does not contain, host, or distribute any copyrighted premium media. Users are solely responsible for ensuring they have the legal right to access any third-party networks they manually configure via the custom playlist integration.
