@@ -3,20 +3,16 @@ import os
 
 class DatabaseManager:
     def __init__(self, db_path: str = "storage/data/ktv_player.db"):
-        # Convert to an absolute path so Codespaces/Docker always knows exactly where it is
         self.db_path = os.path.abspath(db_path)
 
     async def init_db(self):
-        # CRITICAL FIX: Force create the directory folders if they do not exist
         db_dir = os.path.dirname(self.db_path)
         if db_dir:
             os.makedirs(db_dir, exist_ok=True)
             
         async with aiosqlite.connect(self.db_path) as db:
-            # Enable WAL mode for performance
             await db.execute("PRAGMA journal_mode=WAL;")
             
-            # History table
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS history (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,7 +21,6 @@ class DatabaseManager:
                 )
             """)
             
-            # Favorites table
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS favorites (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -35,7 +30,6 @@ class DatabaseManager:
                 )
             """)
             
-            # Settings table
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS settings (
                     key TEXT PRIMARY KEY,
@@ -43,7 +37,6 @@ class DatabaseManager:
                 )
             """)
             
-            # Playlists table
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS playlists (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,7 +46,6 @@ class DatabaseManager:
                 )
             """)
             
-            # Individual Custom Channels
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS custom_channels (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -75,6 +67,19 @@ class DatabaseManager:
             async with db.execute("SELECT url FROM history ORDER BY timestamp DESC LIMIT 20") as cursor:
                 rows = await cursor.fetchall()
                 return [row[0] for row in rows]
+
+    # --- NEW: Data Management Functions for Preferences Tab ---
+    async def clear_history(self):
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute("DELETE FROM history")
+            await db.commit()
+
+    async def clear_custom_content(self):
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute("DELETE FROM playlists")
+            await db.execute("DELETE FROM custom_channels")
+            await db.commit()
+    # -----------------------------------------------------------
 
     async def set_setting(self, key: str, value: str):
         async with aiosqlite.connect(self.db_path) as db:
@@ -109,5 +114,4 @@ class DatabaseManager:
                 rows = await cursor.fetchall()
                 return [{"name": r[0], "url": r[1], "logo": r[2], "group": r[3]} for r in rows]
 
-# Shared instance
 db_manager = DatabaseManager()
