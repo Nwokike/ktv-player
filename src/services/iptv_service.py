@@ -1,8 +1,9 @@
 import asyncio
 import httpx
-from m3u_parser import M3uParser
-from typing import List, Dict, Optional
 import os
+import uuid
+from m3u_parser import M3uParser
+from typing import List, Dict
 from database.manager import db_manager
 from channels.provider import channel_provider
 from channels.base import ChannelData
@@ -14,12 +15,11 @@ class IPTVService:
             limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
             follow_redirects=True
         )
-        self.cache_file = "channels_cache.json"
 
     async def fetch_built_in_channels(self):
         """Loads channels from the modular python files."""
-        channels = channel_provider.get_all_channels()
-        # Convert to dict format for state
+        # Pushing to thread to prevent importlib from blocking the Flet event loop on startup
+        channels = await asyncio.to_thread(channel_provider.get_all_channels)
         return [self._channel_to_dict(c) for c in channels]
 
     def _channel_to_dict(self, c: ChannelData) -> Dict:
@@ -32,44 +32,51 @@ class IPTVService:
             "epg_id": c.epg_id
         }
 
+    def _parse_playlist_sync(self, content: str) -> List[Dict]:
+        """Synchronous parser isolated to prevent Flet UI blocking."""
+        parser = M3uParser()
+        # Use UUID to prevent file locking issues during concurrent fetching
+        temp_file = f"temp_playlist_{uuid.uuid4().hex}.m3u"
+        
+        try:
+            with open(temp_file, "w", encoding="utf-8") as f:
+                f.write(content)
+            
+            parser.parse_m3u(temp_file)
+            return parser.get_list()
+        finally:
+            if os.path.exists(temp_file):
+                os.remove(temp_file)
+
     async def fetch_playlist(self, url: str) -> List[Dict]:
         """
-        Fetches and parses an M3U playlist.
+        Fetches and parses an M3U playlist asynchronously.
         """
         try:
             response = await self.client.get(url)
             response.raise_for_status()
             
-            parser = M3uParser()
-            temp_file = "temp_playlist.m3u"
-            with open(temp_file, "w", encoding="utf-8") as f:
-                f.write(response.text)
-            
-            await asyncio.to_thread(parser.parse_m3u, temp_file)
-            channels = parser.get_list()
-            
-            if os.path.exists(temp_file):
-                os.remove(temp_file)
-                
+            # Execute disk I/O and parsing completely off the main thread
+            channels = await asyncio.to_thread(self._parse_playlist_sync, response.text)
             return channels
         except Exception as e:
-            print(f"Error fetching playlist: {e}")
+            print(f"Error fetching playlist {url}: {e}")
             return []
 
     async def load_all_sources(self):
         """Main entry point to load all channels into state with parallel fetching."""
-        # Start fetching built-in channels (very fast)
+        # Fetch built-in channels in a background thread
         built_in = await self.fetch_built_in_channels()
         all_channels = built_in
         
-        # Load custom playlists from DB in parallel
+        # Load custom playlists from DB
         playlists = await db_manager.get_playlists()
         active_playlist_urls = [p["url"] for p in playlists if p["is_active"]]
         
         if active_playlist_urls:
-            # Fetch all active playlists concurrently
+            # Fetch all active playlists concurrently without file collisions
             tasks = [self.fetch_playlist(url) for url in active_playlist_urls]
-            results = await asyncio.to_thread(asyncio.run, asyncio.gather(*tasks)) if not asyncio.get_event_loop().is_running() else await asyncio.gather(*tasks)
+            results = await asyncio.gather(*tasks)
             for ext_channels in results:
                 all_channels.extend(ext_channels)
         
