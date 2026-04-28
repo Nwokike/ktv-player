@@ -74,17 +74,25 @@ class IPTVService:
         all_channels = built_in
         
         playlists = await db_manager.get_playlists()
-        active_playlist_urls = [p["url"] for p in playlists if p["is_active"]]
+        active_playlists = [p for p in playlists if p["is_active"]]
         
-        if active_playlist_urls:
-            tasks = [self.fetch_playlist(url) for url in active_playlist_urls]
+        if active_playlists:
+            tasks = [self.fetch_playlist(p["url"]) for p in active_playlists]
             # return_exceptions=True prevents one bad/dead URL from crashing the rest of the playlist downloads
             results = await asyncio.gather(*tasks, return_exceptions=True) 
-            for ext_channels in results:
+            for p, ext_channels in zip(active_playlists, results):
                 if isinstance(ext_channels, list):
+                    # Tag with playlist name as group and mark as custom
+                    for c in ext_channels:
+                        c["group"] = p["name"]
+                        c["is_custom"] = True
                     all_channels.extend(ext_channels)
         
         custom_channels = await db_manager.get_custom_channels()
+        for c in custom_channels:
+            c["is_custom"] = True
+            if not c.get("group"):
+                c["group"] = "Custom"
         all_channels.extend(custom_channels)
         
         return all_channels
