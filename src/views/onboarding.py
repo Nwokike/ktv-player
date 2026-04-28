@@ -14,9 +14,10 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
     
     try:
         countries = channel_provider.get_countries()
+        countries.append({"name": "Other"})
     except Exception as e:
         print(f"DEBUG: Error getting countries: {e}")
-        countries = [{"name": "Global"}]
+        countries = [{"name": "Global"}, {"name": "Other"}]
     
     async def handle_submit(e):
         if not terms_checked.current.value:

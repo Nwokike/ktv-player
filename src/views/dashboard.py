@@ -181,8 +181,10 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
                 page_obj.update()
 
             unique_countries = sorted(list(set([c.get('group', '').split(';')[0].strip() for c in state.channels if c.get('country_code')])))
-            if not unique_countries:
-                unique_countries = ["Global", "Nigeria", "USA", "UK"] 
+            if "Other" not in unique_countries:
+                unique_countries.append("Other")
+            if not unique_countries or (len(unique_countries) == 1 and unique_countries[0] == "Other"):
+                unique_countries = ["Global", "Nigeria", "USA", "UK", "Other"] 
                 
             country_dropdown = ft.Dropdown(
                 label="Primary Content Region",
@@ -276,7 +278,7 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
                 groups[display_group].append(c)
             
             group_names = sorted(groups.keys())
-            if tab_index == 0 and state.user_country in group_names:
+            if tab_index == 0 and state.user_country in group_names and state.user_country != "Other":
                 group_names.remove(state.user_country)
                 group_names.insert(0, state.user_country)
 
