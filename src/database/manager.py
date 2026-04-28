@@ -3,9 +3,15 @@ import os
 
 class DatabaseManager:
     def __init__(self, db_path: str = "storage/data/ktv_player.db"):
-        self.db_path = db_path
+        # Convert to an absolute path so Codespaces/Docker always knows exactly where it is
+        self.db_path = os.path.abspath(db_path)
 
     async def init_db(self):
+        # CRITICAL FIX: Force create the directory folders if they do not exist
+        db_dir = os.path.dirname(self.db_path)
+        if db_dir:
+            os.makedirs(db_dir, exist_ok=True)
+            
         async with aiosqlite.connect(self.db_path) as db:
             # Enable WAL mode for performance
             await db.execute("PRAGMA journal_mode=WAL;")
