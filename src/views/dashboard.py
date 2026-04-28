@@ -80,8 +80,8 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                 allow_empty_selection=False,
                 on_change=handle_type_change,
                 segments=[
-                    ft.Segment(value="playlist", label=ft.Text("Playlist"), icon=ft.Icon(ft.icons.PLAYLIST_ADD)),
-                    ft.Segment(value="channel", label=ft.Text("Single Channel"), icon=ft.Icon(ft.icons.TV)),
+                    ft.Segment(value="playlist", label=ft.Text("Playlist"), icon=ft.Icon(ft.Icons.PLAYLIST_ADD)),
+                    ft.Segment(value="channel", label=ft.Text("Single Channel"), icon=ft.Icon(ft.Icons.TV)),
                 ],
             ),
             ft.TextField(ref=new_name, label="Name", hint_text="Enter reference name"),
@@ -102,7 +102,7 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                     height=90,
                     fit=ft.BoxFit.CONTAIN,
                     border_radius=25,
-                    error_content=ft.Icon(ft.icons.TV, size=40)
+                    error_content=ft.Icon(ft.Icons.TV, size=40)
                 ),
                 ft.Text(
                     c.get('name', 'Unknown'),
@@ -146,7 +146,7 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
             # --- SETTINGS / PREFERENCES TAB ---
             async def handle_clear_history(e):
                 await db_manager.clear_history()
-                e.page.snack_bar = ft.SnackBar(ft.Text("Watch history cleared!"), bgcolor=ft.colors.GREEN)
+                e.page.snack_bar = ft.SnackBar(ft.Text("Watch history cleared!"), bgcolor=ft.Colors.GREEN)
                 e.page.snack_bar.open = True
                 e.page.update()
 
@@ -156,7 +156,7 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                 await db_manager.clear_custom_content()
                 if hasattr(e.page, "load_channels"):
                     await e.page.load_channels()
-                e.page.snack_bar = ft.SnackBar(ft.Text("Custom library reset!"), bgcolor=ft.colors.GREEN)
+                e.page.snack_bar = ft.SnackBar(ft.Text("Custom library reset!"), bgcolor=ft.Colors.GREEN)
                 e.page.snack_bar.open = True
                 e.page.update()
 
@@ -185,20 +185,20 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                     ft.Divider(height=20),
                     
                     ft.Text("Localization", size=16, weight=ft.FontWeight.W_500, color=AppColors.PRIMARY),
-                    ft.Text("Select your home region to prioritize its networks at the top of your dashboard.", size=12, color=ft.colors.OUTLINE),
+                    ft.Text("Select your home region to prioritize its networks at the top of your dashboard.", size=12, color=ft.Colors.GREY_500),
                     country_dropdown,
                     
                     ft.Container(height=20),
                     
                     ft.Text("Data Management", size=16, weight=ft.FontWeight.W_500, color=AppColors.PRIMARY),
                     ft.ListTile(
-                        leading=ft.Icon(ft.icons.HISTORY, color=ft.colors.ERROR),
+                        leading=ft.Icon(ft.Icons.HISTORY, color=ft.Colors.RED),
                         title=ft.Text("Clear Watch History"),
                         subtitle=ft.Text("Remove all recently watched streams from memory"),
                         on_click=handle_clear_history
                     ),
                     ft.ListTile(
-                        leading=ft.Icon(ft.icons.DELETE_FOREVER, color=ft.colors.ERROR),
+                        leading=ft.Icon(ft.Icons.DELETE_FOREVER, color=ft.Colors.RED),
                         title=ft.Text("Reset Custom Library"),
                         subtitle=ft.Text("Delete all manually added custom URLs and external playlists"),
                         on_click=handle_clear_custom
@@ -212,13 +212,14 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                 ft.Column([
                     ft.Container(
                         content=ft.Column([
-                            ft.Icon(ft.icons.SHIELD_OUTLINED, size=50, color=ft.colors.OUTLINE),
+                            # BUG FIX: Replaced non-existent SHIELD_OUTLINED with the valid SECURITY icon
+                            ft.Icon(ft.Icons.SECURITY, size=50, color=ft.Colors.GREY_500),
                             ft.Text("Personal Media Player", weight=ft.FontWeight.BOLD, size=20),
                             ft.Text(
                                 "KTV Player is a clean network utility. It does not contain pre-loaded TV streams. "
                                 "Use the button below to connect your own legal M3U playlists or individual stream links.",
                                 text_align=ft.TextAlign.CENTER,
-                                color=ft.colors.OUTLINE
+                                color=ft.Colors.GREY_500
                             )
                         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=10),
                         padding=ft.padding.only(top=40, bottom=40),
@@ -226,13 +227,13 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                     ),
                     ft.ElevatedButton(
                         text="Add Custom Configuration",
-                        icon=ft.icons.ADD_LINK,
+                        icon=ft.Icons.LINK,
                         on_click=lambda e: e.page.show_dialog(add_dialog),
                         style=ft.ButtonStyle(
                             shape=ft.RoundedRectangleBorder(radius=10),
                             padding=20,
                             bgcolor=AppColors.PRIMARY,
-                            color=ft.colors.WHITE
+                            color=ft.Colors.WHITE
                         ),
                         width=float('inf')
                     )
@@ -295,10 +296,10 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
 
     tab_bar = ft.TabBar(
         tabs=[
-            ft.Tab(label="Countries", icon=ft.icons.PUBLIC),
-            ft.Tab(label="Categories", icon=ft.icons.CATEGORY),
-            ft.Tab(label="Custom", icon=ft.icons.PLAYLIST_ADD),
-            ft.Tab(label="Settings", icon=ft.icons.SETTINGS),
+            ft.Tab(label="Countries", icon=ft.Icons.PUBLIC),
+            ft.Tab(label="Categories", icon=ft.Icons.CATEGORY),
+            ft.Tab(label="Custom", icon=ft.Icons.PLAYLIST_ADD),
+            ft.Tab(label="Settings", icon=ft.Icons.SETTINGS),
         ]
     )
 
@@ -330,10 +331,10 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
 
     search_bar = ft.SearchBar(
         view_elevation=4,
-        divider_color=ft.colors.OUTLINE,
+        divider_color=ft.Colors.GREY_500,
         on_change=on_search_change,
         bar_hint_text="Search channels...",
-        bar_leading=ft.Icon(ft.icons.SEARCH_ROUNDED),
+        bar_leading=ft.Icon(ft.Icons.SEARCH_ROUNDED),
         expand=True,
     )
 
@@ -343,7 +344,7 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
         ft.Image(src="/icon.png", width=40, height=40, border_radius=12),
         search_bar,
         ft.IconButton(
-            icon=ft.icons.LIGHT_MODE if page.theme_mode == ft.ThemeMode.DARK else ft.icons.DARK_MODE,
+            icon=ft.Icons.LIGHT_MODE if page.theme_mode == ft.ThemeMode.DARK else ft.Icons.DARK_MODE,
             on_click=lambda _: setattr(page, "theme_mode", 
                                      ft.ThemeMode.LIGHT if page.theme_mode == ft.ThemeMode.DARK else ft.ThemeMode.DARK) or page.update()
         )
@@ -361,7 +362,7 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                 content=main_col,
                 expand=True,
                 padding=20,
-                bgcolor=ft.colors.SURFACE,
+                bgcolor=ft.Colors.SURFACE,
             )
         ],
         padding=0,
