@@ -10,7 +10,6 @@ from views.player_view import build_player_view
 from views.onboarding import build_onboarding_view
 import base64
 import urllib.parse
-import warnings
 import asyncio
 
 async def main(page: ft.Page):
@@ -93,9 +92,13 @@ async def main(page: ft.Page):
             encoded_url = params.get("url", [None])[0]
             if encoded_url:
                 try:
-                    url = base64.urlsafe_b64decode(encoded_url).decode()
+                    # Dynamically pad the Base64 string to prevent padding errors on deep links
+                    padding = '=' * (-len(encoded_url) % 4)
+                    padded_url = encoded_url + padding
+                    url = base64.urlsafe_b64decode(padded_url).decode()
                     page.views.append(build_player_view(url=url, on_back=lambda: page.run_task(navigate, "/dashboard")))
                 except Exception as ex:
+                    print(f"Deep link decode error: {ex}")
                     page.run_task(navigate, "/dashboard")
             else:
                 page.run_task(navigate, "/dashboard")
@@ -116,4 +119,3 @@ async def main(page: ft.Page):
 
 if __name__ == "__main__":
     ft.run(main, assets_dir="assets")
-
