@@ -23,27 +23,25 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
     custom_content = ft.Column(expand=True, scroll=ft.ScrollMode.AUTO)
     preferences_content = ft.Column(expand=True, scroll=ft.ScrollMode.AUTO)
 
-    # Limit background requests to prevent app freeze
     check_semaphore = asyncio.Semaphore(10)
 
     async def check_channel_liveliness(url: str, indicator: ft.Container):
         if not url: return
         async with check_semaphore:
             try:
-                # HEAD request is fast and doesn't download video data
                 async with httpx.AsyncClient(verify=False) as client:
                     resp = await client.head(url, timeout=2.0, follow_redirects=True)
                     if resp.status_code < 400:
-                        indicator.bgcolor = AppColors.SUCCESS # Live = Green
+                        indicator.bgcolor = AppColors.SUCCESS 
                     else:
-                        indicator.bgcolor = AppColors.ERROR # Dead = Red
+                        indicator.bgcolor = AppColors.ERROR 
             except Exception:
                 indicator.bgcolor = AppColors.ERROR
             
             try:
                 indicator.update()
             except Exception:
-                pass # Ignores errors if user navigated away while checking
+                pass 
 
     def close_dialog(e_page_obj):
         e_page_obj.pop_dialog()
@@ -117,13 +115,15 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
     def create_channel_card(c):
         status_indicator = ft.Container(width=10, height=10, border_radius=5, bgcolor=AppColors.GREY_DIM)
         
-        card = GlassContainer(
+        # We lock the height of the GlassContainer to exactly 130px. 
+        # This prevents inconsistent sizing regardless of how long the text is.
+        card_visual = GlassContainer(
             content=ft.Column([
                 ft.Row([status_indicator], alignment=ft.MainAxisAlignment.END),
                 ft.Image(
                     src=c.get('logo'),
-                    width=70,
-                    height=70,
+                    width=60, # slightly reduced for perfect margins
+                    height=60,
                     fit=ft.BoxFit.CONTAIN,
                     border_radius=20,
                     error_content=ft.Icon(ft.Icons.TV, size=30)
@@ -139,20 +139,32 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
             ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=2),
             padding=10,
             border_radius=25,
+            height=130, 
+        )
+
+        # The Interactive Wrapper: ink=True enables native D-Pad TV Focus rings and ripples!
+        interactive_card = ft.Container(
+            content=card_visual,
+            border_radius=25,
+            ink=True, 
             on_click=lambda e, url=c.get('url'): page_obj.run_task(on_play, url),
         )
-        card.data = {"url": c.get("url"), "indicator": status_indicator}
-        return card
+        
+        interactive_card.data = {"url": c.get("url"), "indicator": status_indicator}
+        return interactive_card
 
     def build_grid(channels):
-        return ft.GridView(
-            controls=[create_channel_card(c) for c in channels],
-            runs_count=3,
-            max_extent=160,
-            child_aspect_ratio=0.85, # Forces consistent tile sizing on all mobile devices
+        # We replace GridView with ResponsiveRow. This acts as a wrapper rather than a scroller.
+        # It fixes the mobile vertical swiping bug completely.
+        return ft.ResponsiveRow(
+            controls=[
+                ft.Container(
+                    content=create_channel_card(c),
+                    col={"xs": 4, "sm": 3, "md": 2, "lg": 2, "xl": 1} # 3 per row on mobile, wrapping smoothly
+                ) for c in channels
+            ],
             spacing=15,
             run_spacing=15,
-            padding=15,
         )
 
     def handle_expansion(e, channels):
@@ -162,19 +174,20 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
                 e.control.controls = [grid]
                 e.control.update()
                 
-                # Triggers background checking only when user expands a category!
-                for card in grid.controls:
-                    url = card.data.get("url")
-                    indicator = card.data.get("indicator")
-                    if url and indicator:
-                        page_obj.run_task(check_channel_liveliness, url, indicator)
+                # Retrieve the interactive card from the ResponsiveRow columns
+                for responsive_col in grid.controls:
+                    card = responsive_col.content 
+                    if card and card.data:
+                        url = card.data.get("url")
+                        indicator = card.data.get("indicator")
+                        if url and indicator:
+                            page_obj.run_task(check_channel_liveliness, url, indicator)
 
     def update_tab_content(tab_index: int):
         target = [countries_content, categories_content, custom_content, preferences_content][tab_index]
         target.controls.clear()
         
         if state.is_loading:
-            # THIS NOW REBUILDS IMMEDIATELY WHEN CALLED BY MAIN.PY
             target.controls.append(
                 ft.Column([
                     ft.Container(height=80),
@@ -259,7 +272,6 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
 
         else:
             if tab_index == 2:
-                # Keep Custom tab add button at the top
                 target.controls.append(
                     ft.FilledButton(
                         content="Add Custom Configuration",
@@ -283,7 +295,6 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
             
             for c in state.channels:
                 is_custom = c.get("is_custom", False)
-                # Filter so Custom content only appears in Custom tab (and vice versa)
                 if tab_index == 2 and not is_custom:
                     continue
                 if tab_index in (0, 1) and is_custom:
@@ -300,7 +311,6 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
                 elif tab_index == 2:
                     display_group = original_group
 
-                # REMOVE "GENERAL" CATEGORY FROM CATEGORIES TAB 
                 if tab_index == 1 and display_group.lower() == "general":
                     continue
 
@@ -323,12 +333,25 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
                 channels = groups[name]
                 should_expand = (tab_index == 0 and name == state.user_country) or (query != "" and results_count < 10)
                 
+                tile_controls = []
+                if should_expand:
+                    grid = build_grid(channels)
+                    tile_controls = [grid]
+                    
+                    for responsive_col in grid.controls:
+                        card = responsive_col.content
+                        if card and card.data:
+                            url = card.data.get("url")
+                            indicator = card.data.get("indicator")
+                            if url and indicator:
+                                page_obj.run_task(check_channel_liveliness, url, indicator)
+
                 target.controls.append(
                     ft.ExpansionTile(
                         title=ft.Text(f"{name} ({len(channels)})", weight=ft.FontWeight.BOLD),
                         expanded=should_expand,
                         on_change=lambda e, ch=channels: handle_expansion(e, ch),
-                        controls=[build_grid(channels)] if should_expand else []
+                        controls=tile_controls
                     )
                 )
 
@@ -362,7 +385,6 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
         on_change=handle_tab_change
     )
 
-    # THE DASHBOARD REFRESHER: Allows main.py to command the dashboard to rebuild
     def refresh_dashboard():
         update_tab_content(view_state["selected_tab"])
         page_obj.update()
@@ -413,7 +435,6 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
         tabs_wrapper,
     ], spacing=15, expand=True)
 
-    # Wrap main layout in SafeArea so the mobile notch/status bar doesn't cover the Search Bar
     return ft.View(
         route="/dashboard",
         controls=[

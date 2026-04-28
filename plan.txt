@@ -1,0 +1,138 @@
+
+KIRI RESEARCH LABS: MASTER ARCHITECTURE & BUSINESS PLAN
+
+Ecosystem: Decoupled Video Player & Content Funnel
+Tech Stack: Pure Python (Flet), Flet-Ads, Jikan API, Consumet API
+Monetization: Google AdMob
+
+1. THE CORE PHILOSOPHY: THE INVISIBLE WALL
+
+To guarantee the safety of your Google Play Developer Account and AdMob revenue, Content and Monetization must never touch.
+Google's automated bots scan for copyrighted metadata (posters, titles) and piracy APIs. By dividing the business into two completely separate Flet applications, you create an "Invisible Wall."
+To the user, the experience is seamless. To Google, KTV Player is just a harmless network tool.
+
+2. GITHUB REPOSITORY ARCHITECTURE (Strict 2-Repo Limit)
+
+You do not need a backend scraper repository. The entire ecosystem will run natively on the client device using Flet.
+
+Repository 1: ktv-url-player
+
+Account: GitHub Organization (github.com/Kiri-labs)
+
+Visibility: PUBLIC
+
+Purpose: The legitimate, AdMob-monetized video player.
+
+Why Public? Proves to Google and users that Kiri Research Labs is a transparent utility developer.
+
+Repository 2: anime-tv-client
+
+Account: Your Personal GitHub Account
+
+Visibility: STRICTLY PRIVATE
+
+Purpose: The ad-free content catalog that fetches data and secretly triggers KTV Player.
+
+Why Private? Keeps your API waterfall logic, deep-link schemes, and UI source code hidden from copyright bots and competitors.
+
+3. THE DATA PIPELINE: NO-BACKEND WATERFALL
+
+Inspired by the api_service.py and cache_service.py patterns in the flet-pkg-app repository, your Anime TV app will act as a "Smart Client."
+
+A. Metadata (Posters, Titles, Descriptions, Episodes)
+
+Provider: Jikan API (Unofficial MyAnimeList API) and/or AniList GraphQL fallback.
+
+Why: These are 100% legal to query, incredibly fast, and rarely go down.
+
+Caching (Crucial): When the app fetches the "Trending" list, save the JSON locally using SQLite or Flet's client_storage. On subsequent app launches, load from the local cache instantly, saving African users' data and masking slow network speeds.
+
+B. Streaming Links (.m3u8) - The Waterfall System
+
+You will not write a scraper. You will use public meta-APIs (like Consumet) and handle their downtime directly in Flet using a "Waterfall" fallback system.
+
+The Logic (api_service.py):
+
+User clicks Episode 1.
+
+App requests: api.consumet.org/anime/animepahe/{id}
+
+If timeout or 500 Error, silently catch the error.
+
+Fallback 1: api.consumet.org/anime/gogoanime/{id}
+
+If 500 Error, silently catch.
+
+Fallback 2: api.consumet.org/anime/animekai/{id}
+
+If all fail: Show a beautiful Flet SnackBar: "Source servers are currently undergoing maintenance. Please try again shortly."
+
+4. APP 1: KTV PLAYER (The Monetization Engine)
+
+This is the only app published to the Google Play Store.
+
+Built with: Flet
+
+Distribution: Google Play Store.
+
+Monetization (flet-ads):
+
+Banner Ad: Fixed to the bottom of the screen.
+
+Interstitial Ad: Triggers full-screen the moment the user hits "Play", right before the video renders.
+
+UI/UX Design:
+
+A professional TV video player with plenty channels of legal free TV like Al Jazeera (if legal), also has option to play look up videos from your phone or computer.
+
+A clean, professional screen with a text box: "Enter Network Stream URL (.m3u8, .mp4)".
+
+A history list of previously played URLs (stored locally).
+
+The Decoy (OPSEC): Include a button labeled "Test Network Stream" that plays a legally free broadcast (e.g., NASA TV). If a Google Reviewer tests your app, it works perfectly and legally out of the box. Or just the professional TV part.
+
+The Deep Link Listener: Flet checks page.route on launch. If it receives ktv://play?url=<BASE64_ENCODED_M3U8>, it skips the home screen, plays the Interstitial Ad, and starts the video. (Note: Always Base64 encode the URL so special characters don't break the deep link).
+
+5. APP 2: ANIME TV (The Acquisition Funnel)
+
+This is the beautiful, feature-rich app that users actually want.
+
+Built with: Flet (Advanced routing, theming, and state management).
+
+Distribution: Direct APK download, Telegram groups, third-party stores (APKPure, softonic, uptodown, etc). Never Google Play.
+
+Monetization: Marketed as "100% Ad-Free".
+
+The Trapdoor Flow:
+
+User browses the beautiful AniList-powered UI.
+
+User clicks "Play Episode".
+
+Flet triggers the Waterfall API to get the .m3u8 link.
+
+Flet executes page.launch_url("ktv://play?url=...").
+
+If KTV is installed: Android seamlessly switches to KTV, the ad plays, and the anime starts.
+
+If KTV is NOT installed: The launch_url fails. Your try/except block catches this and displays an AlertDialog: "To watch this video ad-free, please install a high-speed rendering engine." (Maybe list many options like ktv player, ytv pro, MX player, etc do not look biased but only listening to our KTV) with a button linking directly to KTV Player on the Google Play Store.
+
+6. FINANCIAL & LEGAL OPSEC (Nigeria Specifics)
+
+As a developer in Nigeria, Google's fraud detection algorithms will heavily scrutinize your accounts. You must be meticulous.
+
+The Identity Triangle: Your Google Play Console Account ($25), your Google AdMob Account, and your Domiciliary/Local Bank Account must have the exact same legal name and physical address. Do not use a pseudonym for the billing profiles.
+
+W-8BEN Tax Form: When AdMob asks for tax info, submit the W-8BEN form as a non-US resident. Ensure your TIN (NIN or local tax ID) matches.
+
+Test Ads: While developing KTV Player in Flet on your desktop or phone, ALWAYS use the official Google Test Ad Unit IDs (e.g., ca-app-pub-3940256099942544/1033173712). If you accidentally load real ads while testing and click them, Google will permanently ban your AdMob account for "Invalid Traffic."
+
+Clean Builds: Ensure your anime-tv-client APK has a completely different package name (e.g., com.nwokike.animetv) than your KTV Player (com.kirilabs.ktvplayer).
+
+7. SCALABILITY & FUTURE PROOFING
+
+By successfully executing this 2-Repo plan, you create an infinitely scalable business model:
+
+If Consumet dies completely, you only have to update the api_service.py in anime-tv-client to point to a new meta-API and push an APK update to your Telegram channel. KTV Player on the Play Store remains untouched and safe.
+
+In the future, you can build Movies TV, Sports TV, or K-Drama TV using the exact same Flet architecture, and route all of them into the single KTV Player, multiplying your AdMob revenue without needing to publish any new apps to the Play Store.
