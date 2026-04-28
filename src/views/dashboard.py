@@ -8,8 +8,6 @@ from components.ui.glass_container import GlassContainer
 from database.manager import db_manager
 
 def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
-    """Builds the dashboard view with TV-optimized grid layout and real-time search."""
-    
     view_state = {
         "selected_tab": 0,
         "search_query": "",
@@ -23,6 +21,7 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
     countries_content = ft.Column(expand=True, scroll=ft.ScrollMode.AUTO)
     categories_content = ft.Column(expand=True, scroll=ft.ScrollMode.AUTO)
     custom_content = ft.Column(expand=True, scroll=ft.ScrollMode.AUTO)
+    preferences_content = ft.Column(expand=True, scroll=ft.ScrollMode.AUTO)
 
     def close_dialog(e_page):
         e_page.pop_dialog()
@@ -36,8 +35,6 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
         raw_url = new_url.current.value.strip()
         
         if name and raw_url:
-            # --- STEALTH OPSEC INTERCEPTOR ---
-            # URLs are Base64 encoded so Play Store static analysis bots cannot flag the domains.
             stealth_codes = {
                 "#movies": "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9jYXRlZ29yaWVzL21vdmllcy5tM3U=",
                 "#sports": "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9jYXRlZ29yaWVzL3Nwb3J0cy5tM3U=",
@@ -48,7 +45,6 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                 "#global": "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9pbmRleC5tM3U="
             }
             
-            # Check if user entered a secret code. If so, decode the hidden URL.
             shortcode_key = raw_url.lower()
             is_stealth = shortcode_key in stealth_codes
             
@@ -57,7 +53,6 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
             else:
                 final_url = raw_url
             
-            # Show a loading state while downloading massive playlists
             state.is_loading = True
             e.page.update()
 
@@ -65,7 +60,6 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
             new_name.current.value = ""
             new_url.current.value = ""
 
-            # If it's a stealth code, ALWAYS save it as a playlist
             if is_stealth or view_state["add_type"] == "playlist":
                 await db_manager.add_playlist(name, final_url)
             else:
@@ -86,8 +80,8 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                 allow_empty_selection=False,
                 on_change=handle_type_change,
                 segments=[
-                    ft.Segment(value="playlist", label=ft.Text("Playlist"), icon=ft.Icon(ft.Icons.PLAYLIST_ADD)),
-                    ft.Segment(value="channel", label=ft.Text("Single Channel"), icon=ft.Icon(ft.Icons.TV)),
+                    ft.Segment(value="playlist", label=ft.Text("Playlist"), icon=ft.Icon(ft.icons.PLAYLIST_ADD)),
+                    ft.Segment(value="channel", label=ft.Text("Single Channel"), icon=ft.Icon(ft.icons.TV)),
                 ],
             ),
             ft.TextField(ref=new_name, label="Name", hint_text="Enter reference name"),
@@ -108,7 +102,7 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                     height=90,
                     fit=ft.BoxFit.CONTAIN,
                     border_radius=25,
-                    error_content=ft.Icon(ft.Icons.TV, size=40)
+                    error_content=ft.Icon(ft.icons.TV, size=40)
                 ),
                 ft.Text(
                     c.get('name', 'Unknown'),
@@ -135,33 +129,96 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
         )
 
     def handle_expansion(e, channels):
-        # DYNAMIC RENDERING: Only build the images/grid if the tile is expanded
         if str(e.data).lower() == "true":
             if not e.control.controls:
                 e.control.controls = [build_grid(channels)]
                 e.control.update()
 
     def update_tab_content(tab_index: int):
-        target = [countries_content, categories_content, custom_content][tab_index]
+        target = [countries_content, categories_content, custom_content, preferences_content][tab_index]
         target.controls.clear()
         
         if state.is_loading:
             target.controls.append(ShimmerList(count=5))
             return
 
-        if tab_index == 2:
-            # Custom Tab - Scrubbed clean for Play Store OPSEC
+        if tab_index == 3:
+            # --- SETTINGS / PREFERENCES TAB ---
+            async def handle_clear_history(e):
+                await db_manager.clear_history()
+                e.page.snack_bar = ft.SnackBar(ft.Text("Watch history cleared!"), bgcolor=ft.colors.GREEN)
+                e.page.snack_bar.open = True
+                e.page.update()
+
+            async def handle_clear_custom(e):
+                state.is_loading = True
+                e.page.update()
+                await db_manager.clear_custom_content()
+                if hasattr(e.page, "load_channels"):
+                    await e.page.load_channels()
+                e.page.snack_bar = ft.SnackBar(ft.Text("Custom library reset!"), bgcolor=ft.colors.GREEN)
+                e.page.snack_bar.open = True
+                e.page.update()
+
+            async def handle_country_change(e):
+                val = e.control.value
+                await db_manager.set_setting("user_country", val)
+                state.user_country = val
+                e.page.snack_bar = ft.SnackBar(ft.Text(f"Primary country updated to {val}"))
+                e.page.snack_bar.open = True
+                e.page.update()
+
+            unique_countries = sorted(list(set([c.get('group', '').split(';')[0].strip() for c in state.channels if c.get('country_code')])))
+            if not unique_countries:
+                unique_countries = ["Global", "Nigeria", "USA", "UK"] 
+                
+            country_dropdown = ft.Dropdown(
+                label="Primary Content Region",
+                value=state.user_country if state.user_country in unique_countries else None,
+                options=[ft.dropdown.Option(c) for c in unique_countries],
+                on_change=handle_country_change,
+            )
+
+            target.controls.append(
+                ft.Column([
+                    ft.Text("Preferences", size=24, weight=ft.FontWeight.BOLD),
+                    ft.Divider(height=20),
+                    
+                    ft.Text("Localization", size=16, weight=ft.FontWeight.W_500, color=AppColors.PRIMARY),
+                    ft.Text("Select your home region to prioritize its networks at the top of your dashboard.", size=12, color=ft.colors.OUTLINE),
+                    country_dropdown,
+                    
+                    ft.Container(height=20),
+                    
+                    ft.Text("Data Management", size=16, weight=ft.FontWeight.W_500, color=AppColors.PRIMARY),
+                    ft.ListTile(
+                        leading=ft.Icon(ft.icons.HISTORY, color=ft.colors.ERROR),
+                        title=ft.Text("Clear Watch History"),
+                        subtitle=ft.Text("Remove all recently watched streams from memory"),
+                        on_click=handle_clear_history
+                    ),
+                    ft.ListTile(
+                        leading=ft.Icon(ft.icons.DELETE_FOREVER, color=ft.colors.ERROR),
+                        title=ft.Text("Reset Custom Library"),
+                        subtitle=ft.Text("Delete all manually added custom URLs and external playlists"),
+                        on_click=handle_clear_custom
+                    ),
+                ], spacing=10, expand=True)
+            )
+
+        elif tab_index == 2:
+            # --- CUSTOM / OPSEC TAB ---
             target.controls.append(
                 ft.Column([
                     ft.Container(
                         content=ft.Column([
-                            ft.Icon(ft.Icons.SHIELD_OUTLINED, size=50, color=ft.Colors.OUTLINE),
+                            ft.Icon(ft.icons.SHIELD_OUTLINED, size=50, color=ft.colors.OUTLINE),
                             ft.Text("Personal Media Player", weight=ft.FontWeight.BOLD, size=20),
                             ft.Text(
                                 "KTV Player is a clean network utility. It does not contain pre-loaded TV streams. "
                                 "Use the button below to connect your own legal M3U playlists or individual stream links.",
                                 text_align=ft.TextAlign.CENTER,
-                                color=ft.Colors.OUTLINE
+                                color=ft.colors.OUTLINE
                             )
                         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=10),
                         padding=ft.padding.only(top=40, bottom=40),
@@ -169,13 +226,13 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                     ),
                     ft.ElevatedButton(
                         text="Add Custom Configuration",
-                        icon=ft.Icons.ADD_LINK,
+                        icon=ft.icons.ADD_LINK,
                         on_click=lambda e: e.page.show_dialog(add_dialog),
                         style=ft.ButtonStyle(
                             shape=ft.RoundedRectangleBorder(radius=10),
                             padding=20,
                             bgcolor=AppColors.PRIMARY,
-                            color=ft.Colors.WHITE
+                            color=ft.colors.WHITE
                         ),
                         width=float('inf')
                     )
@@ -215,7 +272,6 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
 
             for name in group_names:
                 channels = groups[name]
-                
                 should_expand = (tab_index == 0 and name == state.user_country) or (query != "" and results_count < 10)
                 
                 target.controls.append(
@@ -228,26 +284,26 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                 )
 
     tab_view_container = ft.TabBarView(
-        controls=[countries_content, categories_content, custom_content],
+        controls=[countries_content, categories_content, custom_content, preferences_content],
         expand=True
     )
 
     def handle_tab_change(e):
-        # LAZY RENDER: The app only builds Tab 1 and 2 when the user actually clicks them
         view_state["selected_tab"] = int(e.data)
         update_tab_content(view_state["selected_tab"])
         e.page.update()
 
     tab_bar = ft.TabBar(
         tabs=[
-            ft.Tab(label="Countries", icon=ft.Icons.PUBLIC),
-            ft.Tab(label="Categories", icon=ft.Icons.CATEGORY),
-            ft.Tab(label="Custom", icon=ft.Icons.PLAYLIST_ADD),
+            ft.Tab(label="Countries", icon=ft.icons.PUBLIC),
+            ft.Tab(label="Categories", icon=ft.icons.CATEGORY),
+            ft.Tab(label="Custom", icon=ft.icons.PLAYLIST_ADD),
+            ft.Tab(label="Settings", icon=ft.icons.SETTINGS),
         ]
     )
 
     tabs_wrapper = ft.Tabs(
-        length=3,
+        length=4,
         selected_index=view_state["selected_tab"],
         content=ft.Column([
             tab_bar,
@@ -263,35 +319,31 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
         page.update()
 
     def on_search_change(e):
-        # DEBOUNCER: Waits 400ms after user stops typing before filtering DOM
         if view_state["search_task"] and not view_state["search_task"].done():
             view_state["search_task"].cancel()
 
         query = e.data
-        
         async def delayed_search():
             await asyncio.sleep(0.4) 
             await execute_search(query)
-            
         view_state["search_task"] = page.run_task(delayed_search)
 
     search_bar = ft.SearchBar(
         view_elevation=4,
-        divider_color=ft.Colors.OUTLINE,
+        divider_color=ft.colors.OUTLINE,
         on_change=on_search_change,
         bar_hint_text="Search channels...",
-        bar_leading=ft.Icon(ft.Icons.SEARCH_ROUNDED),
+        bar_leading=ft.Icon(ft.icons.SEARCH_ROUNDED),
         expand=True,
     )
 
-    # Initial render (only renders Tab 0)
     update_tab_content(0)
 
     header = ft.Row([
         ft.Image(src="/icon.png", width=40, height=40, border_radius=12),
         search_bar,
         ft.IconButton(
-            icon=ft.Icons.LIGHT_MODE if page.theme_mode == ft.ThemeMode.DARK else ft.Icons.DARK_MODE,
+            icon=ft.icons.LIGHT_MODE if page.theme_mode == ft.ThemeMode.DARK else ft.icons.DARK_MODE,
             on_click=lambda _: setattr(page, "theme_mode", 
                                      ft.ThemeMode.LIGHT if page.theme_mode == ft.ThemeMode.DARK else ft.ThemeMode.DARK) or page.update()
         )
@@ -309,7 +361,7 @@ def build_dashboard_view(page: ft.Page, on_play: callable) -> ft.View:
                 content=main_col,
                 expand=True,
                 padding=20,
-                bgcolor=ft.Colors.SURFACE,
+                bgcolor=ft.colors.SURFACE,
             )
         ],
         padding=0,
