@@ -60,14 +60,34 @@ async def main(page: ft.Page):
         await page.push_route(route)
 
     async def play_stream(url: str):
+        # 1. Show an instant tactile loading spinner so the app doesn't feel frozen
+        loading_dialog = ft.AlertDialog(
+            modal=True,
+            content=ft.Container(
+                content=ft.Column(
+                    [
+                        ft.ProgressRing(color=AppColors.PRIMARY, stroke_width=4),
+                        ft.Text("Preparing stream...", weight=ft.FontWeight.BOLD, color=AppColors.PRIMARY),
+                    ],
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    tight=True,
+                    spacing=15,
+                ),
+                padding=20,
+            ),
+        )
+        page.open(loading_dialog)
+
+        # 2. Process data in the background
         await db_manager.save_history(url)
         state.add_to_history(url)
-        # Use urlsafe base64 to avoid issues with deep-link parameters
         encoded_url = base64.urlsafe_b64encode(url.encode()).decode()
 
-        # TRIGGER PRE-ROLL INTERSTITIAL AD
+        # 3. TRIGGER PRE-ROLL INTERSTITIAL AD
         await ad_service.show_interstitial()
 
+        # 4. Remove spinner and navigate seamlessly
+        page.close(loading_dialog)
         await navigate(f"/play?url={encoded_url}")
 
     async def load_channels():
@@ -139,7 +159,6 @@ async def main(page: ft.Page):
 
         page.update()
 
-    # FIX: Changed view_pop to an async function to accommodate the ad trigger
     async def view_pop(e: ft.ViewPopEvent):
         # FIX: The "Ghost Audio" memory leak.
         # Before we pop the player view, we force the video player to pause so it stops consuming data in the background.
