@@ -1,74 +1,47 @@
 import asyncio
-import httpx
-import os
-import uuid
 from m3u_parser import M3uParser
 from typing import List, Dict
 from database.manager import db_manager
 from channels.provider import channel_provider
-from channels.base import ChannelData
 
 
 class IPTVService:
     def __init__(self):
-        # STEALTH: Spoof a generic Chrome/Windows browser to bypass Cloudflare 403 Forbidden blocks
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
-            "Accept": "*/*",
-            "Connection": "keep-alive",
-        }
-        self.client = httpx.AsyncClient(
-            timeout=httpx.Timeout(15.0, connect=5.0),
-            limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
-            follow_redirects=True,
-            headers=headers,
-        )
+        pass
 
     async def fetch_built_in_channels(self):
-        # Pushing to thread to prevent importlib from blocking the Flet event loop on startup
+        # Pushing to thread to prevent blocking the Flet event loop on startup
         channels = await asyncio.to_thread(channel_provider.get_all_channels)
         return [self._channel_to_dict(c) for c in channels]
 
-    def _channel_to_dict(self, c: ChannelData) -> Dict:
+    def _channel_to_dict(self, c) -> Dict:
+        if isinstance(c, dict):
+            return c
+            
         return {
-            "name": c.name,
-            "url": c.url,
-            "logo": c.logo,
-            "group": c.group,
-            "country_code": c.country_code,
-            "epg_id": c.epg_id,
+            "name": getattr(c, "name", "Unknown"),
+            "url": getattr(c, "url", ""),
+            "logo": getattr(c, "logo", "/icon.png"),
+            "group": getattr(c, "group", "Custom"),
+            "country_code": getattr(c, "country_code", ""),
+            "epg_id": getattr(c, "epg_id", ""),
         }
 
-    def _parse_playlist_sync(self, content: str) -> List[Dict]:
+    def _parse_custom_playlist_sync(self, url: str) -> List[Dict]:
         """Synchronous parser isolated to prevent Flet UI blocking."""
-        parser = M3uParser()
-        # Use UUID to prevent file locking issues during concurrent fetching
-        temp_file = f"temp_playlist_{uuid.uuid4().hex}.m3u"
-
         try:
-            with open(temp_file, "w", encoding="utf-8") as f:
-                f.write(content)
-
-            parser.parse_m3u(temp_file)
+            # STEALTH: Spoof a generic Chrome browser to bypass Cloudflare 403 blocks
+            user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+            parser = M3uParser(timeout=15, useragent=user_agent)
+            parser.parse_m3u(url)
             return parser.get_list()
         except Exception as e:
-            print(f"Parsing error: {e}")
+            print(f"Parsing error for {url}: {e}")
             return []
-        finally:
-            if os.path.exists(temp_file):
-                os.remove(temp_file)
 
     async def fetch_playlist(self, url: str) -> List[Dict]:
-        try:
-            response = await self.client.get(url)
-            response.raise_for_status()
-
-            # Execute disk I/O and parsing completely off the main thread
-            channels = await asyncio.to_thread(self._parse_playlist_sync, response.text)
-            return channels
-        except Exception as e:
-            print(f"Network error fetching playlist {url}: {e}")
-            return []
+        # Execute network I/O and parsing completely off the main thread
+        return await asyncio.to_thread(self._parse_custom_playlist_sync, url)
 
     async def load_all_sources(self):
         built_in = await self.fetch_built_in_channels()
@@ -99,7 +72,7 @@ class IPTVService:
         return all_channels
 
     async def close(self):
-        await self.client.aclose()
+        pass
 
 
 # Global instance
