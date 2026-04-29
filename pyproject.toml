@@ -48,7 +48,12 @@ package_name = "com.nwokike.ktvplayer"
 build_number = 1
 build_version = "1.0.0"
 
+# Allows the app to play http:// (non-https) video streams without Android blocking them
 [tool.flet.android.manifest_application]
+"android:usesCleartextTraffic" = "true"
+
+# The App ID goes in meta_data, not manifest_application
+[tool.flet.android.meta_data]
 "com.google.android.gms.ads.APPLICATION_ID" = "ca-app-pub-3940256099942544~3347511713"
 
 [tool.flet.android.permission]
