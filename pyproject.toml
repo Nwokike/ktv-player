@@ -1,5 +1,5 @@
 [project]
-name = "ktv-player"
+name = "KTV Player"
 version = "0.1.0"
 description = "A lightning-fast TV player built for seamless network streaming and custom channel addition."
 readme = "README.md"
@@ -36,15 +36,15 @@ source = ["src/core", "src/services", "src/database", "src/components", "src/vie
 omit = ["tests/*"]
 
 [tool.flet]
-app_name = "KTV Player"
+app_name = "ktv_player"
 product_name = "KTV Player"
-org_domain = "com.nwokike"
+org_domain = "ng.kiri"
 
 [tool.flet.app]
 path = "src"
 
 [tool.flet.android]
-package_name = "com.nwokike.ktvplayer"
+package_name = "ng.kiri.ktvplayer"
 build_number = 1
 build_version = "1.0.0"
 
