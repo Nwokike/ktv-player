@@ -3,7 +3,6 @@ import flet_ads as fta
 import asyncio
 from typing import Optional, Callable
 
-
 class AdService:
     # Official Google Test Unit IDs
     ANDROID_BANNER = "ca-app-pub-3940256099942544/6300978111"
@@ -83,11 +82,8 @@ class AdService:
             return ft.Container(width=0, height=0)
 
     async def preload_interstitial(self, on_close: Optional[Callable] = None):
-        """Creates and appends a new InterstitialAd to the page overlay."""
+        """Creates a new InterstitialAd in memory without adding it to the UI."""
         self._on_interstitial_close = on_close
-
-        if self.interstitial and self.interstitial in self.page.overlay:
-            self.page.overlay.remove(self.interstitial)
 
         try:
             if not self.page.platform.is_mobile():
@@ -99,16 +95,12 @@ class AdService:
                 on_error=lambda e: print(f"Interstitial error: {e.data}"),
                 on_close=self._handle_close,
             )
-            self.page.overlay.append(self.interstitial)
-            self.page.update()
         except Exception as e:
             print(f"Unexpected ad error: {e}")
             self.interstitial = None
 
     async def _handle_close(self, e):
         print("Interstitial closed")
-        if self.interstitial in self.page.overlay:
-            self.page.overlay.remove(self.interstitial)
 
         if self._on_interstitial_close:
             if asyncio.iscoroutinefunction(self._on_interstitial_close):
