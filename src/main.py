@@ -19,6 +19,7 @@ async def main(page: ft.Page):
     page.title = "KTV Player"
     page.favicon = "icon.png"
 
+    # GLOBAL ERROR HANDLER: Prevents the "Red Screen of Death" from crashing the app
     def global_error_handler(e):
         print(f"Caught Flet Engine Error: {e.data}")
         page.snack_bar = ft.SnackBar(
@@ -29,6 +30,7 @@ async def main(page: ft.Page):
 
     page.on_error = global_error_handler
 
+    # Typography and Theme
     page.fonts = {
         "Outfit": "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"
     }
@@ -41,12 +43,15 @@ async def main(page: ft.Page):
     page.padding = 0
     page.spacing = 0
 
+    # Initialize Services
     ad_service = AdService(page)
+    # Preload the first interstitial ad in the background instantly
     page.run_task(ad_service.preload_interstitial)
 
     lifecycle_manager = LifecycleManager(page)
     await db_manager.init_db()
 
+    # Load settings from DB
     state.user_country = await db_manager.get_setting("user_country", "")
     state.has_accepted_terms = await db_manager.get_setting("has_accepted_terms", "false") == "true"
     state.is_first_launch = not state.has_accepted_terms
@@ -55,41 +60,18 @@ async def main(page: ft.Page):
         await page.push_route(route)
 
     async def play_stream(url: str):
-        # 1. Show an instant tactile loading spinner 
-        loading_dialog = ft.AlertDialog(
-            modal=True,
-            content=ft.Container(
-                content=ft.Column(
-                    [
-                        ft.ProgressRing(color=AppColors.PRIMARY, stroke_width=4),
-                        ft.Text("Preparing stream...", weight=ft.FontWeight.BOLD, color=AppColors.PRIMARY),
-                    ],
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    tight=True,
-                    spacing=15,
-                ),
-                padding=20,
-            ),
-        )
-        # FIX: Bulletproof way to open dialogs on Android
-        page.dialog = loading_dialog
-        loading_dialog.open = True
-        page.update()
-
-        # 2. Process data in the background
         await db_manager.save_history(url)
         state.add_to_history(url)
+        # Use urlsafe base64 to avoid issues with deep-link parameters
         encoded_url = base64.urlsafe_b64encode(url.encode()).decode()
 
-        # 3. TRIGGER PRE-ROLL INTERSTITIAL AD
+        # TRIGGER PRE-ROLL INTERSTITIAL AD
         await ad_service.show_interstitial()
 
-        # 4. Remove spinner and navigate seamlessly
-        loading_dialog.open = False
-        page.update()
         await navigate(f"/play?url={encoded_url}")
 
     async def load_channels():
+        # TRIGGER: Tell Dashboard to show the loading spinner
         state.is_loading = True
         if hasattr(page, "refresh_dashboard"):
             page.refresh_dashboard()
@@ -100,6 +82,7 @@ async def main(page: ft.Page):
         state.channels = all_channels
         state.is_loading = False
 
+        # TRIGGER: Tell Dashboard to hide spinner and load the grids
         if hasattr(page, "refresh_dashboard"):
             page.refresh_dashboard()
         else:
@@ -116,6 +99,7 @@ async def main(page: ft.Page):
         route = page.route
         parsed_url = urllib.parse.urlparse(route)
 
+        # Only clear stack for root-level navigations
         if parsed_url.path in ["/", "/dashboard", "/onboarding"]:
             page.views.clear()
 
@@ -138,6 +122,7 @@ async def main(page: ft.Page):
             encoded_url = params.get("url", [None])[0]
             if encoded_url:
                 try:
+                    # Dynamically pad the Base64 string to prevent padding errors on deep links
                     padding = "=" * (-len(encoded_url) % 4)
                     padded_url = encoded_url + padding
                     url = base64.urlsafe_b64decode(padded_url).decode()
@@ -154,7 +139,10 @@ async def main(page: ft.Page):
 
         page.update()
 
+    # FIX: Changed view_pop to an async function to accommodate the ad trigger
     async def view_pop(e: ft.ViewPopEvent):
+        # FIX: The "Ghost Audio" memory leak.
+        # Before we pop the player view, we force the video player to pause so it stops consuming data in the background.
         if len(page.views) > 1:
             top_view = page.views[-1]
             if top_view.route.startswith("/play"):
@@ -165,6 +153,7 @@ async def main(page: ft.Page):
                         except Exception:
                             pass
 
+                # TRIGGER POST-ROLL INTERSTITIAL AD
                 await ad_service.show_interstitial()
 
             page.views.pop()
