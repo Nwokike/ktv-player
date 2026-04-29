@@ -4,12 +4,8 @@ import asyncio
 from typing import Optional, Callable
 
 class AdService:
-    # Official Google Test Unit IDs
-    ANDROID_BANNER = "ca-app-pub-3940256099942544/6300978111"
-    ANDROID_INTERSTITIAL = "ca-app-pub-3940256099942544/1033173712"
-
-    IOS_BANNER = "ca-app-pub-3940256099942544/2934735716"
-    IOS_INTERSTITIAL = "ca-app-pub-3940256099942544/4411468910"
+    BANNER_ID = "ca-app-pub-5679949845754640/5591770463"
+    INTERSTITIAL_ID = "ca-app-pub-5679949845754640/8701238822"
 
     def __init__(self, page: ft.Page):
         self.page = page
@@ -17,14 +13,10 @@ class AdService:
         self._on_interstitial_close: Optional[Callable] = None
 
     def get_banner_unit_id(self) -> str:
-        if self.page.platform == ft.PagePlatform.IOS:
-            return self.IOS_BANNER
-        return self.ANDROID_BANNER
+        return self.BANNER_ID
 
     def get_interstitial_unit_id(self) -> str:
-        if self.page.platform == ft.PagePlatform.IOS:
-            return self.IOS_INTERSTITIAL
-        return self.ANDROID_INTERSTITIAL
+        return self.INTERSTITIAL_ID
 
     def _create_ad_container(self, ad_control: ft.Control, width: int) -> ft.Control:
         """Wraps the ad with the polite 'Support the developer' text."""
