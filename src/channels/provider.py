@@ -1,66 +1,52 @@
-import os
-import importlib.util
+import httpx
+from m3u_parser import M3uParser
 from typing import List, Dict
-from channels.base import ChannelData
-
 
 class ChannelProvider:
-    def __init__(self, data_dir: str = None):
-        if data_dir is None:
-            data_dir = os.path.join(os.path.dirname(__file__), "data")
-        self.data_dir = data_dir
-        self.modules = {}
-        self._load_all_modules()
+    def __init__(self):
+        # URL to the auto-generated M3U playlist from your iptv repository
+        self.MASTER_PLAYLIST_URL = "https://raw.githubusercontent.com/nwokike/iptv/main/playlist.m3u8"
 
-    def _load_all_modules(self):
-        """Scan the data directory and load all .py modules."""
-        for filename in os.listdir(self.data_dir):
-            if filename.endswith(".py") and not filename.startswith("__"):
-                module_name = filename[:-3]
-                file_path = os.path.join(self.data_dir, filename)
+    def get_all_channels(self) -> List[Dict]:
+        """Fetches and parses the M3U playlist directly from GitHub."""
+        channels = []
+        try:
+            # 1. Download the M3U text synchronously (to match old main.py behavior)
+            response = httpx.get(self.MASTER_PLAYLIST_URL, timeout=15.0, verify=False)
+            response.raise_for_status()
+            m3u_content = response.text
 
-                spec = importlib.util.spec_from_file_location(module_name, file_path)
-                module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(module)
+            # 2. Parse it using m3u-parser
+            parser = M3uParser(timeout=5)
+            parser.parse_m3u_content(m3u_content)
+            
+            # 3. Format the data to perfectly match your old UI structure
+            # These are groups that belong in the Categories tab, NOT the Countries tab
+            non_country_groups = ["movies", "news", "sports", "documentaries", "music", "kids", "comedy", "vod"]
 
-                self.modules[module_name] = module
+            for stream in parser.get_list():
+                # Extract the group-title (e.g., "Nigeria", "USA", or "Movies")
+                category = stream.get("category", "Global")
+                if isinstance(category, list) and len(category) > 0:
+                    category = category[0]
 
-    def get_all_channels(self) -> List[ChannelData]:
-        all_channels = []
-        for module in self.modules.values():
-            all_channels.extend(getattr(module, "channels", []))
-        return all_channels
+                # Determine if this is a Country or a Category based on the group name
+                is_country = not any(cat in category.lower() for cat in non_country_groups)
 
-    def get_channels_by_country(self) -> Dict[str, List[ChannelData]]:
-        by_country = {}
-        for module in self.modules.values():
-            name = getattr(module, "group_name", "Unknown")
-            channels = getattr(module, "channels", [])
-            if channels:
-                if name not in by_country:
-                    by_country[name] = []
-                by_country[name].extend(channels)
-        return by_country
+                channels.append({
+                    "name": stream.get("name", "Unknown Channel"),
+                    "url": stream.get("url", ""),
+                    "logo": stream.get("logo", "/icon.png"),
+                    "group": category,
+                    # If it's a country, give it a truthy country_code so dashboard.py puts it in Tab 1
+                    "country_code": "M3U" if is_country else "",
+                    "is_custom": False
+                })
+                
+        except Exception as e:
+            print(f"Failed to fetch channels from GitHub: {e}")
+            
+        return channels
 
-    def get_channels_by_category(self) -> Dict[str, List[ChannelData]]:
-        by_category = {}
-        for channel in self.get_all_channels():
-            cat = channel.group
-            if cat not in by_category:
-                by_category[cat] = []
-            by_category[cat].append(channel)
-        return by_category
-
-    def get_countries(self) -> List[Dict[str, str]]:
-        """Returns a list of country names and codes for the UI dropdown."""
-        countries = []
-        for module in self.modules.values():
-            name = getattr(module, "group_name", "")
-            code = getattr(module, "country_code", "")
-            if name and code:
-                countries.append({"name": name, "code": code})
-        return sorted(countries, key=lambda x: x["name"])
-
-
-# Shared instance
+# Shared instance to maintain compatibility with the rest of your app
 channel_provider = ChannelProvider()
