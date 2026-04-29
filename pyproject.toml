@@ -1,5 +1,5 @@
 [project]
-name = "KTV Player"
+name = "ktv-player"
 version = "0.1.0"
 description = "A lightning-fast TV player built for seamless network streaming and custom channel addition."
 readme = "README.md"
