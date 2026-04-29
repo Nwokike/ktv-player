@@ -204,22 +204,23 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
             )
 
             # 2. THE INVISIBLE AD INJECTION: Alternating Native and Banner sizes
-            # FIX: Changed from every 5 channels (% 10 == 5) to every 6 channels (% 12 == 6)
             if (i + 1) % 12 == 6:
                 # Slot 6: Native-Style Medium Rectangle (300x250)
+                # FULL ROW FIX: col=12 forces the ad onto its own row on all devices
                 controls.append(
                     ft.Container(
                         content=ad_service.get_native_style_ad(),
-                        col={"xs": 12, "sm": 6, "md": 4, "lg": 4, "xl": 2},
+                        col=12,
                         alignment=ft.Alignment.CENTER,
                     )
                 )
             elif (i + 1) % 12 == 0:
                 # Slot 12: Standard Large Banner (320x100)
+                # FULL ROW FIX: col=12 forces the ad onto its own row on all devices
                 controls.append(
                     ft.Container(
                         content=ad_service.get_standard_banner_ad(),
-                        col={"xs": 12, "sm": 6, "md": 4, "lg": 4, "xl": 2},
+                        col=12,
                         alignment=ft.Alignment.CENTER,
                     )
                 )
