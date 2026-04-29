@@ -38,7 +38,12 @@ class ChannelProvider:
             parser.parse_m3u(self.CACHE_FILE)
             
             # 3. Format the data to perfectly match your UI structure
-            non_country_groups = ["movies", "news", "sports", "documentaries", "music", "kids", "comedy", "vod"]
+            # FIX: Added business, weather, lifestyle, religious, and education
+            non_country_groups = [
+                "movies", "news", "sports", "documentaries", "music", 
+                "kids", "comedy", "vod", "business", "weather", 
+                "lifestyle", "religious", "education", "general"
+            ]
 
             for stream in parser.get_list():
                 category = stream.get("category", "Global")
