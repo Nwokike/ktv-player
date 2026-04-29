@@ -22,8 +22,6 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
 
     new_name = ft.Ref[ft.TextField]()
     new_url = ft.Ref[ft.TextField]()
-
-    # FIX 1: Use ListView instead of Column for touch-friendly mobile scrolling
     countries_content = ft.ListView(expand=True, spacing=15)
     categories_content = ft.ListView(expand=True, spacing=15)
     custom_content = ft.ListView(expand=True, spacing=15)
@@ -147,15 +145,13 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
             width=10, height=10, border_radius=5, bgcolor=AppColors.GREY_DIM
         )
 
-        # We lock the height of the GlassContainer to exactly 130px.
-        # This prevents inconsistent sizing regardless of how long the text is.
         card_visual = GlassContainer(
             content=ft.Column(
                 [
                     ft.Row([status_indicator], alignment=ft.MainAxisAlignment.END),
                     ft.Image(
                         src=c.get("logo"),
-                        width=60,  # slightly reduced for perfect margins
+                        width=60,  
                         height=60,
                         fit=ft.BoxFit.CONTAIN,
                         border_radius=20,
@@ -208,7 +204,8 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
             )
 
             # 2. THE INVISIBLE AD INJECTION: Alternating Native and Banner sizes
-            if (i + 1) % 10 == 5:
+            # FIX: Changed from every 5 channels (% 10 == 5) to every 6 channels (% 12 == 6)
+            if (i + 1) % 12 == 6:
                 # Slot 6: Native-Style Medium Rectangle (300x250)
                 controls.append(
                     ft.Container(
@@ -217,7 +214,7 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
                         alignment=ft.Alignment.CENTER,
                     )
                 )
-            elif (i + 1) % 10 == 0:
+            elif (i + 1) % 12 == 0:
                 # Slot 12: Standard Large Banner (320x100)
                 controls.append(
                     ft.Container(
@@ -593,7 +590,7 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable) -> ft.View:
                     padding=20,
                     bgcolor=ft.Colors.SURFACE,
                 ),
-                expand=True,  # FIX 2: Bind the SafeArea to screen height
+                expand=True,
             )
         ],
         padding=0,
