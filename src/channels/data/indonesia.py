@@ -10,7 +10,7 @@ channels = [
         logo="https://imgur.com/ie2zSTY",
         group="Indonesia",
         country_code="ID",
-        epg_id="CNBCIndonesia.am"
+        epg_id="CNBCIndonesia.am",
     ),
     ChannelData(
         name="CNN Indonesia",
@@ -18,7 +18,7 @@ channels = [
         logo="https://imgur.com/MpxTMiP",
         group="Indonesia",
         country_code="ID",
-        epg_id="CNNIndonesia.am"
+        epg_id="CNNIndonesia.am",
     ),
     ChannelData(
         name="BeritaSatu",
@@ -26,6 +26,6 @@ channels = [
         logo="https://imgur.com/vYJVT07",
         group="Indonesia",
         country_code="ID",
-        epg_id="BeritaSatu.am"
+        epg_id="BeritaSatu.am",
     ),
 ]

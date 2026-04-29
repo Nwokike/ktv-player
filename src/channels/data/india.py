@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/QjJYohG.png",
         group="India",
         country_code="IN",
-        epg_id="NDTVIndia.in"
+        epg_id="NDTVIndia.in",
     ),
     ChannelData(
         name="ABP News",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/DKHUFVQ.png",
         group="India",
         country_code="IN",
-        epg_id="ABPNews.in"
+        epg_id="ABPNews.in",
     ),
     ChannelData(
         name="ABP Ananda",
@@ -26,7 +26,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/ABP_Ananda_logo.svg/500px-ABP_Ananda_logo.svg.png",
         group="India",
         country_code="IN",
-        epg_id="ABPAnanda.in"
+        epg_id="ABPAnanda.in",
     ),
     ChannelData(
         name="DD National Ⓨ",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/MohlE5B.png",
         group="India",
         country_code="IN",
-        epg_id="DDNational.in"
+        epg_id="DDNational.in",
     ),
     ChannelData(
         name="DD News Ⓨ",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/znnVCEf.png",
         group="India",
         country_code="IN",
-        epg_id="DDNews.in"
+        epg_id="DDNews.in",
     ),
     ChannelData(
         name="DD India Ⓨ",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/45uptR8.png",
         group="India",
         country_code="IN",
-        epg_id="DDIndia.in"
+        epg_id="DDIndia.in",
     ),
     ChannelData(
         name="DD Bharati Ⓨ",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/4tfUIEo.png",
         group="India",
         country_code="IN",
-        epg_id="DDBharati.in"
+        epg_id="DDBharati.in",
     ),
     ChannelData(
         name="DD Kisan Ⓨ",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/x56WJEa.png",
         group="India",
         country_code="IN",
-        epg_id="DDKisan.in"
+        epg_id="DDKisan.in",
     ),
     ChannelData(
         name="DD Urdu Ⓨ",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/OiQPS34.png",
         group="India",
         country_code="IN",
-        epg_id="DDUrdu.in"
+        epg_id="DDUrdu.in",
     ),
     ChannelData(
         name="India Today Ⓨ",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/C7KK3Fd.png",
         group="India",
         country_code="IN",
-        epg_id="IndiaToday.in"
+        epg_id="IndiaToday.in",
     ),
     ChannelData(
         name="Aaj Tak Ⓨ",
@@ -90,7 +90,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/2/28/Aaj_tak_logo.png",
         group="India",
         country_code="IN",
-        epg_id="AajTak.in"
+        epg_id="AajTak.in",
     ),
     ChannelData(
         name="India TV Ⓨ",
@@ -98,7 +98,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/thumb/6/60/India_tv_logo-en.png/500px-India_tv_logo-en.png",
         group="India",
         country_code="IN",
-        epg_id="IndiaTV.in"
+        epg_id="IndiaTV.in",
     ),
     ChannelData(
         name="TV9 Bharatvarsh Ⓨ",
@@ -106,7 +106,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/thumb/a/a6/TV9_Bharatvarsh.svg/500px-TV9_Bharatvarsh.svg.png",
         group="India",
         country_code="IN",
-        epg_id="TV9Bharatvarsh.in"
+        epg_id="TV9Bharatvarsh.in",
     ),
     ChannelData(
         name="Republic Bharat Ⓨ",
@@ -114,6 +114,6 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Republic_Bharat_logo.svg/500px-Republic_Bharat_logo.svg.png",
         group="India",
         country_code="IN",
-        epg_id="RepublicBharat.in"
+        epg_id="RepublicBharat.in",
     ),
 ]

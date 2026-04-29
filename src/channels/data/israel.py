@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/pttM3KQ.png",
         group="Israel",
         country_code="IL",
-        epg_id="Channel9.il"
+        epg_id="Channel9.il",
     ),
     ChannelData(
         name="כאן 11",
@@ -18,7 +18,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Kan11Logo.svg/640px-Kan11Logo.svg.png",
         group="Israel",
         country_code="IL",
-        epg_id="Kan11.il"
+        epg_id="Kan11.il",
     ),
     ChannelData(
         name="ערוץ 13",
@@ -26,7 +26,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/he/thumb/1/17/Reshet13Logo2022.svg/559px-Reshet13Logo2022.svg.png",
         group="Israel",
         country_code="IL",
-        epg_id="Channel13.il"
+        epg_id="Channel13.il",
     ),
     ChannelData(
         name="ערוץ 14",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/Iq2Kb69.png",
         group="Israel",
         country_code="IL",
-        epg_id="Now14.il"
+        epg_id="Now14.il",
     ),
     ChannelData(
         name="The Shopping Channel",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/PEdXHSE.png",
         group="Israel",
         country_code="IL",
-        epg_id="TheShoppingChannel.il"
+        epg_id="TheShoppingChannel.il",
     ),
     ChannelData(
         name="مكان 33",
@@ -50,7 +50,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/5/56/MeKan_33_logo_2017.png",
         group="Israel",
         country_code="IL",
-        epg_id="Makan33.il"
+        epg_id="Makan33.il",
     ),
     ChannelData(
         name="כאן חינוכית",
@@ -58,7 +58,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/KanHinuchit.svg/640px-KanHinuchit.svg.png",
         group="Israel",
         country_code="IL",
-        epg_id="KanEducational.il"
+        epg_id="KanEducational.il",
     ),
     ChannelData(
         name="Knesset",
@@ -66,6 +66,6 @@ channels = [
         logo="https://i.imgur.com/PEdXHSE.png",
         group="Israel",
         country_code="IL",
-        epg_id="Knesset.il"
+        epg_id="Knesset.il",
     ),
 ]

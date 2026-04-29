@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/YIZOtcm.png",
         group="Slovenia",
         country_code="SI",
-        epg_id="TVSlovenija1.si"
+        epg_id="TVSlovenija1.si",
     ),
     ChannelData(
         name="TV SLO 2",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/mQe9U2h.png",
         group="Slovenia",
         country_code="SI",
-        epg_id="TVSlovenija2.si"
+        epg_id="TVSlovenija2.si",
     ),
     ChannelData(
         name="TV SLO 3",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/WGUyj7r.png",
         group="Slovenia",
         country_code="SI",
-        epg_id="TVSlovenija3.si"
+        epg_id="TVSlovenija3.si",
     ),
     ChannelData(
         name="TV Koper/Capodistria",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/NQvOJNh.png",
         group="Slovenia",
         country_code="SI",
-        epg_id="TVKoperCapodistria.si"
+        epg_id="TVKoperCapodistria.si",
     ),
     ChannelData(
         name="TV Maribor",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/tWf3dgf.png",
         group="Slovenia",
         country_code="SI",
-        epg_id="TVMaribor.si"
+        epg_id="TVMaribor.si",
     ),
     ChannelData(
         name="MMC TV",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/yzETQJ4.png",
         group="Slovenia",
         country_code="SI",
-        epg_id="MMC.si"
+        epg_id="MMC.si",
     ),
     ChannelData(
         name="Nova 24 TV Ⓨ",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/M2207Vh.png",
         group="Slovenia",
         country_code="SI",
-        epg_id="Nova24TV.si"
+        epg_id="Nova24TV.si",
     ),
     ChannelData(
         name="Folx Slovenija",
@@ -66,6 +66,6 @@ channels = [
         logo="https://i.imgur.com/RK1IASU.png",
         group="Slovenia",
         country_code="SI",
-        epg_id="FolxSlovenija.si"
+        epg_id="FolxSlovenija.si",
     ),
 ]

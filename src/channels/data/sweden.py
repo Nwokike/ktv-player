@@ -10,7 +10,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/SVT1_logo_2016.svg/800px-SVT1_logo_2016.svg.png",
         group="Sweden",
         country_code="SE",
-        epg_id="SVT1.se"
+        epg_id="SVT1.se",
     ),
     ChannelData(
         name="SVT 2 Ⓖ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/iB3veGx.png",
         group="Sweden",
         country_code="SE",
-        epg_id="SVT2.se"
+        epg_id="SVT2.se",
     ),
     ChannelData(
         name="ATG Live Ⓢ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/bPWFXkL.png",
         group="Sweden",
         country_code="SE",
-        epg_id="ATGLive.se"
+        epg_id="ATGLive.se",
     ),
     ChannelData(
         name="Expressen TV",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/8EjMSr7.png",
         group="Sweden",
         country_code="SE",
-        epg_id="ExpressenTV.se"
+        epg_id="ExpressenTV.se",
     ),
     ChannelData(
         name="Kanal 10 Sverige",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/vlh699v.png",
         group="Sweden",
         country_code="SE",
-        epg_id="Kanal10.se"
+        epg_id="Kanal10.se",
     ),
     ChannelData(
         name="SVT 24 Ⓖ",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/o9M7Tiq.png",
         group="Sweden",
         country_code="SE",
-        epg_id="SVT24.se"
+        epg_id="SVT24.se",
     ),
     ChannelData(
         name="Kunskapskanalen Ⓖ",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/9YBxoGc.png",
         group="Sweden",
         country_code="SE",
-        epg_id="Kunskapskanalen.se"
+        epg_id="Kunskapskanalen.se",
     ),
     ChannelData(
         name="Di TV",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/zApTDWn.png",
         group="Sweden",
         country_code="SE",
-        epg_id="DiTV.se"
+        epg_id="DiTV.se",
     ),
     ChannelData(
         name="Öppna Kanalen Stockholm Ⓢ",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/GWlstv5.png",
         group="Sweden",
         country_code="SE",
-        epg_id="OppnaKanalenStockholm.se"
+        epg_id="OppnaKanalenStockholm.se",
     ),
     ChannelData(
         name="Öppna Kanalen Malmö Ⓢ",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/sjw8dsM.jpg",
         group="Sweden",
         country_code="SE",
-        epg_id="TVMalmo.se"
+        epg_id="TVMalmo.se",
     ),
     ChannelData(
         name="Västmanlands TV",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/EXBaQ88.jpg",
         group="Sweden",
         country_code="SE",
-        epg_id="VastmanlandsTV.se"
+        epg_id="VastmanlandsTV.se",
     ),
     ChannelData(
         name="Sundskanalen",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/8uT0p3q.jpg",
         group="Sweden",
         country_code="SE",
-        epg_id="Sundskanalen.se"
+        epg_id="Sundskanalen.se",
     ),
     ChannelData(
         name="Öppna Kanalen Skövde",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/1LkYbaQ.png",
         group="Sweden",
         country_code="SE",
-        epg_id="OppnaKanalenSkovde.se"
+        epg_id="OppnaKanalenSkovde.se",
     ),
     ChannelData(
         name="Lokal-TV Uddevalla / Fyrbodal-TV Ⓨ",
@@ -114,7 +114,7 @@ channels = [
         logo="https://i.imgur.com/cnLkbOT.png",
         group="Sweden",
         country_code="SE",
-        epg_id="LTVU.se"
+        epg_id="LTVU.se",
     ),
     ChannelData(
         name="Aryen TV",
@@ -122,7 +122,7 @@ channels = [
         logo="https://i.imgur.com/qUg7edz.png",
         group="Sweden",
         country_code="SE",
-        epg_id="AryenTV.se"
+        epg_id="AryenTV.se",
     ),
     ChannelData(
         name="Suryoyo Sat",
@@ -130,6 +130,6 @@ channels = [
         logo="https://i.imgur.com/naCNjaB.png",
         group="Sweden",
         country_code="SE",
-        epg_id="SuryoyoSat.se"
+        epg_id="SuryoyoSat.se",
     ),
 ]

@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/FL2ZuGC.png",
         group="Lithuania",
         country_code="LT",
-        epg_id="LRTTV.lt"
+        epg_id="LRTTV.lt",
     ),
     ChannelData(
         name="LRT Lituanica",
@@ -18,7 +18,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/LRT_Lituanica_Logo_2022.svg/640px-LRT_Lituanica_Logo_2022.svg.png",
         group="Lithuania",
         country_code="LT",
-        epg_id="LRTLituanica.lt"
+        epg_id="LRTLituanica.lt",
     ),
     ChannelData(
         name="Lietuvos Rytas TV",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/5wpxVI0.png",
         group="Lithuania",
         country_code="LT",
-        epg_id="LietuvosRytasTV.lt"
+        epg_id="LietuvosRytasTV.lt",
     ),
     ChannelData(
         name="Delfi TV",
@@ -34,6 +34,6 @@ channels = [
         logo="https://i.imgur.com/IFoHP5M.png",
         group="Lithuania",
         country_code="LT",
-        epg_id="DelfiTV.lt"
+        epg_id="DelfiTV.lt",
     ),
 ]

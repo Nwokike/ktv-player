@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/GRQTndk.png",
         group="Saudi Arabia",
         country_code="SA",
-        epg_id="AlSaudiya.sa"
+        epg_id="AlSaudiya.sa",
     ),
     ChannelData(
         name="SBC Saudi Arabia",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/9JSQglj.png",
         group="Saudi Arabia",
         country_code="SA",
-        epg_id="SBC.sa"
+        epg_id="SBC.sa",
     ),
     ChannelData(
         name="Al Ekhbariya",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/WcRlHQm.png",
         group="Saudi Arabia",
         country_code="SA",
-        epg_id="AlEkhbariya.sa"
+        epg_id="AlEkhbariya.sa",
     ),
     ChannelData(
         name="Al Saudiya Alaan",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/sEOjApe.png",
         group="Saudi Arabia",
         country_code="SA",
-        epg_id="AlSaudiyaAlaan.sa"
+        epg_id="AlSaudiyaAlaan.sa",
     ),
     ChannelData(
         name="Al Quran Al Kareem TV",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/A2fJysM.png",
         group="Saudi Arabia",
         country_code="SA",
-        epg_id="AlQuranAlKareemTV.sa"
+        epg_id="AlQuranAlKareemTV.sa",
     ),
     ChannelData(
         name="Rotana Cinema KSA",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/pGgp38I.png",
         group="Saudi Arabia",
         country_code="SA",
-        epg_id="RotanaCinemaKSA.sa"
+        epg_id="RotanaCinemaKSA.sa",
     ),
     ChannelData(
         name="Rotana Classic",
@@ -58,6 +58,6 @@ channels = [
         logo="https://i.imgur.com/pMMUvkt.png",
         group="Saudi Arabia",
         country_code="SA",
-        epg_id="RotanaClassic.sa"
+        epg_id="RotanaClassic.sa",
     ),
 ]

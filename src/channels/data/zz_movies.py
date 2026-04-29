@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/jGzMaRD.png",
         group="VOD Movies (EN)",
         country_code="",
-        epg_id="FilmRiseFreeMovies.us"
+        epg_id="FilmRiseFreeMovies.us",
     ),
     ChannelData(
         name="FilmRise Sci-Fi",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/FcN1OKo.png",
         group="VOD Movies (EN)",
         country_code="",
-        epg_id="FilmRiseSciFi.us"
+        epg_id="FilmRiseSciFi.us",
     ),
     ChannelData(
         name="Pluto TV Spotlight",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/AogTmZc.png",
         group="VOD Movies (EN)",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Pluto TV Action",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/g8PCdh6.png",
         group="VOD Movies (EN)",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Pluto TV Comedy",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/Pjs4lgs.png",
         group="VOD Movies (EN)",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Pluto TV Drama",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/B9srooj.png",
         group="VOD Movies (EN)",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Pluto TV Fantastic",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/dOfXc5w.png",
         group="VOD Movies (EN)",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Pluto TV Romance",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/j6livg0.png",
         group="VOD Movies (EN)",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Pluto TV Crime Movies",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/PlAQrIb.png",
         group="VOD Movies (EN)",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Pluto TV Thrillers",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/jyiFzG4.png",
         group="VOD Movies (EN)",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Pluto TV Horror",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/An93hAh.png",
         group="VOD Movies (EN)",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Pluto TV Terror",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/JLgn5jC.png",
         group="VOD Movies (EN)",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Black Cinema",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/Zh1QGW9.png",
         group="VOD Movies (EN)",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Pluto TV Staff Picks",
@@ -114,7 +114,7 @@ channels = [
         logo="https://i.imgur.com/DFDHAT8.png",
         group="VOD Movies (EN)",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Pluto TV Documentaries",
@@ -122,7 +122,7 @@ channels = [
         logo="https://i.imgur.com/Mr4ZsNZ.png",
         group="VOD Movies (EN)",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="90s Throwback",
@@ -130,7 +130,7 @@ channels = [
         logo="https://i.imgur.com/sI1o3uK.png",
         group="VOD Movies (EN)",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="80s Rewind",
@@ -138,7 +138,7 @@ channels = [
         logo="https://i.imgur.com/0FaLAhK.png",
         group="VOD Movies (EN)",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="70s Cinema",
@@ -146,7 +146,7 @@ channels = [
         logo="https://i.imgur.com/wk9Baz9.png",
         group="VOD Movies (EN)",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Paramount Movie Channel",
@@ -154,7 +154,7 @@ channels = [
         logo="https://i.imgur.com/CfqRav0.png",
         group="VOD Movies (EN)",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Pluto TV Westerns",
@@ -162,7 +162,7 @@ channels = [
         logo="https://i.imgur.com/79R7m0b.png",
         group="VOD Movies (EN)",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Classic Movies",
@@ -170,7 +170,7 @@ channels = [
         logo="https://i.imgur.com/feWPHep.png",
         group="VOD Movies (EN)",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Pluto TV Cult Films",
@@ -178,7 +178,7 @@ channels = [
         logo="https://i.imgur.com/kD3SkoC.png",
         group="VOD Movies (EN)",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Flicks of Fury",
@@ -186,7 +186,7 @@ channels = [
         logo="https://i.imgur.com/yhyzBfb.png",
         group="VOD Movies (EN)",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="The Asylum",
@@ -194,7 +194,7 @@ channels = [
         logo="https://i.imgur.com/rOxQfdG.png",
         group="VOD Movies (EN)",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Film Detective",
@@ -202,6 +202,6 @@ channels = [
         logo="https://i.imgur.com/4aFLH9g.png",
         group="VOD Movies (EN)",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
 ]

@@ -10,7 +10,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVAuroraLive.us"
+        epg_id="BumblebeeTVAuroraLive.us",
     ),
     ChannelData(
         name="Bumblebee TV AutoMoto",
@@ -18,7 +18,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVAutoMoto.us"
+        epg_id="BumblebeeTVAutoMoto.us",
     ),
     ChannelData(
         name="BumblebeeTV Beaches Live",
@@ -26,7 +26,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVBeachesLive.us"
+        epg_id="BumblebeeTVBeachesLive.us",
     ),
     ChannelData(
         name="Bumblebee TV Classics 2",
@@ -34,7 +34,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVClassics2.us"
+        epg_id="BumblebeeTVClassics2.us",
     ),
     ChannelData(
         name="Bumblebee TV CoronaVirus.Gov",
@@ -42,7 +42,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVCoronaVirusGov.us"
+        epg_id="BumblebeeTVCoronaVirusGov.us",
     ),
     ChannelData(
         name="Bumblebee TV Country Boy Kids Video.us",
@@ -50,7 +50,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVCountryBoyKidsVideo.us"
+        epg_id="BumblebeeTVCountryBoyKidsVideo.us",
     ),
     ChannelData(
         name="Bumblebee TV Cute Zone",
@@ -58,7 +58,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVCuteZone.us"
+        epg_id="BumblebeeTVCuteZone.us",
     ),
     ChannelData(
         name="Bumblebee TV Epic M",
@@ -66,7 +66,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVEpicM.us"
+        epg_id="BumblebeeTVEpicM.us",
     ),
     ChannelData(
         name="Bumblebee TV FGTV",
@@ -74,7 +74,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVFGTV.us"
+        epg_id="BumblebeeTVFGTV.us",
     ),
     ChannelData(
         name="Bumblebee TV Forest Live",
@@ -82,7 +82,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVForestLive.us"
+        epg_id="BumblebeeTVForestLive.us",
     ),
     ChannelData(
         name="Bumblebee TV Fun Zone",
@@ -90,7 +90,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVFunZone.us"
+        epg_id="BumblebeeTVFunZone.us",
     ),
     ChannelData(
         name="Bumblebee TV Giggle Zone",
@@ -98,7 +98,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVGiggleZone.us"
+        epg_id="BumblebeeTVGiggleZone.us",
     ),
     ChannelData(
         name="Bumblebee TV Lake Live",
@@ -106,7 +106,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVLakeLive.us"
+        epg_id="BumblebeeTVLakeLive.us",
     ),
     ChannelData(
         name="Bumblebee TV Lego Toons",
@@ -114,7 +114,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVLegoToons.us"
+        epg_id="BumblebeeTVLegoToons.us",
     ),
     ChannelData(
         name="Bumblebee TV Lets Play Minecraft",
@@ -122,7 +122,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVLetsPlayMinecraft.us"
+        epg_id="BumblebeeTVLetsPlayMinecraft.us",
     ),
     ChannelData(
         name="Bumblebee TV LifeBae",
@@ -130,7 +130,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVLifeBae.us"
+        epg_id="BumblebeeTVLifeBae.us",
     ),
     ChannelData(
         name="Bumblebee TV Master Builder",
@@ -138,7 +138,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVMasterBuilder.us"
+        epg_id="BumblebeeTVMasterBuilder.us",
     ),
     ChannelData(
         name="Bumblebee TV Mountain Live",
@@ -146,7 +146,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVMountainLive.us"
+        epg_id="BumblebeeTVMountainLive.us",
     ),
     ChannelData(
         name="Bumblebee TV Now You Know",
@@ -154,7 +154,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVNowYouKnow.us"
+        epg_id="BumblebeeTVNowYouKnow.us",
     ),
     ChannelData(
         name="Bumblebee TV Recoil TV",
@@ -162,7 +162,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVRecoilTV.us"
+        epg_id="BumblebeeTVRecoilTV.us",
     ),
     ChannelData(
         name="Bumblebee TV Rivers Live",
@@ -170,7 +170,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVRiversLive.us"
+        epg_id="BumblebeeTVRiversLive.us",
     ),
     ChannelData(
         name="Bumblebee TV Smosh",
@@ -178,7 +178,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVSmosh.us"
+        epg_id="BumblebeeTVSmosh.us",
     ),
     ChannelData(
         name="Bumblebee TV Sunset Live",
@@ -186,7 +186,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVSunsetLive.us"
+        epg_id="BumblebeeTVSunsetLive.us",
     ),
     ChannelData(
         name="Bumblebee TV Thinknoodles",
@@ -194,7 +194,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVThinknoodles.us"
+        epg_id="BumblebeeTVThinknoodles.us",
     ),
     ChannelData(
         name="Bumblebee TV Toy Zone",
@@ -202,7 +202,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVToyZone.us"
+        epg_id="BumblebeeTVToyZone.us",
     ),
     ChannelData(
         name="Bumblebee TV Trinity Beyond",
@@ -210,7 +210,7 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVTrinityBeyond.us"
+        epg_id="BumblebeeTVTrinityBeyond.us",
     ),
     ChannelData(
         name="Bumblebee TV Tropics Live",
@@ -218,6 +218,6 @@ channels = [
         logo="",
         group="Usa VOD",
         country_code="",
-        epg_id="BumblebeeTVTropicsLive.us"
+        epg_id="BumblebeeTVTropicsLive.us",
     ),
 ]

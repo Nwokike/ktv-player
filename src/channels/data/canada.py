@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/H5yEbxf.png",
         group="Canada",
         country_code="CA",
-        epg_id="CBCTDT.ca"
+        epg_id="CBCTDT.ca",
     ),
     ChannelData(
         name="Citytv",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/BlFNlHz.png",
         group="Canada",
         country_code="CA",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="CTV Toronto",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/qOutOWN.png",
         group="Canada",
         country_code="CA",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Global Toronto",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/2CxLO4H.png",
         group="Canada",
         country_code="CA",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Global Calgary",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/2CxLO4H.png",
         group="Canada",
         country_code="CA",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Global Edmonton",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/2CxLO4H.png",
         group="Canada",
         country_code="CA",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="TVO",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/PkBPPcL.png",
         group="Canada",
         country_code="CA",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="NTV",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/b8W3Aah.png",
         group="Canada",
         country_code="CA",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="CHCH",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/jYSXaga.png",
         group="Canada",
         country_code="CA",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="ONNtv Ontario",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/zz5ST9K.png",
         group="Canada",
         country_code="CA",
-        epg_id="ONNtv.ca"
+        epg_id="ONNtv.ca",
     ),
     ChannelData(
         name="Star TV",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/Ap54LCC.png",
         group="Canada",
         country_code="CA",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="CBC News",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/1EqQGKS.png",
         group="Canada",
         country_code="CA",
-        epg_id="CBCNewsNetwork.ca"
+        epg_id="CBCNewsNetwork.ca",
     ),
     ChannelData(
         name="CTV News",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/T3oBeiX.png",
         group="Canada",
         country_code="CA",
-        epg_id="CTVNewsChannel.ca"
+        epg_id="CTVNewsChannel.ca",
     ),
     ChannelData(
         name="Global News",
@@ -114,7 +114,7 @@ channels = [
         logo="https://i.imgur.com/IpfmG93.png",
         group="Canada",
         country_code="CA",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Global News BC",
@@ -122,7 +122,7 @@ channels = [
         logo="https://i.imgur.com/IpfmG93.png",
         group="Canada",
         country_code="CA",
-        epg_id="CHANDT.ca"
+        epg_id="CHANDT.ca",
     ),
     ChannelData(
         name="Global News Calgary",
@@ -130,7 +130,7 @@ channels = [
         logo="https://i.imgur.com/IpfmG93.png",
         group="Canada",
         country_code="CA",
-        epg_id="CICTDT.ca"
+        epg_id="CICTDT.ca",
     ),
     ChannelData(
         name="Global News Halifax",
@@ -138,7 +138,7 @@ channels = [
         logo="https://i.imgur.com/IpfmG93.png",
         group="Canada",
         country_code="CA",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Global News Kingston",
@@ -146,7 +146,7 @@ channels = [
         logo="https://i.imgur.com/IpfmG93.png",
         group="Canada",
         country_code="CA",
-        epg_id="CKWSDT.ca"
+        epg_id="CKWSDT.ca",
     ),
     ChannelData(
         name="Global News Montreal",
@@ -154,7 +154,7 @@ channels = [
         logo="https://i.imgur.com/IpfmG93.png",
         group="Canada",
         country_code="CA",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Global News Peterborough",
@@ -162,7 +162,7 @@ channels = [
         logo="https://i.imgur.com/IpfmG93.png",
         group="Canada",
         country_code="CA",
-        epg_id="CHEXDT.ca"
+        epg_id="CHEXDT.ca",
     ),
     ChannelData(
         name="Global News Regina",
@@ -170,7 +170,7 @@ channels = [
         logo="https://i.imgur.com/IpfmG93.png",
         group="Canada",
         country_code="CA",
-        epg_id="CFREDT.ca"
+        epg_id="CFREDT.ca",
     ),
     ChannelData(
         name="Global News Saskatoon",
@@ -178,7 +178,7 @@ channels = [
         logo="https://i.imgur.com/IpfmG93.png",
         group="Canada",
         country_code="CA",
-        epg_id="CFSKDT.ca"
+        epg_id="CFSKDT.ca",
     ),
     ChannelData(
         name="Global News Winnipeg",
@@ -186,7 +186,7 @@ channels = [
         logo="https://i.imgur.com/IpfmG93.png",
         group="Canada",
         country_code="CA",
-        epg_id="CKNDDT.ca"
+        epg_id="CKNDDT.ca",
     ),
     ChannelData(
         name="CPAC (EN)",
@@ -194,7 +194,7 @@ channels = [
         logo="https://i.imgur.com/AbdFD0S.png",
         group="Canada",
         country_code="CA",
-        epg_id="CPACEnglish.ca"
+        epg_id="CPACEnglish.ca",
     ),
     ChannelData(
         name="ICI RDI",
@@ -202,7 +202,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/ICI_RDI_logo.svg/640px-ICI_RDI_logo.svg.png",
         group="Canada",
         country_code="CA",
-        epg_id="IciRDI.ca"
+        epg_id="IciRDI.ca",
     ),
     ChannelData(
         name="ICI Télé HD Ⓖ",
@@ -210,7 +210,7 @@ channels = [
         logo="https://i.imgur.com/HsSi3NV.png",
         group="Canada",
         country_code="CA",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="TVA Ⓖ",
@@ -218,7 +218,7 @@ channels = [
         logo="https://i.imgur.com/1GR8Szn.png",
         group="Canada",
         country_code="CA",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Noovo",
@@ -226,7 +226,7 @@ channels = [
         logo="https://i.imgur.com/BL9ziSJ.png",
         group="Canada",
         country_code="CA",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Télé Québec",
@@ -234,7 +234,7 @@ channels = [
         logo="https://i.imgur.com/8grBWK9.png",
         group="Canada",
         country_code="CA",
-        epg_id="CIVMDT.ca"
+        epg_id="CIVMDT.ca",
     ),
     ChannelData(
         name="Savoir Média",
@@ -242,7 +242,7 @@ channels = [
         logo="https://i.imgur.com/pa4wOVY.png",
         group="Canada",
         country_code="CA",
-        epg_id="CFTUDT.ca"
+        epg_id="CFTUDT.ca",
     ),
     ChannelData(
         name="CPAC (FR)",
@@ -250,7 +250,7 @@ channels = [
         logo="https://i.imgur.com/AbdFD0S.png",
         group="Canada",
         country_code="CA",
-        epg_id="CPACFrench.ca"
+        epg_id="CPACFrench.ca",
     ),
     ChannelData(
         name="ICI Montreal",
@@ -258,7 +258,7 @@ channels = [
         logo="https://i.imgur.com/Z1b2TJD.png",
         group="Canada",
         country_code="CA",
-        epg_id="CBFTDT.ca"
+        epg_id="CBFTDT.ca",
     ),
     ChannelData(
         name="Toronto 360 TV",
@@ -266,6 +266,6 @@ channels = [
         logo="https://i.imgur.com/PkWndsv.png",
         group="Canada",
         country_code="CA",
-        epg_id="Toronto360.tv"
+        epg_id="Toronto360.tv",
     ),
 ]

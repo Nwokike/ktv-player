@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/hu56Ya5.png",
         group="VOD Italy",
         country_code="",
-        epg_id="Sportitalia24.it"
+        epg_id="Sportitalia24.it",
     ),
     ChannelData(
         name="Sport2U",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/WW0lNk1.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Grande Fratello Vip Regia 1 Ⓢ Ⓖ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/PBTdU4G.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Grande Fratello Vip Regia 2 Ⓢ Ⓖ",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/FKfwbHD.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Grande Fratello Vip Regia un'ora fa Ⓢ Ⓖ",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/fFZeBnc.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Stories – Rakuten TV",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/tMcUvjI.jpg",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Classico – Rakuten TV",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/ytN6jfl.jpeg",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Thriller – Rakuten TV",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/jJTnBNk.jpeg",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Commedia – Rakuten TV",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/EKKXdIU.jpg",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Documentari – Rakuten TV",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/rAHBiO8.jpg",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Family – Rakuten TV",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/BCC123A.jpg",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Romance – Rakuten TV",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/TiXrzJZ.jpeg",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Film Top – Rakuten TV",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/OfD9hM9.jpeg",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Drammatico – Rakuten TV",
@@ -114,7 +114,7 @@ channels = [
         logo="https://i.imgur.com/Nx3JzZK.jpg",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Film d'azione – Rakuten TV",
@@ -122,7 +122,7 @@ channels = [
         logo="https://i.imgur.com/KDmDQM6.jpg",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Euronews in diretta",
@@ -130,7 +130,7 @@ channels = [
         logo="https://i.imgur.com/DUUxsO7.jpeg",
         group="VOD Italy",
         country_code="",
-        epg_id="EuronewsItalian.fr"
+        epg_id="EuronewsItalian.fr",
     ),
     ChannelData(
         name="FailArmy",
@@ -138,7 +138,7 @@ channels = [
         logo="https://i.imgur.com/WupT16d.jpg",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="The Pet Collective",
@@ -146,7 +146,7 @@ channels = [
         logo="https://i.imgur.com/daTU44g.jpeg",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Canale Europa",
@@ -154,7 +154,7 @@ channels = [
         logo="https://i.imgur.com/Zw2ZIfz.jpg",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="People Are Awesome",
@@ -162,7 +162,7 @@ channels = [
         logo="https://i.imgur.com/xwz9zKk.jpeg",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Yamato Animation",
@@ -170,7 +170,7 @@ channels = [
         logo="https://i.imgur.com/rOl7HfS.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="BBC Doctor Who",
@@ -178,7 +178,7 @@ channels = [
         logo="https://i.imgur.com/J2B9FjO.jpg",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="BBC Drama",
@@ -186,7 +186,7 @@ channels = [
         logo="https://i.imgur.com/hY1M4hL.jpg",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Televisa Telenovelas",
@@ -194,7 +194,7 @@ channels = [
         logo="https://i.imgur.com/GaJIRN3.jpg",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Humanity Documentari",
@@ -202,7 +202,7 @@ channels = [
         logo="https://i.imgur.com/4gwdyar.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="The Boat Show",
@@ -210,7 +210,7 @@ channels = [
         logo="https://i.imgur.com/cPTLian.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Fashion TV",
@@ -218,7 +218,7 @@ channels = [
         logo="https://i.imgur.com/KT3zgc1.png",
         group="VOD Italy",
         country_code="",
-        epg_id="FashionTVEurope.fr"
+        epg_id="FashionTVEurope.fr",
     ),
     ChannelData(
         name="Motor1TV",
@@ -226,7 +226,7 @@ channels = [
         logo="https://i.imgur.com/UERYhO1.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="SportOutdoor.tv",
@@ -234,7 +234,7 @@ channels = [
         logo="https://i.imgur.com/fwOuEBl.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Italian Fishing TV",
@@ -242,7 +242,7 @@ channels = [
         logo="https://i.imgur.com/Q0jHCdC.png",
         group="VOD Italy",
         country_code="",
-        epg_id="ItalianFishingTV.it"
+        epg_id="ItalianFishingTV.it",
     ),
     ChannelData(
         name="FUEL TV",
@@ -250,7 +250,7 @@ channels = [
         logo="https://i.imgur.com/4Lzo6M4.png",
         group="VOD Italy",
         country_code="",
-        epg_id="FuelTV.us"
+        epg_id="FuelTV.us",
     ),
     ChannelData(
         name="Teletubbies",
@@ -258,7 +258,7 @@ channels = [
         logo="https://i.imgur.com/tSw1oON.jpeg",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="duckTV",
@@ -266,7 +266,7 @@ channels = [
         logo="https://i.imgur.com/BKoAJZV.jpeg",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="SuperToons TV",
@@ -274,7 +274,7 @@ channels = [
         logo="https://i.imgur.com/A6vCYsC.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Planeta Junior",
@@ -282,7 +282,7 @@ channels = [
         logo="https://i.imgur.com/F71WMja.jpg",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="MONDO TV KIDS",
@@ -290,7 +290,7 @@ channels = [
         logo="https://i.imgur.com/DMqKFIM.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Vevo Pop",
@@ -298,7 +298,7 @@ channels = [
         logo="https://i.imgur.com/DPqMpQC.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Radio Italia Trend",
@@ -306,7 +306,7 @@ channels = [
         logo="https://i.imgur.com/ecpfn3e.png",
         group="VOD Italy",
         country_code="",
-        epg_id="RadioItaliaTrendTV.it"
+        epg_id="RadioItaliaTrendTV.it",
     ),
     ChannelData(
         name="Clubbing TV",
@@ -314,7 +314,7 @@ channels = [
         logo="https://i.imgur.com/D1IuAqu.jpg",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Deluxe Lounge HD",
@@ -322,7 +322,7 @@ channels = [
         logo="https://i.imgur.com/LzIsXym.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Trace Latina Ⓖ",
@@ -330,7 +330,7 @@ channels = [
         logo="https://i.imgur.com/GHbz8wd.png",
         group="VOD Italy",
         country_code="",
-        epg_id="TraceLatina.fr"
+        epg_id="TraceLatina.fr",
     ),
     ChannelData(
         name="Trace Urban Ⓖ",
@@ -338,7 +338,7 @@ channels = [
         logo="https://i.imgur.com/PAx9qj8.png",
         group="VOD Italy",
         country_code="",
-        epg_id="TraceUrban.fr"
+        epg_id="TraceUrban.fr",
     ),
     ChannelData(
         name="Full Moon",
@@ -346,7 +346,7 @@ channels = [
         logo="https://i.imgur.com/0xT7bZP.jpg",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Cinema Segreto",
@@ -354,7 +354,7 @@ channels = [
         logo="https://i.imgur.com/pID3ZGx.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Bizzarro Movies",
@@ -362,7 +362,7 @@ channels = [
         logo="https://i.imgur.com/EbDLnZB.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="CGtv",
@@ -370,7 +370,7 @@ channels = [
         logo="https://i.imgur.com/6rsLtY7.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="WP",
@@ -378,7 +378,7 @@ channels = [
         logo="https://i.imgur.com/W5I5yY0.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Risate all'italiana",
@@ -386,7 +386,7 @@ channels = [
         logo="https://i.imgur.com/LCN66Z1.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Shorts Ⓖ",
@@ -394,7 +394,7 @@ channels = [
         logo="https://i.imgur.com/GwM7RHV.jpg",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Sofy.tv",
@@ -402,7 +402,7 @@ channels = [
         logo="https://i.imgur.com/fsJFJeZ.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="VH1+ Girl Power! – Pluto TV",
@@ -410,7 +410,7 @@ channels = [
         logo="https://i.imgur.com/Z4t6fdU.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Car Chase – Pluto TV",
@@ -418,7 +418,7 @@ channels = [
         logo="https://i.imgur.com/F1jXkhK.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Monster Jam – Pluto TV",
@@ -426,7 +426,7 @@ channels = [
         logo="https://i.imgur.com/jxGhINd.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="MacGyver – Pluto TV",
@@ -434,7 +434,7 @@ channels = [
         logo="https://i.imgur.com/bz9IwWU.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Settimo Cielo – Pluto TV",
@@ -442,7 +442,7 @@ channels = [
         logo="https://i.imgur.com/TC5lo6r.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="BBC Drama – Pluto TV",
@@ -450,7 +450,7 @@ channels = [
         logo="https://i.imgur.com/CrAqXHJ.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Le sorelle mcleod – Pluto TV",
@@ -458,7 +458,7 @@ channels = [
         logo="https://i.imgur.com/P310ryf.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Autostop per il cielo – Pluto TV",
@@ -466,7 +466,7 @@ channels = [
         logo="https://i.imgur.com/rpC1qk7.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Renegade – Pluto TV",
@@ -474,7 +474,7 @@ channels = [
         logo="https://i.imgur.com/Qsd9wuS.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Serie – Pluto TV",
@@ -482,7 +482,7 @@ channels = [
         logo="https://i.imgur.com/CHBhRZr.png",
         group="VOD Italy",
         country_code="",
-        epg_id="PlutoTVSerieItaly.it"
+        epg_id="PlutoTVSerieItaly.it",
     ),
     ChannelData(
         name="Film – Pluto TV",
@@ -490,7 +490,7 @@ channels = [
         logo="https://i.imgur.com/QeFc7F3.png",
         group="VOD Italy",
         country_code="",
-        epg_id="PlutoTVFilmItaly.it"
+        epg_id="PlutoTVFilmItaly.it",
     ),
     ChannelData(
         name="Film Azione – Pluto TV",
@@ -498,7 +498,7 @@ channels = [
         logo="https://i.imgur.com/ZmAuf3H.png",
         group="VOD Italy",
         country_code="",
-        epg_id="PlutoTVFilmAzioneItaly.it"
+        epg_id="PlutoTVFilmAzioneItaly.it",
     ),
     ChannelData(
         name="Film Thriller – Pluto TV",
@@ -506,7 +506,7 @@ channels = [
         logo="https://i.imgur.com/hIWMGRW.png",
         group="VOD Italy",
         country_code="",
-        epg_id="PlutoTVFilmThrillerItaly.it"
+        epg_id="PlutoTVFilmThrillerItaly.it",
     ),
     ChannelData(
         name="Horror – Pluto TV",
@@ -514,7 +514,7 @@ channels = [
         logo="https://i.imgur.com/zhoHRSE.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Western – Pluto TV",
@@ -522,7 +522,7 @@ channels = [
         logo="https://i.imgur.com/6vmgQBl.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Film Classici – Pluto TV",
@@ -530,7 +530,7 @@ channels = [
         logo="https://i.imgur.com/jNyZPLV.png",
         group="VOD Italy",
         country_code="",
-        epg_id="PlutoTVFilmClassiciItaly.it"
+        epg_id="PlutoTVFilmClassiciItaly.it",
     ),
     ChannelData(
         name="Cinema Italiano – Pluto TV",
@@ -538,7 +538,7 @@ channels = [
         logo="https://i.imgur.com/drDX5DC.png",
         group="VOD Italy",
         country_code="",
-        epg_id="PlutoTVCinemaItalianoItaly.it"
+        epg_id="PlutoTVCinemaItalianoItaly.it",
     ),
     ChannelData(
         name="Totò – Pluto TV",
@@ -546,7 +546,7 @@ channels = [
         logo="https://i.imgur.com/wLDteJZ.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Film Romantici – Pluto TV",
@@ -554,7 +554,7 @@ channels = [
         logo="https://i.imgur.com/KxPsLG3.png",
         group="VOD Italy",
         country_code="",
-        epg_id="PlutoTVFilmRomanticiItaly.it"
+        epg_id="PlutoTVFilmRomanticiItaly.it",
     ),
     ChannelData(
         name="Christmas – Pluto TV",
@@ -562,7 +562,7 @@ channels = [
         logo="https://i.imgur.com/tQ8lN30.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Film Drama – Pluto TV",
@@ -570,7 +570,7 @@ channels = [
         logo="https://i.imgur.com/X8jimKP.png",
         group="VOD Italy",
         country_code="",
-        epg_id="PlutoTVFilmDramaItaly.it"
+        epg_id="PlutoTVFilmDramaItaly.it",
     ),
     ChannelData(
         name="Film Commedia – Pluto TV",
@@ -578,7 +578,7 @@ channels = [
         logo="https://i.imgur.com/cSKaVHW.png",
         group="VOD Italy",
         country_code="",
-        epg_id="PlutoTVFilmCommediaItaly.it"
+        epg_id="PlutoTVFilmCommediaItaly.it",
     ),
     ChannelData(
         name="East is East – Pluto TV",
@@ -586,7 +586,7 @@ channels = [
         logo="https://i.imgur.com/iPGv82f.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="The Asylum – Pluto TV",
@@ -594,7 +594,7 @@ channels = [
         logo="https://i.imgur.com/S2jlaiJ.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Star Trek: The Original Series – Pluto TV",
@@ -602,7 +602,7 @@ channels = [
         logo="https://i.imgur.com/VnUrFqB.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Doctor Who – Pluto TV",
@@ -610,7 +610,7 @@ channels = [
         logo="https://i.imgur.com/oewPc3b.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Sci-Fi – Pluto TV",
@@ -618,7 +618,7 @@ channels = [
         logo="https://i.imgur.com/5B94N8g.png",
         group="VOD Italy",
         country_code="",
-        epg_id="PlutoTVSciFiItaly.it"
+        epg_id="PlutoTVSciFiItaly.it",
     ),
     ChannelData(
         name="Mutant X – Pluto TV",
@@ -626,7 +626,7 @@ channels = [
         logo="https://i.imgur.com/SptYKFI.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Andromeda – Pluto TV",
@@ -634,7 +634,7 @@ channels = [
         logo="https://i.imgur.com/2HFhwX9.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Sanctuary – Pluto TV",
@@ -642,7 +642,7 @@ channels = [
         logo="https://i.imgur.com/iYyijeJ.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Forensic Files – Pluto TV",
@@ -650,7 +650,7 @@ channels = [
         logo="https://i.imgur.com/hF5maH7.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Squadra Speciale Cobra 11 – Pluto TV",
@@ -658,7 +658,7 @@ channels = [
         logo="https://i.imgur.com/HtDoAF2.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Crime – Pluto TV",
@@ -666,7 +666,7 @@ channels = [
         logo="https://i.imgur.com/WRMGIdb.png",
         group="VOD Italy",
         country_code="",
-        epg_id="PlutoTVCrimeItaly.it"
+        epg_id="PlutoTVCrimeItaly.it",
     ),
     ChannelData(
         name="Mai dire sì – Pluto TV",
@@ -674,7 +674,7 @@ channels = [
         logo="https://i.imgur.com/yIMyhSN.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Consulenze illegali – Pluto TV",
@@ -682,7 +682,7 @@ channels = [
         logo="https://i.imgur.com/AoOiYJX.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Il banco dei pugni – Pluto TV",
@@ -690,7 +690,7 @@ channels = [
         logo="https://i.imgur.com/2Lj1sdf.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Affare Fatto – Pluto TV",
@@ -698,7 +698,7 @@ channels = [
         logo="https://i.imgur.com/BuGkGsL.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Catfish – Pluto TV",
@@ -706,7 +706,7 @@ channels = [
         logo="https://i.imgur.com/KajHKoP.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Il Testimone – Pluto TV",
@@ -714,7 +714,7 @@ channels = [
         logo="https://i.imgur.com/9NXL9kY.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Case Pazzesche – Pluto TV",
@@ -722,7 +722,7 @@ channels = [
         logo="https://i.imgur.com/v8IDWwX.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Geordie Shore – Pluto TV",
@@ -730,7 +730,7 @@ channels = [
         logo="https://i.imgur.com/y0fkHVi.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Ex on the beach – Pluto TV",
@@ -738,7 +738,7 @@ channels = [
         logo="https://i.imgur.com/IONkdyk.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="#Riccanza – Pluto TV",
@@ -746,7 +746,7 @@ channels = [
         logo="https://i.imgur.com/oBpcWEm.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="The Hills – Pluto TV",
@@ -754,7 +754,7 @@ channels = [
         logo="https://i.imgur.com/9SRojGx.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Reality – Pluto TV",
@@ -762,7 +762,7 @@ channels = [
         logo="https://i.imgur.com/tPEOeTk.png",
         group="VOD Italy",
         country_code="",
-        epg_id="PlutoTVRealityItaly.it"
+        epg_id="PlutoTVRealityItaly.it",
     ),
     ChannelData(
         name="Made – Pluto TV",
@@ -770,7 +770,7 @@ channels = [
         logo="https://i.imgur.com/dguQsJ7.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="16 anni e incinta – Pluto TV",
@@ -778,7 +778,7 @@ channels = [
         logo="https://i.imgur.com/4BHrbP7.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Teen Mom – Pluto TV",
@@ -786,7 +786,7 @@ channels = [
         logo="https://i.imgur.com/LdiTgeW.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Jersey Shore – Pluto TV",
@@ -794,7 +794,7 @@ channels = [
         logo="https://i.imgur.com/HIlmQEy.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Top Gear – Pluto TV",
@@ -802,7 +802,7 @@ channels = [
         logo="https://i.imgur.com/ZZo7DXQ.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Pimp My Ride – Pluto TV",
@@ -810,7 +810,7 @@ channels = [
         logo="https://i.imgur.com/GC2wj2K.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="World poker tour – Pluto TV",
@@ -818,7 +818,7 @@ channels = [
         logo="https://i.imgur.com/AF1ON8u.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="PFL MMA – Pluto TV",
@@ -826,7 +826,7 @@ channels = [
         logo="https://i.imgur.com/zScgLTv.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Robot Wars by MECH+ – Pluto TV",
@@ -834,7 +834,7 @@ channels = [
         logo="https://i.imgur.com/vGqha3k.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Ultimate Classic Wrestling – Pluto TV",
@@ -842,7 +842,7 @@ channels = [
         logo="https://i.imgur.com/QVN5qv3.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="The Boat Show – Pluto TV",
@@ -850,7 +850,7 @@ channels = [
         logo="https://i.imgur.com/aDcwRvj.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Unbeaten Sports – Pluto TV",
@@ -858,7 +858,7 @@ channels = [
         logo="https://i.imgur.com/UAiv612.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Sport – Pluto TV",
@@ -866,7 +866,7 @@ channels = [
         logo="https://i.imgur.com/o2psAYW.png",
         group="VOD Italy",
         country_code="",
-        epg_id="PlutoTVSportItaly.it"
+        epg_id="PlutoTVSportItaly.it",
     ),
     ChannelData(
         name="Ridiculousness – Pluto TV",
@@ -874,7 +874,7 @@ channels = [
         logo="https://i.imgur.com/Yyj3Dm6.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Scherzi e risate – Pluto TV",
@@ -882,7 +882,7 @@ channels = [
         logo="https://i.imgur.com/kPxGzPI.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Fail army – Pluto TV",
@@ -890,7 +890,7 @@ channels = [
         logo="https://i.imgur.com/SqRDd2U.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="People are awesome – Pluto TV",
@@ -898,7 +898,7 @@ channels = [
         logo="https://i.imgur.com/jn0OeWv.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="The pet collective – Pluto TV",
@@ -906,7 +906,7 @@ channels = [
         logo="https://i.imgur.com/034PrSz.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Just for laughs – Pluto TV",
@@ -914,7 +914,7 @@ channels = [
         logo="https://i.imgur.com/VvEz0XX.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="South Park – Pluto TV",
@@ -922,7 +922,7 @@ channels = [
         logo="https://i.imgur.com/06wIdRV.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Super! Spongebob – Pluto TV",
@@ -930,7 +930,7 @@ channels = [
         logo="https://i.imgur.com/vFiwODM.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Due Fantagenitori – Pluto TV",
@@ -938,7 +938,7 @@ channels = [
         logo="https://i.imgur.com/HOvLgGK.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Yu-Gi-Oh! – Pluto TV",
@@ -946,7 +946,7 @@ channels = [
         logo="https://i.imgur.com/rmzSC1C.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Anime – Pluto TV",
@@ -954,7 +954,7 @@ channels = [
         logo="https://i.imgur.com/rhVF0eC.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Avatar – Pluto TV",
@@ -962,7 +962,7 @@ channels = [
         logo="https://i.imgur.com/KDSStnJ.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Inazuma Eleven – Pluto TV",
@@ -970,7 +970,7 @@ channels = [
         logo="https://i.imgur.com/2u1ic6X.png",
         group="VOD Italy",
         country_code="",
-        epg_id="PlutoTVAnimeItaly.it"
+        epg_id="PlutoTVAnimeItaly.it",
     ),
     ChannelData(
         name="Super! Rugrats – Pluto TV",
@@ -978,7 +978,7 @@ channels = [
         logo="https://i.imgur.com/QqMQZte.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Teenage Mutant Ninja Turtles – Pluto TV",
@@ -986,7 +986,7 @@ channels = [
         logo="https://i.imgur.com/bAnyjH7.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Super! Icarly – Pluto TV",
@@ -994,7 +994,7 @@ channels = [
         logo="https://i.imgur.com/Mhl252U.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Super! Victorious – Pluto TV",
@@ -1002,7 +1002,7 @@ channels = [
         logo="https://i.imgur.com/ArXLm5R.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Super! Zoey 101 – Pluto TV",
@@ -1010,7 +1010,7 @@ channels = [
         logo="https://i.imgur.com/7FCQb1G.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Super! POP – Pluto TV",
@@ -1018,7 +1018,7 @@ channels = [
         logo="https://i.imgur.com/jlz31HP.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Super! Gaming – Pluto TV",
@@ -1026,7 +1026,7 @@ channels = [
         logo="https://i.imgur.com/UB7xHRQ.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Super! Girl Power – Pluto TV",
@@ -1034,7 +1034,7 @@ channels = [
         logo="https://i.imgur.com/lzgp9GM.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Super! Intervallo – Pluto TV",
@@ -1042,7 +1042,7 @@ channels = [
         logo="https://i.imgur.com/jl7ZvE5.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Super! Spyders – Pluto TV",
@@ -1050,7 +1050,7 @@ channels = [
         logo="https://i.imgur.com/n89yuZh.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Kids – Pluto TV",
@@ -1058,7 +1058,7 @@ channels = [
         logo="https://i.imgur.com/ybd7A0r.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Kids Ukraine – Pluto TV",
@@ -1066,7 +1066,7 @@ channels = [
         logo="https://i.imgur.com/MrIlypV.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Super! Star – Pluto TV",
@@ -1074,7 +1074,7 @@ channels = [
         logo="https://i.imgur.com/YLtqPkF.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Super! Risate – Pluto TV",
@@ -1082,7 +1082,7 @@ channels = [
         logo="https://i.imgur.com/ALCbqZt.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Super! Brothers and Sisters – Pluto TV",
@@ -1090,7 +1090,7 @@ channels = [
         logo="https://i.imgur.com/KSQvVye.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="VH1+ Music Legends – Pluto TV",
@@ -1098,7 +1098,7 @@ channels = [
         logo="https://i.imgur.com/kJ1MDVi.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="VH1+ Back to 90's – Pluto TV",
@@ -1106,7 +1106,7 @@ channels = [
         logo="https://i.imgur.com/vGgh3cs.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="VH1+ Rock! – Pluto TV",
@@ -1114,7 +1114,7 @@ channels = [
         logo="https://i.imgur.com/P1OCuFl.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="VH1+ Canzoni Italiane – Pluto TV",
@@ -1122,7 +1122,7 @@ channels = [
         logo="https://i.imgur.com/fpQBKP2.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="VH1+ Hip Hop & Rap – Pluto TV",
@@ -1130,7 +1130,7 @@ channels = [
         logo="https://i.imgur.com/k1zQpiO.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Deluxe Lounge HD – Pluto TV",
@@ -1138,7 +1138,7 @@ channels = [
         logo="https://i.imgur.com/mTXgaKl.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="K-Pop – Pluto TV",
@@ -1146,7 +1146,7 @@ channels = [
         logo="https://i.imgur.com/9Vp4rx2.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Fireplace – Pluto TV",
@@ -1154,7 +1154,7 @@ channels = [
         logo="https://i.imgur.com/csk1e76.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Euronews – Pluto TV",
@@ -1162,7 +1162,7 @@ channels = [
         logo="https://i.imgur.com/Zpf2ykM.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="CBS News – Pluto TV",
@@ -1170,7 +1170,7 @@ channels = [
         logo="https://i.imgur.com/ApsK6Eq.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Cucina – Pluto TV",
@@ -1178,7 +1178,7 @@ channels = [
         logo="https://i.imgur.com/KsOhaOn.png",
         group="VOD Italy",
         country_code="",
-        epg_id="PlutoTVCucinaItaly.it"
+        epg_id="PlutoTVCucinaItaly.it",
     ),
     ChannelData(
         name="Real life – Pluto TV",
@@ -1186,7 +1186,7 @@ channels = [
         logo="https://i.imgur.com/FpwqJYw.png",
         group="VOD Italy",
         country_code="",
-        epg_id="PlutoTVRealLifeItaly.it"
+        epg_id="PlutoTVRealLifeItaly.it",
     ),
     ChannelData(
         name="Naturescape – Pluto TV",
@@ -1194,7 +1194,7 @@ channels = [
         logo="https://i.imgur.com/CGB6qiV.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Natura – Pluto TV",
@@ -1202,7 +1202,7 @@ channels = [
         logo="https://i.imgur.com/Pc4gx12.png",
         group="VOD Italy",
         country_code="",
-        epg_id="PlutoTVNaturaItaly.it"
+        epg_id="PlutoTVNaturaItaly.it",
     ),
     ChannelData(
         name="Storia – Pluto TV",
@@ -1210,7 +1210,7 @@ channels = [
         logo="https://i.imgur.com/w5BYvsz.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Documentari – Pluto TV",
@@ -1218,7 +1218,7 @@ channels = [
         logo="https://i.imgur.com/0jYrODf.png",
         group="VOD Italy",
         country_code="",
-        epg_id="PlutoTVDocumentariItaly.it"
+        epg_id="PlutoTVDocumentariItaly.it",
     ),
     ChannelData(
         name="Viaggi – Pluto TV",
@@ -1226,7 +1226,7 @@ channels = [
         logo="https://i.imgur.com/3GJg0uy.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="House of Docs – Pluto TV",
@@ -1234,7 +1234,7 @@ channels = [
         logo="https://i.imgur.com/pFLQ18m.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Le vite degli altri – Pluto TV",
@@ -1242,6 +1242,6 @@ channels = [
         logo="https://i.imgur.com/nngMFi5.png",
         group="VOD Italy",
         country_code="",
-        epg_id=""
+        epg_id="",
     ),
 ]

@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/BB93NQP.png",
         group="News (AR)",
         country_code="",
-        epg_id="AlJazeeraChannel.qa"
+        epg_id="AlJazeeraChannel.qa",
     ),
     ChannelData(
         name="Al Arabiya العربية",
@@ -18,7 +18,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Al-Arabiya_new_logo.svg/640px-Al-Arabiya_new_logo.svg.png",
         group="News (AR)",
         country_code="",
-        epg_id="AlArabiya.ae"
+        epg_id="AlArabiya.ae",
     ),
     ChannelData(
         name="France 24 العربية Ⓨ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/61MSiq9.png",
         group="News (AR)",
         country_code="",
-        epg_id="France24Arabic.fr"
+        epg_id="France24Arabic.fr",
     ),
     ChannelData(
         name="DW العربية",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/A1xzjOI.png",
         group="News (AR)",
         country_code="",
-        epg_id="DWArabic.de"
+        epg_id="DWArabic.de",
     ),
     ChannelData(
         name="CGTN العربية",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/fMsJYzl.png",
         group="News (AR)",
         country_code="",
-        epg_id="CGTNArabic.cn"
+        epg_id="CGTNArabic.cn",
     ),
     ChannelData(
         name="Sky News العربية",
@@ -50,7 +50,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/thumb/5/57/Sky_News_logo.svg/512px-Sky_News_logo.svg.png",
         group="News (AR)",
         country_code="",
-        epg_id="SkyNewsArabia.ae"
+        epg_id="SkyNewsArabia.ae",
     ),
     ChannelData(
         name="RT العربية",
@@ -58,7 +58,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Russia-today-logo.svg/512px-Russia-today-logo.svg.png",
         group="News (AR)",
         country_code="",
-        epg_id="RTArabic.ru"
+        epg_id="RTArabic.ru",
     ),
     ChannelData(
         name="Sahara 24 صحراء",
@@ -66,6 +66,6 @@ channels = [
         logo="https://imgur.com/a/7szNpBp",
         group="News (AR)",
         country_code="",
-        epg_id="Sahara-24.mr"
+        epg_id="Sahara-24.mr",
     ),
 ]

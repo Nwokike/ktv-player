@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/ft2LuRl.jpg",
         group="Austria",
         country_code="AT",
-        epg_id="ORF1.at"
+        epg_id="ORF1.at",
     ),
     ChannelData(
         name="ORF 2 Ⓖ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/yPVDaXv.png",
         group="Austria",
         country_code="AT",
-        epg_id="ORF2.at"
+        epg_id="ORF2.at",
     ),
     ChannelData(
         name="ORF III Ⓖ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/6BuiUE7.png",
         group="Austria",
         country_code="AT",
-        epg_id="ORFIII.at"
+        epg_id="ORFIII.at",
     ),
     ChannelData(
         name="ORF Sport + Ⓖ",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/MVNZ4gf.png",
         group="Austria",
         country_code="AT",
-        epg_id="ORFSportPlus.at"
+        epg_id="ORFSportPlus.at",
     ),
     ChannelData(
         name="Servus TV Ⓖ",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/zDWhSxq.png",
         group="Austria",
         country_code="AT",
-        epg_id="ServusTVOsterreich.at"
+        epg_id="ServusTVOsterreich.at",
     ),
     ChannelData(
         name="oe24",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/8UTkcPn.png",
         group="Austria",
         country_code="AT",
-        epg_id="Oe24TV.at"
+        epg_id="Oe24TV.at",
     ),
     ChannelData(
         name="W24",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/PGb4wYw.png",
         group="Austria",
         country_code="AT",
-        epg_id="W24.at"
+        epg_id="W24.at",
     ),
     ChannelData(
         name="P3TV",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/1sPhZ57.png",
         group="Austria",
         country_code="AT",
-        epg_id="P3tv.at"
+        epg_id="P3tv.at",
     ),
     ChannelData(
         name="RTV",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/oD7GQxT.png",
         group="Austria",
         country_code="AT",
-        epg_id="RTV.at"
+        epg_id="RTV.at",
     ),
     ChannelData(
         name="RTS Ⓖ",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/Bhv7lvy.png",
         group="Austria",
         country_code="AT",
-        epg_id="TVTV.at"
+        epg_id="TVTV.at",
     ),
     ChannelData(
         name="Tirol TV Ⓖ",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/1E7Nflo.jpg",
         group="Austria",
         country_code="AT",
-        epg_id="TirolTV.at"
+        epg_id="TirolTV.at",
     ),
     ChannelData(
         name="R9",
@@ -98,6 +98,6 @@ channels = [
         logo="https://i.imgur.com/2fxVYsL.jpg",
         group="Austria",
         country_code="AT",
-        epg_id="R9.at"
+        epg_id="R9.at",
     ),
 ]

@@ -10,7 +10,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/BBC_One_logo_2021.svg/640px-BBC_One_logo_2021.svg.png",
         group="UK",
         country_code="GB",
-        epg_id="BBCOne.uk"
+        epg_id="BBCOne.uk",
     ),
     ChannelData(
         name="BBC Two Ⓖ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/BBC_Two_logo_2021.svg/640px-BBC_Two_logo_2021.svg.png",
         group="UK",
         country_code="GB",
-        epg_id="BBCTwo.uk"
+        epg_id="BBCTwo.uk",
     ),
     ChannelData(
         name="Channel 4 Ⓢ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/thumb/9/9b/Channel_4_%28On_Demand%29_2023.svg/569px-Channel_4_%28On_Demand%29_2023.svg.png",
         group="UK",
         country_code="GB",
-        epg_id="Channel4.uk"
+        epg_id="Channel4.uk",
     ),
     ChannelData(
         name="S4C Ⓖ",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/vrcbnBv.png",
         group="UK",
         country_code="GB",
-        epg_id="S4C.uk"
+        epg_id="S4C.uk",
     ),
     ChannelData(
         name="BBC Alba Ⓖ",
@@ -42,7 +42,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/BBC_Alba_2021.svg/640px-BBC_Alba_2021.svg.png",
         group="UK",
         country_code="GB",
-        epg_id="BBCAlba.uk"
+        epg_id="BBCAlba.uk",
     ),
     ChannelData(
         name="BBC Four Ⓖ",
@@ -50,7 +50,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/BBC_Four_logo_2021.svg/640px-BBC_Four_logo_2021.svg.png",
         group="UK",
         country_code="GB",
-        epg_id="BBCFour.uk"
+        epg_id="BBCFour.uk",
     ),
     ChannelData(
         name="BBC Scotland Ⓢ Ⓖ",
@@ -58,7 +58,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/BBC_Scotland_2021_%28channel%29.svg/640px-BBC_Scotland_2021_%28channel%29.svg.png",
         group="UK",
         country_code="GB",
-        epg_id="BBCScotland.uk"
+        epg_id="BBCScotland.uk",
     ),
     ChannelData(
         name="E4 Ⓢ",
@@ -66,7 +66,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/thumb/0/06/E4_logo_2018.svg/552px-E4_logo_2018.svg.png",
         group="UK",
         country_code="GB",
-        epg_id="E4.uk"
+        epg_id="E4.uk",
     ),
     ChannelData(
         name="Film4 Ⓢ",
@@ -74,7 +74,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/thumb/5/53/Film4_logo_2018.svg/805px-Film4_logo_2018.svg.png",
         group="UK",
         country_code="GB",
-        epg_id="Film4.uk"
+        epg_id="Film4.uk",
     ),
     ChannelData(
         name="QVC UK Ⓢ",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/6TWUVrh.png",
         group="UK",
         country_code="GB",
-        epg_id="QVCUK.uk"
+        epg_id="QVCUK.uk",
     ),
     ChannelData(
         name="TJC",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/fk5rEje.png",
         group="UK",
         country_code="GB",
-        epg_id="TJC.uk"
+        epg_id="TJC.uk",
     ),
     ChannelData(
         name="BBC Three Ⓖ",
@@ -98,7 +98,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/BBC_Three_2022.svg/640px-BBC_Three_2022.svg.png",
         group="UK",
         country_code="GB",
-        epg_id="BBCThree.uk"
+        epg_id="BBCThree.uk",
     ),
     ChannelData(
         name="GemsTV Ⓢ",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/IR2sTag.png",
         group="UK",
         country_code="GB",
-        epg_id="GemsTV.uk"
+        epg_id="GemsTV.uk",
     ),
     ChannelData(
         name="4seven Ⓢ",
@@ -114,7 +114,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/thumb/5/5e/4seven_logo_2018.svg/568px-4seven_logo_2018.svg.png",
         group="UK",
         country_code="GB",
-        epg_id="4seven.uk"
+        epg_id="4seven.uk",
     ),
     ChannelData(
         name="Ideal World",
@@ -122,7 +122,7 @@ channels = [
         logo="https://i.imgur.com/su6GH7i.png",
         group="UK",
         country_code="GB",
-        epg_id="IdealWorldTV.uk"
+        epg_id="IdealWorldTV.uk",
     ),
     ChannelData(
         name="Blaze Ⓖ",
@@ -130,7 +130,7 @@ channels = [
         logo="https://i.imgur.com/6UcPWP9.png",
         group="UK",
         country_code="GB",
-        epg_id="Blaze.uk"
+        epg_id="Blaze.uk",
     ),
     ChannelData(
         name="Jewellery Maker",
@@ -138,7 +138,7 @@ channels = [
         logo="https://i.imgur.com/O7SdkBh.png",
         group="UK",
         country_code="GB",
-        epg_id="JewelleryMaker.uk"
+        epg_id="JewelleryMaker.uk",
     ),
     ChannelData(
         name="Hobby Maker",
@@ -146,7 +146,7 @@ channels = [
         logo="https://i.imgur.com/VWHp5Tl.png",
         group="UK",
         country_code="GB",
-        epg_id="HobbyMaker.uk"
+        epg_id="HobbyMaker.uk",
     ),
     ChannelData(
         name="EarthXTV",
@@ -154,7 +154,7 @@ channels = [
         logo="https://i.imgur.com/AvJRFKf.png",
         group="UK",
         country_code="GB",
-        epg_id="EarthXUK.uk"
+        epg_id="EarthXUK.uk",
     ),
     ChannelData(
         name="PBS America",
@@ -162,7 +162,7 @@ channels = [
         logo="https://i.imgur.com/J4zE5z9.jpg",
         group="UK",
         country_code="GB",
-        epg_id="PBSAmerica.uk"
+        epg_id="PBSAmerica.uk",
     ),
     ChannelData(
         name="Create & Craft",
@@ -170,7 +170,7 @@ channels = [
         logo="https://i.imgur.com/n65sk4L.png",
         group="UK",
         country_code="GB",
-        epg_id="CreateandCraft.uk"
+        epg_id="CreateandCraft.uk",
     ),
     ChannelData(
         name="CBBC Ⓖ",
@@ -178,7 +178,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/CBBC_%282023%29.svg/640px-CBBC_%282023%29.svg.png",
         group="UK",
         country_code="GB",
-        epg_id="CBBC.uk"
+        epg_id="CBBC.uk",
     ),
     ChannelData(
         name="CBeebies Ⓖ",
@@ -186,7 +186,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/CBeebies_2023.svg/640px-CBeebies_2023.svg.png",
         group="UK",
         country_code="GB",
-        epg_id="CBeebies.uk"
+        epg_id="CBeebies.uk",
     ),
     ChannelData(
         name="BBC Parliament Ⓢ Ⓖ",
@@ -194,7 +194,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/BBC_Parliament_2022.svg/640px-BBC_Parliament_2022.svg.png",
         group="UK",
         country_code="GB",
-        epg_id="BBCParliament.uk"
+        epg_id="BBCParliament.uk",
     ),
     ChannelData(
         name="Sky News",
@@ -202,7 +202,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/thumb/5/57/Sky_News_logo.svg/1024px-Sky_News_logo.svg.png",
         group="UK",
         country_code="GB",
-        epg_id="SkyNews.uk"
+        epg_id="SkyNews.uk",
     ),
     ChannelData(
         name="GB News",
@@ -210,7 +210,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/thumb/3/35/GB_News_Logo.svg/640px-GB_News_Logo.svg.png",
         group="UK",
         country_code="GB",
-        epg_id="GBNews.uk"
+        epg_id="GBNews.uk",
     ),
     ChannelData(
         name="TalkTV",
@@ -218,7 +218,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/8/83/TalkTV_logo.png",
         group="UK",
         country_code="GB",
-        epg_id="TalkTV.uk"
+        epg_id="TalkTV.uk",
     ),
     ChannelData(
         name="Arise News",
@@ -226,7 +226,7 @@ channels = [
         logo="https://i.imgur.com/B5IXKIb.png",
         group="UK",
         country_code="GB",
-        epg_id="AriseNews.uk"
+        epg_id="AriseNews.uk",
     ),
     ChannelData(
         name="France 24",
@@ -234,7 +234,7 @@ channels = [
         logo="https://i.imgur.com/61MSiq9.png",
         group="UK",
         country_code="GB",
-        epg_id="France24English.fr"
+        epg_id="France24English.fr",
     ),
     ChannelData(
         name="Bloomberg TV",
@@ -242,7 +242,7 @@ channels = [
         logo="https://d2n0069hmnqmmx.cloudfront.net/epgdata/1.0/newchanlogos/512/512/skychb1074.png",
         group="UK",
         country_code="GB",
-        epg_id="BloombergTVEurope.uk"
+        epg_id="BloombergTVEurope.uk",
     ),
     ChannelData(
         name="NHK World Japan",
@@ -250,7 +250,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/NHK_World-Japan_TV.svg/512px-NHK_World-Japan_TV.svg.png",
         group="UK",
         country_code="GB",
-        epg_id="NHKWorldJapan.jp"
+        epg_id="NHKWorldJapan.jp",
     ),
     ChannelData(
         name="Arirang World",
@@ -258,7 +258,7 @@ channels = [
         logo="https://raw.githubusercontent.com/tv-logo/tv-logos/67cfa9368d2d135744732a3aed3baecb3fadcf13/countries/international/arirang-int.png",
         group="UK",
         country_code="GB",
-        epg_id="ArirangWorld.kr"
+        epg_id="ArirangWorld.kr",
     ),
     ChannelData(
         name="TRT World",
@@ -266,7 +266,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/TRT_World.svg/512px-TRT_World.svg.png",
         group="UK",
         country_code="GB",
-        epg_id="TRTWorld.tr"
+        epg_id="TRTWorld.tr",
     ),
     ChannelData(
         name="SportyStuff TV",
@@ -274,7 +274,7 @@ channels = [
         logo="https://i.imgur.com/uIgxHSY.png",
         group="UK",
         country_code="GB",
-        epg_id="SportyStuffTV.uk"
+        epg_id="SportyStuffTV.uk",
     ),
     ChannelData(
         name="4Music Ⓖ",
@@ -282,7 +282,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/thumb/4/49/4Music_logo_2018.svg/512px-4Music_logo_2018.svg.png",
         group="UK",
         country_code="GB",
-        epg_id="4Music.uk"
+        epg_id="4Music.uk",
     ),
     ChannelData(
         name="The Box Ⓖ",
@@ -290,7 +290,7 @@ channels = [
         logo="https://i.imgur.com/e1Cf4Li.png",
         group="UK",
         country_code="GB",
-        epg_id="TheBoxUK.uk"
+        epg_id="TheBoxUK.uk",
     ),
     ChannelData(
         name="KISS Ⓖ",
@@ -298,7 +298,7 @@ channels = [
         logo="https://i.imgur.com/47ZkVhO.png",
         group="UK",
         country_code="GB",
-        epg_id="KissTVUK.uk"
+        epg_id="KissTVUK.uk",
     ),
     ChannelData(
         name="Magic Ⓖ",
@@ -306,7 +306,7 @@ channels = [
         logo="https://i.imgur.com/e1Cf4Li.png",
         group="UK",
         country_code="GB",
-        epg_id="Magic.uk"
+        epg_id="Magic.uk",
     ),
     ChannelData(
         name="Kerrang!",
@@ -314,7 +314,7 @@ channels = [
         logo="https://i.imgur.com/3mwf8Uq.png",
         group="UK",
         country_code="GB",
-        epg_id="Kerrang.uk"
+        epg_id="Kerrang.uk",
     ),
     ChannelData(
         name="QVC Beauty Ⓢ",
@@ -322,7 +322,7 @@ channels = [
         logo="https://i.imgur.com/ZBHtqk1.png",
         group="UK",
         country_code="GB",
-        epg_id="QVCBeautyUK.uk"
+        epg_id="QVCBeautyUK.uk",
     ),
     ChannelData(
         name="QVC Extra Ⓢ",
@@ -330,7 +330,7 @@ channels = [
         logo="https://i.imgur.com/TIe5T9Z.png",
         group="UK",
         country_code="GB",
-        epg_id="QVCExtraUK.uk"
+        epg_id="QVCExtraUK.uk",
     ),
     ChannelData(
         name="QVC Style Ⓢ",
@@ -338,7 +338,7 @@ channels = [
         logo="https://i.imgur.com/6HZlLL3.png",
         group="UK",
         country_code="GB",
-        epg_id="QVCStyleUK.uk"
+        epg_id="QVCStyleUK.uk",
     ),
     ChannelData(
         name="Now 70s",
@@ -346,7 +346,7 @@ channels = [
         logo="https://i.imgur.com/qiCCX5X.png",
         group="UK",
         country_code="GB",
-        epg_id="Now70s.uk"
+        epg_id="Now70s.uk",
     ),
     ChannelData(
         name="Now 80s",
@@ -354,7 +354,7 @@ channels = [
         logo="https://i.imgur.com/8paz37m.png",
         group="UK",
         country_code="GB",
-        epg_id="Now80s.uk"
+        epg_id="Now80s.uk",
     ),
     ChannelData(
         name="Now Rock",
@@ -362,7 +362,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/8/89/NOW_Rock_logo.png",
         group="UK",
         country_code="GB",
-        epg_id="NowRock.uk"
+        epg_id="NowRock.uk",
     ),
     ChannelData(
         name="BBC World News Ⓢ",
@@ -370,7 +370,7 @@ channels = [
         logo="https://i.imgur.com/joD38lo.png",
         group="UK",
         country_code="GB",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="BBC Radio 1",
@@ -378,7 +378,7 @@ channels = [
         logo="https://experiencersinternational.github.io/tvsetup/tvg-ico/bbcrd1-epg.png",
         group="UK",
         country_code="GB",
-        epg_id="BBCRadio1.uk"
+        epg_id="BBCRadio1.uk",
     ),
     ChannelData(
         name="BBC Radio 2",
@@ -386,7 +386,7 @@ channels = [
         logo="https://experiencersinternational.github.io/tvsetup/tvg-ico/bbcrd2-epg.png",
         group="UK",
         country_code="GB",
-        epg_id="BBCRadio2.uk"
+        epg_id="BBCRadio2.uk",
     ),
     ChannelData(
         name="BBC Radio 3",
@@ -394,7 +394,7 @@ channels = [
         logo="https://experiencersinternational.github.io/tvsetup/tvg-ico/bbcrd3-epg.png",
         group="UK",
         country_code="GB",
-        epg_id="BBCRadio3.uk"
+        epg_id="BBCRadio3.uk",
     ),
     ChannelData(
         name="BBC Radio 4",
@@ -402,7 +402,7 @@ channels = [
         logo="https://experiencersinternational.github.io/tvsetup/tvg-ico/bbcrd4-epg.png",
         group="UK",
         country_code="GB",
-        epg_id="BBCRadio4FM.uk"
+        epg_id="BBCRadio4FM.uk",
     ),
     ChannelData(
         name="BBC Radio 5 Live",
@@ -410,7 +410,7 @@ channels = [
         logo="https://experiencersinternational.github.io/tvsetup/tvg-ico/bbcrd5l-epg.png",
         group="UK",
         country_code="GB",
-        epg_id="BBCRadio5Live.uk"
+        epg_id="BBCRadio5Live.uk",
     ),
     ChannelData(
         name="BBC Radio 6 Music",
@@ -418,7 +418,7 @@ channels = [
         logo="https://experiencersinternational.github.io/tvsetup/tvg-ico/bbcrd6-epg.png",
         group="UK",
         country_code="GB",
-        epg_id="BBCRadio6Music.uk"
+        epg_id="BBCRadio6Music.uk",
     ),
     ChannelData(
         name="BBC Radio 1Xtra",
@@ -426,7 +426,7 @@ channels = [
         logo="https://experiencersinternational.github.io/tvsetup/tvg-ico/bbcrd1x-epg.png",
         group="UK",
         country_code="GB",
-        epg_id="BBCRadio1Xtra.uk"
+        epg_id="BBCRadio1Xtra.uk",
     ),
     ChannelData(
         name="BBC Radio 4 Extra",
@@ -434,7 +434,7 @@ channels = [
         logo="https://experiencersinternational.github.io/tvsetup/tvg-ico/bbcrd4x-epg.png",
         group="UK",
         country_code="GB",
-        epg_id="BBCRadio4Extra.uk"
+        epg_id="BBCRadio4Extra.uk",
     ),
     ChannelData(
         name="BBC Radio 5 Sports Extra",
@@ -442,7 +442,7 @@ channels = [
         logo="https://experiencersinternational.github.io/tvsetup/tvg-ico/bbcrd5s-epg.png",
         group="UK",
         country_code="GB",
-        epg_id="BBCRadio5SportsExtra.uk"
+        epg_id="BBCRadio5SportsExtra.uk",
     ),
     ChannelData(
         name="BBC Asian Network",
@@ -450,7 +450,7 @@ channels = [
         logo="https://experiencersinternational.github.io/tvsetup/tvg-ico/bbcasiannet-epg.png",
         group="UK",
         country_code="GB",
-        epg_id="BBCRadioAsianNetwork.uk"
+        epg_id="BBCRadioAsianNetwork.uk",
     ),
     ChannelData(
         name="BBC World Service",
@@ -458,6 +458,6 @@ channels = [
         logo="https://experiencersinternational.github.io/tvsetup/tvg-ico/bbcws-epg.png",
         group="UK",
         country_code="GB",
-        epg_id="BBCRadioWorldService.uk"
+        epg_id="BBCRadioWorldService.uk",
     ),
 ]

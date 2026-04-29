@@ -10,7 +10,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/TN_todo_noticias_logo.svg/200px-TN_todo_noticias_logo.svg.png",
         group="Argentina",
         country_code="AR",
-        epg_id="TodoNoticias.ar"
+        epg_id="TodoNoticias.ar",
     ),
     ChannelData(
         name="Encuentro Ⓨ Ⓖ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/IyP2UIx.png",
         group="Argentina",
         country_code="AR",
-        epg_id="Encuentro.ar"
+        epg_id="Encuentro.ar",
     ),
     ChannelData(
         name="Pakapaka Ⓨ Ⓖ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/Q4zaCuM.png",
         group="Argentina",
         country_code="AR",
-        epg_id="Pakapaka.ar"
+        epg_id="Pakapaka.ar",
     ),
     ChannelData(
         name="Aunar",
@@ -34,7 +34,7 @@ channels = [
         logo="http://tvabierta.weebly.com/uploads/5/1/3/4/51344345/aunar.png",
         group="Argentina",
         country_code="AR",
-        epg_id="Aunar.ar"
+        epg_id="Aunar.ar",
     ),
     ChannelData(
         name="Cine.AR",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/RPLyrIC.png",
         group="Argentina",
         country_code="AR",
-        epg_id="CineAr.ar"
+        epg_id="CineAr.ar",
     ),
     ChannelData(
         name="Tec TV",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/EGCq1wc.png",
         group="Argentina",
         country_code="AR",
-        epg_id="TECTV.ar"
+        epg_id="TECTV.ar",
     ),
     ChannelData(
         name="Televisión Pública Ⓨ",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/4hYYpiu.png",
         group="Argentina",
         country_code="AR",
-        epg_id="TVPublica.ar"
+        epg_id="TVPublica.ar",
     ),
     ChannelData(
         name="DeporTV",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/iyYLNRt.png",
         group="Argentina",
         country_code="AR",
-        epg_id="DeporTV.ar"
+        epg_id="DeporTV.ar",
     ),
     ChannelData(
         name="Canal 26 Ⓨ",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/xDjOUuz.png",
         group="Argentina",
         country_code="AR",
-        epg_id="Canal26.ar"
+        epg_id="Canal26.ar",
     ),
     ChannelData(
         name="Crónica TV Ⓨ",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/k2Ku8Ib.png",
         group="Argentina",
         country_code="AR",
-        epg_id="CronicaTV.ar"
+        epg_id="CronicaTV.ar",
     ),
     ChannelData(
         name="IP Noticias Ⓨ",
@@ -90,7 +90,7 @@ channels = [
         logo="https://photos.live-tv-channels.org/tv-logo/ar-ip-noticias-6980-300x225.jpg",
         group="Argentina",
         country_code="AR",
-        epg_id="IPNoticias.ar"
+        epg_id="IPNoticias.ar",
     ),
     ChannelData(
         name="El Destape Ⓨ",
@@ -98,7 +98,7 @@ channels = [
         logo="https://yt3.ggpht.com/a-/AAuE7mAuXDwiY8UPwtAHrGXTXkAxBjdRqws2MJIN2A=s900-mo-c-c0xffffffff-rj-k-no",
         group="Argentina",
         country_code="AR",
-        epg_id="ElDestape.ar"
+        epg_id="ElDestape.ar",
     ),
     ChannelData(
         name="C5N Ⓨ",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/E3pamA5.png",
         group="Argentina",
         country_code="AR",
-        epg_id="C5N.ar"
+        epg_id="C5N.ar",
     ),
     ChannelData(
         name="LN+ Ⓨ",
@@ -114,7 +114,7 @@ channels = [
         logo="https://i.imgur.com/vJYzGt1.png",
         group="Argentina",
         country_code="AR",
-        epg_id="LaNacionPlus.ar"
+        epg_id="LaNacionPlus.ar",
     ),
     ChannelData(
         name="Canal E",
@@ -122,7 +122,7 @@ channels = [
         logo="https://i.ibb.co/y4pkxH3/Qtc8-M2-PG-400x400.jpg",
         group="Argentina",
         country_code="AR",
-        epg_id="CanalE.ar"
+        epg_id="CanalE.ar",
     ),
     ChannelData(
         name="Telemax",
@@ -130,7 +130,7 @@ channels = [
         logo="https://i.imgur.com/gfX0hdB.png",
         group="Argentina",
         country_code="AR",
-        epg_id="Telemax.ar"
+        epg_id="Telemax.ar",
     ),
     ChannelData(
         name="Net TV",
@@ -138,7 +138,7 @@ channels = [
         logo="https://i.imgur.com/EWmshtx.png",
         group="Argentina",
         country_code="AR",
-        epg_id="NETTV.ar"
+        epg_id="NETTV.ar",
     ),
     ChannelData(
         name="TV Universidad",
@@ -146,7 +146,7 @@ channels = [
         logo="https://i.imgur.com/tvLHiAT.png",
         group="Argentina",
         country_code="AR",
-        epg_id="TVUniversidad.ar"
+        epg_id="TVUniversidad.ar",
     ),
     ChannelData(
         name="Barricada TV",
@@ -154,7 +154,7 @@ channels = [
         logo="https://www.barricadatv.org/?p=23082",
         group="Argentina",
         country_code="AR",
-        epg_id="BarricadaTV.ar"
+        epg_id="BarricadaTV.ar",
     ),
     ChannelData(
         name="Urbana Tevé",
@@ -162,7 +162,7 @@ channels = [
         logo="https://yt3.ggpht.com/ytc/AKedOLQLeFMWMeoumi-o24ohLPXSEdNL5-oJ9W5oP5KnnA=s900-c-k-c0x00ffffff-no-rj",
         group="Argentina",
         country_code="AR",
-        epg_id="UrbanaTeve.ar"
+        epg_id="UrbanaTeve.ar",
     ),
     ChannelData(
         name="Comarca TV",
@@ -170,7 +170,7 @@ channels = [
         logo="http://directostv.teleame.com/wp-content/uploads/2020/10/Comarca-TV-en-vivo-Online.png",
         group="Argentina",
         country_code="AR",
-        epg_id="ComarcaTV.ar"
+        epg_id="ComarcaTV.ar",
     ),
     ChannelData(
         name="El Trece",
@@ -178,7 +178,7 @@ channels = [
         logo="https://i.imgur.com/ZK7AQFg.png",
         group="Argentina",
         country_code="AR",
-        epg_id="ElTrece.ar"
+        epg_id="ElTrece.ar",
     ),
     ChannelData(
         name="El Nueve",
@@ -186,7 +186,7 @@ channels = [
         logo="https://i.imgur.com/EtcVSm4.png",
         group="Argentina",
         country_code="AR",
-        epg_id="ElNueve.ar"
+        epg_id="ElNueve.ar",
     ),
     ChannelData(
         name="Telefe Ⓨ",
@@ -194,7 +194,7 @@ channels = [
         logo="https://i.imgur.com/wrZfMXn.png",
         group="Argentina",
         country_code="AR",
-        epg_id="Telefe.ar"
+        epg_id="Telefe.ar",
     ),
     ChannelData(
         name="América Ⓨ",
@@ -202,7 +202,7 @@ channels = [
         logo="https://i.imgur.com/Jt7dOQm.png",
         group="Argentina",
         country_code="AR",
-        epg_id="AmericaTV.ar"
+        epg_id="AmericaTV.ar",
     ),
     ChannelData(
         name="A24 Ⓨ",
@@ -210,6 +210,6 @@ channels = [
         logo="https://i.imgur.com/OdhF7ym.png",
         group="Argentina",
         country_code="AR",
-        epg_id="A24.ar"
+        epg_id="A24.ar",
     ),
 ]

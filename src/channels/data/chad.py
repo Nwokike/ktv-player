@@ -10,7 +10,7 @@ channels = [
         logo="https://www.lyngsat.com/logo/tv/tt/tchad-24-td.png",
         group="Chad",
         country_code="TD",
-        epg_id="Tchad24.td"
+        epg_id="Tchad24.td",
     ),
     ChannelData(
         name="Télé Tchad Ⓢ",
@@ -18,6 +18,6 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/fr/b/b6/Logo_T%C3%A9l%C3%A9_Tchad.png",
         group="Chad",
         country_code="TD",
-        epg_id="TeleTchad.td"
+        epg_id="TeleTchad.td",
     ),
 ]

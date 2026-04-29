@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/S1pKHSR.png",
         group="Serbia",
         country_code="RS",
-        epg_id="RTS1.rs"
+        epg_id="RTS1.rs",
     ),
     ChannelData(
         name="RTS 2",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/jltAf5h.png",
         group="Serbia",
         country_code="RS",
-        epg_id="RTS2.rs"
+        epg_id="RTS2.rs",
     ),
     ChannelData(
         name="Red TV",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/cpN7NrL.png",
         group="Serbia",
         country_code="RS",
-        epg_id="RedTV.rs"
+        epg_id="RedTV.rs",
     ),
     ChannelData(
         name="Kurir TV",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/HBPnUD5.png",
         group="Serbia",
         country_code="RS",
-        epg_id="KurirTV.rs"
+        epg_id="KurirTV.rs",
     ),
     ChannelData(
         name="Informer TV",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/9wdEHRf.png",
         group="Serbia",
         country_code="RS",
-        epg_id="InformerTV.rs"
+        epg_id="InformerTV.rs",
     ),
     ChannelData(
         name="RTV 1",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/CG44YT3.png",
         group="Serbia",
         country_code="RS",
-        epg_id="RTV1.rs"
+        epg_id="RTV1.rs",
     ),
     ChannelData(
         name="RTV 2",
@@ -58,6 +58,6 @@ channels = [
         logo="https://i.imgur.com/skpr66t.png",
         group="Serbia",
         country_code="RS",
-        epg_id="RTV2.rs"
+        epg_id="RTV2.rs",
     ),
 ]

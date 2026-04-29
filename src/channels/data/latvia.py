@@ -10,7 +10,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/lv/thumb/d/db/ReTV_Logo_2022.svg/320px-ReTV_Logo_2022.svg.png",
         group="Latvia",
         country_code="LV",
-        epg_id="ReTV.lv"
+        epg_id="ReTV.lv",
     ),
     ChannelData(
         name="TV Jūrmala",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/tQHkHD0.png",
         group="Latvia",
         country_code="LV",
-        epg_id="TVJurmala.lv"
+        epg_id="TVJurmala.lv",
     ),
     ChannelData(
         name="Vidusdaugavas Televīzija",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/L5U3PQR.png",
         group="Latvia",
         country_code="LV",
-        epg_id="VidusdaugavasTelevizija.lv"
+        epg_id="VidusdaugavasTelevizija.lv",
     ),
     ChannelData(
         name="LTV1",
@@ -34,7 +34,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/LTV1_%282022%29.svg/768px-LTV1_%282022%29.svg.png",
         group="Latvia",
         country_code="LV",
-        epg_id="LTV1.lv"
+        epg_id="LTV1.lv",
     ),
     ChannelData(
         name="LTV7 Ⓖ",
@@ -42,6 +42,6 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/LTV7_Logo_2021.svg/768px-LTV7_Logo_2021.svg.png",
         group="Latvia",
         country_code="LV",
-        epg_id="LTV7.lv"
+        epg_id="LTV7.lv",
     ),
 ]

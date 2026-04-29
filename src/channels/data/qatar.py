@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/N5RB4sp.png",
         group="Qatar",
         country_code="QA",
-        epg_id="QatarTelevision.qa"
+        epg_id="QatarTelevision.qa",
     ),
     ChannelData(
         name="Qatar Television 2",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/iWJxDUm.png",
         group="Qatar",
         country_code="QA",
-        epg_id="QatarTelevision2.qa"
+        epg_id="QatarTelevision2.qa",
     ),
     ChannelData(
         name="Al Rayyan",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/Ts3RjTV.png",
         group="Qatar",
         country_code="QA",
-        epg_id="AlRayyanTV.qa"
+        epg_id="AlRayyanTV.qa",
     ),
     ChannelData(
         name="Al Rayyan Old TV",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/4qB5iN0.png",
         group="Qatar",
         country_code="QA",
-        epg_id="AlRayyanOldTV.qa"
+        epg_id="AlRayyanOldTV.qa",
     ),
     ChannelData(
         name="Al Jazeera Mubasher",
@@ -42,7 +42,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/9/90/Al_Jazeera_Mubasher_logo.png",
         group="Qatar",
         country_code="QA",
-        epg_id="AlJazeeraMubasher.qa"
+        epg_id="AlJazeeraMubasher.qa",
     ),
     ChannelData(
         name="Alkass One",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/10mmlha.png",
         group="Qatar",
         country_code="QA",
-        epg_id="AlkassOne.qa"
+        epg_id="AlkassOne.qa",
     ),
     ChannelData(
         name="Alkass Two",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/8w61kFX.png",
         group="Qatar",
         country_code="QA",
-        epg_id="AlkassTwo.qa"
+        epg_id="AlkassTwo.qa",
     ),
     ChannelData(
         name="Alkass Three",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/d57BdFh.png",
         group="Qatar",
         country_code="QA",
-        epg_id="AlkassThree.qa"
+        epg_id="AlkassThree.qa",
     ),
     ChannelData(
         name="Alkass Four",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/iDL65Wu.png",
         group="Qatar",
         country_code="QA",
-        epg_id="AlkassFour.qa"
+        epg_id="AlkassFour.qa",
     ),
     ChannelData(
         name="Al Araby TV",
@@ -82,6 +82,6 @@ channels = [
         logo="https://i.imgur.com/YMqWEe4.png",
         group="Qatar",
         country_code="QA",
-        epg_id="AlkassFour.qa"
+        epg_id="AlkassFour.qa",
     ),
 ]

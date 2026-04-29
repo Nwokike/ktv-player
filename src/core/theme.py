@@ -1,5 +1,6 @@
 import flet as ft
 
+
 class AppColors:
     # Branding
     PRIMARY = "#7C4DFF"
@@ -8,14 +9,14 @@ class AppColors:
     SUCCESS = "#4CAF50"
     WARNING = "#F44336"
     ERROR = "#FF5252"
-    
+
     # Dark Mode
     DARK_BG = "#0F111A"
     DARK_SURFACE = "#1A1D2D"
     DARK_SURFACE_VARIANT = "#1A1A1A"
     DARK_TEXT = "#FFFFFF"
     DARK_TEXT_DIM = "#8E94A5"
-    
+
     # Light Mode
     LIGHT_BG = "#F5F7FA"
     LIGHT_SURFACE = "#FFFFFF"
@@ -38,11 +39,14 @@ class AppColors:
 
     @staticmethod
     def get_glass_bg(page: ft.Page):
-        return ft.Colors.with_opacity(0.1, ft.Colors.WHITE if page.theme_mode == ft.ThemeMode.DARK else ft.Colors.BLACK)
+        return ft.Colors.with_opacity(
+            0.1, ft.Colors.WHITE if page.theme_mode == ft.ThemeMode.DARK else ft.Colors.BLACK
+        )
 
     @staticmethod
     def get_shimmer_base(page: ft.Page):
         return "#1E2132" if page.theme_mode == ft.ThemeMode.DARK else "#E2E8F0"
+
 
 class AppTheme:
     @staticmethod
@@ -78,4 +82,3 @@ class AppTheme:
             ),
             visual_density=ft.VisualDensity.COMFORTABLE,
         )
-

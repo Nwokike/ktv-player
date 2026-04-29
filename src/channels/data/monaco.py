@@ -10,7 +10,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/TVMonaco_2023.svg/320px-TVMonaco_2023.svg.png",
         group="Monaco",
         country_code="MC",
-        epg_id="TVMonaco.mc"
+        epg_id="TVMonaco.mc",
     ),
     ChannelData(
         name="MonacoInfo",
@@ -18,6 +18,6 @@ channels = [
         logo="https://www.lyngsat.com/logo/tv/mm/monaco_info.png",
         group="Monaco",
         country_code="MC",
-        epg_id="MonacoInfo.mc"
+        epg_id="MonacoInfo.mc",
     ),
 ]

@@ -10,7 +10,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/1/1f/HRT1-logo.png",
         group="Croatia",
         country_code="HR",
-        epg_id="HRT1.hr"
+        epg_id="HRT1.hr",
     ),
     ChannelData(
         name="HRT 2",
@@ -18,7 +18,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/d/d0/Htv2-logo.png",
         group="Croatia",
         country_code="HR",
-        epg_id="HRT2.hr"
+        epg_id="HRT2.hr",
     ),
     ChannelData(
         name="RTL",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/zAjr6pO.png",
         group="Croatia",
         country_code="HR",
-        epg_id="RTLCroatia.hr"
+        epg_id="RTLCroatia.hr",
     ),
     ChannelData(
         name="HRT 3",
@@ -34,7 +34,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/9/96/HRT3_Logo_aktuell.png",
         group="Croatia",
         country_code="HR",
-        epg_id="HRT3.hr"
+        epg_id="HRT3.hr",
     ),
     ChannelData(
         name="RTL 2",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/dQLaylJ.png",
         group="Croatia",
         country_code="HR",
-        epg_id="RTL2Croatia.hr"
+        epg_id="RTL2Croatia.hr",
     ),
     ChannelData(
         name="Sportska televizija Ⓖ",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/xdxjcVh.png",
         group="Croatia",
         country_code="HR",
-        epg_id="SportskaTV.hr"
+        epg_id="SportskaTV.hr",
     ),
     ChannelData(
         name="RTL Kockica",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/BiSVmRa.png",
         group="Croatia",
         country_code="HR",
-        epg_id="RTLKockica.hr"
+        epg_id="RTLKockica.hr",
     ),
     ChannelData(
         name="CMC TV",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/Fh2vawT.png",
         group="Croatia",
         country_code="HR",
-        epg_id="CMCTV.hr"
+        epg_id="CMCTV.hr",
     ),
     ChannelData(
         name="Plava Vinkovačka",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/WJJNtQ3.jpg",
         group="Croatia",
         country_code="HR",
-        epg_id="PlavaVinkovacka.hr"
+        epg_id="PlavaVinkovacka.hr",
     ),
     ChannelData(
         name="Televizija Slavonije i Baranje (STV)",
@@ -82,7 +82,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/hr/0/04/STV.PNG",
         group="Croatia",
         country_code="HR",
-        epg_id="STV.hr"
+        epg_id="STV.hr",
     ),
     ChannelData(
         name="Osječka televizija (OSTV) Ⓢ",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/o9JgEyG.png",
         group="Croatia",
         country_code="HR",
-        epg_id="OSTV.hr"
+        epg_id="OSTV.hr",
     ),
     ChannelData(
         name="TV Nova",
@@ -98,7 +98,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/hr/c/c8/TVnova-logo.png",
         group="Croatia",
         country_code="HR",
-        epg_id="TVNova.hr"
+        epg_id="TVNova.hr",
     ),
     ChannelData(
         name="TV Jadran",
@@ -106,7 +106,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/hr/9/9a/Tv_jadran_logo.png",
         group="Croatia",
         country_code="HR",
-        epg_id="TVJadran.hr"
+        epg_id="TVJadran.hr",
     ),
     ChannelData(
         name="Libertas TV",
@@ -114,7 +114,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/hr/8/8a/LibertasTV.png",
         group="Croatia",
         country_code="HR",
-        epg_id="LibertasTV.hr"
+        epg_id="LibertasTV.hr",
     ),
     ChannelData(
         name="Trend TV",
@@ -122,7 +122,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/hr/2/22/TrendTV.jpg",
         group="Croatia",
         country_code="HR",
-        epg_id="TrendTV.hr"
+        epg_id="TrendTV.hr",
     ),
     ChannelData(
         name="Televizija Zapad",
@@ -130,7 +130,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/hr/9/97/TVZ-2018.png",
         group="Croatia",
         country_code="HR",
-        epg_id="TVZapad.hr"
+        epg_id="TVZapad.hr",
     ),
     ChannelData(
         name="Al Jazeera Balkans",
@@ -138,6 +138,6 @@ channels = [
         logo="https://i.imgur.com/Z1FB6wl.png",
         group="Croatia",
         country_code="HR",
-        epg_id="AlJazeeraBalkans.ba"
+        epg_id="AlJazeeraBalkans.ba",
     ),
 ]

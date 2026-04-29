@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/7yzunBK.png",
         group="Kenya",
         country_code="KE",
-        epg_id="KTNNews.ke"
+        epg_id="KTNNews.ke",
     ),
     ChannelData(
         name="Citizen TV",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/DjDaD7h.png",
         group="Kenya",
         country_code="KE",
-        epg_id="CitizenTV.ke"
+        epg_id="CitizenTV.ke",
     ),
     ChannelData(
         name="NTV Kenya",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/OpoLjfv",
         group="Kenya",
         country_code="KE",
-        epg_id="NTV.ke"
+        epg_id="NTV.ke",
     ),
     ChannelData(
         name="KTN Home",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/7yzunBK.png",
         group="Kenya",
         country_code="KE",
-        epg_id="KTNHome.ke"
+        epg_id="KTNHome.ke",
     ),
     ChannelData(
         name="K24 TV",
@@ -42,6 +42,6 @@ channels = [
         logo="https://i.imgur.com/ce2P9Y4",
         group="Kenya",
         country_code="KE",
-        epg_id="K24.ke"
+        epg_id="K24.ke",
     ),
 ]

@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/kf818kM.png",
         group="Hong Kong",
         country_code="HK",
-        epg_id="RTHKTV31.hk"
+        epg_id="RTHKTV31.hk",
     ),
     ChannelData(
         name="RTHK TV 32",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/MXLuUoU.png",
         group="Hong Kong",
         country_code="HK",
-        epg_id="RTHKTV32.hk"
+        epg_id="RTHKTV32.hk",
     ),
     ChannelData(
         name="HOY TV Ⓖ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/NfVZPTT.png",
         group="Hong Kong",
         country_code="HK",
-        epg_id="HKIBC.hk"
+        epg_id="HKIBC.hk",
     ),
     ChannelData(
         name="TVB News Channel",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/Gwij0Fj.png",
         group="Hong Kong",
         country_code="HK",
-        epg_id="TVBNewsChannel.hk"
+        epg_id="TVBNewsChannel.hk",
     ),
     ChannelData(
         name="TVB Finance (Sports & Information Channel)",
@@ -42,6 +42,6 @@ channels = [
         logo="https://i.imgur.com/Fkkp7x7.png",
         group="Hong Kong",
         country_code="HK",
-        epg_id="TVBFinanceSportsInformationChannel.hk"
+        epg_id="TVBFinanceSportsInformationChannel.hk",
     ),
 ]

@@ -10,7 +10,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/e/eb/AghapyTV.jpg",
         group="Egypt",
         country_code="EG",
-        epg_id="AghapyTV.eg"
+        epg_id="AghapyTV.eg",
     ),
     ChannelData(
         name="Al Ghad Plus",
@@ -18,7 +18,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/0/06/AlGhad_TV.png",
         group="Egypt",
         country_code="EG",
-        epg_id="AlGhadPlus.eg"
+        epg_id="AlGhadPlus.eg",
     ),
     ChannelData(
         name="Al Ghad TV",
@@ -26,7 +26,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/0/06/AlGhad_TV.png",
         group="Egypt",
         country_code="EG",
-        epg_id="AlGhadTV.eg"
+        epg_id="AlGhadTV.eg",
     ),
     ChannelData(
         name="Al Qahera News",
@@ -34,7 +34,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/ar/b/b0/%D9%82%D9%86%D8%A7%D8%A9_%D8%A7%D9%84%D9%82%D8%A7%D9%87%D8%B1%D8%A9_%D8%A7%D9%84%D8%A5%D8%AE%D8%A8%D8%A7%D8%B1%D9%8A%D8%A9.png",
         group="Egypt",
         country_code="EG",
-        epg_id="AlQaheraNews.eg"
+        epg_id="AlQaheraNews.eg",
     ),
     ChannelData(
         name="Alhayat TV",
@@ -42,7 +42,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/8/8c/Al-Hayat_Media_Center_Logo_%28variant_2%29.svg",
         group="Egypt",
         country_code="EG",
-        epg_id="AlhayatTV.eg"
+        epg_id="AlhayatTV.eg",
     ),
     ChannelData(
         name="Coptic TV",
@@ -50,7 +50,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/4/4c/Coptic_news.jpg",
         group="Egypt",
         country_code="EG",
-        epg_id="CopticTV.eg"
+        epg_id="CopticTV.eg",
     ),
     ChannelData(
         name="Huda TV",
@@ -58,7 +58,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/5/58/Logo_huda_%D8%AD%D8%AC%D9%85_%D9%83%D8%A8%D9%8A%D8%B1.gif",
         group="Egypt",
         country_code="EG",
-        epg_id="HudaTV.eg"
+        epg_id="HudaTV.eg",
     ),
     ChannelData(
         name="Koogi TV",
@@ -66,7 +66,7 @@ channels = [
         logo="",
         group="Egypt",
         country_code="EG",
-        epg_id="KoogiTV.eg"
+        epg_id="KoogiTV.eg",
     ),
     ChannelData(
         name="MBC Masr 1",
@@ -74,7 +74,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/7/7c/MBC_Masr_Logo.png",
         group="Egypt",
         country_code="EG",
-        epg_id="MBCMasr1.eg"
+        epg_id="MBCMasr1.eg",
     ),
     ChannelData(
         name="MBC Masr 2",
@@ -82,7 +82,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/5/53/MBC_Masr_2_Logo.svg",
         group="Egypt",
         country_code="EG",
-        epg_id="MBCMasr2.eg"
+        epg_id="MBCMasr2.eg",
     ),
     ChannelData(
         name="Rotana Cinema",
@@ -90,7 +90,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/9/92/Rotana_Cinema_Egy.png",
         group="Egypt",
         country_code="EG",
-        epg_id="RotanaCinema.eg"
+        epg_id="RotanaCinema.eg",
     ),
     ChannelData(
         name="Watan TV",
@@ -98,6 +98,6 @@ channels = [
         logo="",
         group="Egypt",
         country_code="EG",
-        epg_id="WatanTV.eg"
+        epg_id="WatanTV.eg",
     ),
 ]

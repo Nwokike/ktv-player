@@ -14,17 +14,20 @@ from views.dashboard import build_dashboard_view
 from views.player_view import build_player_view
 from views.onboarding import build_onboarding_view
 
+
 async def main(page: ft.Page):
     page.title = "KTV Player"
     page.favicon = "icon.png"
-    
+
     # GLOBAL ERROR HANDLER: Prevents the "Red Screen of Death" from crashing the app
     def global_error_handler(e):
         print(f"Caught Flet Engine Error: {e.data}")
-        page.snack_bar = ft.SnackBar(ft.Text("Stream unavailable or network timeout."), bgcolor=AppColors.WARNING)
+        page.snack_bar = ft.SnackBar(
+            ft.Text("Stream unavailable or network timeout."), bgcolor=AppColors.WARNING
+        )
         page.snack_bar.open = True
         page.update()
-        
+
     page.on_error = global_error_handler
 
     # Typography and Theme
@@ -39,7 +42,7 @@ async def main(page: ft.Page):
     state.theme_mode = page.theme_mode
     page.padding = 0
     page.spacing = 0
-    
+
     # Initialize Services
     ad_service = AdService(page)
     # Preload the first interstitial ad in the background instantly
@@ -47,7 +50,7 @@ async def main(page: ft.Page):
 
     lifecycle_manager = LifecycleManager(page)
     await db_manager.init_db()
-    
+
     # Load settings from DB
     state.user_country = await db_manager.get_setting("user_country", "")
     state.has_accepted_terms = await db_manager.get_setting("has_accepted_terms", "false") == "true"
@@ -61,7 +64,7 @@ async def main(page: ft.Page):
         state.add_to_history(url)
         # Use urlsafe base64 to avoid issues with deep-link parameters
         encoded_url = base64.urlsafe_b64encode(url.encode()).decode()
-        
+
         # TRIGGER PRE-ROLL INTERSTITIAL AD
         await ad_service.show_interstitial()
 
@@ -74,11 +77,11 @@ async def main(page: ft.Page):
             page.refresh_dashboard()
         else:
             page.update()
-            
+
         all_channels = await iptv_service.load_all_sources()
         state.channels = all_channels
         state.is_loading = False
-        
+
         # TRIGGER: Tell Dashboard to hide spinner and load the grids
         if hasattr(page, "refresh_dashboard"):
             page.refresh_dashboard()
@@ -95,33 +98,39 @@ async def main(page: ft.Page):
     async def route_change(e: ft.RouteChangeEvent | None = None):
         route = page.route
         parsed_url = urllib.parse.urlparse(route)
-        
+
         # Only clear stack for root-level navigations
         if parsed_url.path in ["/", "/dashboard", "/onboarding"]:
             page.views.clear()
-        
+
         if parsed_url.path == "/":
             page.views.append(build_splash_view())
             page.run_task(start_splash_timer)
-        
+
         elif parsed_url.path == "/onboarding":
-            page.views.append(build_onboarding_view(on_complete=lambda: page.run_task(navigate, "/dashboard")))
-        
+            page.views.append(
+                build_onboarding_view(on_complete=lambda: page.run_task(navigate, "/dashboard"))
+            )
+
         elif parsed_url.path == "/dashboard":
             page.views.append(build_dashboard_view(page_obj=page, on_play=play_stream))
             if not state.channels:
                 page.run_task(load_channels)
-        
+
         elif parsed_url.path == "/play":
             params = urllib.parse.parse_qs(parsed_url.query)
             encoded_url = params.get("url", [None])[0]
             if encoded_url:
                 try:
                     # Dynamically pad the Base64 string to prevent padding errors on deep links
-                    padding = '=' * (-len(encoded_url) % 4)
+                    padding = "=" * (-len(encoded_url) % 4)
                     padded_url = encoded_url + padding
                     url = base64.urlsafe_b64decode(padded_url).decode()
-                    page.views.append(build_player_view(url=url, on_back=lambda: page.run_task(navigate, "/dashboard")))
+                    page.views.append(
+                        build_player_view(
+                            url=url, on_back=lambda: page.run_task(navigate, "/dashboard")
+                        )
+                    )
                 except Exception as ex:
                     print(f"Deep link decode error: {ex}")
                     page.run_task(navigate, "/dashboard")
@@ -132,7 +141,7 @@ async def main(page: ft.Page):
 
     # FIX: Changed view_pop to an async function to accommodate the ad trigger
     async def view_pop(e: ft.ViewPopEvent):
-        # FIX: The "Ghost Audio" memory leak. 
+        # FIX: The "Ghost Audio" memory leak.
         # Before we pop the player view, we force the video player to pause so it stops consuming data in the background.
         if len(page.views) > 1:
             top_view = page.views[-1]
@@ -143,18 +152,19 @@ async def main(page: ft.Page):
                             control.pause()
                         except Exception:
                             pass
-                
+
                 # TRIGGER POST-ROLL INTERSTITIAL AD
                 await ad_service.show_interstitial()
-            
+
             page.views.pop()
             previous_view = page.views[-1]
             await navigate(previous_view.route)
 
     page.on_route_change = route_change
     page.on_view_pop = view_pop
-    
+
     await route_change()
+
 
 if __name__ == "__main__":
     ft.run(main, assets_dir="assets")

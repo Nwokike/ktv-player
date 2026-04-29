@@ -10,6 +10,6 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/e/e6/Al_Jazeera_Doc.png",
         group="Documentaries (AR)",
         country_code="",
-        epg_id="AlJazeeraDocumentary.qa"
+        epg_id="AlJazeeraDocumentary.qa",
     ),
 ]

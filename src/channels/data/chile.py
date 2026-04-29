@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/2VL4Pts.png",
         group="Chile",
         country_code="CL",
-        epg_id="UCVTV.cl"
+        epg_id="UCVTV.cl",
     ),
     ChannelData(
         name="TVN Ⓖ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/WoN1dai.png",
         group="Chile",
         country_code="CL",
-        epg_id="TVN.cl"
+        epg_id="TVN.cl",
     ),
     ChannelData(
         name="24 horas",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/0rF6Kub.png",
         group="Chile",
         country_code="CL",
-        epg_id="24Horas.cl"
+        epg_id="24Horas.cl",
     ),
     ChannelData(
         name="NTV Ⓖ",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/pt2Kj1A.png",
         group="Chile",
         country_code="CL",
-        epg_id="NTV.cl"
+        epg_id="NTV.cl",
     ),
     ChannelData(
         name="TV Chile Ⓖ",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/yCL888l.png",
         group="Chile",
         country_code="CL",
-        epg_id="TVChile.cl"
+        epg_id="TVChile.cl",
     ),
     ChannelData(
         name="Canal 13",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/JIo1HBs.png",
         group="Chile",
         country_code="CL",
-        epg_id="Canal13.cl"
+        epg_id="Canal13.cl",
     ),
     ChannelData(
         name="TV+ Ⓖ",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/NtuZIEJ.png",
         group="Chile",
         country_code="CL",
-        epg_id="TVPlus.cl"
+        epg_id="TVPlus.cl",
     ),
     ChannelData(
         name="Chilevisión Ⓖ",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/2Pu8yXf.png",
         group="Chile",
         country_code="CL",
-        epg_id="ChileVision.cl"
+        epg_id="ChileVision.cl",
     ),
     ChannelData(
         name="UChile TV",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/mF2W8Uh.png",
         group="Chile",
         country_code="CL",
-        epg_id="UChileTV.cl"
+        epg_id="UChileTV.cl",
     ),
     ChannelData(
         name="T13 en vivo",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/3CEijac.png",
         group="Chile",
         country_code="CL",
-        epg_id="T13.cl"
+        epg_id="T13.cl",
     ),
     ChannelData(
         name="13 Entretención",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/1vTno0m.png",
         group="Chile",
         country_code="CL",
-        epg_id="13E.cl"
+        epg_id="13E.cl",
     ),
     ChannelData(
         name="13 Cultura",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/49QkKWv.png",
         group="Chile",
         country_code="CL",
-        epg_id="13C.cl"
+        epg_id="13C.cl",
     ),
     ChannelData(
         name="13 Prime",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/YwDFNxs.png",
         group="Chile",
         country_code="CL",
-        epg_id="13P.cl"
+        epg_id="13P.cl",
     ),
     ChannelData(
         name="13 Kids",
@@ -114,7 +114,7 @@ channels = [
         logo="https://i.imgur.com/m6y9AMe.png",
         group="Chile",
         country_code="CL",
-        epg_id="13Kids.cl"
+        epg_id="13Kids.cl",
     ),
     ChannelData(
         name="13 Realities",
@@ -122,7 +122,7 @@ channels = [
         logo="https://i.imgur.com/p1Qpljw.png",
         group="Chile",
         country_code="CL",
-        epg_id="13Realities.cl"
+        epg_id="13Realities.cl",
     ),
     ChannelData(
         name="13 Teleseries",
@@ -130,7 +130,7 @@ channels = [
         logo="https://i.imgur.com/aJMBnse.png",
         group="Chile",
         country_code="CL",
-        epg_id="13T.cl"
+        epg_id="13T.cl",
     ),
     ChannelData(
         name="El Pingüino TV",
@@ -138,7 +138,7 @@ channels = [
         logo="https://i.imgur.com/ohXs2NV.png",
         group="Chile",
         country_code="CL",
-        epg_id="ElPinguinoTV.cl"
+        epg_id="ElPinguinoTV.cl",
     ),
     ChannelData(
         name="UCL",
@@ -146,7 +146,7 @@ channels = [
         logo="https://i.imgur.com/JxqVHPX.png",
         group="Chile",
         country_code="CL",
-        epg_id="UCL.uy"
+        epg_id="UCL.uy",
     ),
     ChannelData(
         name="Deportes13 Ⓖ",
@@ -154,7 +154,7 @@ channels = [
         logo="https://i.imgur.com/GRpxoPf.png",
         group="Chile",
         country_code="CL",
-        epg_id="D13.cl"
+        epg_id="D13.cl",
     ),
     ChannelData(
         name="TVN 3",
@@ -162,7 +162,7 @@ channels = [
         logo="https://i.imgur.com/84lWqRi.png",
         group="Chile",
         country_code="CL",
-        epg_id="TVN3.cl"
+        epg_id="TVN3.cl",
     ),
     ChannelData(
         name="Chilevisión Noticias",
@@ -170,6 +170,6 @@ channels = [
         logo="https://i.imgur.com/Qh6d0A9.png",
         group="Chile",
         country_code="CL",
-        epg_id="CHVNoticias.cl"
+        epg_id="CHVNoticias.cl",
     ),
 ]

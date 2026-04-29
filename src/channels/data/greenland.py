@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/8Pf5SJb.png",
         group="Greenland",
         country_code="GL",
-        epg_id="KNR1.gl"
+        epg_id="KNR1.gl",
     ),
     ChannelData(
         name="KNR2 Ⓨ",
@@ -18,6 +18,6 @@ channels = [
         logo="https://i.imgur.com/8Pf5SJb.png",
         group="Greenland",
         country_code="GL",
-        epg_id="KNR2.gl"
+        epg_id="KNR2.gl",
     ),
 ]

@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/ZbQY56v.png",
         group="Moldova",
         country_code="MD",
-        epg_id="Moldova1.md"
+        epg_id="Moldova1.md",
     ),
     ChannelData(
         name="Moldova 2",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/Hv6Nk8A.png",
         group="Moldova",
         country_code="MD",
-        epg_id="Moldova2.md"
+        epg_id="Moldova2.md",
     ),
     ChannelData(
         name="Publika TV",
@@ -26,7 +26,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/b/b7/Publika_logo_%282017%29.png",
         group="Moldova",
         country_code="MD",
-        epg_id="PublikaTV.md"
+        epg_id="PublikaTV.md",
     ),
     ChannelData(
         name="Vocea Basarabiei",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/irP8QLs.png",
         group="Moldova",
         country_code="MD",
-        epg_id="VoceaBasarabieiTV.md"
+        epg_id="VoceaBasarabieiTV.md",
     ),
     ChannelData(
         name="Canal 2 Ⓖ",
@@ -42,7 +42,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/ro/7/7f/Logo_Canal_2.png",
         group="Moldova",
         country_code="MD",
-        epg_id="Canal2.md"
+        epg_id="Canal2.md",
     ),
     ChannelData(
         name="Canal 3 Ⓖ",
@@ -50,7 +50,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Canal_3.svg/640px-Canal_3.svg.png",
         group="Moldova",
         country_code="MD",
-        epg_id="Canal3.md"
+        epg_id="Canal3.md",
     ),
     ChannelData(
         name="Prime Ⓖ",
@@ -58,7 +58,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/7/70/Prime.png",
         group="Moldova",
         country_code="MD",
-        epg_id="Prime.md"
+        epg_id="Prime.md",
     ),
     ChannelData(
         name="TVR Moldova Ⓖ",
@@ -66,7 +66,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/TVR_Moldova_Logo_2022.svg/640px-TVR_Moldova_Logo_2022.svg.png",
         group="Moldova",
         country_code="MD",
-        epg_id="TVRMoldova.md"
+        epg_id="TVRMoldova.md",
     ),
     ChannelData(
         name="Sor TV",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/BcfZgD8.png",
         group="Moldova",
         country_code="MD",
-        epg_id="SorTV.md"
+        epg_id="SorTV.md",
     ),
     ChannelData(
         name="Bălți TV",
@@ -82,6 +82,6 @@ channels = [
         logo="https://i.imgur.com/S1vEqZp.png",
         group="Moldova",
         country_code="MD",
-        epg_id="BaltiTV.md"
+        epg_id="BaltiTV.md",
     ),
 ]

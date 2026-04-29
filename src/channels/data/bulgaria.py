@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/BjRTbrU.png",
         group="Bulgaria",
         country_code="BG",
-        epg_id="City.bg"
+        epg_id="City.bg",
     ),
     ChannelData(
         name="Euronews Bulgaria Ⓨ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/RrQVoOg.png",
         group="Bulgaria",
         country_code="BG",
-        epg_id="EuroNewsBulgaria.bg"
+        epg_id="EuroNewsBulgaria.bg",
     ),
     ChannelData(
         name="TV1",
@@ -26,6 +26,6 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/6/64/Tv1-new.png",
         group="Bulgaria",
         country_code="BG",
-        epg_id="TV1.bg"
+        epg_id="TV1.bg",
     ),
 ]

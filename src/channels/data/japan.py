@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/fAZ2BEZ.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="JOAKDTV.jp"
+        epg_id="JOAKDTV.jp",
     ),
     ChannelData(
         name="NHK Eテレ（東京）",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/WxtftlO.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="JOABDTV.jp"
+        epg_id="JOABDTV.jp",
     ),
     ChannelData(
         name="日本テレビ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/ecbM7QS.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="JOAXDTV.jp"
+        epg_id="JOAXDTV.jp",
     ),
     ChannelData(
         name="テレビ朝日",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/5XnMfcR.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="JOEXDTV.jp"
+        epg_id="JOEXDTV.jp",
     ),
     ChannelData(
         name="TBSテレビ",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/jIZ9TlO.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="JORXDTV.jp"
+        epg_id="JORXDTV.jp",
     ),
     ChannelData(
         name="テレビ東京",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/U8jBxEi.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="JOTXDTV.jp"
+        epg_id="JOTXDTV.jp",
     ),
     ChannelData(
         name="フジテレビ",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/epJYc7P.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="JOCXDTV.jp"
+        epg_id="JOCXDTV.jp",
     ),
     ChannelData(
         name="NHK BS",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/t0uZcSR.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="NHKBS.jp"
+        epg_id="NHKBS.jp",
     ),
     ChannelData(
         name="NHK BSP4K",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/uvPpFo5.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="NHKBSP4K.jp"
+        epg_id="NHKBSP4K.jp",
     ),
     ChannelData(
         name="BS日テレ",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/26ATUNc.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="BSNipponTV.jp"
+        epg_id="BSNipponTV.jp",
     ),
     ChannelData(
         name="BS朝日",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/Cl68ZMA.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="BSAsahi.jp"
+        epg_id="BSAsahi.jp",
     ),
     ChannelData(
         name="BS-TBS",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/BSt9UG2.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="BSTBS.jp"
+        epg_id="BSTBS.jp",
     ),
     ChannelData(
         name="BSテレ東",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/LsQlNcz.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="BSTVTokyo.jp"
+        epg_id="BSTVTokyo.jp",
     ),
     ChannelData(
         name="BSフジ",
@@ -114,7 +114,7 @@ channels = [
         logo="https://i.imgur.com/N4xeDxJ.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="BSFuji.jp"
+        epg_id="BSFuji.jp",
     ),
     ChannelData(
         name="WOWOWプライム",
@@ -122,7 +122,7 @@ channels = [
         logo="https://www.lyngsat.com/logo/tv/ww/wowow_prime.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="WOWOWPrime.jp"
+        epg_id="WOWOWPrime.jp",
     ),
     ChannelData(
         name="WOWOWライブ",
@@ -130,7 +130,7 @@ channels = [
         logo="https://www.lyngsat.com/logo/tv/ww/wowow_live.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="WOWOWLive.jp"
+        epg_id="WOWOWLive.jp",
     ),
     ChannelData(
         name="WOWOWシネマ",
@@ -138,7 +138,7 @@ channels = [
         logo="https://www.lyngsat.com/logo/tv/ww/wowow_cinema.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="WOWOWCinema.jp"
+        epg_id="WOWOWCinema.jp",
     ),
     ChannelData(
         name="BS10",
@@ -146,7 +146,7 @@ channels = [
         logo="https://i.imgur.com/KPZiuHl.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="jcom_120_110_4"
+        epg_id="jcom_120_110_4",
     ),
     ChannelData(
         name="BS10スターチャンネル",
@@ -154,7 +154,7 @@ channels = [
         logo="https://i.imgur.com/SN0ED0U.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="jcom_120_200_4"
+        epg_id="jcom_120_200_4",
     ),
     ChannelData(
         name="アニマックス",
@@ -162,7 +162,7 @@ channels = [
         logo="https://i.imgur.com/jO0qUvj.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="AnimaxAsia.sg@Japan"
+        epg_id="AnimaxAsia.sg@Japan",
     ),
     ChannelData(
         name="J SPORTS 1",
@@ -170,7 +170,7 @@ channels = [
         logo="https://www.starcat.co.jp/ch/upload/channel/69/jsports1_logo.jpg",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="JSPORTS1.jp"
+        epg_id="JSPORTS1.jp",
     ),
     ChannelData(
         name="J SPORTS 2",
@@ -178,7 +178,7 @@ channels = [
         logo="https://www.starcat.co.jp/ch/upload/channel/70/jsports2_logo.jpg",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="JSPORTS2.jp"
+        epg_id="JSPORTS2.jp",
     ),
     ChannelData(
         name="J SPORTS 3",
@@ -186,7 +186,7 @@ channels = [
         logo="https://www.starcat.co.jp/ch/upload/channel/71/jsports3_logo.jpg",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="JSPORTS3.jp"
+        epg_id="JSPORTS3.jp",
     ),
     ChannelData(
         name="J SPORTS 4",
@@ -194,7 +194,7 @@ channels = [
         logo="https://www.starcat.co.jp/ch/upload/channel/74/jsports4_logo.jpg",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="JSPORTS4.jp"
+        epg_id="JSPORTS4.jp",
     ),
     ChannelData(
         name="釣りビジョン",
@@ -202,7 +202,7 @@ channels = [
         logo="https://i.imgur.com/Yc7JvSK.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="FishingVision.jp"
+        epg_id="FishingVision.jp",
     ),
     ChannelData(
         name="日本映画専門チャンネル",
@@ -210,7 +210,7 @@ channels = [
         logo="https://i.imgur.com/HdC3Hdc.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="NihonEigaSenmonChannel.jp"
+        epg_id="NihonEigaSenmonChannel.jp",
     ),
     ChannelData(
         name="ショップチャンネル",
@@ -218,7 +218,7 @@ channels = [
         logo="https://i.imgur.com/CCMAF7W.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="ShopChannel.jp"
+        epg_id="ShopChannel.jp",
     ),
     ChannelData(
         name="QVC",
@@ -226,7 +226,7 @@ channels = [
         logo="https://i.imgur.com/FznYA39.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="QVC.jp"
+        epg_id="QVC.jp",
     ),
     ChannelData(
         name="東映チャンネル",
@@ -234,7 +234,7 @@ channels = [
         logo="https://www.lyngsat-logo.com/logo/tv/tt/toei_channel.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="ToeiChannel.jp"
+        epg_id="ToeiChannel.jp",
     ),
     ChannelData(
         name="チャンネルNECO",
@@ -242,7 +242,7 @@ channels = [
         logo="https://www.lyngsat-logo.com/logo/tv/cc/channel-neco-jp.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="ChannelNECO.jp"
+        epg_id="ChannelNECO.jp",
     ),
     ChannelData(
         name="ムービープラス",
@@ -250,7 +250,7 @@ channels = [
         logo="https://www.lyngsat-logo.com/logo/tv/mm/movie_plus_jp.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="MoviePlus.jp"
+        epg_id="MoviePlus.jp",
     ),
     ChannelData(
         name="GAORA",
@@ -258,7 +258,7 @@ channels = [
         logo="https://i.imgur.com/Myh0PWD.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="GAORASPORTS.jp"
+        epg_id="GAORASPORTS.jp",
     ),
     ChannelData(
         name="日テレジータス",
@@ -266,7 +266,7 @@ channels = [
         logo="https://i.imgur.com/xq1VG0E.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="NitteleGPlus.jp"
+        epg_id="NitteleGPlus.jp",
     ),
     ChannelData(
         name="ゴルフネットワーク",
@@ -274,7 +274,7 @@ channels = [
         logo="https://i.imgur.com/EVd8Vvp.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="GolfNetwork.jp"
+        epg_id="GolfNetwork.jp",
     ),
     ChannelData(
         name="時代劇専門チャンネル",
@@ -282,7 +282,7 @@ channels = [
         logo="https://www.lyngsat-logo.com/logo/tv/jj/jidaigeki.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="JidaigekiSenmonChannel.jp"
+        epg_id="JidaigekiSenmonChannel.jp",
     ),
     ChannelData(
         name="ファミリー劇場",
@@ -290,7 +290,7 @@ channels = [
         logo="https://i.postimg.cc/k5fXKzj3/o023302751417597653027.jpg",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="FamilyGekijyo.jp"
+        epg_id="FamilyGekijyo.jp",
     ),
     ChannelData(
         name="ホームドラマチャンネル",
@@ -298,7 +298,7 @@ channels = [
         logo="https://www.lyngsat-logo.com/logo/tv/hh/home-drama-channelpng-jp.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="HomeDramaChannel.jp"
+        epg_id="HomeDramaChannel.jp",
     ),
     ChannelData(
         name="チャンネル銀河",
@@ -306,7 +306,7 @@ channels = [
         logo="https://www.lyngsat-logo.com/logo/tv/cc/channel_ginga.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="ChannelGinga.jp"
+        epg_id="ChannelGinga.jp",
     ),
     ChannelData(
         name="スーパー！ドラマTV",
@@ -314,7 +314,7 @@ channels = [
         logo="https://www.lyngsat-logo.com/logo/tv/ss/super_drama_tv.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="SuperDramaTV.jp"
+        epg_id="SuperDramaTV.jp",
     ),
     ChannelData(
         name="アクションチャンネル",
@@ -322,7 +322,7 @@ channels = [
         logo="https://i.imgur.com/K0YyPwC.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="AXN.jp"
+        epg_id="AXN.jp",
     ),
     ChannelData(
         name="Dlife",
@@ -330,7 +330,7 @@ channels = [
         logo="https://i.imgur.com/6gJZHPv.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="FOX.jp"
+        epg_id="FOX.jp",
     ),
     ChannelData(
         name="LaLa TV",
@@ -338,7 +338,7 @@ channels = [
         logo="https://www.lyngsat-logo.com/logo/tv/ll/lala_tv.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="LaLaTV.jp"
+        epg_id="LaLaTV.jp",
     ),
     ChannelData(
         name="Mnet",
@@ -346,7 +346,7 @@ channels = [
         logo="https://www.lyngsat.com/logo/tv/mm/m_net_jp.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="MnetJapan.jp"
+        epg_id="MnetJapan.jp",
     ),
     ChannelData(
         name="Music ON TV!（エムオン）",
@@ -354,7 +354,7 @@ channels = [
         logo="https://www.lyngsat-logo.com/logo/tv/mm/music_on_tv.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="MUSICONTV.jp"
+        epg_id="MUSICONTV.jp",
     ),
     ChannelData(
         name="歌謡ポップスチャンネル",
@@ -362,7 +362,7 @@ channels = [
         logo="https://www.lyngsat-logo.com/logo/tv/kk/kayo-pops-jp.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="KayoPops.jp"
+        epg_id="KayoPops.jp",
     ),
     ChannelData(
         name="キッズステーション",
@@ -370,7 +370,7 @@ channels = [
         logo="https://www.lyngsat-logo.com/logo/tv/kk/kidsstation.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="KidsStation.jp"
+        epg_id="KidsStation.jp",
     ),
     ChannelData(
         name="日テレNEWS24",
@@ -378,7 +378,7 @@ channels = [
         logo="https://i.imgur.com/jtSYegn.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="NTVNEWS24.jp"
+        epg_id="NTVNEWS24.jp",
     ),
     ChannelData(
         name="囲碁・将棋チャンネル",
@@ -386,7 +386,7 @@ channels = [
         logo="https://www.lyngsat-logo.com/logo/tv/ii/igoshogi.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="IgoShogiChannel.jp"
+        epg_id="IgoShogiChannel.jp",
     ),
     ChannelData(
         name="GSTV",
@@ -394,7 +394,7 @@ channels = [
         logo="https://i.imgur.com/ECnVG5I.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="GSTV.jp"
+        epg_id="GSTV.jp",
     ),
     ChannelData(
         name="NHK WORLD JAPAN",
@@ -402,7 +402,7 @@ channels = [
         logo="https://i.imgur.com/Mhw1Ihk.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="NHKWorldJapan.jp"
+        epg_id="NHKWorldJapan.jp",
     ),
     ChannelData(
         name="ウェザーニュースLiVE",
@@ -410,7 +410,7 @@ channels = [
         logo="https://channel.rakuten.co.jp/service/img/logo/chlogo-with-number/106_whethernews.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id="rch_45"
+        epg_id="rch_45",
     ),
     ChannelData(
         name="TOKYO MX チャンネル",
@@ -418,6 +418,6 @@ channels = [
         logo="https://channel.rakuten.co.jp/service/img/logo/chlogo-with-number/108_mx.png",
         group="日本 / Japan",
         country_code="JP",
-        epg_id=""
+        epg_id="",
     ),
 ]

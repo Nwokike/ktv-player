@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/qBlEbN3.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="CT1.cz"
+        epg_id="CT1.cz",
     ),
     ChannelData(
         name="ČT2 Ⓖ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/HpnGC6A.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="CT2.cz"
+        epg_id="CT2.cz",
     ),
     ChannelData(
         name="ČT24",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/pUMRFs1.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="CT24.cz"
+        epg_id="CT24.cz",
     ),
     ChannelData(
         name="ČT sport Ⓖ",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/I2dltZW.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="CTSport.cz"
+        epg_id="CTSport.cz",
     ),
     ChannelData(
         name="ČT :D",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/Pa5rLpA.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="CTDecko.cz"
+        epg_id="CTDecko.cz",
     ),
     ChannelData(
         name="ČT art",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/u8mfETB.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="CTart.cz"
+        epg_id="CTart.cz",
     ),
     ChannelData(
         name="ČT sport Plus Ⓖ",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/5JiMynW.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="JOJ Family Ⓢ",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/IZHIAAj.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="JojFamily.sk"
+        epg_id="JojFamily.sk",
     ),
     ChannelData(
         name="Šlágr Originál Ⓢ",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/fQcx9S2.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="SlagrOriginal.cz"
+        epg_id="SlagrOriginal.cz",
     ),
     ChannelData(
         name="Šlágr Muzika Ⓢ",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/J9YHDVS.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="SlagrMuzika.cz"
+        epg_id="SlagrMuzika.cz",
     ),
     ChannelData(
         name="Šlágr Premium Ⓢ",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/Lp0IqDx.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="SlagrPremium.cz"
+        epg_id="SlagrPremium.cz",
     ),
     ChannelData(
         name="Prima Ⓖ",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/0aHT2Nj.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="Prima.cz"
+        epg_id="Prima.cz",
     ),
     ChannelData(
         name="CNN Prima News",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/Il7t0bU.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="CNNPrimaNews.cz"
+        epg_id="CNNPrimaNews.cz",
     ),
     ChannelData(
         name="Prima Zoom Ⓖ",
@@ -114,7 +114,7 @@ channels = [
         logo="https://i.imgur.com/zuzBucZ.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="PrimaZoom.cz"
+        epg_id="PrimaZoom.cz",
     ),
     ChannelData(
         name="Prima Love Ⓖ",
@@ -122,7 +122,7 @@ channels = [
         logo="https://i.imgur.com/TOCZc3Y.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="PrimaLove.cz"
+        epg_id="PrimaLove.cz",
     ),
     ChannelData(
         name="Prima STAR Ⓖ",
@@ -130,7 +130,7 @@ channels = [
         logo="https://i.imgur.com/tQGwvNs.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="PrimaStar.cz"
+        epg_id="PrimaStar.cz",
     ),
     ChannelData(
         name="Prima Krimi Ⓖ",
@@ -138,7 +138,7 @@ channels = [
         logo="https://i.imgur.com/Dn2YxrA.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="PrimaKrimi.cz"
+        epg_id="PrimaKrimi.cz",
     ),
     ChannelData(
         name="Prima MAX Ⓖ",
@@ -146,7 +146,7 @@ channels = [
         logo="https://i.imgur.com/QaEakvm.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="PrimaMax.cz"
+        epg_id="PrimaMax.cz",
     ),
     ChannelData(
         name="Prima Cool Ⓖ",
@@ -154,7 +154,7 @@ channels = [
         logo="https://i.imgur.com/JMHWmcJ.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="PrimaCool.cz"
+        epg_id="PrimaCool.cz",
     ),
     ChannelData(
         name="Prima Show Ⓖ",
@@ -162,7 +162,7 @@ channels = [
         logo="https://i.imgur.com/zX4NTJ5.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="PrimaShow.cz"
+        epg_id="PrimaShow.cz",
     ),
     ChannelData(
         name="Óčko Ⓢ",
@@ -170,7 +170,7 @@ channels = [
         logo="https://i.imgur.com/iPmpsnN.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="Ocko.cz"
+        epg_id="Ocko.cz",
     ),
     ChannelData(
         name="Óčko Star Ⓢ",
@@ -178,7 +178,7 @@ channels = [
         logo="https://i.imgur.com/tGzQFWw.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="OckoStar.cz"
+        epg_id="OckoStar.cz",
     ),
     ChannelData(
         name="Óčko Expres Ⓢ",
@@ -186,7 +186,7 @@ channels = [
         logo="https://i.imgur.com/e731JNS.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="OckoExpres.cz"
+        epg_id="OckoExpres.cz",
     ),
     ChannelData(
         name="Retro Music Television Ⓢ",
@@ -194,7 +194,7 @@ channels = [
         logo="https://i.imgur.com/a6S2Yo4.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="RetroMusicTV.cz"
+        epg_id="RetroMusicTV.cz",
     ),
     ChannelData(
         name="TN Live",
@@ -202,7 +202,7 @@ channels = [
         logo="https://i.imgur.com/9P7ZyFu.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Praha TV",
@@ -210,7 +210,7 @@ channels = [
         logo="https://www.praga2018.cz/wp-content/uploads/logo-prahatv.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="PrahaTV.cz"
+        epg_id="PrahaTV.cz",
     ),
     ChannelData(
         name="TV Nova Ⓢ",
@@ -218,7 +218,7 @@ channels = [
         logo="https://i.imgur.com/77ztmd9.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="tvnova.cz"
+        epg_id="tvnova.cz",
     ),
     ChannelData(
         name="Východoceská TV",
@@ -226,7 +226,7 @@ channels = [
         logo="https://i.imgur.com/4Wwptd3.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="V1.cz"
+        epg_id="V1.cz",
     ),
     ChannelData(
         name="UTV (Czech Republic)",
@@ -234,6 +234,6 @@ channels = [
         logo="https://imgur.com/ulfeIwM.png",
         group="Czech Republic",
         country_code="CZ",
-        epg_id="utv.cz"
+        epg_id="utv.cz",
     ),
 ]

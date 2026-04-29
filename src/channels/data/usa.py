@@ -10,7 +10,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Buzzr_logo.svg/768px-Buzzr_logo.svg.png",
         group="USA",
         country_code="US",
-        epg_id="Buzzr.us"
+        epg_id="Buzzr.us",
     ),
     ChannelData(
         name="Retro TV",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/PNTYOgg.png",
         group="USA",
         country_code="US",
-        epg_id="RetroTVEast.us"
+        epg_id="RetroTVEast.us",
     ),
     ChannelData(
         name="Stadium",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/6ae9E8d.png",
         group="USA",
         country_code="US",
-        epg_id="Stadium.us"
+        epg_id="Stadium.us",
     ),
     ChannelData(
         name="Biz TV",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/cbGvXyF.jpg",
         group="USA",
         country_code="US",
-        epg_id="BizTV.us"
+        epg_id="BizTV.us",
     ),
     ChannelData(
         name="Heartland",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/a67bbag.png",
         group="USA",
         country_code="US",
-        epg_id="HeartlandEastern.us"
+        epg_id="HeartlandEastern.us",
     ),
     ChannelData(
         name="Rev'n",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/VUhqVgG.png",
         group="USA",
         country_code="US",
-        epg_id="RevnTV.us"
+        epg_id="RevnTV.us",
     ),
     ChannelData(
         name="CNN",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/vyrc1I1.png",
         group="USA",
         country_code="US",
-        epg_id="CNN.us"
+        epg_id="CNN.us",
     ),
     ChannelData(
         name="CNBC Ⓨ",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/BTasyOy.png",
         group="USA",
         country_code="US",
-        epg_id="CNBC.us"
+        epg_id="CNBC.us",
     ),
     ChannelData(
         name="Bloomberg",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/VnCcH73.png",
         group="USA",
         country_code="US",
-        epg_id="BloombergTelevision.us"
+        epg_id="BloombergTelevision.us",
     ),
     ChannelData(
         name="ABC News",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/7sJLzKi.png",
         group="USA",
         country_code="US",
-        epg_id="ABCNews.us"
+        epg_id="ABCNews.us",
     ),
     ChannelData(
         name="CBS News",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/nki2HDQ.png",
         group="USA",
         country_code="US",
-        epg_id="CBSNews.us"
+        epg_id="CBSNews.us",
     ),
     ChannelData(
         name="NBC News",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/v48mMRT.png",
         group="USA",
         country_code="US",
-        epg_id="NBCNewsNow.us"
+        epg_id="NBCNewsNow.us",
     ),
     ChannelData(
         name="Reuters TV",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/AbvCnoH.png",
         group="USA",
         country_code="US",
-        epg_id="ReutersTV.us"
+        epg_id="ReutersTV.us",
     ),
     ChannelData(
         name="NASA TV Public",
@@ -114,7 +114,7 @@ channels = [
         logo="https://i.imgur.com/rmyfoOI.png",
         group="USA",
         country_code="US",
-        epg_id="NASATVPublic.us"
+        epg_id="NASATVPublic.us",
     ),
     ChannelData(
         name="NASA TV Media",
@@ -122,7 +122,7 @@ channels = [
         logo="https://i.imgur.com/rmyfoOI.png",
         group="USA",
         country_code="US",
-        epg_id="NASATVMedia.us"
+        epg_id="NASATVMedia.us",
     ),
     ChannelData(
         name="BBC Food",
@@ -130,7 +130,7 @@ channels = [
         logo="https://i.imgur.com/N3xiz4m.png",
         group="USA",
         country_code="US",
-        epg_id="BBCFood.us"
+        epg_id="BBCFood.us",
     ),
     ChannelData(
         name="BBC Home",
@@ -138,7 +138,7 @@ channels = [
         logo="https://i.imgur.com/Ii8DX1x.png",
         group="USA",
         country_code="US",
-        epg_id="BBCHome.us"
+        epg_id="BBCHome.us",
     ),
     ChannelData(
         name="Docurama",
@@ -146,7 +146,7 @@ channels = [
         logo="https://i.imgur.com/bNg8mze.png",
         group="USA",
         country_code="US",
-        epg_id="Docurama.us"
+        epg_id="Docurama.us",
     ),
     ChannelData(
         name="Drybar Comedy",
@@ -154,7 +154,7 @@ channels = [
         logo="https://i.imgur.com/EldlmTp.png",
         group="USA",
         country_code="US",
-        epg_id="DryBarComedy.us"
+        epg_id="DryBarComedy.us",
     ),
     ChannelData(
         name="Music Channel",
@@ -162,6 +162,6 @@ channels = [
         logo="http://media.boni-records.com/logo.png",
         group="USA",
         country_code="US",
-        epg_id="Boni-Records.com.us"
+        epg_id="Boni-Records.com.us",
     ),
 ]

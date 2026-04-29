@@ -10,7 +10,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/TG4_logo.svg/1024px-TG4_logo.svg.png",
         group="Ireland",
         country_code="IE",
-        epg_id="TG4.ie"
+        epg_id="TG4.ie",
     ),
     ChannelData(
         name="Houses of the Oireachtas Channel",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/aC4fsCI.png",
         group="Ireland",
         country_code="IE",
-        epg_id="OireachtasTV.ie"
+        epg_id="OireachtasTV.ie",
     ),
     ChannelData(
         name="Today FM",
@@ -26,7 +26,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/b/bf/Today_FM_Logo_2017.jpg",
         group="Ireland",
         country_code="IE",
-        epg_id="todayfm.com"
+        epg_id="todayfm.com",
     ),
     ChannelData(
         name="98FM",
@@ -34,7 +34,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/98FM_2022.svg/1920px-98FM_2022.svg.png",
         group="Ireland",
         country_code="IE",
-        epg_id="98fm.com"
+        epg_id="98fm.com",
     ),
     ChannelData(
         name="FM104",
@@ -42,7 +42,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/c/cb/FM104_logo_tile.png",
         group="Ireland",
         country_code="IE",
-        epg_id="fm104.ie"
+        epg_id="fm104.ie",
     ),
     ChannelData(
         name="Radio Nova",
@@ -50,7 +50,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/a/a1/Nova-web1-228x150.jpg",
         group="Ireland",
         country_code="IE",
-        epg_id="www.nova.ie"
+        epg_id="www.nova.ie",
     ),
     ChannelData(
         name="Spin 103.8",
@@ -58,7 +58,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/2/2e/Spin_400x400.png",
         group="Ireland",
         country_code="IE",
-        epg_id="spin1038.com"
+        epg_id="spin1038.com",
     ),
     ChannelData(
         name="Newstalk",
@@ -66,7 +66,7 @@ channels = [
         logo="",
         group="Ireland",
         country_code="IE",
-        epg_id="newstalk.com"
+        epg_id="newstalk.com",
     ),
     ChannelData(
         name="Dublin's Q102",
@@ -74,7 +74,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/e/e7/Dublins_Q102_Logo.png",
         group="Ireland",
         country_code="IE",
-        epg_id="q102.ie"
+        epg_id="q102.ie",
     ),
     ChannelData(
         name="Classic Hits",
@@ -82,7 +82,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/3/31/Classichits2023.jpg",
         group="Ireland",
         country_code="IE",
-        epg_id="classichits.ie"
+        epg_id="classichits.ie",
     ),
     ChannelData(
         name="Sunshine 106.8",
@@ -90,6 +90,6 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/9/97/Sunshine_106.8_logo.png",
         group="Ireland",
         country_code="IE",
-        epg_id="sunshineradio.ie"
+        epg_id="sunshineradio.ie",
     ),
 ]

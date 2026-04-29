@@ -1,5 +1,5 @@
 import flet as ft
-from core.theme import AppColors
+
 
 class ShimmerList(ft.Column):
     def __init__(self, count: int = 5):

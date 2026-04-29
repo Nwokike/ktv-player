@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/rMqrLzV.png",
         group="Somalia",
         country_code="SO",
-        epg_id="DacwaTV.so"
+        epg_id="DacwaTV.so",
     ),
     ChannelData(
         name="MM Somali TV Ⓢ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://www.lyngsat.com/logo/tv/mm/mm-somali-tv-so.png",
         group="Somalia",
         country_code="SO",
-        epg_id="MMSomaliTV.uk"
+        epg_id="MMSomaliTV.uk",
     ),
     ChannelData(
         name="Puntland TV Ⓢ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/C8EvQUo.png",
         group="Somalia",
         country_code="SO",
-        epg_id="PuntlandTV.so"
+        epg_id="PuntlandTV.so",
     ),
     ChannelData(
         name="Saab TV Ⓢ",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/JEC1J89.png",
         group="Somalia",
         country_code="SO",
-        epg_id="SaabTV.so"
+        epg_id="SaabTV.so",
     ),
     ChannelData(
         name="SBC Somalia Ⓢ",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/VLhgTIA.png",
         group="Somalia",
         country_code="SO",
-        epg_id="SBCTV.so"
+        epg_id="SBCTV.so",
     ),
     ChannelData(
         name="SNTV Daljir Ⓢ",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/Re3ur88.png",
         group="Somalia",
         country_code="SO",
-        epg_id="SNTVDaljir.so"
+        epg_id="SNTVDaljir.so",
     ),
     ChannelData(
         name="Somali Cable TV Ⓢ",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/iPkaCts.png",
         group="Somalia",
         country_code="SO",
-        epg_id="SomaliCableTV.uk"
+        epg_id="SomaliCableTV.uk",
     ),
     ChannelData(
         name="Somali National TV Ⓢ",
@@ -66,6 +66,6 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/d/d6/SNTV_REBRANDED_LOGO.png",
         group="Somalia",
         country_code="SO",
-        epg_id="SomaliNationalTV.so"
+        epg_id="SomaliNationalTV.so",
     ),
 ]

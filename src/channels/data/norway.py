@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/9tj8ds7.png",
         group="Norway",
         country_code="NO",
-        epg_id="NRK1.no"
+        epg_id="NRK1.no",
     ),
     ChannelData(
         name="NRK2 Ⓖ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/SiAdoK9.png",
         group="Norway",
         country_code="NO",
-        epg_id="NRK2.no"
+        epg_id="NRK2.no",
     ),
     ChannelData(
         name="NRK3 Ⓖ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/TNhV2I7.png",
         group="Norway",
         country_code="NO",
-        epg_id="NRK3.no"
+        epg_id="NRK3.no",
     ),
     ChannelData(
         name="NRK Super Ⓖ",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/xIATe2T.png",
         group="Norway",
         country_code="NO",
-        epg_id="NRKSuper.no"
+        epg_id="NRKSuper.no",
     ),
     ChannelData(
         name="TV 2 Sport 1",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/asKHqNZ.png",
         group="Norway",
         country_code="NO",
-        epg_id="TV2Sport1.no"
+        epg_id="TV2Sport1.no",
     ),
     ChannelData(
         name="TV 2 Nyheter",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/kkKoY6s.png",
         group="Norway",
         country_code="NO",
-        epg_id="TV2Nyhetskanalen.no"
+        epg_id="TV2Nyhetskanalen.no",
     ),
     ChannelData(
         name="Frikanalen",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/rY3Owxl.png",
         group="Norway",
         country_code="NO",
-        epg_id="Frikanalen.no"
+        epg_id="Frikanalen.no",
     ),
     ChannelData(
         name="Kanal 10 Norge",
@@ -66,6 +66,6 @@ channels = [
         logo="https://i.imgur.com/2fOcZfK.png",
         group="Norway",
         country_code="NO",
-        epg_id="Kanal10Norway.no"
+        epg_id="Kanal10Norway.no",
     ),
 ]

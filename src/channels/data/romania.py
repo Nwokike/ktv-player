@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/CKQ7mpB.png",
         group="Romania",
         country_code="RO",
-        epg_id="TVR1.ro"
+        epg_id="TVR1.ro",
     ),
     ChannelData(
         name="TVR 2 Ⓖ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/TVR_2_2022_logo.png",
         group="Romania",
         country_code="RO",
-        epg_id="TVR2.ro"
+        epg_id="TVR2.ro",
     ),
     ChannelData(
         name="TVR 3 Ⓖ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/0/0d/TVR3_2022.png",
         group="Romania",
         country_code="RO",
-        epg_id="TVR3.ro"
+        epg_id="TVR3.ro",
     ),
     ChannelData(
         name="TVR Info Ⓖ",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/7oE7ThR.png",
         group="Romania",
         country_code="RO",
-        epg_id="TVRInfo.ro"
+        epg_id="TVRInfo.ro",
     ),
     ChannelData(
         name="TVR International Ⓖ",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/AlW8jyl.png",
         group="Romania",
         country_code="RO",
-        epg_id="TVRInternational.ro"
+        epg_id="TVRInternational.ro",
     ),
     ChannelData(
         name="Pro TV",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/aKAfKtW.png",
         group="Romania",
         country_code="RO",
-        epg_id="ProTV.ro"
+        epg_id="ProTV.ro",
     ),
     ChannelData(
         name="Prima TV",
@@ -58,7 +58,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Prima_TV_%28Rumaenien%29_Logo.svg/512px-Prima_TV_%28Rumaenien%29_Logo.svg.png",
         group="Romania",
         country_code="RO",
-        epg_id="PrimaTV.ro"
+        epg_id="PrimaTV.ro",
     ),
     ChannelData(
         name="România TV Ⓖ",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/ZIfEp5I.png",
         group="Romania",
         country_code="RO",
-        epg_id="RomaniaTV.ro"
+        epg_id="RomaniaTV.ro",
     ),
     ChannelData(
         name="Telestar1",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/UZQjEsd.png",
         group="Romania",
         country_code="RO",
-        epg_id="Telestar1.ro"
+        epg_id="Telestar1.ro",
     ),
     ChannelData(
         name="Euronews România Ⓨ",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/jUOVUXt.png",
         group="Romania",
         country_code="RO",
-        epg_id="EuronewsRomania.ro"
+        epg_id="EuronewsRomania.ro",
     ),
     ChannelData(
         name="TVR Cluj Ⓖ",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/8DqsGHO.png",
         group="Romania",
         country_code="RO",
-        epg_id="TVRCluj.ro"
+        epg_id="TVRCluj.ro",
     ),
     ChannelData(
         name="TVR Craiova Ⓖ",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/vxWbQiy.png",
         group="Romania",
         country_code="RO",
-        epg_id="TVRCraiova.ro"
+        epg_id="TVRCraiova.ro",
     ),
     ChannelData(
         name="TVR Iași Ⓖ",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/Kxkihds.png",
         group="Romania",
         country_code="RO",
-        epg_id="TVRIasi.ro"
+        epg_id="TVRIasi.ro",
     ),
     ChannelData(
         name="TVR Timișoara Ⓖ",
@@ -114,7 +114,7 @@ channels = [
         logo="https://i.imgur.com/Db3DV6H.png",
         group="Romania",
         country_code="RO",
-        epg_id="TVRTimisoara.ro"
+        epg_id="TVRTimisoara.ro",
     ),
     ChannelData(
         name="TVR Tîrgu-Mureș Ⓖ",
@@ -122,6 +122,6 @@ channels = [
         logo="https://i.imgur.com/9Hptdqj.png",
         group="Romania",
         country_code="RO",
-        epg_id="TVRTarguMures.ro"
+        epg_id="TVRTarguMures.ro",
     ),
 ]

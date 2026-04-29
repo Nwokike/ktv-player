@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/lJpOlLv.png",
         group="San Marino",
         country_code="SM",
-        epg_id="SanMarinoRTV.sm"
+        epg_id="SanMarinoRTV.sm",
     ),
     ChannelData(
         name="San Marino Rtv Sport",
@@ -18,6 +18,6 @@ channels = [
         logo="https://i.imgur.com/PGm944g.png",
         group="San Marino",
         country_code="SM",
-        epg_id="SanMarinoRTVSport.sm"
+        epg_id="SanMarinoRTVSport.sm",
     ),
 ]

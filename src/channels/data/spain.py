@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/NbesiPn.png",
         group="Spain",
         country_code="ES",
-        epg_id="La1.es"
+        epg_id="La1.es",
     ),
     ChannelData(
         name="La 2",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/DmuTwDw.png",
         group="Spain",
         country_code="ES",
-        epg_id="La2.es"
+        epg_id="La2.es",
     ),
     ChannelData(
         name="Antena 3",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/j3SP4BS.png",
         group="Spain",
         country_code="ES",
-        epg_id="Antena3.es"
+        epg_id="Antena3.es",
     ),
     ChannelData(
         name="Cuatro",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/zROxNap.png",
         group="Spain",
         country_code="ES",
-        epg_id="Cuatro.es"
+        epg_id="Cuatro.es",
     ),
     ChannelData(
         name="Telecinco",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/JECsKdk.png",
         group="Spain",
         country_code="ES",
-        epg_id="Telecinco.es"
+        epg_id="Telecinco.es",
     ),
     ChannelData(
         name="La Sexta",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/b59MxgM.png",
         group="Spain",
         country_code="ES",
-        epg_id="LaSexta.es"
+        epg_id="LaSexta.es",
     ),
     ChannelData(
         name="24h",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/ZKR2jKr.png",
         group="Spain",
         country_code="ES",
-        epg_id="24h.es"
+        epg_id="24h.es",
     ),
     ChannelData(
         name="tdp",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/HliegRJ.png",
         group="Spain",
         country_code="ES",
-        epg_id="tdp.es"
+        epg_id="tdp.es",
     ),
     ChannelData(
         name="clan",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/38xIfQ3.png",
         group="Spain",
         country_code="ES",
-        epg_id="clan.es"
+        epg_id="clan.es",
     ),
     ChannelData(
         name="TVE Internacional Europe-Asia",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/ow1HArj.png",
         group="Spain",
         country_code="ES",
-        epg_id="TVEInternacionalEuropeAsia.es"
+        epg_id="TVEInternacionalEuropeAsia.es",
     ),
     ChannelData(
         name="Neox Ⓢ",
@@ -90,7 +90,7 @@ channels = [
         logo="https://raw.githubusercontent.com/tv-logo/tv-logos/refs/heads/main/countries/spain/neox-es.png",
         group="Spain",
         country_code="ES",
-        epg_id="Neox.es"
+        epg_id="Neox.es",
     ),
     ChannelData(
         name="Nova Ⓢ",
@@ -98,7 +98,7 @@ channels = [
         logo="https://raw.githubusercontent.com/tv-logo/tv-logos/refs/heads/main/countries/spain/nova-es.png",
         group="Spain",
         country_code="ES",
-        epg_id="Nova.es"
+        epg_id="Nova.es",
     ),
     ChannelData(
         name="Mega Ⓢ",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/Udrt2eK.png",
         group="Spain",
         country_code="ES",
-        epg_id="Mega.es"
+        epg_id="Mega.es",
     ),
     ChannelData(
         name="Atreseries Ⓢ",
@@ -114,7 +114,7 @@ channels = [
         logo="https://raw.githubusercontent.com/tv-logo/tv-logos/refs/heads/main/countries/spain/atreseries-es.png",
         group="Spain",
         country_code="ES",
-        epg_id="Atreseries.es"
+        epg_id="Atreseries.es",
     ),
     ChannelData(
         name="FDF",
@@ -122,7 +122,7 @@ channels = [
         logo="https://raw.githubusercontent.com/tv-logo/tv-logos/refs/heads/main/countries/spain/fdf-es.png",
         group="Spain",
         country_code="ES",
-        epg_id="FactoriadeFiccion.es"
+        epg_id="FactoriadeFiccion.es",
     ),
     ChannelData(
         name="Divinity Ⓖ",
@@ -130,7 +130,7 @@ channels = [
         logo="https://i.imgur.com/o7fvEr6.png",
         group="Spain",
         country_code="ES",
-        epg_id="Divinity.es"
+        epg_id="Divinity.es",
     ),
     ChannelData(
         name="Energy Ⓖ",
@@ -138,7 +138,7 @@ channels = [
         logo="https://raw.githubusercontent.com/tv-logo/tv-logos/refs/heads/main/countries/spain/energy-es.png",
         group="Spain",
         country_code="ES",
-        epg_id="Energy.es"
+        epg_id="Energy.es",
     ),
     ChannelData(
         name="Boing",
@@ -146,7 +146,7 @@ channels = [
         logo="https://i.imgur.com/nUYuCAP.png",
         group="Spain",
         country_code="ES",
-        epg_id="Boing.es"
+        epg_id="Boing.es",
     ),
     ChannelData(
         name="Be Mad Ⓖ",
@@ -154,7 +154,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/Be_Mad_TV.svg/512px-Be_Mad_TV.svg.png",
         group="Spain",
         country_code="ES",
-        epg_id="BeMad.es"
+        epg_id="BeMad.es",
     ),
     ChannelData(
         name="Paramount Network",
@@ -162,7 +162,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Paramount_Network.svg/512px-Paramount_Network.svg.png",
         group="Spain",
         country_code="ES",
-        epg_id="ParamountNetwork.es"
+        epg_id="ParamountNetwork.es",
     ),
     ChannelData(
         name="RNE para todos",
@@ -170,7 +170,7 @@ channels = [
         logo="https://graph.facebook.com/radionacionalrne/picture?width=200&height=200",
         group="Spain",
         country_code="ES",
-        epg_id="RNE.es"
+        epg_id="RNE.es",
     ),
     ChannelData(
         name="euronews",
@@ -178,7 +178,7 @@ channels = [
         logo="https://raw.githubusercontent.com/tv-logo/tv-logos/refs/heads/main/countries/international/euro-news-int.png",
         group="Spain",
         country_code="ES",
-        epg_id="Euronews.es"
+        epg_id="Euronews.es",
     ),
     ChannelData(
         name="El País",
@@ -186,7 +186,7 @@ channels = [
         logo="https://graph.facebook.com/elpais/picture?width=200&height=200",
         group="Spain",
         country_code="ES",
-        epg_id="ElPaisTV.es"
+        epg_id="ElPaisTV.es",
     ),
     ChannelData(
         name="Negocios",
@@ -194,7 +194,7 @@ channels = [
         logo="https://pbs.twimg.com/profile_images/1321367703731523584/bNMmbetI_200x200.jpg",
         group="Spain",
         country_code="ES",
-        epg_id="NegociosTV.es"
+        epg_id="NegociosTV.es",
     ),
     ChannelData(
         name="Squirrel",
@@ -202,7 +202,7 @@ channels = [
         logo="https://i.imgur.com/urF0kYA.png",
         group="Spain",
         country_code="ES",
-        epg_id="Squirrel.es"
+        epg_id="Squirrel.es",
     ),
     ChannelData(
         name="BOM Cine",
@@ -210,7 +210,7 @@ channels = [
         logo="https://i.imgur.com/cqhofMU.png",
         group="Spain",
         country_code="ES",
-        epg_id="BomCine.es"
+        epg_id="BomCine.es",
     ),
     ChannelData(
         name="Telemadrid",
@@ -218,7 +218,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/TeleMadrid.svg/512px-TeleMadrid.svg.png",
         group="Spain",
         country_code="ES",
-        epg_id="Telemadrid.es"
+        epg_id="Telemadrid.es",
     ),
     ChannelData(
         name="La Otra",
@@ -226,7 +226,7 @@ channels = [
         logo="https://i.imgur.com/W1UZyXH.png",
         group="Spain",
         country_code="ES",
-        epg_id="LaOtra.es"
+        epg_id="LaOtra.es",
     ),
     ChannelData(
         name="Canal Sur Andalucía",
@@ -234,7 +234,7 @@ channels = [
         logo="https://i.imgur.com/WcVOXPr.png",
         group="Spain",
         country_code="ES",
-        epg_id="CanalSurAndalucia.es"
+        epg_id="CanalSurAndalucia.es",
     ),
     ChannelData(
         name="La 8 Mediterráneo",
@@ -242,7 +242,7 @@ channels = [
         logo="https://graph.facebook.com/la8mediterraneo/picture?width=200&height=200",
         group="Spain",
         country_code="ES",
-        epg_id="La8Mediterraneo.es"
+        epg_id="La8Mediterraneo.es",
     ),
     ChannelData(
         name="Televisión Canaria Ⓨ",
@@ -250,7 +250,7 @@ channels = [
         logo="https://i.imgur.com/68LNS8e.png",
         group="Spain",
         country_code="ES",
-        epg_id="TVCanaria.es"
+        epg_id="TVCanaria.es",
     ),
     ChannelData(
         name="IB3 Global Ⓨ",
@@ -258,7 +258,7 @@ channels = [
         logo="https://raw.githubusercontent.com/tv-logo/tv-logos/refs/heads/main/countries/spain/ib3-es.png",
         group="Spain",
         country_code="ES",
-        epg_id="IB3.es"
+        epg_id="IB3.es",
     ),
     ChannelData(
         name="Canal Extremadura",
@@ -266,7 +266,7 @@ channels = [
         logo="https://i.imgur.com/xBeywIA.png",
         group="Spain",
         country_code="ES",
-        epg_id="CanalExtremadura.es"
+        epg_id="CanalExtremadura.es",
     ),
     ChannelData(
         name="Aragón TV Ⓢ",
@@ -274,7 +274,7 @@ channels = [
         logo="https://i.imgur.com/8H3Q07b.png",
         group="Spain",
         country_code="ES",
-        epg_id="AragonTV.es"
+        epg_id="AragonTV.es",
     ),
     ChannelData(
         name="ETB1",
@@ -282,7 +282,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/ETB1_2022_logo.svg/512px-ETB1_2022_logo.svg.png",
         group="Spain",
         country_code="ES",
-        epg_id="ETB1.es"
+        epg_id="ETB1.es",
     ),
     ChannelData(
         name="ETB2",
@@ -290,7 +290,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/ETB2_2022_logo.svg/512px-ETB2_2022_logo.svg.png",
         group="Spain",
         country_code="ES",
-        epg_id="ETB2.es"
+        epg_id="ETB2.es",
     ),
     ChannelData(
         name="TV3",
@@ -298,7 +298,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/TV3.svg/300px-TV3.svg.png",
         group="Spain",
         country_code="ES",
-        epg_id="TV3.es"
+        epg_id="TV3.es",
     ),
     ChannelData(
         name="TV3Cat Ⓖ",
@@ -306,7 +306,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/TV3CAT.svg/512px-TV3CAT.svg.png",
         group="Spain",
         country_code="ES",
-        epg_id="TV3CAT.es"
+        epg_id="TV3CAT.es",
     ),
     ChannelData(
         name="3/24",
@@ -314,7 +314,7 @@ channels = [
         logo="https://raw.githubusercontent.com/tv-logo/tv-logos/refs/heads/main/countries/spain/3-24-es.png",
         group="Spain",
         country_code="ES",
-        epg_id="324.es"
+        epg_id="324.es",
     ),
     ChannelData(
         name="Bon Dia",
@@ -322,7 +322,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/4/4f/Logo_Bon_Dia_TV.png",
         group="Spain",
         country_code="ES",
-        epg_id="BonDiaTV.es"
+        epg_id="BonDiaTV.es",
     ),
     ChannelData(
         name="SX3 Ⓖ",
@@ -330,7 +330,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/SX3_logo.svg/2880px-SX3_logo.svg.png",
         group="Spain",
         country_code="ES",
-        epg_id="SX3.es"
+        epg_id="SX3.es",
     ),
     ChannelData(
         name="El 33 Ⓖ",
@@ -338,7 +338,7 @@ channels = [
         logo="https://raw.githubusercontent.com/tv-logo/tv-logos/refs/heads/main/countries/spain/el-33-es.png",
         group="Spain",
         country_code="ES",
-        epg_id="El33.es"
+        epg_id="El33.es",
     ),
     ChannelData(
         name="Esport3 Ⓖ",
@@ -346,7 +346,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Esport3.svg/1200px-Esport3.svg.png",
         group="Spain",
         country_code="ES",
-        epg_id="Esport3.es"
+        epg_id="Esport3.es",
     ),
     ChannelData(
         name="Canal TE24",
@@ -354,7 +354,7 @@ channels = [
         logo="https://i.ibb.co/3ynghbW/logox2.png",
         group="Spain",
         country_code="ES",
-        epg_id="CanalTerresdelEbre.es"
+        epg_id="CanalTerresdelEbre.es",
     ),
     ChannelData(
         name="À Punt TV",
@@ -362,7 +362,7 @@ channels = [
         logo="https://i.imgur.com/M88LoNl.png",
         group="Spain",
         country_code="ES",
-        epg_id="APunt.es"
+        epg_id="APunt.es",
     ),
     ChannelData(
         name="7 Región de Murcia Ⓢ",
@@ -370,7 +370,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/La_7_logo.svg/150px-La_7_logo.svg.png",
         group="Spain",
         country_code="ES",
-        epg_id="La7.es"
+        epg_id="La7.es",
     ),
     ChannelData(
         name="Canal 4 Tenerife",
@@ -378,7 +378,7 @@ channels = [
         logo="https://i.imgur.com/Egymir4.png",
         group="Spain",
         country_code="ES",
-        epg_id="Canal4Tenerife.es"
+        epg_id="Canal4Tenerife.es",
     ),
     ChannelData(
         name="Televisión Melilla",
@@ -386,7 +386,7 @@ channels = [
         logo="https://raw.githubusercontent.com/tv-logo/tv-logos/refs/heads/main/countries/spain/television-melilla-es.png",
         group="Spain",
         country_code="ES",
-        epg_id="TelevisionMelilla.es"
+        epg_id="TelevisionMelilla.es",
     ),
     ChannelData(
         name="La 1 (Catalunya)",
@@ -394,7 +394,7 @@ channels = [
         logo="https://i.imgur.com/NbesiPn.png",
         group="Spain",
         country_code="ES",
-        epg_id="La1Catalunya.es"
+        epg_id="La1Catalunya.es",
     ),
     ChannelData(
         name="La 1 (Canarias)",
@@ -402,7 +402,7 @@ channels = [
         logo="https://i.imgur.com/NbesiPn.png",
         group="Spain",
         country_code="ES",
-        epg_id="La1Canarias.es"
+        epg_id="La1Canarias.es",
     ),
     ChannelData(
         name="La 2 (Catalunya)",
@@ -410,7 +410,7 @@ channels = [
         logo="https://i.imgur.com/DmuTwDw.png",
         group="Spain",
         country_code="ES",
-        epg_id="La2Catalunya.es"
+        epg_id="La2Catalunya.es",
     ),
     ChannelData(
         name="La 2 (Canarias)",
@@ -418,6 +418,6 @@ channels = [
         logo="https://i.imgur.com/DmuTwDw.png",
         group="Spain",
         country_code="ES",
-        epg_id="La2Canarias.es"
+        epg_id="La2Canarias.es",
     ),
 ]

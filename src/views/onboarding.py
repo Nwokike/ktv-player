@@ -74,7 +74,13 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
     content = ft.Column(
         [
             ft.Image(src="/icon.png", width=100, height=100),
-            ft.Text("Welcome", size=32, weight=ft.FontWeight.BOLD, color=palette["text"], text_align=ft.TextAlign.CENTER),
+            ft.Text(
+                "Welcome",
+                size=32,
+                weight=ft.FontWeight.BOLD,
+                color=palette["text"],
+                text_align=ft.TextAlign.CENTER,
+            ),
             ft.Text(
                 "A lightning-fast TV player built for seamless network streaming and custom channel addition.",
                 size=16,
@@ -82,7 +88,6 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
                 color=palette["text_dim"],
             ),
             ft.Divider(height=20, color=AppColors.TRANSPARENT),
-
             ft.Text(
                 "Select your Country",
                 size=18,
@@ -107,9 +112,7 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
                 menu_style=ft.MenuStyle(bgcolor=palette["surface_variant"]),
                 text_align=ft.TextAlign.START,
             ),
-
             ft.Divider(height=20, color=AppColors.TRANSPARENT),
-
             ft.Container(
                 content=ft.Text(
                     terms_text,
@@ -120,10 +123,9 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
                 padding=15,
                 bgcolor=palette["surface"],
                 border_radius=10,
-                # FIX 1: Removed 'expand=True' from this Container. 
+                # FIX 1: Removed 'expand=True' from this Container.
                 # This stops it from clipping against the Column, allowing all 3 lines to show!
             ),
-
             ft.Row(
                 [
                     ft.Checkbox(ref=terms_checked, value=False),
@@ -138,14 +140,12 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
                 spacing=8,
                 wrap=True,
             ),
-
             ft.Divider(height=20, color=AppColors.TRANSPARENT),
-
             ft.FilledButton(
                 content="Start Watching",
                 on_click=handle_submit,
                 style=ft.ButtonStyle(
-                    color="white", # String literal fallback to avoid Enum crash
+                    color="white",  # String literal fallback to avoid Enum crash
                     bgcolor=AppColors.PRIMARY,
                     padding=20,
                     shape=ft.RoundedRectangleBorder(radius=15),

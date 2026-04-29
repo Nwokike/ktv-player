@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/kSmcAER.png",
         group="North Macedonia",
         country_code="MK",
-        epg_id="Zdravkin"
+        epg_id="Zdravkin",
     ),
     ChannelData(
         name="Орбис",
@@ -18,7 +18,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/6/6f/Orbis-logo.png",
         group="North Macedonia",
         country_code="MK",
-        epg_id="TV Orbis"
+        epg_id="TV Orbis",
     ),
     ChannelData(
         name="M»Net",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/JWHcGMX.png",
         group="North Macedonia",
         country_code="MK",
-        epg_id="mnet.mk"
+        epg_id="mnet.mk",
     ),
     ChannelData(
         name="Канал 8",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/5skC7be.png",
         group="North Macedonia",
         country_code="MK",
-        epg_id="kanal8.mk"
+        epg_id="kanal8.mk",
     ),
     ChannelData(
         name="ТВ СВЕТ",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/R79xT60.png",
         group="North Macedonia",
         country_code="MK",
-        epg_id="tvsvet.com.mk"
+        epg_id="tvsvet.com.mk",
     ),
     ChannelData(
         name="M»Net Sport",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/q3DV2gP.png",
         group="North Macedonia",
         country_code="MK",
-        epg_id="sport.mnet.mk"
+        epg_id="sport.mnet.mk",
     ),
     ChannelData(
         name="M»Net Info",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/O26HEyC.png",
         group="North Macedonia",
         country_code="MK",
-        epg_id="info.mnet.mk"
+        epg_id="info.mnet.mk",
     ),
     ChannelData(
         name="TV 24 Ⓖ",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/MFKeNZx.png",
         group="North Macedonia",
         country_code="MK",
-        epg_id="24.mk"
+        epg_id="24.mk",
     ),
     ChannelData(
         name="ТВ НОВА 12",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/Qo3Hj3t.png",
         group="North Macedonia",
         country_code="MK",
-        epg_id="tvnova12.mk"
+        epg_id="tvnova12.mk",
     ),
     ChannelData(
         name="Вардар тв",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/c2JHg9R.png",
         group="North Macedonia",
         country_code="MK",
-        epg_id="vardar tv"
+        epg_id="vardar tv",
     ),
     ChannelData(
         name="ЗОНА М1 ТВ",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/yTR7A0d.png",
         group="North Macedonia",
         country_code="MK",
-        epg_id="zona m1"
+        epg_id="zona m1",
     ),
     ChannelData(
         name="Наша ТВ",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/EOLrXvB.png",
         group="North Macedonia",
         country_code="MK",
-        epg_id="NasaTV.mk"
+        epg_id="NasaTV.mk",
     ),
     ChannelData(
         name="Cool TV",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/2tFrjUz.png",
         group="North Macedonia",
         country_code="MK",
-        epg_id="CoolTV.mk"
+        epg_id="CoolTV.mk",
     ),
     ChannelData(
         name="Folk TV",
@@ -114,7 +114,7 @@ channels = [
         logo="https://i.imgur.com/4b9aZ9P.png",
         group="North Macedonia",
         country_code="MK",
-        epg_id="FolkTV.mk"
+        epg_id="FolkTV.mk",
     ),
     ChannelData(
         name="Jazz TV",
@@ -122,7 +122,7 @@ channels = [
         logo="https://i.imgur.com/4U6Ju5G.png",
         group="North Macedonia",
         country_code="MK",
-        epg_id="JazzTV.mk"
+        epg_id="JazzTV.mk",
     ),
     ChannelData(
         name="Love TV",
@@ -130,7 +130,7 @@ channels = [
         logo="https://i.imgur.com/B8iaejQ.png",
         group="North Macedonia",
         country_code="MK",
-        epg_id="LoveTV.mk"
+        epg_id="LoveTV.mk",
     ),
     ChannelData(
         name="Rock TV",
@@ -138,7 +138,7 @@ channels = [
         logo="https://i.imgur.com/Y9miDQo.png",
         group="North Macedonia",
         country_code="MK",
-        epg_id="RockTV.mk"
+        epg_id="RockTV.mk",
     ),
     ChannelData(
         name="Стар Фолк",
@@ -146,7 +146,7 @@ channels = [
         logo="https://i.imgur.com/7RstQYI.png",
         group="North Macedonia",
         country_code="MK",
-        epg_id="StarFolkTV.mk"
+        epg_id="StarFolkTV.mk",
     ),
     ChannelData(
         name="Sky Folk",
@@ -154,7 +154,7 @@ channels = [
         logo="https://i.imgur.com/xRw4Hmu.png",
         group="North Macedonia",
         country_code="MK",
-        epg_id="SkyFolkTV.mk"
+        epg_id="SkyFolkTV.mk",
     ),
     ChannelData(
         name="Хуго 2",
@@ -162,7 +162,7 @@ channels = [
         logo="https://i.imgur.com/yb3xjOZ.png",
         group="North Macedonia",
         country_code="MK",
-        epg_id="Hugo2.mk"
+        epg_id="Hugo2.mk",
     ),
     ChannelData(
         name="Folk Club TV",
@@ -170,7 +170,7 @@ channels = [
         logo="https://i.imgur.com/vkGFSl8.png",
         group="North Macedonia",
         country_code="MK",
-        epg_id="FolkClubTV.mk"
+        epg_id="FolkClubTV.mk",
     ),
     ChannelData(
         name="INTV",
@@ -178,7 +178,7 @@ channels = [
         logo="https://i.imgur.com/K7BSjqY.png",
         group="North Macedonia",
         country_code="MK",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Macedonian Documentary Channel",
@@ -186,7 +186,7 @@ channels = [
         logo="https://i.imgur.com/uYyG2oA.png",
         group="North Macedonia",
         country_code="MK",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Вистел",
@@ -194,7 +194,7 @@ channels = [
         logo="https://i.imgur.com/MbM0E6L.png",
         group="North Macedonia",
         country_code="MK",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Стар Плус",
@@ -202,6 +202,6 @@ channels = [
         logo="https://i.imgur.com/01yz22a.png",
         group="North Macedonia",
         country_code="MK",
-        epg_id=""
+        epg_id="",
     ),
 ]

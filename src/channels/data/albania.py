@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/rL2v9pM.png",
         group="Albania",
         country_code="AL",
-        epg_id="Kanali7.al"
+        epg_id="Kanali7.al",
     ),
     ChannelData(
         name="A2 CNN Albania",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/TgO3Lzi.png",
         group="Albania",
         country_code="AL",
-        epg_id="A2CNN.al"
+        epg_id="A2CNN.al",
     ),
     ChannelData(
         name="ABC News Albania Ⓣ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/aObcudw.png",
         group="Albania",
         country_code="AL",
-        epg_id="ABCNewsAlbania.al"
+        epg_id="ABCNewsAlbania.al",
     ),
     ChannelData(
         name="AlbKanale Music TV Ⓢ",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/JdKxscs.png",
         group="Albania",
         country_code="AL",
-        epg_id="AlbKanaleMusicTV.al"
+        epg_id="AlbKanaleMusicTV.al",
     ),
     ChannelData(
         name="Alpo TV",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/Pr4ixiA.png",
         group="Albania",
         country_code="AL",
-        epg_id="AlpoTV.al"
+        epg_id="AlpoTV.al",
     ),
     ChannelData(
         name="CNA",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/X3ukD5t.png",
         group="Albania",
         country_code="AL",
-        epg_id="CNA.al"
+        epg_id="CNA.al",
     ),
     ChannelData(
         name="Euronews Albania Ⓨ",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/Skf6vdi.png",
         group="Albania",
         country_code="AL",
-        epg_id="EuronewsAlbania.al"
+        epg_id="EuronewsAlbania.al",
     ),
     ChannelData(
         name="News 24 Ⓢ",
@@ -66,7 +66,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/News_24_%28Albania%29.svg/1024px-News_24_%28Albania%29.svg.png",
         group="Albania",
         country_code="AL",
-        epg_id="News24.al"
+        epg_id="News24.al",
     ),
     ChannelData(
         name="Ora News",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/ILZY5bJ.png",
         group="Albania",
         country_code="AL",
-        epg_id="OraNews.al"
+        epg_id="OraNews.al",
     ),
     ChannelData(
         name="Panorama TV Ⓢ",
@@ -82,7 +82,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Panorama_logo.svg/512px-Panorama_logo.svg.png",
         group="Albania",
         country_code="AL",
-        epg_id="PanoramaTV.al"
+        epg_id="PanoramaTV.al",
     ),
     ChannelData(
         name="Report TV",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/yuRDJYY.png",
         group="Albania",
         country_code="AL",
-        epg_id="ReportTV.al"
+        epg_id="ReportTV.al",
     ),
     ChannelData(
         name="Syri",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/4zVyj1M.png",
         group="Albania",
         country_code="AL",
-        epg_id="Syri.al"
+        epg_id="Syri.al",
     ),
     ChannelData(
         name="Top News Ⓣ",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/tBAXkOW.png",
         group="Albania",
         country_code="AL",
-        epg_id="TopNews.al"
+        epg_id="TopNews.al",
     ),
     ChannelData(
         name="Tropoja",
@@ -114,7 +114,7 @@ channels = [
         logo="https://i.imgur.com/D3hNOVS.png",
         group="Albania",
         country_code="AL",
-        epg_id="TropojaTelevizion.al"
+        epg_id="TropojaTelevizion.al",
     ),
     ChannelData(
         name="TV 7 Albania",
@@ -122,7 +122,7 @@ channels = [
         logo="https://i.imgur.com/k9WqPLZ.png",
         group="Albania",
         country_code="AL",
-        epg_id="TV7Albania.al"
+        epg_id="TV7Albania.al",
     ),
     ChannelData(
         name="TV Apollon Ⓢ",
@@ -130,7 +130,7 @@ channels = [
         logo="https://i.imgur.com/gUz2AjM.png",
         group="Albania",
         country_code="AL",
-        epg_id="TVApollon.al"
+        epg_id="TVApollon.al",
     ),
     ChannelData(
         name="Vizion Plus",
@@ -138,6 +138,6 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Vizion_Plus.svg/512px-Vizion_Plus.svg.png",
         group="Albania",
         country_code="AL",
-        epg_id="VizionPlus.al"
+        epg_id="VizionPlus.al",
     ),
 ]

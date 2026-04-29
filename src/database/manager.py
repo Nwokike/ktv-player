@@ -1,6 +1,7 @@
 import aiosqlite
 import os
 
+
 class DatabaseManager:
     def __init__(self, db_path: str = "storage/data/ktv_player.db"):
         self.db_path = os.path.abspath(db_path)
@@ -9,10 +10,10 @@ class DatabaseManager:
         db_dir = os.path.dirname(self.db_path)
         if db_dir:
             os.makedirs(db_dir, exist_ok=True)
-            
+
         async with aiosqlite.connect(self.db_path) as db:
             await db.execute("PRAGMA journal_mode=WAL;")
-            
+
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS history (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -20,7 +21,7 @@ class DatabaseManager:
                     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            
+
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS favorites (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,14 +30,14 @@ class DatabaseManager:
                     logo TEXT
                 )
             """)
-            
+
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS settings (
                     key TEXT PRIMARY KEY,
                     value TEXT
                 )
             """)
-            
+
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS playlists (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,7 +46,7 @@ class DatabaseManager:
                     is_active INTEGER DEFAULT 1
                 )
             """)
-            
+
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS custom_channels (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,7 +65,9 @@ class DatabaseManager:
 
     async def get_history(self):
         async with aiosqlite.connect(self.db_path) as db:
-            async with db.execute("SELECT url FROM history ORDER BY timestamp DESC LIMIT 20") as cursor:
+            async with db.execute(
+                "SELECT url FROM history ORDER BY timestamp DESC LIMIT 20"
+            ) as cursor:
                 rows = await cursor.fetchall()
                 return [row[0] for row in rows]
 
@@ -79,11 +82,14 @@ class DatabaseManager:
             await db.execute("DELETE FROM playlists")
             await db.execute("DELETE FROM custom_channels")
             await db.commit()
+
     # -----------------------------------------------------------
 
     async def set_setting(self, key: str, value: str):
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", (key, value))
+            await db.execute(
+                "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", (key, value)
+            )
             await db.commit()
 
     async def get_setting(self, key: str, default=None):
@@ -94,7 +100,9 @@ class DatabaseManager:
 
     async def add_playlist(self, name: str, url: str):
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute("INSERT OR IGNORE INTO playlists (name, url) VALUES (?, ?)", (name, url))
+            await db.execute(
+                "INSERT OR IGNORE INTO playlists (name, url) VALUES (?, ?)", (name, url)
+            )
             await db.commit()
 
     async def get_playlists(self):
@@ -105,13 +113,19 @@ class DatabaseManager:
 
     async def add_custom_channel(self, name: str, url: str, group: str = "Custom"):
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute("INSERT OR IGNORE INTO custom_channels (name, url, group_name) VALUES (?, ?, ?)", (name, url, group))
+            await db.execute(
+                "INSERT OR IGNORE INTO custom_channels (name, url, group_name) VALUES (?, ?, ?)",
+                (name, url, group),
+            )
             await db.commit()
 
     async def get_custom_channels(self):
         async with aiosqlite.connect(self.db_path) as db:
-            async with db.execute("SELECT name, url, logo, group_name FROM custom_channels") as cursor:
+            async with db.execute(
+                "SELECT name, url, logo, group_name FROM custom_channels"
+            ) as cursor:
                 rows = await cursor.fetchall()
                 return [{"name": r[0], "url": r[1], "logo": r[2], "group": r[3]} for r in rows]
+
 
 db_manager = DatabaseManager()

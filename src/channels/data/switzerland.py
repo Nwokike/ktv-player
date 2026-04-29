@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/KCPHba2.png",
         group="Switzerland",
         country_code="CH",
-        epg_id="SRF1.ch"
+        epg_id="SRF1.ch",
     ),
     ChannelData(
         name="TVO",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/5QFZ05B.png",
         group="Switzerland",
         country_code="CH",
-        epg_id="TVO.ch"
+        epg_id="TVO.ch",
     ),
     ChannelData(
         name="RTS Un",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/gWuuBZc.png",
         group="Switzerland",
         country_code="CH",
-        epg_id="RTS1.ch"
+        epg_id="RTS1.ch",
     ),
     ChannelData(
         name="TVM 3",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/3v6iZE6.png",
         group="Switzerland",
         country_code="CH",
-        epg_id="TVM3.ch"
+        epg_id="TVM3.ch",
     ),
     ChannelData(
         name="RSI La 1",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/j8ogbli.png",
         group="Switzerland",
         country_code="CH",
-        epg_id="RSILa1.ch"
+        epg_id="RSILa1.ch",
     ),
     ChannelData(
         name="RSI La 2",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/vm62h3t.png",
         group="Switzerland",
         country_code="CH",
-        epg_id="RSILa2.ch"
+        epg_id="RSILa2.ch",
     ),
     ChannelData(
         name="Teleticino",
@@ -58,6 +58,6 @@ channels = [
         logo="https://i.imgur.com/zm2ruqz.png",
         group="Switzerland",
         country_code="CH",
-        epg_id="TeleTicino.ch"
+        epg_id="TeleTicino.ch",
     ),
 ]

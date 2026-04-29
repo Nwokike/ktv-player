@@ -10,7 +10,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Das_Erste_2014.svg/640px-Das_Erste_2014.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="DasErste.de"
+        epg_id="DasErste.de",
     ),
     ChannelData(
         name="ZDF Ⓖ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/ZDF_logo.svg/640px-ZDF_logo.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="ZDF.de"
+        epg_id="ZDF.de",
     ),
     ChannelData(
         name="3sat Ⓖ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/3sat_2019.svg/640px-3sat_2019.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="3sat.de"
+        epg_id="3sat.de",
     ),
     ChannelData(
         name="ARD Alpha Ⓖ",
@@ -34,7 +34,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/ARD_alpha.svg/640px-ARD_alpha.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="ARDalpha.de"
+        epg_id="ARDalpha.de",
     ),
     ChannelData(
         name="ARTE Ⓖ",
@@ -42,7 +42,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Arte_Logo_2017.svg/186px-Arte_Logo_2017.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="ARTEDeutsch.de"
+        epg_id="ARTEDeutsch.de",
     ),
     ChannelData(
         name="DELUXE MUSIC",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/E65GQN9.png",
         group="Germany",
         country_code="DE",
-        epg_id="DeluxeMusic.de"
+        epg_id="DeluxeMusic.de",
     ),
     ChannelData(
         name="DELUXE MUSIC DANCE BY KONTOR",
@@ -58,7 +58,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Deluxe_Dance_by_Kontor_Logo_2023.svg/666px-Deluxe_Dance_by_Kontor_Logo_2023.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="DeluxeMusicDanceByKontor.de"
+        epg_id="DeluxeMusicDanceByKontor.de",
     ),
     ChannelData(
         name="DELUXE MUSIC RAP",
@@ -66,7 +66,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Deluxe_Rap_Logo_2023.svg/666px-Deluxe_Rap_Logo_2023.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="DeLuxeMusicRap.de"
+        epg_id="DeLuxeMusicRap.de",
     ),
     ChannelData(
         name="SCHLAGER DELUXE",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/YPpgUOg.png",
         group="Germany",
         country_code="DE",
-        epg_id="SchlagerDeluxe.de"
+        epg_id="SchlagerDeluxe.de",
     ),
     ChannelData(
         name="Euronews Deutsch Ⓨ",
@@ -82,7 +82,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Euronews_2022.svg/640px-Euronews_2022.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="EuronewsGerman.fr"
+        epg_id="EuronewsGerman.fr",
     ),
     ChannelData(
         name="KiKa Ⓖ",
@@ -90,7 +90,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Kika_2012.svg/640px-Kika_2012.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="KIKA.de"
+        epg_id="KIKA.de",
     ),
     ChannelData(
         name="ONE Ⓖ",
@@ -98,7 +98,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/One_2022.svg/640px-One_2022.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="One.de"
+        epg_id="One.de",
     ),
     ChannelData(
         name="Phoenix Ⓖ",
@@ -106,7 +106,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Phoenix-logo-2018.svg/640px-Phoenix-logo-2018.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="Phoenix.de"
+        epg_id="Phoenix.de",
     ),
     ChannelData(
         name="Tagesschau24",
@@ -114,7 +114,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Tagesschau24-2012.svg/640px-Tagesschau24-2012.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="tagesschau24.de"
+        epg_id="tagesschau24.de",
     ),
     ChannelData(
         name="Welt",
@@ -122,7 +122,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Welt_TV_Logo_2016.svg/640px-Welt_TV_Logo_2016.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="Welt.de"
+        epg_id="Welt.de",
     ),
     ChannelData(
         name="ZDFinfo Ⓖ",
@@ -130,7 +130,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/ZDFinfo_2011.svg/640px-ZDFinfo_2011.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="ZDFinfo.de"
+        epg_id="ZDFinfo.de",
     ),
     ChannelData(
         name="ZDFneo Ⓖ",
@@ -138,7 +138,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/ZDFneo2017_Logo.svg/569px-ZDFneo2017_Logo.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="ZDFneo.de"
+        epg_id="ZDFneo.de",
     ),
     ChannelData(
         name="BR Nord Ⓖ",
@@ -146,7 +146,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Logo_BR_Fernsehen_2021.svg/768px-Logo_BR_Fernsehen_2021.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="BRFernsehenNord.de"
+        epg_id="BRFernsehenNord.de",
     ),
     ChannelData(
         name="BR Süd Ⓖ",
@@ -154,7 +154,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Logo_BR_Fernsehen_2021.svg/768px-Logo_BR_Fernsehen_2021.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="BRFernsehenSud.de"
+        epg_id="BRFernsehenSud.de",
     ),
     ChannelData(
         name="HR Ⓖ",
@@ -162,7 +162,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/HR-Fernsehen_Logo_2023.svg/640px-HR-Fernsehen_Logo_2023.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="HRFernsehen.de"
+        epg_id="HRFernsehen.de",
     ),
     ChannelData(
         name="MDR Sachsen Ⓖ",
@@ -170,7 +170,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/MDR_Logo_2017.svg/640px-MDR_Logo_2017.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="MDRFernsehenSachsen.de"
+        epg_id="MDRFernsehenSachsen.de",
     ),
     ChannelData(
         name="MDR Sachsen-Anhalt Ⓖ",
@@ -178,7 +178,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/MDR_Logo_2017.svg/640px-MDR_Logo_2017.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="MDRFernsehenSachsenAnhalt.de"
+        epg_id="MDRFernsehenSachsenAnhalt.de",
     ),
     ChannelData(
         name="MDR Thüringen Ⓖ",
@@ -186,7 +186,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/MDR_Logo_2017.svg/640px-MDR_Logo_2017.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="MDRFernsehenThuringen.de"
+        epg_id="MDRFernsehenThuringen.de",
     ),
     ChannelData(
         name="NDR Hamburg Ⓖ",
@@ -194,7 +194,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Logo_NDR_Fernsehen_2017.svg/578px-Logo_NDR_Fernsehen_2017.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="NDRFernsehenHamburg.de"
+        epg_id="NDRFernsehenHamburg.de",
     ),
     ChannelData(
         name="NDR Mecklenburg-Vorpommern Ⓖ",
@@ -202,7 +202,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Logo_NDR_Fernsehen_2017.svg/578px-Logo_NDR_Fernsehen_2017.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="NDRFernsehenMecklenburgVorpommern.de"
+        epg_id="NDRFernsehenMecklenburgVorpommern.de",
     ),
     ChannelData(
         name="NDR Niedersachsen Ⓖ",
@@ -210,7 +210,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Logo_NDR_Fernsehen_2017.svg/578px-Logo_NDR_Fernsehen_2017.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="NDRFernsehenNiedersachsen.de"
+        epg_id="NDRFernsehenNiedersachsen.de",
     ),
     ChannelData(
         name="NDR Schleswig-Holstein Ⓖ",
@@ -218,7 +218,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Logo_NDR_Fernsehen_2017.svg/578px-Logo_NDR_Fernsehen_2017.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="NDRFernsehenSchleswigHolstein.de"
+        epg_id="NDRFernsehenSchleswigHolstein.de",
     ),
     ChannelData(
         name="Radio Bremen Ⓖ",
@@ -226,7 +226,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Logo_Radio_Bremen.svg/640px-Logo_Radio_Bremen.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="RadioBremenFernsehen.de"
+        epg_id="RadioBremenFernsehen.de",
     ),
     ChannelData(
         name="RBB Berlin Ⓖ",
@@ -234,7 +234,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Rbb_Fernsehen_Logo_2017.08.svg/640px-Rbb_Fernsehen_Logo_2017.08.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="RBBBerlin.de"
+        epg_id="RBBBerlin.de",
     ),
     ChannelData(
         name="RBB Brandenburg Ⓖ",
@@ -242,7 +242,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Rbb_Fernsehen_Logo_2017.08.svg/640px-Rbb_Fernsehen_Logo_2017.08.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="RBBBrandenburg.de"
+        epg_id="RBBBrandenburg.de",
     ),
     ChannelData(
         name="SR Ⓖ",
@@ -250,7 +250,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/SR_Fernsehen_Logo_2023.svg/538px-SR_Fernsehen_Logo_2023.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="SRFernsehen.de"
+        epg_id="SRFernsehen.de",
     ),
     ChannelData(
         name="SWR Baden-Württemberg Ⓖ",
@@ -258,7 +258,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/SWR_Logo_2023.svg/640px-SWR_Logo_2023.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="SWRFernsehenBadenWurttemberg.de"
+        epg_id="SWRFernsehenBadenWurttemberg.de",
     ),
     ChannelData(
         name="SWR Rheinland-Pfalz Ⓖ",
@@ -266,7 +266,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/SWR_Logo_2023.svg/640px-SWR_Logo_2023.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="SWRFernsehenRheinlandPfalz.de"
+        epg_id="SWRFernsehenRheinlandPfalz.de",
     ),
     ChannelData(
         name="WDR Ⓖ",
@@ -274,7 +274,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Wdr_fernsehen_logo_2016.svg/640px-Wdr_fernsehen_logo_2016.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="WDR.de"
+        epg_id="WDR.de",
     ),
     ChannelData(
         name="NDR International",
@@ -282,6 +282,6 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Logo_NDR_Fernsehen_2017.svg/578px-Logo_NDR_Fernsehen_2017.svg.png",
         group="Germany",
         country_code="DE",
-        epg_id="NDRFernsehenInternational.de"
+        epg_id="NDRFernsehenInternational.de",
     ),
 ]

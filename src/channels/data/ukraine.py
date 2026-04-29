@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/osTQLED.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="Pershyi.ua"
+        epg_id="Pershyi.ua",
     ),
     ChannelData(
         name="1+1 Ukraina Ⓢ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/FlG7npq.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="1Plus1Ukraina.ua"
+        epg_id="1Plus1Ukraina.ua",
     ),
     ChannelData(
         name="1+1 Marafon",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/smQKa2G.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="1Plus1Marafon.ua"
+        epg_id="1Plus1Marafon.ua",
     ),
     ChannelData(
         name="Suspilne Kultura",
@@ -34,7 +34,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Suspilne_Kultura_%282022%29.svg/640px-Suspilne_Kultura_%282022%29.svg.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="SuspilneKultura.ua"
+        epg_id="SuspilneKultura.ua",
     ),
     ChannelData(
         name="Suspilne Sport",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/16IhU0M.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="SuspilneSport.ua"
+        epg_id="SuspilneSport.ua",
     ),
     ChannelData(
         name="ICTV2",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/J4zlRGv.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="ICTV2.ua"
+        epg_id="ICTV2.ua",
     ),
     ChannelData(
         name="ICTV Serialy",
@@ -58,7 +58,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/7/7a/ICTV_Serialy_%282024%29.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="ICTVSerialy.ua"
+        epg_id="ICTVSerialy.ua",
     ),
     ChannelData(
         name="Inter",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/R06gbuT.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="Inter.ua"
+        epg_id="Inter.ua",
     ),
     ChannelData(
         name="UNIAN TV",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/Alu78zn.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="UNIANTV.ua"
+        epg_id="UNIANTV.ua",
     ),
     ChannelData(
         name="Bigudi Ⓢ",
@@ -82,7 +82,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Bigudi_%28Ukraine%29_%281-st_logo%29.svg/627px-Bigudi_%28Ukraine%29_%281-st_logo%29.svg.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="Bigudi.ua"
+        epg_id="Bigudi.ua",
     ),
     ChannelData(
         name="Армія ТБ",
@@ -90,7 +90,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/ArmyTV_logo_%282023%29.svg/640px-ArmyTV_logo_%282023%29.svg.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="ArmyTV.ua"
+        epg_id="ArmyTV.ua",
     ),
     ChannelData(
         name="Novyi Kanal",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/4JhqpPM.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="NovyKanal.ua"
+        epg_id="NovyKanal.ua",
     ),
     ChannelData(
         name="TET Ⓢ",
@@ -106,7 +106,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/TET_logo.svg/640px-TET_logo.svg.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="TET.ua"
+        epg_id="TET.ua",
     ),
     ChannelData(
         name="2+2 Ⓢ",
@@ -114,7 +114,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/2%2B2_logo_2017.svg/640px-2%2B2_logo_2017.svg.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="2Plus2.ua"
+        epg_id="2Plus2.ua",
     ),
     ChannelData(
         name="M1",
@@ -122,7 +122,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/M1_%28Ukraine%29_%282001-2021%29.svg/768px-M1_%28Ukraine%29_%282001-2021%29.svg.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="M1.ua"
+        epg_id="M1.ua",
     ),
     ChannelData(
         name="M2",
@@ -130,7 +130,7 @@ channels = [
         logo="https://i.imgur.com/AfcBWCg.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="M2.ua"
+        epg_id="M2.ua",
     ),
     ChannelData(
         name="NTN",
@@ -138,7 +138,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/NTNUA_logo_%282013%29.svg/640px-NTNUA_logo_%282013%29.svg.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="NTN.ua"
+        epg_id="NTN.ua",
     ),
     ChannelData(
         name="Mega",
@@ -146,7 +146,7 @@ channels = [
         logo="https://i.imgur.com/F1v69tn.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="Mega.ua"
+        epg_id="Mega.ua",
     ),
     ChannelData(
         name="ПлюсПлюс Ⓢ",
@@ -154,7 +154,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/PLUSPLUSUA.svg/640px-PLUSPLUSUA.svg.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="PlusPlus.ua"
+        epg_id="PlusPlus.ua",
     ),
     ChannelData(
         name="Ми — Україна Ⓢ",
@@ -162,7 +162,7 @@ channels = [
         logo="https://i.imgur.com/nkatL7Q.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="MyUkrainaTV.ua"
+        epg_id="MyUkrainaTV.ua",
     ),
     ChannelData(
         name="Оце ТБ",
@@ -170,7 +170,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/OCE_logo_%282017%29.svg/640px-OCE_logo_%282017%29.svg.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="OCE.ua"
+        epg_id="OCE.ua",
     ),
     ChannelData(
         name="K1",
@@ -178,7 +178,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/K1_Logo_2014.svg/655px-K1_Logo_2014.svg.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="K1.ua"
+        epg_id="K1.ua",
     ),
     ChannelData(
         name="XSport Ⓢ",
@@ -186,7 +186,7 @@ channels = [
         logo="https://i.imgur.com/CHDcfrT.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="XSport.ua"
+        epg_id="XSport.ua",
     ),
     ChannelData(
         name="Enter-Film",
@@ -194,7 +194,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Enter-FilmUA_%282013%29.png/819px-Enter-FilmUA_%282013%29.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="EnterFilm.ua"
+        epg_id="EnterFilm.ua",
     ),
     ChannelData(
         name="Піксель TV",
@@ -202,7 +202,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/PixelUalogo.svg/640px-PixelUalogo.svg.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="PixelTV.ua"
+        epg_id="PixelTV.ua",
     ),
     ChannelData(
         name="5 Kanal",
@@ -210,7 +210,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Logo_5_Channel.svg/480px-Logo_5_Channel.svg.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="5Kanal.ua"
+        epg_id="5Kanal.ua",
     ),
     ChannelData(
         name="Суспільне Київ",
@@ -218,7 +218,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Suspilne_Kyiv_%282022%29.svg/640px-Suspilne_Kyiv_%282022%29.svg.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="SuspilneKyiv.ua"
+        epg_id="SuspilneKyiv.ua",
     ),
     ChannelData(
         name="Суспільне Дніпро",
@@ -226,7 +226,7 @@ channels = [
         logo="https://i.imgur.com/nMHd9FK.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="SuspilneDnipro.ua"
+        epg_id="SuspilneDnipro.ua",
     ),
     ChannelData(
         name="Суспільне Житомир Ⓢ",
@@ -234,7 +234,7 @@ channels = [
         logo="https://i.imgur.com/lCv1Xaq.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="SuspilneZhytomyr.ua"
+        epg_id="SuspilneZhytomyr.ua",
     ),
     ChannelData(
         name="Суспільне Одеса Ⓢ",
@@ -242,7 +242,7 @@ channels = [
         logo="https://i.imgur.com/giTdUK9.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="SuspilneOdesa.ua"
+        epg_id="SuspilneOdesa.ua",
     ),
     ChannelData(
         name="Суспільне Суми Ⓢ",
@@ -250,7 +250,7 @@ channels = [
         logo="https://i.imgur.com/U5GQiUz.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="SuspilneSumy.ua"
+        epg_id="SuspilneSumy.ua",
     ),
     ChannelData(
         name="Суспільне Хмельницький Ⓢ",
@@ -258,7 +258,7 @@ channels = [
         logo="https://i.imgur.com/uoTcTbU.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="SuspilneKhmelnytskyi.ua"
+        epg_id="SuspilneKhmelnytskyi.ua",
     ),
     ChannelData(
         name="Суспільне Чернівці Ⓢ",
@@ -266,7 +266,7 @@ channels = [
         logo="https://i.imgur.com/mzYRGp2.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="SuspilneChernivtsi.ua"
+        epg_id="SuspilneChernivtsi.ua",
     ),
     ChannelData(
         name="Суспільне Kropyvnytskyi",
@@ -274,7 +274,7 @@ channels = [
         logo="https://i.imgur.com/zzYJr87.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="SuspilneKropyvnytskyi.ua"
+        epg_id="SuspilneKropyvnytskyi.ua",
     ),
     ChannelData(
         name="Суспільне Луцьк",
@@ -282,7 +282,7 @@ channels = [
         logo="https://i.imgur.com/QIin5nZ.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="SuspilneLutsk.ua"
+        epg_id="SuspilneLutsk.ua",
     ),
     ChannelData(
         name="Суспільне Крим",
@@ -290,7 +290,7 @@ channels = [
         logo="https://i.imgur.com/m7znCes.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="SuspilneKrym.ua"
+        epg_id="SuspilneKrym.ua",
     ),
     ChannelData(
         name="Суспільне Тернопіль",
@@ -298,7 +298,7 @@ channels = [
         logo="https://i.imgur.com/rxXyCY7.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="SuspilneTernopil.ua"
+        epg_id="SuspilneTernopil.ua",
     ),
     ChannelData(
         name="Суспільне Чернігів",
@@ -306,7 +306,7 @@ channels = [
         logo="https://i.imgur.com/WBChVXj.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="SuspilneChernihiv.ua"
+        epg_id="SuspilneChernihiv.ua",
     ),
     ChannelData(
         name="FREEДOM",
@@ -314,7 +314,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/FreeDOMUAlogo.svg/512px-FreeDOMUAlogo.svg.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="FREEDOM.ua"
+        epg_id="FREEDOM.ua",
     ),
     ChannelData(
         name="24 Kanal",
@@ -322,7 +322,7 @@ channels = [
         logo="https://pbs.twimg.com/profile_images/1498285886714298374/EMSJzC-0_400x400.jpg",
         group="Ukraine",
         country_code="UA",
-        epg_id="24Kanal.ua"
+        epg_id="24Kanal.ua",
     ),
     ChannelData(
         name="ДІМ",
@@ -330,7 +330,7 @@ channels = [
         logo="https://i.imgur.com/3cjaXIF.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="DIM.ua"
+        epg_id="DIM.ua",
     ),
     ChannelData(
         name="Дніпро TV",
@@ -338,7 +338,7 @@ channels = [
         logo="https://i.imgur.com/mbPTVh1.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="DniproTV.ua"
+        epg_id="DniproTV.ua",
     ),
     ChannelData(
         name="ГІТ",
@@ -346,7 +346,7 @@ channels = [
         logo="https://i.imgur.com/b5K5Uwh.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="Git.ua"
+        epg_id="Git.ua",
     ),
     ChannelData(
         name="Telekanal RAI",
@@ -354,7 +354,7 @@ channels = [
         logo="https://i.imgur.com/Ouv51WB.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="TelekanalRAI.ua"
+        epg_id="TelekanalRAI.ua",
     ),
     ChannelData(
         name="Тернопіль 1",
@@ -362,7 +362,7 @@ channels = [
         logo="https://i.imgur.com/f5EtIzV.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="Ternopil1.ua"
+        epg_id="Ternopil1.ua",
     ),
     ChannelData(
         name="CK 1",
@@ -370,7 +370,7 @@ channels = [
         logo="https://i.imgur.com/XiXwr5h.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="SK1.ua"
+        epg_id="SK1.ua",
     ),
     ChannelData(
         name="Pervyy gorodskoy Odessa",
@@ -378,7 +378,7 @@ channels = [
         logo="https://i.imgur.com/8qdc6aO.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="PervyygorodskoyOdessa.ua"
+        epg_id="PervyygorodskoyOdessa.ua",
     ),
     ChannelData(
         name="Київ 24",
@@ -386,7 +386,7 @@ channels = [
         logo="https://i.imgur.com/TVuCY4N.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="Kyiv.ua"
+        epg_id="Kyiv.ua",
     ),
     ChannelData(
         name="ITV",
@@ -394,7 +394,7 @@ channels = [
         logo="https://i.imgur.com/NZdT9yJ.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="ITV.ua"
+        epg_id="ITV.ua",
     ),
     ChannelData(
         name="NTK TV",
@@ -402,7 +402,7 @@ channels = [
         logo="https://www.ntktv.ua/bitrix/templates/ntk_copy/images/logo.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="NTKTV.ua"
+        epg_id="NTKTV.ua",
     ),
     ChannelData(
         name="TVA",
@@ -410,7 +410,7 @@ channels = [
         logo="https://i.imgur.com/PtTQ5lv.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="TVA.ua"
+        epg_id="TVA.ua",
     ),
     ChannelData(
         name="TV7+",
@@ -418,6 +418,6 @@ channels = [
         logo="https://i.imgur.com/PcTDZ8e.png",
         group="Ukraine",
         country_code="UA",
-        epg_id="TV7Plus.ua"
+        epg_id="TV7Plus.ua",
     ),
 ]

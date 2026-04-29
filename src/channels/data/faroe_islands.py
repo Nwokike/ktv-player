@@ -10,7 +10,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/KVF_logo_2019.svg/640px-KVF_logo_2019.svg.png",
         group="Faroe Islands",
         country_code="FO",
-        epg_id="KVFSjonvarp.fo"
+        epg_id="KVFSjonvarp.fo",
     ),
     ChannelData(
         name="Tingvarp",
@@ -18,6 +18,6 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/9/90/Logo_-_L%C3%B8gting.png",
         group="Faroe Islands",
         country_code="FO",
-        epg_id="Tingvarp.fo"
+        epg_id="Tingvarp.fo",
     ),
 ]

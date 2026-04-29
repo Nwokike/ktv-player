@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/j786OLG.png",
         group="Turkey",
         country_code="TR",
-        epg_id="TRT1.tr"
+        epg_id="TRT1.tr",
     ),
     ChannelData(
         name="TRT 2 Ⓖ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/lNWrOE2.png",
         group="Turkey",
         country_code="TR",
-        epg_id="TRT2.tr"
+        epg_id="TRT2.tr",
     ),
     ChannelData(
         name="TRT Haber",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/OVfo8Ab.png",
         group="Turkey",
         country_code="TR",
-        epg_id="TRTHaber.tr"
+        epg_id="TRTHaber.tr",
     ),
     ChannelData(
         name="TRT Spor Ⓖ",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/N2wGZyf.png",
         group="Turkey",
         country_code="TR",
-        epg_id="TRTSpor.tr"
+        epg_id="TRTSpor.tr",
     ),
     ChannelData(
         name="TRT Spor 2 Ⓖ",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/ysKteM8.png",
         group="Turkey",
         country_code="TR",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="TRT Çocuk",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/QLFmD6d.png",
         group="Turkey",
         country_code="TR",
-        epg_id="TRTCocuk.tr"
+        epg_id="TRTCocuk.tr",
     ),
     ChannelData(
         name="TRT Müzik",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/fIVFCEd.png",
         group="Turkey",
         country_code="TR",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="TRT Belgesel",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/MGO87pe.png",
         group="Turkey",
         country_code="TR",
-        epg_id="TRTBelgesel.tr"
+        epg_id="TRTBelgesel.tr",
     ),
     ChannelData(
         name="TRT Avaz",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/VhTwXu5.png",
         group="Turkey",
         country_code="TR",
-        epg_id="TRTAvaz.tr"
+        epg_id="TRTAvaz.tr",
     ),
     ChannelData(
         name="TRT Kurdî",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/6BpymfB.png",
         group="Turkey",
         country_code="TR",
-        epg_id="TRTKurdi.tr"
+        epg_id="TRTKurdi.tr",
     ),
     ChannelData(
         name="TRT Arabi",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/yyhWOZs.png",
         group="Turkey",
         country_code="TR",
-        epg_id="TRTArabi.tr"
+        epg_id="TRTArabi.tr",
     ),
     ChannelData(
         name="TRT World",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/JEA2xpv.png",
         group="Turkey",
         country_code="TR",
-        epg_id="TRTWorld.tr"
+        epg_id="TRTWorld.tr",
     ),
     ChannelData(
         name="TRT Türk",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/OSTOQNw.png",
         group="Turkey",
         country_code="TR",
-        epg_id="TRTTurk.tr"
+        epg_id="TRTTurk.tr",
     ),
     ChannelData(
         name="TRT EBA Ilkokul",
@@ -114,7 +114,7 @@ channels = [
         logo="https://i.imgur.com/wDvZfk8.png",
         group="Turkey",
         country_code="TR",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="TRT EBA Ortaokul",
@@ -122,7 +122,7 @@ channels = [
         logo="https://i.imgur.com/yfPTvRx.png",
         group="Turkey",
         country_code="TR",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="TRT EBA Lise",
@@ -130,6 +130,6 @@ channels = [
         logo="https://i.imgur.com/IebUZx1.png",
         group="Turkey",
         country_code="TR",
-        epg_id=""
+        epg_id="",
     ),
 ]

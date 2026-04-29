@@ -10,7 +10,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Euronews_2022.svg/640px-Euronews_2022.svg.png",
         group="News (ES)",
         country_code="",
-        epg_id="EuronewsSpanish.fr"
+        epg_id="EuronewsSpanish.fr",
     ),
     ChannelData(
         name="France 24 Español Ⓨ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/61MSiq9.png",
         group="News (ES)",
         country_code="",
-        epg_id="France24Espanol.fr"
+        epg_id="France24Espanol.fr",
     ),
     ChannelData(
         name="DW Español Ⓢ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/A1xzjOI.png",
         group="News (ES)",
         country_code="",
-        epg_id="DWEspanol.de"
+        epg_id="DWEspanol.de",
     ),
     ChannelData(
         name="CGTN Español",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/fMsJYzl.png",
         group="News (ES)",
         country_code="",
-        epg_id="CGTNSpanish.cn"
+        epg_id="CGTNSpanish.cn",
     ),
     ChannelData(
         name="RT Español Ⓖ",
@@ -42,7 +42,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Russia-today-logo.svg/512px-Russia-today-logo.svg.png",
         group="News (ES)",
         country_code="",
-        epg_id="RTenEspanol.ru"
+        epg_id="RTenEspanol.ru",
     ),
     ChannelData(
         name="RTVE 24H",
@@ -50,6 +50,6 @@ channels = [
         logo="https://i.imgur.com/WTDKOoM.png",
         group="News (ES)",
         country_code="",
-        epg_id="rtve.es"
+        epg_id="rtve.es",
     ),
 ]

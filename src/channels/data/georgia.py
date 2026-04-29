@@ -10,7 +10,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Pirveli_Arkhi_Logo_2022.svg/512px-Pirveli_Arkhi_Logo_2022.svg.png",
         group="Georgia",
         country_code="GE",
-        epg_id="1TV.ge"
+        epg_id="1TV.ge",
     ),
     ChannelData(
         name="First Channel /Education/ (2TV)",
@@ -18,7 +18,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/ka/c/c9/2_Tv_Logo.jpg",
         group="Georgia",
         country_code="GE",
-        epg_id="2TV.ge"
+        epg_id="2TV.ge",
     ),
     ChannelData(
         name="Imedi TV",
@@ -26,7 +26,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/2/2a/Imlogo_2020.png",
         group="Georgia",
         country_code="GE",
-        epg_id="ImediTV.ge"
+        epg_id="ImediTV.ge",
     ),
     ChannelData(
         name="Rustavi 2",
@@ -34,7 +34,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/f/f8/Rustavi_2_logo.png",
         group="Georgia",
         country_code="GE",
-        epg_id="Rustavi2.ge"
+        epg_id="Rustavi2.ge",
     ),
     ChannelData(
         name="Mtavari Arkhi",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/tLtGnJW.png",
         group="Georgia",
         country_code="GE",
-        epg_id="MtavariArkhi.ge"
+        epg_id="MtavariArkhi.ge",
     ),
     ChannelData(
         name="Formula",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/fsqBn8G.png",
         group="Georgia",
         country_code="GE",
-        epg_id="Formula.ge"
+        epg_id="Formula.ge",
     ),
     ChannelData(
         name="Pos TV",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/UOiXFEW.png",
         group="Georgia",
         country_code="GE",
-        epg_id="PosTV.ge"
+        epg_id="PosTV.ge",
     ),
     ChannelData(
         name="Euronews Georgia Ⓖ",
@@ -66,6 +66,6 @@ channels = [
         logo="https://i.imgur.com/VNJ4soR.png",
         group="Georgia",
         country_code="GE",
-        epg_id="EuroNewsGeorgia.ge"
+        epg_id="EuroNewsGeorgia.ge",
     ),
 ]

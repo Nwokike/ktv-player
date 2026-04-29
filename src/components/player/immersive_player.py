@@ -1,6 +1,7 @@
 import flet as ft
 import flet_video as fv
 
+
 class ImmersivePlayer(ft.Stack):
     def __init__(self, resource: str, on_close: callable = None):
         super().__init__()
@@ -13,10 +14,10 @@ class ImmersivePlayer(ft.Stack):
             playlist=[fv.VideoMedia(self.resource)],
             autoplay=True,
             expand=True,
-            show_controls=True, 
+            show_controls=True,
             volume=100,
-            wakelock=True, 
-            filter_quality=ft.FilterQuality.MEDIUM, 
+            wakelock=True,
+            filter_quality=ft.FilterQuality.MEDIUM,
             pause_upon_entering_background_mode=True,
             resume_upon_entering_foreground_mode=True,
         )
@@ -26,24 +27,24 @@ class ImmersivePlayer(ft.Stack):
                 icon=ft.Icons.ARROW_BACK_IOS_NEW_ROUNDED,
                 icon_color=ft.Colors.WHITE,
                 icon_size=22,
-                bgcolor=ft.Colors.BLACK_45, 
+                bgcolor=ft.Colors.BLACK_45,
                 on_click=self.handle_close,
             ),
             left=15,
-            top=40, # Safely clears the Android status bar/notch in portrait
+            top=40,  # Safely clears the Android status bar/notch in portrait
         )
 
         self.controls = [
-            ft.Container(expand=True, bgcolor=ft.Colors.BLACK), 
+            ft.Container(expand=True, bgcolor=ft.Colors.BLACK),
             self.video,
-            self.back_btn
+            self.back_btn,
         ]
 
     def handle_close(self, e):
         # We REMOVED the self.page.run_task(self.video.stop) here!
-        # Flet automatically disposes of the video instance when we route away, 
+        # Flet automatically disposes of the video instance when we route away,
         # so removing it manually causes a race condition and crashes the app.
-        
+
         if self.on_close:
             # Smart callback handler
             try:

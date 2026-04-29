@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/wEq8UnG.png",
         group="Denmark",
         country_code="DK",
-        epg_id="DR1.dk"
+        epg_id="DR1.dk",
     ),
     ChannelData(
         name="DR2 Ⓖ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/b79UKYN.png",
         group="Denmark",
         country_code="DK",
-        epg_id="DR2.dk"
+        epg_id="DR2.dk",
     ),
     ChannelData(
         name="DR Ramasjang Ⓖ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/YD0z2mN.png",
         group="Denmark",
         country_code="DK",
-        epg_id="DRRamasjang.dk"
+        epg_id="DRRamasjang.dk",
     ),
     ChannelData(
         name="Folketinget TV",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/RqQDUzX.png",
         group="Denmark",
         country_code="DK",
-        epg_id="TVfromtheDanishParliament.dk"
+        epg_id="TVfromtheDanishParliament.dk",
     ),
     ChannelData(
         name="TV Syd+",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/k2jf591.png",
         group="Denmark",
         country_code="DK",
-        epg_id="TVSYD.dk"
+        epg_id="TVSYD.dk",
     ),
     ChannelData(
         name="TV 2/Fyn",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/4L6AIMH.png",
         group="Denmark",
         country_code="DK",
-        epg_id="TV2Fyn.dk"
+        epg_id="TV2Fyn.dk",
     ),
     ChannelData(
         name="TV 2/Øst",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/H9l6Ulw.png",
         group="Denmark",
         country_code="DK",
-        epg_id="TV2Ost.dk"
+        epg_id="TV2Ost.dk",
     ),
     ChannelData(
         name="TV 2/Nord",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/tEJ22UW.png",
         group="Denmark",
         country_code="DK",
-        epg_id="TV2Nord.dk"
+        epg_id="TV2Nord.dk",
     ),
     ChannelData(
         name="TV 2 Kosmopol",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/oVmCoKY.png",
         group="Denmark",
         country_code="DK",
-        epg_id="TV2Kosmopol.dk"
+        epg_id="TV2Kosmopol.dk",
     ),
     ChannelData(
         name="TV/Midt-Vest",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/OU7xIVa.png",
         group="Denmark",
         country_code="DK",
-        epg_id="TVMidtvest.dk"
+        epg_id="TVMidtvest.dk",
     ),
     ChannelData(
         name="TV 2/Østjylland",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/qEUXjHp.png",
         group="Denmark",
         country_code="DK",
-        epg_id="TV2Ostjylland.dk"
+        epg_id="TV2Ostjylland.dk",
     ),
     ChannelData(
         name="TV 2/Bornholm",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/cEOpXU6.png",
         group="Denmark",
         country_code="DK",
-        epg_id="TV2Bornholm.dk"
+        epg_id="TV2Bornholm.dk",
     ),
     ChannelData(
         name="TV Storbyen",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/QqjRqow.png",
         group="Denmark",
         country_code="DK",
-        epg_id="TVStorbyen.dk"
+        epg_id="TVStorbyen.dk",
     ),
     ChannelData(
         name="Kanal Hovedstaden",
@@ -114,7 +114,7 @@ channels = [
         logo="https://i.imgur.com/MCXYDwH.png",
         group="Denmark",
         country_code="DK",
-        epg_id="KanalHovedstaden.dk"
+        epg_id="KanalHovedstaden.dk",
     ),
     ChannelData(
         name="KKRtv",
@@ -122,6 +122,6 @@ channels = [
         logo="https://i.imgur.com/TbtjWHI.png",
         group="Denmark",
         country_code="DK",
-        epg_id="KKRtv.dk"
+        epg_id="KKRtv.dk",
     ),
 ]

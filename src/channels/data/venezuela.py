@@ -10,7 +10,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Logotipo_de_Venevisi%C3%B3n.svg/641px-Logotipo_de_Venevisi%C3%B3n.svg.png",
         group="Venezuela",
         country_code="VE",
-        epg_id="Venevision.ve"
+        epg_id="Venevision.ve",
     ),
     ChannelData(
         name="Venezolana de Televisión Ⓓ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Venezolana_de_Televisi%C3%B3n_2018.svg/640px-Venezolana_de_Televisi%C3%B3n_2018.svg.png",
         group="Venezuela",
         country_code="VE",
-        epg_id="VenezolanadeTelevision.ve"
+        epg_id="VenezolanadeTelevision.ve",
     ),
     ChannelData(
         name="Televen",
@@ -26,7 +26,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/c/c0/Televen_logo.PNG",
         group="Venezuela",
         country_code="VE",
-        epg_id="Televen.ve"
+        epg_id="Televen.ve",
     ),
     ChannelData(
         name="Globovisión",
@@ -34,7 +34,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/4/47/Globovisi%C3%B3n_logo_2013.png",
         group="Venezuela",
         country_code="VE",
-        epg_id="Globovision.ve"
+        epg_id="Globovision.ve",
     ),
     ChannelData(
         name="Vale TV Ⓢ",
@@ -42,7 +42,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/9/98/Logo_de_VALE_TV.png",
         group="Venezuela",
         country_code="VE",
-        epg_id="ValeTV.ve"
+        epg_id="ValeTV.ve",
     ),
     ChannelData(
         name="Telesur",
@@ -50,7 +50,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/8/82/TeleSUR.png",
         group="Venezuela",
         country_code="VE",
-        epg_id="TeleSUR.ve"
+        epg_id="TeleSUR.ve",
     ),
     ChannelData(
         name="Latina TV",
@@ -58,6 +58,6 @@ channels = [
         logo="https://intervenhosting.net/imagenes/latinatv.jpg",
         group="Venezuela",
         country_code="VE",
-        epg_id="LatinaTV.ve"
+        epg_id="LatinaTV.ve",
     ),
 ]

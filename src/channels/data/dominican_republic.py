@@ -10,6 +10,6 @@ channels = [
         logo="https://static.wikia.nocookie.net/logopedia/images/4/4e/CERTV_4_2015.png",
         group="Dominican Republic",
         country_code="DO",
-        epg_id="Canal4RD.do"
+        epg_id="Canal4RD.do",
     ),
 ]

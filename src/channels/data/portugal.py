@@ -10,7 +10,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/RTP1_-_Logo_2016.svg/640px-RTP1_-_Logo_2016.svg.png",
         group="Portugal",
         country_code="PT",
-        epg_id="RTP1.pt"
+        epg_id="RTP1.pt",
     ),
     ChannelData(
         name="RTP2 Ⓖ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/4/4d/Rtp2_2016_logo.png",
         group="Portugal",
         country_code="PT",
-        epg_id="RTP2.pt"
+        epg_id="RTP2.pt",
     ),
     ChannelData(
         name="SIC",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/SPMqiDG.png",
         group="Portugal",
         country_code="PT",
-        epg_id="SIC.pt"
+        epg_id="SIC.pt",
     ),
     ChannelData(
         name="RTP Açores",
@@ -34,7 +34,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/RTP_A%C3%A7ores_%282016%29.svg/640px-RTP_A%C3%A7ores_%282016%29.svg.png",
         group="Portugal",
         country_code="PT",
-        epg_id="RTPAcores.pt"
+        epg_id="RTPAcores.pt",
     ),
     ChannelData(
         name="RTP Madeira Ⓢ",
@@ -42,7 +42,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/a/ac/RTP_Madeira_2016.png",
         group="Portugal",
         country_code="PT",
-        epg_id="RTPMadeira.pt"
+        epg_id="RTPMadeira.pt",
     ),
     ChannelData(
         name="RTP3",
@@ -50,7 +50,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/b/b9/Rtp3.png",
         group="Portugal",
         country_code="PT",
-        epg_id="RTP3.pt"
+        epg_id="RTP3.pt",
     ),
     ChannelData(
         name="RTP África",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/ISFNy17.png",
         group="Portugal",
         country_code="PT",
-        epg_id="RTPAfrica.pt"
+        epg_id="RTPAfrica.pt",
     ),
     ChannelData(
         name="RTP Mundo",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/mJ3gyqx.png",
         group="Portugal",
         country_code="PT",
-        epg_id="RTPInternacional.pt"
+        epg_id="RTPInternacional.pt",
     ),
     ChannelData(
         name="Porto Canal Ⓢ",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/wsyvP2H.png",
         group="Portugal",
         country_code="PT",
-        epg_id="PortoCanal.pt"
+        epg_id="PortoCanal.pt",
     ),
     ChannelData(
         name="ADtv Ⓢ",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/FvlcU3z.png",
         group="Portugal",
         country_code="PT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="CNN Portugal",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/NYH39xs.png",
         group="Portugal",
         country_code="PT",
-        epg_id="CNNPortugal.pt"
+        epg_id="CNNPortugal.pt",
     ),
     ChannelData(
         name="Euronews em Português Ⓨ",
@@ -98,6 +98,6 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Euronews_2022.svg/640px-Euronews_2022.svg.png",
         group="Portugal",
         country_code="PT",
-        epg_id="EuronewsPortuguese.fr"
+        epg_id="EuronewsPortuguese.fr",
     ),
 ]

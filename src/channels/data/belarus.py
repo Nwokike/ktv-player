@@ -10,7 +10,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Belarus_1_logo.svg/742px-Belarus_1_logo.svg.png",
         group="Belarus",
         country_code="BY",
-        epg_id="Belarus1.by"
+        epg_id="Belarus1.by",
     ),
     ChannelData(
         name="Беларусь 2",
@@ -18,7 +18,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Belarus_2_logo.svg/742px-Belarus_2_logo.svg.png",
         group="Belarus",
         country_code="BY",
-        epg_id="Belarus2.by"
+        epg_id="Belarus2.by",
     ),
     ChannelData(
         name="Беларусь 3",
@@ -26,7 +26,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Belarus_3_logo.svg/742px-Belarus_3_logo.svg.png",
         group="Belarus",
         country_code="BY",
-        epg_id="Belarus3.by"
+        epg_id="Belarus3.by",
     ),
     ChannelData(
         name="ОНТ Ⓢ",
@@ -34,7 +34,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/%D0%9B%D0%BE%D0%B3%D0%BE%D1%82%D0%B8%D0%BF_%D1%82%D0%B5%D0%BB%D0%B5%D0%BA%D0%B0%D0%BD%D0%B0%D0%BB%D0%B0_%C2%AB%D0%9E%D0%9D%D0%A2%C2%BB.svg/991px-%D0%9B%D0%BE%D0%B3%D0%BE%D1%82%D0%B8%D0%BF_%D1%82%D0%B5%D0%BB%D0%B5%D0%BA%D0%B0%D0%BD%D0%B0%D0%BB%D0%B0_%C2%AB%D0%9E%D0%9D%D0%A2%C2%BB.svg.png",
         group="Belarus",
         country_code="BY",
-        epg_id="ONT.by"
+        epg_id="ONT.by",
     ),
     ChannelData(
         name="Беларусь 5",
@@ -42,7 +42,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Belarus_5_logo.svg/742px-Belarus_5_logo.svg.png",
         group="Belarus",
         country_code="BY",
-        epg_id="Belarus5.by"
+        epg_id="Belarus5.by",
     ),
     ChannelData(
         name="СТВ",
@@ -50,7 +50,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/%D0%9B%D0%BE%D0%B3%D0%BE%D1%82%D0%B8%D0%BF_%D0%B1%D0%B5%D0%BB%D0%BE%D1%80%D1%83%D1%81%D1%81%D0%BA%D0%BE%D0%B3%D0%BE_%D1%82%D0%B5%D0%BB%D0%B5%D0%BA%D0%B0%D0%BD%D0%B0%D0%BB%D0%B0_%C2%AB%D0%A1%D0%A2%D0%92%C2%BB.svg/640px-%D0%9B%D0%BE%D0%B3%D0%BE%D1%82%D0%B8%D0%BF_%D0%B1%D0%B5%D0%BB%D0%BE%D1%80%D1%83%D1%81%D1%81%D0%BA%D0%BE%D0%B3%D0%BE_%D1%82%D0%B5%D0%BB%D0%B5%D0%BA%D0%B0%D0%BD%D0%B0%D0%BB%D0%B0_%C2%AB%D0%A1%D0%A2%D0%92%C2%BB.svg.png",
         group="Belarus",
         country_code="BY",
-        epg_id="STV.by"
+        epg_id="STV.by",
     ),
     ChannelData(
         name="Беларусь 24",
@@ -58,7 +58,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Belarus_24_logo.svg/742px-Belarus_24_logo.svg.png",
         group="Belarus",
         country_code="BY",
-        epg_id="Belarus24.by"
+        epg_id="Belarus24.by",
     ),
     ChannelData(
         name="Беларусь 5 Интернет",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/rzPQ9Iz.png",
         group="Belarus",
         country_code="BY",
-        epg_id="Belarus5Internet.by"
+        epg_id="Belarus5Internet.by",
     ),
     ChannelData(
         name="1Mus",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/PozF9MT.png",
         group="Belarus",
         country_code="BY",
-        epg_id="FirstMusicChannel.by"
+        epg_id="FirstMusicChannel.by",
     ),
     ChannelData(
         name="8 Kanal Vitebsk Ⓢ",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/tjwBSTF.jpg",
         group="Belarus",
         country_code="BY",
-        epg_id="8kanal.by"
+        epg_id="8kanal.by",
     ),
     ChannelData(
         name="Belros Ⓢ",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/HWqxjGl.png",
         group="Belarus",
         country_code="BY",
-        epg_id="BelRos.ru"
+        epg_id="BelRos.ru",
     ),
     ChannelData(
         name="Belarus 4 Vitebsk Ⓢ",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/TW6Ap71.png",
         group="Belarus",
         country_code="BY",
-        epg_id="Belarus4Vitebsk.by"
+        epg_id="Belarus4Vitebsk.by",
     ),
     ChannelData(
         name="Hawe TV Vitebsk Ⓢ",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/HOb5m5f.jpg",
         group="Belarus",
         country_code="BY",
-        epg_id="NasheTV.by"
+        epg_id="NasheTV.by",
     ),
     ChannelData(
         name="Pervyy Muzykal'nyy BY Ⓢ",
@@ -114,7 +114,7 @@ channels = [
         logo="https://i.imgur.com/7tFiG6S.jpg",
         group="Belarus",
         country_code="BY",
-        epg_id="FirstMusicChannel.by"
+        epg_id="FirstMusicChannel.by",
     ),
     ChannelData(
         name="Planeta RTR Ⓢ",
@@ -122,7 +122,7 @@ channels = [
         logo="https://i.imgur.com/yqRuEJd.png",
         group="Belarus",
         country_code="BY",
-        epg_id="RTRBelarus.by"
+        epg_id="RTRBelarus.by",
     ),
     ChannelData(
         name="Radio HIT Orsk",
@@ -130,7 +130,7 @@ channels = [
         logo="https://i.imgur.com/e2RyN4r.jpg",
         group="Belarus",
         country_code="BY",
-        epg_id="RadioHit.ru"
+        epg_id="RadioHit.ru",
     ),
     ChannelData(
         name="Vitebsk Telekanal",
@@ -138,6 +138,6 @@ channels = [
         logo="https://i.imgur.com/FXAqELU.jpg",
         group="Belarus",
         country_code="BY",
-        epg_id="Vitebsk.by"
+        epg_id="Vitebsk.by",
     ),
 ]

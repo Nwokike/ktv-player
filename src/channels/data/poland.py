@@ -10,7 +10,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/TVP1_logo.svg/640px-TVP1_logo.svg.png",
         group="Poland",
         country_code="PL",
-        epg_id="TVP1.pl"
+        epg_id="TVP1.pl",
     ),
     ChannelData(
         name="TVP2",
@@ -18,7 +18,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/TVP2_logo.svg/640px-TVP2_logo.svg.png",
         group="Poland",
         country_code="PL",
-        epg_id="TVP2.pl"
+        epg_id="TVP2.pl",
     ),
     ChannelData(
         name="TVP3 Warszawa",
@@ -26,7 +26,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/TVP3_%282016%29.svg/640px-TVP3_%282016%29.svg.png",
         group="Poland",
         country_code="PL",
-        epg_id="TVP3Warszawa.pl"
+        epg_id="TVP3Warszawa.pl",
     ),
     ChannelData(
         name="TVP Polonia",
@@ -34,7 +34,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/TVP_Polonia_Logo_2020.svg/640px-TVP_Polonia_Logo_2020.svg.png",
         group="Poland",
         country_code="PL",
-        epg_id="TVPPolonia.pl"
+        epg_id="TVPPolonia.pl",
     ),
     ChannelData(
         name="Alfa TVP",
@@ -42,7 +42,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Alfa_TVP_%282022%29.svg/640px-Alfa_TVP_%282022%29.svg.png",
         group="Poland",
         country_code="PL",
-        epg_id="AlfaTVP.pl"
+        epg_id="AlfaTVP.pl",
     ),
     ChannelData(
         name="TVP Info",
@@ -50,7 +50,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/TVP_Info_logo.svg/640px-TVP_Info_logo.svg.png",
         group="Poland",
         country_code="PL",
-        epg_id="TVPInfo.pl"
+        epg_id="TVPInfo.pl",
     ),
     ChannelData(
         name="Belsat",
@@ -58,7 +58,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Belsat_%282022%29.svg/768px-Belsat_%282022%29.svg.png",
         group="Poland",
         country_code="PL",
-        epg_id="BelsatTV.pl"
+        epg_id="BelsatTV.pl",
     ),
     ChannelData(
         name="TVP World",
@@ -66,7 +66,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/TVP_World_%282021%29.svg/640px-TVP_World_%282021%29.svg.png",
         group="Poland",
         country_code="PL",
-        epg_id="TVPWorld.pl"
+        epg_id="TVPWorld.pl",
     ),
     ChannelData(
         name="TVP ABC 2",
@@ -74,7 +74,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/thumb/c/cb/TVP_ABC_2_%282022%29.svg/640px-TVP_ABC_2_%282022%29.svg.png",
         group="Poland",
         country_code="PL",
-        epg_id="TVPABC2.pl"
+        epg_id="TVPABC2.pl",
     ),
     ChannelData(
         name="TVP Historia 2",
@@ -82,7 +82,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/TVP_Historia_2_%282021%29.svg/640px-TVP_Historia_2_%282021%29.svg.png",
         group="Poland",
         country_code="PL",
-        epg_id="TVPHistoria2.pl"
+        epg_id="TVPHistoria2.pl",
     ),
     ChannelData(
         name="TVP Kultura 2",
@@ -90,7 +90,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/TVP_Kultura_2_%282020%29.svg/640px-TVP_Kultura_2_%282020%29.svg.png",
         group="Poland",
         country_code="PL",
-        epg_id="TVPKultura2.pl"
+        epg_id="TVPKultura2.pl",
     ),
     ChannelData(
         name="4fun.tv Ⓢ",
@@ -98,7 +98,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/4fun.tv_Logo_%282017%29.svg/640px-4fun.tv_Logo_%282017%29.svg.png",
         group="Poland",
         country_code="PL",
-        epg_id="4FunTV.pl"
+        epg_id="4FunTV.pl",
     ),
     ChannelData(
         name="TV Republika",
@@ -106,6 +106,6 @@ channels = [
         logo="https://i.imgur.com/ljpK6dZ.png",
         group="Poland",
         country_code="PL",
-        epg_id="TVRepublika.pl"
+        epg_id="TVRepublika.pl",
     ),
 ]

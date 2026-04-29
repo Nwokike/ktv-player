@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/5CVl5EF.png",
         group="Australia",
         country_code="AU",
-        epg_id="ABCTV.au"
+        epg_id="ABCTV.au",
     ),
     ChannelData(
         name="TVSN",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/p3QCBOo.png",
         group="Australia",
         country_code="AU",
-        epg_id="TVSN.au"
+        epg_id="TVSN.au",
     ),
     ChannelData(
         name="ABC Me",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/gBh54wY.png",
         group="Australia",
         country_code="AU",
-        epg_id="ABCMe.au"
+        epg_id="ABCMe.au",
     ),
     ChannelData(
         name="ABC News",
@@ -34,7 +34,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/thumb/d/df/ABC_News_Channel.svg/640px-ABC_News_Channel.svg.png",
         group="Australia",
         country_code="AU",
-        epg_id="ABCNews.au"
+        epg_id="ABCNews.au",
     ),
     ChannelData(
         name="M4TV",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/HZohlNk.png",
         group="Australia",
         country_code="AU",
-        epg_id="M4TV.au"
+        epg_id="M4TV.au",
     ),
     ChannelData(
         name="Racing.com",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/pma0OCf.png",
         group="Australia",
         country_code="AU",
-        epg_id="Racingcom.au"
+        epg_id="Racingcom.au",
     ),
     ChannelData(
         name="9Go! Ⓖ",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/1CFGu5O.png",
         group="Australia",
         country_code="AU",
-        epg_id="9Go.au"
+        epg_id="9Go.au",
     ),
     ChannelData(
         name="9Life Ⓖ",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/ZCUiqlL.png",
         group="Australia",
         country_code="AU",
-        epg_id="9Life.au"
+        epg_id="9Life.au",
     ),
     ChannelData(
         name="9Rush Ⓖ",
@@ -74,6 +74,6 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/c/c2/Logo_of_9RUSH.png",
         group="Australia",
         country_code="AU",
-        epg_id="9Rush.au"
+        epg_id="9Rush.au",
     ),
 ]

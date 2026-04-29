@@ -2,12 +2,13 @@ import pytest
 import flet as ft
 from views.splash import build_splash_view
 
+
 @pytest.mark.asyncio
 async def test_splash_view_build():
     view = build_splash_view()
     assert isinstance(view, ft.View)
     assert view.route == "/"
-    
+
     # Verify elements
     container = view.controls[0]
     column = container.content

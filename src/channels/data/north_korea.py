@@ -10,6 +10,6 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Logo_of_the_Korean_Central_Television.svg/640px-Logo_of_the_Korean_Central_Television.svg.png",
         group="North Korea",
         country_code="KP",
-        epg_id="KCTV.kp"
+        epg_id="KCTV.kp",
     ),
 ]

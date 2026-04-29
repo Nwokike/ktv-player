@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/xMhSvax.png",
         group="Belgium",
         country_code="BE",
-        epg_id="BelRTL.be"
+        epg_id="BelRTL.be",
     ),
     ChannelData(
         name="La Une",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/hJodwJt.png",
         group="Belgium",
         country_code="BE",
-        epg_id="LaUne.be"
+        epg_id="LaUne.be",
     ),
     ChannelData(
         name="Tipik",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/PVbVj8o.png",
         group="Belgium",
         country_code="BE",
-        epg_id="Tipik.be"
+        epg_id="Tipik.be",
     ),
     ChannelData(
         name="Club RTL",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/e9GkFwY.png",
         group="Belgium",
         country_code="BE",
-        epg_id="ClubRTL.be"
+        epg_id="ClubRTL.be",
     ),
     ChannelData(
         name="La Trois",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/kC3pJtA.png",
         group="Belgium",
         country_code="BE",
-        epg_id="LaTrois.be"
+        epg_id="LaTrois.be",
     ),
     ChannelData(
         name="Plug RTL",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/iAZZWkZ.png",
         group="Belgium",
         country_code="BE",
-        epg_id="PlugRTL.be"
+        epg_id="PlugRTL.be",
     ),
     ChannelData(
         name="LN24",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/hePpxnn.png",
         group="Belgium",
         country_code="BE",
-        epg_id="LN24.be"
+        epg_id="LN24.be",
     ),
     ChannelData(
         name="BX1",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/YjKqWru.png",
         group="Belgium",
         country_code="BE",
-        epg_id="BX1.be"
+        epg_id="BX1.be",
     ),
     ChannelData(
         name="EEN",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/66GQlc7.png",
         group="Belgium",
         country_code="BE",
-        epg_id="Een.be"
+        epg_id="Een.be",
     ),
     ChannelData(
         name="Canvas",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/GQkhACx.png",
         group="Belgium",
         country_code="BE",
-        epg_id="Canvas.be"
+        epg_id="Canvas.be",
     ),
     ChannelData(
         name="VTM",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/fUxRP9x.png",
         group="Belgium",
         country_code="BE",
-        epg_id="VTM.be"
+        epg_id="VTM.be",
     ),
     ChannelData(
         name="VIER",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/bFTXP2e.png",
         group="Belgium",
         country_code="BE",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="VIJF",
@@ -106,6 +106,6 @@ channels = [
         logo="https://i.imgur.com/DTJLkiP.png",
         group="Belgium",
         country_code="BE",
-        epg_id=""
+        epg_id="",
     ),
 ]

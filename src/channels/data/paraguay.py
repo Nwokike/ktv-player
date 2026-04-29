@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/brlepuX.png",
         group="Paraguay",
         country_code="PY",
-        epg_id="Unicanal.py"
+        epg_id="Unicanal.py",
     ),
     ChannelData(
         name="Trece",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/9kcYqk2.png",
         group="Paraguay",
         country_code="PY",
-        epg_id="Trece.py"
+        epg_id="Trece.py",
     ),
     ChannelData(
         name="ABC TV",
@@ -26,6 +26,6 @@ channels = [
         logo="https://i.imgur.com/tBdgllD.png",
         group="Paraguay",
         country_code="PY",
-        epg_id="ABCTV.py"
+        epg_id="ABCTV.py",
     ),
 ]

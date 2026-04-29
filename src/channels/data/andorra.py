@@ -10,6 +10,6 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/3/32/Logo_Andorra_Televisi%C3%B3.png",
         group="Andorra",
         country_code="AD",
-        epg_id="AndorraTV.ad"
+        epg_id="AndorraTV.ad",
     ),
 ]

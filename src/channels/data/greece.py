@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/WWMe8IY.png",
         group="Greece",
         country_code="GR",
-        epg_id="ERT1.gr"
+        epg_id="ERT1.gr",
     ),
     ChannelData(
         name="ERT 2 Ⓖ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/pcusPFl.png",
         group="Greece",
         country_code="GR",
-        epg_id="ERT2.gr"
+        epg_id="ERT2.gr",
     ),
     ChannelData(
         name="ERT 3 Ⓖ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/KyhzDRm.png",
         group="Greece",
         country_code="GR",
-        epg_id="ERT3.gr"
+        epg_id="ERT3.gr",
     ),
     ChannelData(
         name="ERT News",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/saIGLvr.png",
         group="Greece",
         country_code="GR",
-        epg_id="ERTNews.gr"
+        epg_id="ERTNews.gr",
     ),
     ChannelData(
         name="ERT World",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/KsMTWYw.png",
         group="Greece",
         country_code="GR",
-        epg_id="ERTWorld.gr"
+        epg_id="ERTWorld.gr",
     ),
     ChannelData(
         name="ERT Sports 1",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/gebWmAB.png",
         group="Greece",
         country_code="GR",
-        epg_id="ERTSports1.gr"
+        epg_id="ERTSports1.gr",
     ),
     ChannelData(
         name="ERT Sports 4",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/gebWmAB.png",
         group="Greece",
         country_code="GR",
-        epg_id="ERTSports4.gr"
+        epg_id="ERTSports4.gr",
     ),
     ChannelData(
         name="ERT Kids Ⓖ",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/XkSR66q.png",
         group="Greece",
         country_code="GR",
-        epg_id="ERTKids.gr"
+        epg_id="ERTKids.gr",
     ),
     ChannelData(
         name="ERT Music Ⓖ",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/VrKgtfY.png",
         group="Greece",
         country_code="GR",
-        epg_id="ERTMusic.gr"
+        epg_id="ERTMusic.gr",
     ),
     ChannelData(
         name="Vouli TV",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/1vqW7lc.png",
         group="Greece",
         country_code="GR",
-        epg_id="VouliTV.gr"
+        epg_id="VouliTV.gr",
     ),
     ChannelData(
         name="RIK Sat",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/9edlXHP.png",
         group="Greece",
         country_code="GR",
-        epg_id="RikSatTV.cy"
+        epg_id="RikSatTV.cy",
     ),
     ChannelData(
         name="Mega News",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/Z3k7iA0.png",
         group="Greece",
         country_code="GR",
-        epg_id="MegaChannel.gr"
+        epg_id="MegaChannel.gr",
     ),
     ChannelData(
         name="ANT1",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/xDdVa9U.png",
         group="Greece",
         country_code="GR",
-        epg_id="ANT1.gr"
+        epg_id="ANT1.gr",
     ),
     ChannelData(
         name="Star",
@@ -114,7 +114,7 @@ channels = [
         logo="https://i.imgur.com/Hp0stVQ.png",
         group="Greece",
         country_code="GR",
-        epg_id="StarChannel.gr"
+        epg_id="StarChannel.gr",
     ),
     ChannelData(
         name="Star International",
@@ -122,7 +122,7 @@ channels = [
         logo="https://i.imgur.com/Hp0stVQ.png",
         group="Greece",
         country_code="GR",
-        epg_id="StarChannel.gr"
+        epg_id="StarChannel.gr",
     ),
     ChannelData(
         name="AlphaTV",
@@ -130,7 +130,7 @@ channels = [
         logo="https://i.imgur.com/bAVGX0l.png",
         group="Greece",
         country_code="GR",
-        epg_id="AlphaTV.gr"
+        epg_id="AlphaTV.gr",
     ),
     ChannelData(
         name="Skai TV",
@@ -138,7 +138,7 @@ channels = [
         logo="https://i.imgur.com/TSg7B8X.png",
         group="Greece",
         country_code="GR",
-        epg_id="SkaiTV.gr"
+        epg_id="SkaiTV.gr",
     ),
     ChannelData(
         name="Open TV Ⓖ",
@@ -146,7 +146,7 @@ channels = [
         logo="https://i.imgur.com/HzBmvPT.png",
         group="Greece",
         country_code="GR",
-        epg_id="OpenTV.gr"
+        epg_id="OpenTV.gr",
     ),
     ChannelData(
         name="Makedonia TV",
@@ -154,7 +154,7 @@ channels = [
         logo="https://i.imgur.com/90iDHbQ.png",
         group="Greece",
         country_code="GR",
-        epg_id="MakedoniaTV.gr"
+        epg_id="MakedoniaTV.gr",
     ),
     ChannelData(
         name="Action24",
@@ -162,7 +162,7 @@ channels = [
         logo="https://i.imgur.com/Zi1YohT.png",
         group="Greece",
         country_code="GR",
-        epg_id="Action24TV.gr"
+        epg_id="Action24TV.gr",
     ),
     ChannelData(
         name="Alert",
@@ -170,7 +170,7 @@ channels = [
         logo="https://i.imgur.com/xqa87lG.png",
         group="Greece",
         country_code="GR",
-        epg_id="alert.gr"
+        epg_id="alert.gr",
     ),
     ChannelData(
         name="ART",
@@ -178,7 +178,7 @@ channels = [
         logo="https://i.imgur.com/7TyUxLj.png",
         group="Greece",
         country_code="GR",
-        epg_id="arttv.gr"
+        epg_id="arttv.gr",
     ),
     ChannelData(
         name="Blue Sky",
@@ -186,7 +186,7 @@ channels = [
         logo="https://i.imgur.com/rzuQslM.png",
         group="Greece",
         country_code="GR",
-        epg_id="BlueSky.gr"
+        epg_id="BlueSky.gr",
     ),
     ChannelData(
         name="High TV",
@@ -194,7 +194,7 @@ channels = [
         logo="https://i.imgur.com/wHzCGry.png",
         group="Greece",
         country_code="GR",
-        epg_id="hightv.gr"
+        epg_id="hightv.gr",
     ),
     ChannelData(
         name="Kontra",
@@ -202,7 +202,7 @@ channels = [
         logo="https://i.imgur.com/ROZ9VfV.png",
         group="Greece",
         country_code="GR",
-        epg_id="KontraChannel.gr"
+        epg_id="KontraChannel.gr",
     ),
     ChannelData(
         name="Naftemporiki TV",
@@ -210,7 +210,7 @@ channels = [
         logo="https://i.imgur.com/9OFdMud.png",
         group="Greece",
         country_code="GR",
-        epg_id="NaftemporikiTV.gr"
+        epg_id="NaftemporikiTV.gr",
     ),
     ChannelData(
         name="One Channel",
@@ -218,7 +218,7 @@ channels = [
         logo="https://i.imgur.com/GwKaHbM.png",
         group="Greece",
         country_code="GR",
-        epg_id="OneChannel.gr"
+        epg_id="OneChannel.gr",
     ),
     ChannelData(
         name="4E",
@@ -226,7 +226,7 @@ channels = [
         logo="https://i.imgur.com/Ed085oJ.png",
         group="Greece",
         country_code="GR",
-        epg_id="4E.gr"
+        epg_id="4E.gr",
     ),
     ChannelData(
         name="DION",
@@ -234,7 +234,7 @@ channels = [
         logo="https://i.imgur.com/13MverN.png",
         group="Greece",
         country_code="GR",
-        epg_id="DionTV.gr"
+        epg_id="DionTV.gr",
     ),
     ChannelData(
         name="Egnatia",
@@ -242,7 +242,7 @@ channels = [
         logo="https://i.imgur.com/zuyYIca.png",
         group="Greece",
         country_code="GR",
-        epg_id="egnatiatv.gr"
+        epg_id="egnatiatv.gr",
     ),
     ChannelData(
         name="Euro",
@@ -250,7 +250,7 @@ channels = [
         logo="https://i.imgur.com/mHCk05E.png",
         group="Greece",
         country_code="GR",
-        epg_id="eurotv.gr"
+        epg_id="eurotv.gr",
     ),
     ChannelData(
         name="Gnomi",
@@ -258,7 +258,7 @@ channels = [
         logo="https://i.imgur.com/mHCk05E.png",
         group="Greece",
         country_code="GR",
-        epg_id="gnomitv.gr"
+        epg_id="gnomitv.gr",
     ),
     ChannelData(
         name="Pella",
@@ -266,7 +266,7 @@ channels = [
         logo="https://i.imgur.com/pwUkkGL.jpeg",
         group="Greece",
         country_code="GR",
-        epg_id="pellatv.gr"
+        epg_id="pellatv.gr",
     ),
     ChannelData(
         name="Pontos",
@@ -274,7 +274,7 @@ channels = [
         logo="https://i.imgur.com/sbTxP6o.png",
         group="Greece",
         country_code="GR",
-        epg_id="pontostv.gr"
+        epg_id="pontostv.gr",
     ),
     ChannelData(
         name="TV 100",
@@ -282,7 +282,7 @@ channels = [
         logo="https://i.imgur.com/9rtf8OR.png",
         group="Greece",
         country_code="GR",
-        epg_id="TV100.gr"
+        epg_id="TV100.gr",
     ),
     ChannelData(
         name="Vergina",
@@ -290,7 +290,7 @@ channels = [
         logo="https://i.imgur.com/cpF6wvR.png",
         group="Greece",
         country_code="GR",
-        epg_id="verginatv.gr"
+        epg_id="verginatv.gr",
     ),
     ChannelData(
         name="Best TV",
@@ -298,7 +298,7 @@ channels = [
         logo="https://i.imgur.com/VA13E3w.png",
         group="Greece",
         country_code="GR",
-        epg_id="besttv.gr"
+        epg_id="besttv.gr",
     ),
     ChannelData(
         name="Hlektra",
@@ -306,7 +306,7 @@ channels = [
         logo="https://i.imgur.com/LbogUPS.png",
         group="Greece",
         country_code="GR",
-        epg_id="hlektra.gr"
+        epg_id="hlektra.gr",
     ),
     ChannelData(
         name="Ionian Channel",
@@ -314,7 +314,7 @@ channels = [
         logo="https://i.imgur.com/ADVYeQd.png",
         group="Greece",
         country_code="GR",
-        epg_id="ioniantv.gr"
+        epg_id="ioniantv.gr",
     ),
     ChannelData(
         name="Lepanto",
@@ -322,7 +322,7 @@ channels = [
         logo="https://i.imgur.com/h6Tqe0k.png",
         group="Greece",
         country_code="GR",
-        epg_id="lepantortv.gr"
+        epg_id="lepantortv.gr",
     ),
     ChannelData(
         name="Lychnos",
@@ -330,7 +330,7 @@ channels = [
         logo="hhttps://i.imgur.com/JYSlBfY.png",
         group="Greece",
         country_code="GR",
-        epg_id="lychnostv.gr"
+        epg_id="lychnostv.gr",
     ),
     ChannelData(
         name="Mesogeios TV",
@@ -338,7 +338,7 @@ channels = [
         logo="https://i.imgur.com/tr0Lf9K.png",
         group="Greece",
         country_code="GR",
-        epg_id="mesogeiostv.gr"
+        epg_id="mesogeiostv.gr",
     ),
     ChannelData(
         name="Epsilon",
@@ -346,7 +346,7 @@ channels = [
         logo="https://i.imgur.com/vUQSDvZ.png",
         group="Greece",
         country_code="GR",
-        epg_id="epsilon.gr"
+        epg_id="epsilon.gr",
     ),
     ChannelData(
         name="Star Central Greece",
@@ -354,7 +354,7 @@ channels = [
         logo="https://i.imgur.com/BTUEvxg.png",
         group="Greece",
         country_code="GR",
-        epg_id="digitalstar.gr"
+        epg_id="digitalstar.gr",
     ),
     ChannelData(
         name="91NRG",
@@ -362,7 +362,7 @@ channels = [
         logo="https://i.imgur.com/g1pCRRG.png",
         group="Greece",
         country_code="GR",
-        epg_id="nrg91.gr"
+        epg_id="nrg91.gr",
     ),
     ChannelData(
         name="Thessalia",
@@ -370,7 +370,7 @@ channels = [
         logo="https://i.imgur.com/KXz67LY.png",
         group="Greece",
         country_code="GR",
-        epg_id="thessaliatv.gr"
+        epg_id="thessaliatv.gr",
     ),
     ChannelData(
         name="TRT",
@@ -378,7 +378,7 @@ channels = [
         logo="https://i.imgur.com/g0jPOcC.png",
         group="Greece",
         country_code="GR",
-        epg_id="trttv.gr"
+        epg_id="trttv.gr",
     ),
     ChannelData(
         name="Acheloos",
@@ -386,7 +386,7 @@ channels = [
         logo="https://i.imgur.com/5SVMxcu.png",
         group="Greece",
         country_code="GR",
-        epg_id="acheloostv.gr"
+        epg_id="acheloostv.gr",
     ),
     ChannelData(
         name="ART TV",
@@ -394,7 +394,7 @@ channels = [
         logo="https://i.imgur.com/LyCqQvx.png",
         group="Greece",
         country_code="GR",
-        epg_id="arttv.gr"
+        epg_id="arttv.gr",
     ),
     ChannelData(
         name="Corfu",
@@ -402,7 +402,7 @@ channels = [
         logo="https://i.imgur.com/dCMqo8w.jpeg",
         group="Greece",
         country_code="GR",
-        epg_id="corfutv.gr"
+        epg_id="corfutv.gr",
     ),
     ChannelData(
         name="Epirus TV 1",
@@ -410,7 +410,7 @@ channels = [
         logo="https://i.imgur.com/QB3aSl1.png",
         group="Greece",
         country_code="GR",
-        epg_id="epirustv1.gr"
+        epg_id="epirustv1.gr",
     ),
     ChannelData(
         name="Start",
@@ -418,7 +418,7 @@ channels = [
         logo="https://i.imgur.com/nrEtmBN.png",
         group="Greece",
         country_code="GR",
-        epg_id="starttv.gr"
+        epg_id="starttv.gr",
     ),
     ChannelData(
         name="Center TV",
@@ -426,7 +426,7 @@ channels = [
         logo="https://i.imgur.com/52JW71Q.png",
         group="Greece",
         country_code="GR",
-        epg_id="CenterTV.gr"
+        epg_id="CenterTV.gr",
     ),
     ChannelData(
         name="Delta Evros",
@@ -434,7 +434,7 @@ channels = [
         logo="https://i.imgur.com/PDfSkRF.png",
         group="Greece",
         country_code="GR",
-        epg_id="DeltaTV.gr"
+        epg_id="DeltaTV.gr",
     ),
     ChannelData(
         name="Thraki Net TV",
@@ -442,7 +442,7 @@ channels = [
         logo="https://i.imgur.com/DV0I0ed.png",
         group="Greece",
         country_code="GR",
-        epg_id="ThrakiNetTV.gr"
+        epg_id="ThrakiNetTV.gr",
     ),
     ChannelData(
         name="Creta",
@@ -450,7 +450,7 @@ channels = [
         logo="https://i.imgur.com/x0qK8IE.png",
         group="Greece",
         country_code="GR",
-        epg_id="CretaTV.gr"
+        epg_id="CretaTV.gr",
     ),
     ChannelData(
         name="Kriti 1",
@@ -458,7 +458,7 @@ channels = [
         logo="https://i.imgur.com/C1ucQeC.png",
         group="Greece",
         country_code="GR",
-        epg_id="Kriti1Tv.gr"
+        epg_id="Kriti1Tv.gr",
     ),
     ChannelData(
         name="Kriti TV",
@@ -466,7 +466,7 @@ channels = [
         logo="https://i.imgur.com/eLhYMmc.png",
         group="Greece",
         country_code="GR",
-        epg_id="KritiTv.gr"
+        epg_id="KritiTv.gr",
     ),
     ChannelData(
         name="NEA",
@@ -474,7 +474,7 @@ channels = [
         logo="https://i.imgur.com/nvNW8G7.png",
         group="Greece",
         country_code="GR",
-        epg_id="NeaTV.gr"
+        epg_id="NeaTV.gr",
     ),
     ChannelData(
         name="TeleKriti",
@@ -482,7 +482,7 @@ channels = [
         logo="https://i.imgur.com/18ZYiyi.png",
         group="Greece",
         country_code="GR",
-        epg_id="TeleKriti.gr"
+        epg_id="TeleKriti.gr",
     ),
     ChannelData(
         name="Samiaki TV",
@@ -490,7 +490,7 @@ channels = [
         logo="https://i.imgur.com/aV5QoNG.png",
         group="Greece",
         country_code="GR",
-        epg_id="CenterTV.gr"
+        epg_id="CenterTV.gr",
     ),
     ChannelData(
         name="Syros TV1",
@@ -498,7 +498,7 @@ channels = [
         logo="https://i.imgur.com/duXHyvN.png",
         group="Greece",
         country_code="GR",
-        epg_id="SyrosTV1.gr"
+        epg_id="SyrosTV1.gr",
     ),
     ChannelData(
         name="Η Φωνή της Ελλάδας",
@@ -506,6 +506,6 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/el/thumb/5/58/VoiceOfGreece.svg/512px-VoiceOfGreece.svg.png",
         group="Greece",
         country_code="GR",
-        epg_id="ERTWorld1.gr"
+        epg_id="ERTWorld1.gr",
     ),
 ]

@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/6yXZwUL.png",
         group="Finland",
         country_code="FI",
-        epg_id="YleTV1.fi"
+        epg_id="YleTV1.fi",
     ),
     ChannelData(
         name="Yle TV2 Ⓖ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/4xkc6PL.png",
         group="Finland",
         country_code="FI",
-        epg_id="YleTV2.fi"
+        epg_id="YleTV2.fi",
     ),
     ChannelData(
         name="MTV3",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/kNbmc8n.png",
         group="Finland",
         country_code="FI",
-        epg_id="MTV3.fi"
+        epg_id="MTV3.fi",
     ),
     ChannelData(
         name="Nelonen",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/BFbCyfY.png",
         group="Finland",
         country_code="FI",
-        epg_id="Nelonen.fi"
+        epg_id="Nelonen.fi",
     ),
     ChannelData(
         name="Yle Teema Fem Ⓖ",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/iDljufz.png",
         group="Finland",
         country_code="FI",
-        epg_id="YleTeemaFem.fi"
+        epg_id="YleTeemaFem.fi",
     ),
     ChannelData(
         name="MTV Sub",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/VRCuxQt.png",
         group="Finland",
         country_code="FI",
-        epg_id="Sub.fi"
+        epg_id="Sub.fi",
     ),
     ChannelData(
         name="TV5 Finland",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/MoukyGs.png",
         group="Finland",
         country_code="FI",
-        epg_id="TV5.fi"
+        epg_id="TV5.fi",
     ),
     ChannelData(
         name="Liv",
@@ -66,7 +66,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/0/06/Liv_color_RGB.png",
         group="Finland",
         country_code="FI",
-        epg_id="Liv.fi"
+        epg_id="Liv.fi",
     ),
     ChannelData(
         name="Jim",
@@ -74,7 +74,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/9/92/Jim_color_RGB.png",
         group="Finland",
         country_code="FI",
-        epg_id="Jim.fi"
+        epg_id="Jim.fi",
     ),
     ChannelData(
         name="Kutonen",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/4giVyxb.png",
         group="Finland",
         country_code="FI",
-        epg_id="Kutonen.fi"
+        epg_id="Kutonen.fi",
     ),
     ChannelData(
         name="TLC Finland",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/0d5hP3A.png",
         group="Finland",
         country_code="FI",
-        epg_id="TLCFinland.fi"
+        epg_id="TLCFinland.fi",
     ),
     ChannelData(
         name="Star Channel Finland",
@@ -98,7 +98,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Star_Channel_2020.svg/640px-Star_Channel_2020.svg.png",
         group="Finland",
         country_code="FI",
-        epg_id="StarChannel.fi"
+        epg_id="StarChannel.fi",
     ),
     ChannelData(
         name="MTV Ava",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/rtyJVgB.png",
         group="Finland",
         country_code="FI",
-        epg_id="AVA.fi"
+        epg_id="AVA.fi",
     ),
     ChannelData(
         name="Hero",
@@ -114,7 +114,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/b/bd/Hero_color_RGB.png",
         group="Finland",
         country_code="FI",
-        epg_id="Hero.fi"
+        epg_id="Hero.fi",
     ),
     ChannelData(
         name="Frii",
@@ -122,7 +122,7 @@ channels = [
         logo="https://i.imgur.com/ljKoG9I.png",
         group="Finland",
         country_code="FI",
-        epg_id="Frii.fi"
+        epg_id="Frii.fi",
     ),
     ChannelData(
         name="Alfa Ⓢ",
@@ -130,7 +130,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/fi/9/93/IRR-TV-1.png",
         group="Finland",
         country_code="FI",
-        epg_id="IRRTV.fi"
+        epg_id="IRRTV.fi",
     ),
     ChannelData(
         name="TapahtumaTV Eveo",
@@ -138,7 +138,7 @@ channels = [
         logo="https://i.imgur.com/sR8nA8w.png",
         group="Finland",
         country_code="FI",
-        epg_id="Eveo.fi"
+        epg_id="Eveo.fi",
     ),
     ChannelData(
         name="National Geographic Finland Ⓖ",
@@ -146,7 +146,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Natgeologo.svg/512px-Natgeologo.svg.png",
         group="Finland",
         country_code="FI",
-        epg_id="NationalGeographicFinland.fi"
+        epg_id="NationalGeographicFinland.fi",
     ),
     ChannelData(
         name="Viaplay TV",
@@ -154,7 +154,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Viaplay_TV_logo.svg/640px-Viaplay_TV_logo.svg.png",
         group="Finland",
         country_code="FI",
-        epg_id="ViaplayTV.fi"
+        epg_id="ViaplayTV.fi",
     ),
     ChannelData(
         name="OnniTV",
@@ -162,7 +162,7 @@ channels = [
         logo="https://i.imgur.com/HzILf2H.png",
         group="Finland",
         country_code="FI",
-        epg_id="KotiTV.fi"
+        epg_id="KotiTV.fi",
     ),
     ChannelData(
         name="Taivas TV7",
@@ -170,7 +170,7 @@ channels = [
         logo="https://i.imgur.com/a4iNVXA.png",
         group="Finland",
         country_code="FI",
-        epg_id="TaivasTV7.fi"
+        epg_id="TaivasTV7.fi",
     ),
     ChannelData(
         name="Himlen TV7",
@@ -178,7 +178,7 @@ channels = [
         logo="https://i.imgur.com/a4iNVXA.png",
         group="Finland",
         country_code="FI",
-        epg_id="HimlenTV7.fi"
+        epg_id="HimlenTV7.fi",
     ),
     ChannelData(
         name="MTV Uutiset Live",
@@ -186,7 +186,7 @@ channels = [
         logo="https://i.imgur.com/IyB6mIb.png",
         group="Finland",
         country_code="FI",
-        epg_id="MTVUutiset.fi"
+        epg_id="MTVUutiset.fi",
     ),
     ChannelData(
         name="Nopola News",
@@ -194,7 +194,7 @@ channels = [
         logo="https://i.imgur.com/gOj8J6O.png",
         group="Finland",
         country_code="FI",
-        epg_id="NopolaNews.fi"
+        epg_id="NopolaNews.fi",
     ),
     ChannelData(
         name="När-TV Ⓢ",
@@ -202,7 +202,7 @@ channels = [
         logo="https://i.imgur.com/Ht5yePq.png",
         group="Finland",
         country_code="FI",
-        epg_id="NarTV.fi"
+        epg_id="NarTV.fi",
     ),
     ChannelData(
         name="Sundom TV Ⓨ",
@@ -210,7 +210,7 @@ channels = [
         logo="https://i.imgur.com/WgwR7nJ.png",
         group="Finland",
         country_code="FI",
-        epg_id="SundomTV.fi"
+        epg_id="SundomTV.fi",
     ),
     ChannelData(
         name="Wör TV Ⓨ",
@@ -218,7 +218,7 @@ channels = [
         logo="https://i.imgur.com/P9O1jo0.png",
         group="Finland",
         country_code="FI",
-        epg_id="WorTV.fi"
+        epg_id="WorTV.fi",
     ),
     ChannelData(
         name="YleX Studio Live",
@@ -226,7 +226,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/YleX.svg/450px-YleX.svg.png",
         group="Finland",
         country_code="FI",
-        epg_id="YleX.fi"
+        epg_id="YleX.fi",
     ),
     ChannelData(
         name="Järviradio TV",
@@ -234,6 +234,6 @@ channels = [
         logo="https://jarviradio.fi/jrtv2/wp-content/uploads/2022/01/jrtv1.jpg",
         group="Finland",
         country_code="FI",
-        epg_id="JRTVJarviradio.fi"
+        epg_id="JRTVJarviradio.fi",
     ),
 ]

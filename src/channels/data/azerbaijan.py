@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/mtvIFyq.png",
         group="Azerbaijan",
         country_code="AZ",
-        epg_id="ARB24.az"
+        epg_id="ARB24.az",
     ),
     ChannelData(
         name="ARB Günəş Ⓢ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/dSg7KUK.png",
         group="Azerbaijan",
         country_code="AZ",
-        epg_id="ArbGunes.az"
+        epg_id="ArbGunes.az",
     ),
     ChannelData(
         name="ARB Ⓢ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/E97M2OL.png",
         group="Azerbaijan",
         country_code="AZ",
-        epg_id="ARB.az"
+        epg_id="ARB.az",
     ),
     ChannelData(
         name="Azad TV Ⓢ",
@@ -34,7 +34,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/ATV_%282012-h.h.%29.png/474px-ATV_%282012-h.h.%29.png",
         group="Azerbaijan",
         country_code="AZ",
-        epg_id="AzadTV.az"
+        epg_id="AzadTV.az",
     ),
     ChannelData(
         name="AzStarTV",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/di3XX5L.png",
         group="Azerbaijan",
         country_code="AZ",
-        epg_id="AzStarTV.ca"
+        epg_id="AzStarTV.ca",
     ),
     ChannelData(
         name="AZTV Ⓢ",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/snBMMeH.png",
         group="Azerbaijan",
         country_code="AZ",
-        epg_id="AZTV.az"
+        epg_id="AZTV.az",
     ),
     ChannelData(
         name="Baku TV",
@@ -58,7 +58,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Baku_TV_%282018%29.png/640px-Baku_TV_%282018%29.png",
         group="Azerbaijan",
         country_code="AZ",
-        epg_id="BakuTV.az"
+        epg_id="BakuTV.az",
     ),
     ChannelData(
         name="CBC",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/wVT0dwO.png",
         group="Azerbaijan",
         country_code="AZ",
-        epg_id="CBC.az"
+        epg_id="CBC.az",
     ),
     ChannelData(
         name="CBC Sport Ⓖ",
@@ -74,7 +74,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/az/0/04/CBC_Sport_TV_loqo.png",
         group="Azerbaijan",
         country_code="AZ",
-        epg_id="CBCSport.az"
+        epg_id="CBCSport.az",
     ),
     ChannelData(
         name="Dünya TV Ⓢ",
@@ -82,7 +82,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/az/5/5d/D%C3%BCnya_TV_%282019-h.h.%29.png",
         group="Azerbaijan",
         country_code="AZ",
-        epg_id="DunyaTV.az"
+        epg_id="DunyaTV.az",
     ),
     ChannelData(
         name="İctimai TV Ⓢ",
@@ -90,7 +90,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/%C4%B0ctimai_TV_%282021-h.h.%29.svg/470px-%C4%B0ctimai_TV_%282021-h.h.%29.svg.png",
         group="Azerbaijan",
         country_code="AZ",
-        epg_id="IctimaiTV.az"
+        epg_id="IctimaiTV.az",
     ),
     ChannelData(
         name="İdman TV Ⓢ",
@@ -98,7 +98,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/az/thumb/8/88/%C4%B0dman_Az%C9%99rbaycan_TV_loqo_%282019-h.h.%29.png/640px-%C4%B0dman_Az%C9%99rbaycan_TV_loqo_%282019-h.h.%29.png",
         group="Azerbaijan",
         country_code="AZ",
-        epg_id="IdmanTV.az"
+        epg_id="IdmanTV.az",
     ),
     ChannelData(
         name="Kanal S",
@@ -106,7 +106,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Kanal_S_%282022%29.png/616px-Kanal_S_%282022%29.png",
         group="Azerbaijan",
         country_code="AZ",
-        epg_id="KanalS.az"
+        epg_id="KanalS.az",
     ),
     ChannelData(
         name="Mədəniyyət TV Ⓢ",
@@ -114,7 +114,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/f/fc/M%C9%99d%C9%99niyy%C9%99t_TV_logo.png",
         group="Azerbaijan",
         country_code="AZ",
-        epg_id="MedeniyyetTV.az"
+        epg_id="MedeniyyetTV.az",
     ),
     ChannelData(
         name="Real TV",
@@ -122,7 +122,7 @@ channels = [
         logo="https://i.imgur.com/e2KFL0R.png",
         group="Azerbaijan",
         country_code="AZ",
-        epg_id="RealTV.az"
+        epg_id="RealTV.az",
     ),
     ChannelData(
         name="Space TV Ⓢ",
@@ -130,7 +130,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Space_TV_loqosu_%282023-h.h.%29.png/296px-Space_TV_loqosu_%282023-h.h.%29.png",
         group="Azerbaijan",
         country_code="AZ",
-        epg_id="SpaceTV.az"
+        epg_id="SpaceTV.az",
     ),
     ChannelData(
         name="TMB Azərbaycan",
@@ -138,7 +138,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/az/c/c2/TMB_TV_loqosu.png",
         group="Azerbaijan",
         country_code="AZ",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Xəzər TV Ⓢ",
@@ -146,7 +146,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/a/a5/X%C9%99z%C9%99r_TV_%282023%29.png",
         group="Azerbaijan",
         country_code="AZ",
-        epg_id="XezerTV.az"
+        epg_id="XezerTV.az",
     ),
     ChannelData(
         name="Səhiyyə TV",
@@ -154,7 +154,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/az/thumb/c/cd/S%C9%99hiyy%C9%99_TV.png/640px-S%C9%99hiyy%C9%99_TV.png",
         group="Azerbaijan",
         country_code="AZ",
-        epg_id="SehiyyeTV.az"
+        epg_id="SehiyyeTV.az",
     ),
     ChannelData(
         name="VIP HD",
@@ -162,7 +162,7 @@ channels = [
         logo="https://tvtolive.com/wp-content/uploads/VIP-TV-tvtolive.com_.jpg",
         group="Azerbaijan",
         country_code="AZ",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="MTV Azerbaijan Ⓢ",
@@ -170,6 +170,6 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/MTV_Az%C9%99rbaycan_%282022%29.png/622px-MTV_Az%C9%99rbaycan_%282022%29.png",
         group="Azerbaijan",
         country_code="AZ",
-        epg_id="MTVAzerbaijan.az"
+        epg_id="MTVAzerbaijan.az",
     ),
 ]

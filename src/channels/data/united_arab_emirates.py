@@ -10,7 +10,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/b/bb/Cartoon_Network_Arabic_logo.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="CartoonNetworkArabic.ae"
+        epg_id="CartoonNetworkArabic.ae",
     ),
     ChannelData(
         name="Al Arabiya Business",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/eEV4r6J.jpg",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="AlArabiyaBusiness.ae"
+        epg_id="AlArabiyaBusiness.ae",
     ),
     ChannelData(
         name="MBC 1",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/CiA3plN.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="MBC1.ae"
+        epg_id="MBC1.ae",
     ),
     ChannelData(
         name="MBC 2 Ⓢ",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/n9mSHuP.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="MBC2.ae"
+        epg_id="MBC2.ae",
     ),
     ChannelData(
         name="MBC 3",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/PVt8OPN.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="MBC3.ae"
+        epg_id="MBC3.ae",
     ),
     ChannelData(
         name="MBC 4",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/BcXASJp.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="MBC4.ae"
+        epg_id="MBC4.ae",
     ),
     ChannelData(
         name="MBC 5",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/fRWaDyF.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="MBC5.ae"
+        epg_id="MBC5.ae",
     ),
     ChannelData(
         name="MBC Action Ⓢ",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/OWZAghw.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="MBCAction.ae"
+        epg_id="MBCAction.ae",
     ),
     ChannelData(
         name="MBC Bollywood",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/TTAGFHG.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="MBCBollywood.ae"
+        epg_id="MBCBollywood.ae",
     ),
     ChannelData(
         name="MBC Drama",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/g5PWnqp.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="MBCDrama.ae"
+        epg_id="MBCDrama.ae",
     ),
     ChannelData(
         name="MBC Max Ⓢ",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/A02CptP.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="MBCMax.ae"
+        epg_id="MBCMax.ae",
     ),
     ChannelData(
         name="MBC Persia",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/4FXiyjn.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="MBCPersia.ae"
+        epg_id="MBCPersia.ae",
     ),
     ChannelData(
         name="Wanasah",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/nLtiXNf.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="Wanasah.ae"
+        epg_id="Wanasah.ae",
     ),
     ChannelData(
         name="Sky News Arabia",
@@ -114,7 +114,7 @@ channels = [
         logo="https://i.imgur.com/SvjU4h6.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="SkyNewsArabia.ae"
+        epg_id="SkyNewsArabia.ae",
     ),
     ChannelData(
         name="Baynounah TV",
@@ -122,7 +122,7 @@ channels = [
         logo="https://static.wikia.nocookie.net/logopedia/images/6/60/Baynounah_tv_2023.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="BaynounahTV.ae"
+        epg_id="BaynounahTV.ae",
     ),
     ChannelData(
         name="Ajman TV",
@@ -130,7 +130,7 @@ channels = [
         logo="https://pbs.twimg.com/profile_images/1085187553563561990/KRKuK_iW_400x400.jpg",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="AjmanTV.ae"
+        epg_id="AjmanTV.ae",
     ),
     ChannelData(
         name="Al Aan TV",
@@ -138,7 +138,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/7/76/Al_Aan_TV_new_Logo.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="AlAanTV.ae"
+        epg_id="AlAanTV.ae",
     ),
     ChannelData(
         name="Abu Dhabi TV",
@@ -146,7 +146,7 @@ channels = [
         logo="https://i.imgur.com/7cNke07.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="AbuDhabiTV.ae"
+        epg_id="AbuDhabiTV.ae",
     ),
     ChannelData(
         name="Abu Dhabi Sports 1",
@@ -154,7 +154,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Abu_Dhabi_Sports_logo_2023.svg/2560px-Abu_Dhabi_Sports_logo_2023.svg.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="AbuDhabiSports2.ae"
+        epg_id="AbuDhabiSports2.ae",
     ),
     ChannelData(
         name="Abu Dhabi Sports 2",
@@ -162,7 +162,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Abu_Dhabi_Sports_logo_2023.svg/2560px-Abu_Dhabi_Sports_logo_2023.svg.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="AbuDhabiSports2.ae"
+        epg_id="AbuDhabiSports2.ae",
     ),
     ChannelData(
         name="National Geographic Abu Dhabi",
@@ -170,7 +170,7 @@ channels = [
         logo="https://i.imgur.com/fNA00VF.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="NationalGeographicAbuDhabi.ae"
+        epg_id="NationalGeographicAbuDhabi.ae",
     ),
     ChannelData(
         name="Ajman TV",
@@ -178,7 +178,7 @@ channels = [
         logo="https://www.lyngsat.com/logo/tv/aa/ajman-tv-ae.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="AjmanTV.ae"
+        epg_id="AjmanTV.ae",
     ),
     ChannelData(
         name="Dubai TV",
@@ -186,7 +186,7 @@ channels = [
         logo="https://i.imgur.com/wZMkKF7.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="DubaiTV.ae"
+        epg_id="DubaiTV.ae",
     ),
     ChannelData(
         name="Dubai One",
@@ -194,7 +194,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/7/7d/Dubaione-logo.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="DubaiOne.ae"
+        epg_id="DubaiOne.ae",
     ),
     ChannelData(
         name="Dubai Sports 1",
@@ -202,7 +202,7 @@ channels = [
         logo="https://www.lyngsat.com/logo/tv/dd/dubai-sports-ae.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="DubaiSports1.ae"
+        epg_id="DubaiSports1.ae",
     ),
     ChannelData(
         name="Dubai Sports 2",
@@ -210,7 +210,7 @@ channels = [
         logo="https://www.lyngsat.com/logo/tv/dd/dubai-sports-ae.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="DubaiSports2.ae"
+        epg_id="DubaiSports2.ae",
     ),
     ChannelData(
         name="Dubai Sports 3",
@@ -218,7 +218,7 @@ channels = [
         logo="https://www.lyngsat.com/logo/tv/dd/dubai-sports-ae.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="DubaiSports3.ae"
+        epg_id="DubaiSports3.ae",
     ),
     ChannelData(
         name="Dubai Racing 1",
@@ -226,7 +226,7 @@ channels = [
         logo="https://www.lyngsat.com/logo/tv/dd/dubai-racing-ae.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="DubaiRacing1.ae"
+        epg_id="DubaiRacing1.ae",
     ),
     ChannelData(
         name="Dubai Racing 2",
@@ -234,7 +234,7 @@ channels = [
         logo="https://www.lyngsat.com/logo/tv/dd/dubai-racing-ae.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="DubaiRacing2.ae"
+        epg_id="DubaiRacing2.ae",
     ),
     ChannelData(
         name="Dubai Racing 3",
@@ -242,7 +242,7 @@ channels = [
         logo="https://www.lyngsat.com/logo/tv/dd/dubai-racing-ae.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="DubaiRacing3.ae"
+        epg_id="DubaiRacing3.ae",
     ),
     ChannelData(
         name="Dubai Zaman",
@@ -250,7 +250,7 @@ channels = [
         logo="https://www.lyngsat.com/logo/tv/dd/dubai-zaman-ae.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="DubaiZaman.ae"
+        epg_id="DubaiZaman.ae",
     ),
     ChannelData(
         name="Sama Dubai",
@@ -258,7 +258,7 @@ channels = [
         logo="https://i.imgur.com/bF6I3N1.jpg",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="SamaDubai.ae"
+        epg_id="SamaDubai.ae",
     ),
     ChannelData(
         name="Noor Dubai",
@@ -266,7 +266,7 @@ channels = [
         logo="https://i.imgur.com/DLe7ZuM.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="NoorDubai.ae"
+        epg_id="NoorDubai.ae",
     ),
     ChannelData(
         name="Sharjah TV",
@@ -274,7 +274,7 @@ channels = [
         logo="https://www.lyngsat.com/logo/tv/ss/sharjah-tv-ae.png",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="SharjahTV.ae"
+        epg_id="SharjahTV.ae",
     ),
     ChannelData(
         name="Sharjah Sports",
@@ -282,7 +282,7 @@ channels = [
         logo="https://i.imgur.com/IaRaabJ.jpg",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="SharjahSports.ae"
+        epg_id="SharjahSports.ae",
     ),
     ChannelData(
         name="Al Wousta",
@@ -290,6 +290,6 @@ channels = [
         logo="https://i5.satexpat.com/cha/ae/al-wousta-95x90.gif",
         group="United Arab Emirates",
         country_code="AE",
-        epg_id="SharjahSports.ae"
+        epg_id="SharjahSports.ae",
     ),
 ]

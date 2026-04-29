@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/zNSuxVZ.jpg",
         group="Mexico",
         country_code="MX",
-        epg_id="AlcarriaTV.es"
+        epg_id="AlcarriaTV.es",
     ),
     ChannelData(
         name="Hipodromo de las Americas",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/wc8MlGw.png",
         group="Mexico",
         country_code="MX",
-        epg_id="HipodromodelasAmericas.mx"
+        epg_id="HipodromodelasAmericas.mx",
     ),
     ChannelData(
         name="MVM NoticiasⓈ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/dhLXN9n.png",
         group="Mexico",
         country_code="MX",
-        epg_id="MVMNoticias.mx"
+        epg_id="MVMNoticias.mx",
     ),
     ChannelData(
         name="RCG 3 Saltillo",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/NefH5qZ.png",
         group="Mexico",
         country_code="MX",
-        epg_id="RCGTV3.mx"
+        epg_id="RCGTV3.mx",
     ),
     ChannelData(
         name="TeleFormula",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/jR6taXt.png",
         group="Mexico",
         country_code="MX",
-        epg_id="TeleFormula.mx"
+        epg_id="TeleFormula.mx",
     ),
     ChannelData(
         name="NRT 4 Monclova",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/IudKE0n.png",
         group="Mexico",
         country_code="MX",
-        epg_id="noticiasnrt.com"
+        epg_id="noticiasnrt.com",
     ),
     ChannelData(
         name="Las Estrellas",
@@ -58,6 +58,6 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/4/41/Las_Estrellas.svg",
         group="Mexico",
         country_code="MX",
-        epg_id="Lasestrellas.tv"
+        epg_id="Lasestrellas.tv",
     ),
 ]

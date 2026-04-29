@@ -10,7 +10,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/KBS_1_logo.svg/512px-KBS_1_logo.svg.png",
         group="Korea",
         country_code="KR",
-        epg_id="KBS1TV.kr"
+        epg_id="KBS1TV.kr",
     ),
     ChannelData(
         name="KBS 2TV",
@@ -18,7 +18,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/KBS_2_logo.svg/512px-KBS_2_logo.svg.png",
         group="Korea",
         country_code="KR",
-        epg_id="KBS2TV.kr"
+        epg_id="KBS2TV.kr",
     ),
     ChannelData(
         name="KBS News D",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/4qKgvHN.png",
         group="Korea",
         country_code="KR",
-        epg_id="KBSNewsD.kr"
+        epg_id="KBSNewsD.kr",
     ),
     ChannelData(
         name="EBS 1 Ⓢ",
@@ -34,7 +34,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/EBS_1TV_Logo.svg/512px-EBS_1TV_Logo.svg.png",
         group="Korea",
         country_code="KR",
-        epg_id="EBS1TV.kr"
+        epg_id="EBS1TV.kr",
     ),
     ChannelData(
         name="EBS 2 Ⓢ",
@@ -42,7 +42,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/EBS_2TV_Logo.svg/512px-EBS_2TV_Logo.svg.png",
         group="Korea",
         country_code="KR",
-        epg_id="EBS2TV.kr"
+        epg_id="EBS2TV.kr",
     ),
     ChannelData(
         name="MBC TV",
@@ -50,7 +50,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Munhwa_Broadcasting_Company.svg/512px-Munhwa_Broadcasting_Company.svg.png",
         group="Korea",
         country_code="KR",
-        epg_id="MBCTV.kr"
+        epg_id="MBCTV.kr",
     ),
     ChannelData(
         name="SBS TV",
@@ -58,7 +58,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/SBS_Korea_Logo_%28Word_Only%29.svg/512px-SBS_Korea_Logo_%28Word_Only%29.svg.png",
         group="Korea",
         country_code="KR",
-        epg_id="SBSTV.kr"
+        epg_id="SBSTV.kr",
     ),
     ChannelData(
         name="KNN TV",
@@ -66,7 +66,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/KNN_logo.svg/512px-KNN_logo.svg.png",
         group="Korea",
         country_code="KR",
-        epg_id="KNNTV.kr"
+        epg_id="KNNTV.kr",
     ),
     ChannelData(
         name="KBC TV",
@@ -74,7 +74,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/KBC_Gwangju_Broadcasting_logo.svg/512px-KBC_Gwangju_Broadcasting_logo.svg.png",
         group="Korea",
         country_code="KR",
-        epg_id="KBCTV.kr"
+        epg_id="KBCTV.kr",
     ),
     ChannelData(
         name="TJB TV",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/q9Nx801.png",
         group="Korea",
         country_code="KR",
-        epg_id="TJBTV.kr"
+        epg_id="TJBTV.kr",
     ),
     ChannelData(
         name="UBC TV",
@@ -90,7 +90,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/thumb/c/c3/Ubc_logo2.svg/512px-Ubc_logo2.svg.png",
         group="Korea",
         country_code="KR",
-        epg_id="UBCTV.kr"
+        epg_id="UBCTV.kr",
     ),
     ChannelData(
         name="JTV TV",
@@ -98,7 +98,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Jtv_logo.svg/512px-Jtv_logo.svg.png",
         group="Korea",
         country_code="KR",
-        epg_id="JTV.kr"
+        epg_id="JTV.kr",
     ),
     ChannelData(
         name="CJB TV",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/MvxdZhX.png",
         group="Korea",
         country_code="KR",
-        epg_id="CJBTV.kr"
+        epg_id="CJBTV.kr",
     ),
     ChannelData(
         name="JIBS TV",
@@ -114,7 +114,7 @@ channels = [
         logo="https://i.imgur.com/RVWpBoz.png",
         group="Korea",
         country_code="KR",
-        epg_id="JIBSTV.kr"
+        epg_id="JIBSTV.kr",
     ),
     ChannelData(
         name="OBS TV",
@@ -122,7 +122,7 @@ channels = [
         logo="https://i.imgur.com/oWB3ApR.png",
         group="Korea",
         country_code="KR",
-        epg_id="OBSGyeonginTV.kr"
+        epg_id="OBSGyeonginTV.kr",
     ),
     ChannelData(
         name="Arirang",
@@ -130,7 +130,7 @@ channels = [
         logo="https://i.imgur.com/RuHZ6Dx.png",
         group="Korea",
         country_code="KR",
-        epg_id="ArirangTV.kr"
+        epg_id="ArirangTV.kr",
     ),
     ChannelData(
         name="EBS Kids Ⓢ",
@@ -138,7 +138,7 @@ channels = [
         logo="https://i.imgur.com/62oo8Bx.png",
         group="Korea",
         country_code="KR",
-        epg_id="EBSKids.kr"
+        epg_id="EBSKids.kr",
     ),
     ChannelData(
         name="EBS Plus 1 Ⓢ",
@@ -146,7 +146,7 @@ channels = [
         logo="https://i.imgur.com/ImUHRG2.png",
         group="Korea",
         country_code="KR",
-        epg_id="EBSPlus1.kr"
+        epg_id="EBSPlus1.kr",
     ),
     ChannelData(
         name="EBS Plus 2 Ⓢ",
@@ -154,7 +154,7 @@ channels = [
         logo="https://i.imgur.com/mgFRZFq.png",
         group="Korea",
         country_code="KR",
-        epg_id="EBSPlus2.kr"
+        epg_id="EBSPlus2.kr",
     ),
     ChannelData(
         name="EBS English Ⓢ",
@@ -162,7 +162,7 @@ channels = [
         logo="https://i.imgur.com/qceaIf7.png",
         group="Korea",
         country_code="KR",
-        epg_id="EBSEnglish.kr"
+        epg_id="EBSEnglish.kr",
     ),
     ChannelData(
         name="KBS Drama",
@@ -170,7 +170,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/KBS_DRAMA.svg/512px-KBS_DRAMA.svg.png",
         group="Korea",
         country_code="KR",
-        epg_id="KBSDrama.kr"
+        epg_id="KBSDrama.kr",
     ),
     ChannelData(
         name="KBS Joy",
@@ -178,7 +178,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/KBS_JOY.svg/512px-KBS_JOY.svg.png",
         group="Korea",
         country_code="KR",
-        epg_id="KBSJoy.kr"
+        epg_id="KBSJoy.kr",
     ),
     ChannelData(
         name="KBS Kids",
@@ -186,7 +186,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/KBS_kids.svg/512px-KBS_kids.svg.png",
         group="Korea",
         country_code="KR",
-        epg_id="KBSKids.kr"
+        epg_id="KBSKids.kr",
     ),
     ChannelData(
         name="KBS Life",
@@ -194,7 +194,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/KBS_Life.svg/512px-KBS_Life.svg.png",
         group="Korea",
         country_code="KR",
-        epg_id="KBSLife.kr"
+        epg_id="KBSLife.kr",
     ),
     ChannelData(
         name="KBS Story",
@@ -202,7 +202,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/KBS_Story.svg/512px-KBS_Story.svg.png",
         group="Korea",
         country_code="KR",
-        epg_id="KBSStory.kr"
+        epg_id="KBSStory.kr",
     ),
     ChannelData(
         name="KBS World",
@@ -210,7 +210,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/KBS_World_%282009%29.svg/512px-KBS_World_%282009%29.svg.png",
         group="Korea",
         country_code="KR",
-        epg_id="KBSWorld.kr"
+        epg_id="KBSWorld.kr",
     ),
     ChannelData(
         name="KBS Korea Ⓨ",
@@ -218,7 +218,7 @@ channels = [
         logo="https://kbsworldimage.kbs.co.kr/images/layout/logo/logo_korea_n.png",
         group="Korea",
         country_code="KR",
-        epg_id="KBSKorea.kr"
+        epg_id="KBSKorea.kr",
     ),
     ChannelData(
         name="All the K-Pop Ⓨ",
@@ -226,6 +226,6 @@ channels = [
         logo="https://i.imgur.com/tBbTTAx.png",
         group="Korea",
         country_code="KR",
-        epg_id="AlltheKPop.kr"
+        epg_id="AlltheKPop.kr",
     ),
 ]

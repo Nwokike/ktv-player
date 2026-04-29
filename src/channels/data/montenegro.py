@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/QORHrXu.png",
         group="Montenegro",
         country_code="ME",
-        epg_id="TVCG1.me"
+        epg_id="TVCG1.me",
     ),
     ChannelData(
         name="TVCG 2 Ⓖ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/WECmUKH.png",
         group="Montenegro",
         country_code="ME",
-        epg_id="TVCG2.me"
+        epg_id="TVCG2.me",
     ),
     ChannelData(
         name="TVCG 3 Ⓖ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/XC7zVog.png",
         group="Montenegro",
         country_code="ME",
-        epg_id="TVCG3.me"
+        epg_id="TVCG3.me",
     ),
     ChannelData(
         name="TVCG MNE",
@@ -34,6 +34,6 @@ channels = [
         logo="https://i.imgur.com/pf8VEwf.png",
         group="Montenegro",
         country_code="ME",
-        epg_id="TVCGMNE.me"
+        epg_id="TVCGMNE.me",
     ),
 ]

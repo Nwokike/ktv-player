@@ -10,7 +10,7 @@ channels = [
         logo="https://cloudfront-us-east-1.images.arcpublishing.com/gruponacion/2XI5OC6MQZFXXBDGMRRDOZSL2Q.jpg",
         group="Costa Rica",
         country_code="CR",
-        epg_id="Canal1.cr"
+        epg_id="Canal1.cr",
     ),
     ChannelData(
         name="Canal 2 CDR",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i0.wp.com/directostv.teleame.com/wp-content/uploads/2016/06/Canal-2-Costa-Rica-en-vivo-Online.png",
         group="Costa Rica",
         country_code="CR",
-        epg_id="Canal2.cr"
+        epg_id="Canal2.cr",
     ),
     ChannelData(
         name="Canal 4",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i0.wp.com/directostv.teleame.com/wp-content/uploads/2016/06/Canal-4-Costa-Rica-en-vivo-Online.png",
         group="Costa Rica",
         country_code="CR",
-        epg_id="Canal4.cr"
+        epg_id="Canal4.cr",
     ),
     ChannelData(
         name="Canal 6",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i0.wp.com/directostv.teleame.com/wp-content/uploads/2016/06/Canal-6-Costa-Rica-en-vivo-Online.png",
         group="Costa Rica",
         country_code="CR",
-        epg_id="Canal6.cr"
+        epg_id="Canal6.cr",
     ),
     ChannelData(
         name="Canal 8",
@@ -42,7 +42,7 @@ channels = [
         logo="https://platform-static.cdn.mdstrm.com/player/logo/5efe501c21d05a0722152f6d.png",
         group="Costa Rica",
         country_code="CR",
-        epg_id="Canal8.cr"
+        epg_id="Canal8.cr",
     ),
     ChannelData(
         name="Canal 11",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i0.wp.com/directostv.teleame.com/wp-content/uploads/2016/06/Canal-11-Costa-Rica-en-vivo-Online.png",
         group="Costa Rica",
         country_code="CR",
-        epg_id="Canal11.cr"
+        epg_id="Canal11.cr",
     ),
     ChannelData(
         name="88 Stereo",
@@ -58,6 +58,6 @@ channels = [
         logo="http://www.88stereo.com/wp-content/uploads/2017/05/88Stereo-logoweb.png",
         group="Costa Rica",
         country_code="CR",
-        epg_id="88stereo.cr"
+        epg_id="88stereo.cr",
     ),
 ]

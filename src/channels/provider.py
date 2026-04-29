@@ -3,6 +3,7 @@ import importlib.util
 from typing import List, Dict
 from channels.base import ChannelData
 
+
 class ChannelProvider:
     def __init__(self, data_dir: str = None):
         if data_dir is None:
@@ -17,11 +18,11 @@ class ChannelProvider:
             if filename.endswith(".py") and not filename.startswith("__"):
                 module_name = filename[:-3]
                 file_path = os.path.join(self.data_dir, filename)
-                
+
                 spec = importlib.util.spec_from_file_location(module_name, file_path)
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
-                
+
                 self.modules[module_name] = module
 
     def get_all_channels(self) -> List[ChannelData]:
@@ -59,6 +60,7 @@ class ChannelProvider:
             if name and code:
                 countries.append({"name": name, "code": code})
         return sorted(countries, key=lambda x: x["name"])
+
 
 # Shared instance
 channel_provider = ChannelProvider()

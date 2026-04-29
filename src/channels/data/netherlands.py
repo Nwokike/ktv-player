@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/pUBy4Pb.png",
         group="Netherlands",
         country_code="NL",
-        epg_id="NPO1.nl"
+        epg_id="NPO1.nl",
     ),
     ChannelData(
         name="NPO 2 Ⓖ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/Vl2G1H3.png",
         group="Netherlands",
         country_code="NL",
-        epg_id="NPO2.nl"
+        epg_id="NPO2.nl",
     ),
     ChannelData(
         name="NPO 3 Ⓖ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/dVB4Pqc.png",
         group="Netherlands",
         country_code="NL",
-        epg_id="NPO3.nl"
+        epg_id="NPO3.nl",
     ),
     ChannelData(
         name="Omrop Fryslân",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/0VKJLAK.png",
         group="Netherlands",
         country_code="NL",
-        epg_id="OmropFryslanTV.nl"
+        epg_id="OmropFryslanTV.nl",
     ),
     ChannelData(
         name="RTV Noord",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/pO5Mexa.png",
         group="Netherlands",
         country_code="NL",
-        epg_id="RTVNoord.nl"
+        epg_id="RTVNoord.nl",
     ),
     ChannelData(
         name="RTV Drenthe",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/GaGqM4z.png",
         group="Netherlands",
         country_code="NL",
-        epg_id="RTVDrenthe.nl"
+        epg_id="RTVDrenthe.nl",
     ),
     ChannelData(
         name="RTV Oost",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/8ropV29.png",
         group="Netherlands",
         country_code="NL",
-        epg_id="RTVOost.nl"
+        epg_id="RTVOost.nl",
     ),
     ChannelData(
         name="Omroep Gelderland",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/TPlyvUQ.png",
         group="Netherlands",
         country_code="NL",
-        epg_id="OmroepGelderlandTV.nl"
+        epg_id="OmroepGelderlandTV.nl",
     ),
     ChannelData(
         name="RTV Utrecht",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/c0I24N6.png",
         group="Netherlands",
         country_code="NL",
-        epg_id="RTVUtrecht.nl"
+        epg_id="RTVUtrecht.nl",
     ),
     ChannelData(
         name="Omroep Flevoland Ⓢ",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/d1CmTcI.png",
         group="Netherlands",
         country_code="NL",
-        epg_id="OmroepFlevolandTV.nl"
+        epg_id="OmroepFlevolandTV.nl",
     ),
     ChannelData(
         name="NH Nieuws",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/SQPVOwn.png",
         group="Netherlands",
         country_code="NL",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="RTV Rijnmond",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/TNhUVEm.png",
         group="Netherlands",
         country_code="NL",
-        epg_id="RTVRijnmond.nl"
+        epg_id="RTVRijnmond.nl",
     ),
     ChannelData(
         name="Omroep West",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/aax1HPH.png",
         group="Netherlands",
         country_code="NL",
-        epg_id="OmroepWestTV.nl"
+        epg_id="OmroepWestTV.nl",
     ),
     ChannelData(
         name="Omroep Zeeland",
@@ -114,7 +114,7 @@ channels = [
         logo="https://i.imgur.com/8aLDyUI.png",
         group="Netherlands",
         country_code="NL",
-        epg_id="OmroepZeelandTV.nl"
+        epg_id="OmroepZeelandTV.nl",
     ),
     ChannelData(
         name="Omroep Brabant",
@@ -122,7 +122,7 @@ channels = [
         logo="https://i.imgur.com/Jv7IjHJ.png",
         group="Netherlands",
         country_code="NL",
-        epg_id="OmroepBrabantTV.nl"
+        epg_id="OmroepBrabantTV.nl",
     ),
     ChannelData(
         name="L1 Ⓢ",
@@ -130,6 +130,6 @@ channels = [
         logo="https://i.imgur.com/Jyhn1iP.png",
         group="Netherlands",
         country_code="NL",
-        epg_id="L1TV.nl"
+        epg_id="L1TV.nl",
     ),
 ]

@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/mXBZEQP.png",
         group="Iraq",
         country_code="IQ",
-        epg_id="AlhurraTVIraq.iq"
+        epg_id="AlhurraTVIraq.iq",
     ),
     ChannelData(
         name="Al-Hurra",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/0izeu5z.png",
         group="Iraq",
         country_code="IQ",
-        epg_id="AlHurra.iq"
+        epg_id="AlHurra.iq",
     ),
     ChannelData(
         name="Al-Iraqiya",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/imdV6kL.png",
         group="Iraq",
         country_code="IQ",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Al-Rafidain",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/D78qG91.png",
         group="Iraq",
         country_code="IQ",
-        epg_id="AlRafidainTV.iq"
+        epg_id="AlRafidainTV.iq",
     ),
     ChannelData(
         name="Al-Rasheed",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/SU9HbXY.png",
         group="Iraq",
         country_code="IQ",
-        epg_id="AlRasheedTV.iq"
+        epg_id="AlRasheedTV.iq",
     ),
     ChannelData(
         name="Al-Sharqiya News",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/P6p17ZY.jpg",
         group="Iraq",
         country_code="IQ",
-        epg_id="AlSharqiyaNews.iq"
+        epg_id="AlSharqiyaNews.iq",
     ),
     ChannelData(
         name="Al-Sharqiya",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/bPYyXNf.png",
         group="Iraq",
         country_code="IQ",
-        epg_id="AlSharqiya.iq"
+        epg_id="AlSharqiya.iq",
     ),
     ChannelData(
         name="Dijlah Tarab",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/2SBjjBQ.png",
         group="Iraq",
         country_code="IQ",
-        epg_id="DijlahTarab.iq"
+        epg_id="DijlahTarab.iq",
     ),
     ChannelData(
         name="Dijlah TV",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/FJEeYiz.png",
         group="Iraq",
         country_code="IQ",
-        epg_id="DijlahTV.iq"
+        epg_id="DijlahTV.iq",
     ),
     ChannelData(
         name="iNEWS",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/PeuBkaH.png",
         group="Iraq",
         country_code="IQ",
-        epg_id="INews.iq"
+        epg_id="INews.iq",
     ),
     ChannelData(
         name="Iraq Future Ⓢ",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/Z7woTe5.png",
         group="Iraq",
         country_code="IQ",
-        epg_id="IraqFuture.iq"
+        epg_id="IraqFuture.iq",
     ),
     ChannelData(
         name="Turkmeneli TV",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/iUhhg4B.png",
         group="Iraq",
         country_code="IQ",
-        epg_id="TurkmeneliTV.iq"
+        epg_id="TurkmeneliTV.iq",
     ),
     ChannelData(
         name="Zagros TV",
@@ -106,6 +106,6 @@ channels = [
         logo="https://i.imgur.com/UjIuIQX.png",
         group="Iraq",
         country_code="IQ",
-        epg_id="ZagrosTV.iq"
+        epg_id="ZagrosTV.iq",
     ),
 ]

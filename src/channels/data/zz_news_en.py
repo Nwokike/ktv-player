@@ -10,7 +10,7 @@ channels = [
         logo="https://d2n0069hmnqmmx.cloudfront.net/epgdata/1.0/newchanlogos/512/512/skychb1404.png",
         group="News",
         country_code="",
-        epg_id="SkyNewsInternational.uk"
+        epg_id="SkyNewsInternational.uk",
     ),
     ChannelData(
         name="Euronews Ⓨ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Euronews_2022.svg/640px-Euronews_2022.svg.png",
         group="News",
         country_code="",
-        epg_id="EuronewsEnglish.fr"
+        epg_id="EuronewsEnglish.fr",
     ),
     ChannelData(
         name="Africanews Ⓨ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/xocvePC.png",
         group="News",
         country_code="",
-        epg_id="Africanews.cg"
+        epg_id="Africanews.cg",
     ),
     ChannelData(
         name="France 24 Ⓨ",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/61MSiq9.png",
         group="News",
         country_code="",
-        epg_id="France24English.fr"
+        epg_id="France24English.fr",
     ),
     ChannelData(
         name="DW",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/A1xzjOI.png",
         group="News",
         country_code="",
-        epg_id="DWEnglish.de"
+        epg_id="DWEnglish.de",
     ),
     ChannelData(
         name="Al Jazeera",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/BB93NQP.png",
         group="News",
         country_code="",
-        epg_id="AlJazeeraEnglish.qa"
+        epg_id="AlJazeeraEnglish.qa",
     ),
     ChannelData(
         name="CGTN",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/fMsJYzl.png",
         group="News",
         country_code="",
-        epg_id="CGTN.cn"
+        epg_id="CGTN.cn",
     ),
     ChannelData(
         name="BBC News Ⓖ",
@@ -66,7 +66,7 @@ channels = [
         logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-kingdom/bbc-news-uk.png",
         group="News",
         country_code="",
-        epg_id="BBCNews.uk"
+        epg_id="BBCNews.uk",
     ),
     ChannelData(
         name="NBC News NOW",
@@ -74,7 +74,7 @@ channels = [
         logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-kingdom/nbc-news-now-uk.png",
         group="News",
         country_code="",
-        epg_id="NBCNewsNOW.us"
+        epg_id="NBCNewsNOW.us",
     ),
     ChannelData(
         name="Reuters",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/6eQ2nCJ.png",
         group="News",
         country_code="",
-        epg_id="ReutersTV.us"
+        epg_id="ReutersTV.us",
     ),
     ChannelData(
         name="The Guardian",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/o9AYq9V.png",
         group="News",
         country_code="",
-        epg_id="TheGuardian.uk"
+        epg_id="TheGuardian.uk",
     ),
     ChannelData(
         name="CBS News",
@@ -98,7 +98,7 @@ channels = [
         logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/cbs-news-us.png",
         group="News",
         country_code="",
-        epg_id="CBSNews.us"
+        epg_id="CBSNews.us",
     ),
     ChannelData(
         name="ABC News Live",
@@ -106,7 +106,7 @@ channels = [
         logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/abc-news-live-hz-us.png",
         group="News",
         country_code="",
-        epg_id="ABCNewsLive.us"
+        epg_id="ABCNewsLive.us",
     ),
     ChannelData(
         name="LiveNOW from FOX",
@@ -114,7 +114,7 @@ channels = [
         logo="https://i.imgur.com/1JnyzHv.png",
         group="News",
         country_code="",
-        epg_id="LiveNOWFromFOX.us"
+        epg_id="LiveNOWFromFOX.us",
     ),
     ChannelData(
         name="CBC News Network",
@@ -122,7 +122,7 @@ channels = [
         logo="https://i.imgur.com/SjTdhvJ.png",
         group="News",
         country_code="",
-        epg_id="CBCNewsNetwork.ca"
+        epg_id="CBCNewsNetwork.ca",
     ),
     ChannelData(
         name="Ticker News",
@@ -130,7 +130,7 @@ channels = [
         logo="https://i.imgur.com/z7M0QxV.png",
         group="News",
         country_code="",
-        epg_id="tickerNews.au"
+        epg_id="tickerNews.au",
     ),
     ChannelData(
         name="India Today",
@@ -138,7 +138,7 @@ channels = [
         logo="https://i.imgur.com/koFYddE.png",
         group="News",
         country_code="",
-        epg_id="IndiaToday.in"
+        epg_id="IndiaToday.in",
     ),
     ChannelData(
         name="Channel News Asia",
@@ -146,7 +146,7 @@ channels = [
         logo="https://i.imgur.com/xWglicB.png",
         group="News",
         country_code="",
-        epg_id="CNAInternational.sg"
+        epg_id="CNAInternational.sg",
     ),
     ChannelData(
         name="ABC News (AU) Ⓨ",
@@ -154,7 +154,7 @@ channels = [
         logo="https://i.imgur.com/BrW7gk8.png",
         group="News",
         country_code="",
-        epg_id="ABCNews.au"
+        epg_id="ABCNews.au",
     ),
     ChannelData(
         name="NDTV 24x7",
@@ -162,7 +162,7 @@ channels = [
         logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/india/ndtv-24x7-in.png",
         group="News",
         country_code="",
-        epg_id="NDTV24x7.in"
+        epg_id="NDTV24x7.in",
     ),
     ChannelData(
         name="TRT World",
@@ -170,7 +170,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/TRT_World.svg/512px-TRT_World.svg.png",
         group="News",
         country_code="",
-        epg_id="TRTWorld.tr"
+        epg_id="TRTWorld.tr",
     ),
     ChannelData(
         name="NHK World Japan",
@@ -178,7 +178,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/NHK_World-Japan_TV.svg/512px-NHK_World-Japan_TV.svg.png",
         group="News",
         country_code="",
-        epg_id="NHKWorldJapan.jp"
+        epg_id="NHKWorldJapan.jp",
     ),
     ChannelData(
         name="DD India",
@@ -186,7 +186,7 @@ channels = [
         logo="https://i.imgur.com/45uptR8.png",
         group="News",
         country_code="",
-        epg_id="DDIndia.in"
+        epg_id="DDIndia.in",
     ),
     ChannelData(
         name="WION",
@@ -194,7 +194,7 @@ channels = [
         logo="https://i.imgur.com/Wc5Z3iS.png",
         group="News",
         country_code="",
-        epg_id="WION.in"
+        epg_id="WION.in",
     ),
     ChannelData(
         name="Taiwan+",
@@ -202,7 +202,7 @@ channels = [
         logo="https://i.imgur.com/SfcZyqm.png",
         group="News",
         country_code="",
-        epg_id="TaiwanPlusTV.tw"
+        epg_id="TaiwanPlusTV.tw",
     ),
     ChannelData(
         name="Metro Globe Network",
@@ -210,7 +210,7 @@ channels = [
         logo="https://i.imgur.com/aiiinzg.png",
         group="News",
         country_code="",
-        epg_id="MetroGlobeNetwork.id"
+        epg_id="MetroGlobeNetwork.id",
     ),
     ChannelData(
         name="i24 News",
@@ -218,7 +218,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/LOGO_i24NEWS.png/512px-LOGO_i24NEWS.png",
         group="News",
         country_code="",
-        epg_id="i24NEWSEnglishWorld.il"
+        epg_id="i24NEWSEnglishWorld.il",
     ),
     ChannelData(
         name="Scripps News",
@@ -226,7 +226,7 @@ channels = [
         logo="https://i.imgur.com/UfN6aAi.png",
         group="News",
         country_code="",
-        epg_id="ScrippsNews.us"
+        epg_id="ScrippsNews.us",
     ),
     ChannelData(
         name="USA Today",
@@ -234,7 +234,7 @@ channels = [
         logo="https://i.imgur.com/37K0AZX.png",
         group="News",
         country_code="",
-        epg_id="USATODAY.us"
+        epg_id="USATODAY.us",
     ),
     ChannelData(
         name="TVC News Ⓨ",
@@ -242,7 +242,7 @@ channels = [
         logo="https://i.imgur.com/jaSq18B.png",
         group="News",
         country_code="",
-        epg_id="TVCNews.ng"
+        epg_id="TVCNews.ng",
     ),
     ChannelData(
         name="Channels 24 Ⓨ",
@@ -250,7 +250,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/7/76/Channels_TV.jpg",
         group="News",
         country_code="",
-        epg_id="Channels24.ng"
+        epg_id="Channels24.ng",
     ),
     ChannelData(
         name="Sky News Now (AU)",
@@ -258,7 +258,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/thumb/1/10/Sky_News_Australia_logo_-_2019.svg/512px-Sky_News_Australia_logo_-_2019.svg.png",
         group="News",
         country_code="",
-        epg_id="SkyNewsAustralia.au"
+        epg_id="SkyNewsAustralia.au",
     ),
     ChannelData(
         name="Global News",
@@ -266,7 +266,7 @@ channels = [
         logo="https://i.imgur.com/xk1QOhW.png",
         group="News",
         country_code="",
-        epg_id="GlobalNews.ca"
+        epg_id="GlobalNews.ca",
     ),
     ChannelData(
         name="Russia Today Ⓖ",
@@ -274,7 +274,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Russia-today-logo.svg/512px-Russia-today-logo.svg.png",
         group="News",
         country_code="",
-        epg_id="RT.ru"
+        epg_id="RT.ru",
     ),
     ChannelData(
         name="CNN",
@@ -282,7 +282,7 @@ channels = [
         logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/cnn-us.png",
         group="News",
         country_code="",
-        epg_id="CNN.us"
+        epg_id="CNN.us",
     ),
     ChannelData(
         name="CNN International",
@@ -290,7 +290,7 @@ channels = [
         logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/cnn-us.png",
         group="News",
         country_code="",
-        epg_id="CNNInternationalEurope.us"
+        epg_id="CNNInternationalEurope.us",
     ),
     ChannelData(
         name="GB News",
@@ -298,7 +298,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/thumb/3/35/GB_News_Logo.svg/512px-GB_News_Logo.svg.png",
         group="News",
         country_code="",
-        epg_id="GBNews.uk"
+        epg_id="GBNews.uk",
     ),
     ChannelData(
         name="TalkTV",
@@ -306,7 +306,7 @@ channels = [
         logo="https://i.imgur.com/KxHWpQB.png",
         group="News",
         country_code="",
-        epg_id="TalkTV.uk"
+        epg_id="TalkTV.uk",
     ),
     ChannelData(
         name="Joy News",
@@ -314,7 +314,7 @@ channels = [
         logo="https://i.imgur.com/kGuMNmR.png",
         group="News",
         country_code="",
-        epg_id="JoyNews.gh"
+        epg_id="JoyNews.gh",
     ),
     ChannelData(
         name="SABC News",
@@ -322,7 +322,7 @@ channels = [
         logo="https://i.imgur.com/H9q3Q9d.png",
         group="News",
         country_code="",
-        epg_id="SABCNews.gh"
+        epg_id="SABCNews.gh",
     ),
     ChannelData(
         name="Cheddar News",
@@ -330,7 +330,7 @@ channels = [
         logo="https://i.imgur.com/tuP9GW8.png",
         group="Business",
         country_code="",
-        epg_id="CheddarNews.us"
+        epg_id="CheddarNews.us",
     ),
     ChannelData(
         name="Bloomberg TV+",
@@ -338,7 +338,7 @@ channels = [
         logo="https://i.imgur.com/xGlToly.png",
         group="Business",
         country_code="",
-        epg_id="BloombergTVPlus.us"
+        epg_id="BloombergTVPlus.us",
     ),
     ChannelData(
         name="Bloomberg Television (US)",
@@ -346,7 +346,7 @@ channels = [
         logo="https://i.imgur.com/OuogLHx.png",
         group="Business",
         country_code="",
-        epg_id="BloombergTV.us"
+        epg_id="BloombergTV.us",
     ),
     ChannelData(
         name="Bloomberg Television (Europe)",
@@ -354,7 +354,7 @@ channels = [
         logo="https://i.imgur.com/OuogLHx.png",
         group="Business",
         country_code="",
-        epg_id="BloombergTVEurope.uk"
+        epg_id="BloombergTVEurope.uk",
     ),
     ChannelData(
         name="Yahoo! Finance",
@@ -362,7 +362,7 @@ channels = [
         logo="https://i.imgur.com/43oHsHL.png",
         group="Business",
         country_code="",
-        epg_id="YahooFinance.us"
+        epg_id="YahooFinance.us",
     ),
     ChannelData(
         name="CNBC Europe",
@@ -370,7 +370,7 @@ channels = [
         logo="https://d2n0069hmnqmmx.cloudfront.net/epgdata/1.0/newchanlogos/512/512/skychb1088.png",
         group="Business",
         country_code="",
-        epg_id="CNBCEurope.uk"
+        epg_id="CNBCEurope.uk",
     ),
     ChannelData(
         name="CNBC Indonesia",
@@ -378,7 +378,7 @@ channels = [
         logo="https://i.imgur.com/bUfeG7Y.png",
         group="Business",
         country_code="",
-        epg_id="CNBCIndonesia.id"
+        epg_id="CNBCIndonesia.id",
     ),
     ChannelData(
         name="Ausbiz",
@@ -386,7 +386,7 @@ channels = [
         logo="https://i.imgur.com/8vGGdB0.png",
         group="Business",
         country_code="",
-        epg_id="AusbizTV.au"
+        epg_id="AusbizTV.au",
     ),
     ChannelData(
         name="Moconomy",
@@ -394,7 +394,7 @@ channels = [
         logo="https://i.imgur.com/GvqbLZB.png",
         group="Business",
         country_code="",
-        epg_id="MoconomyEconomyFinanceInfotainment.us"
+        epg_id="MoconomyEconomyFinanceInfotainment.us",
     ),
     ChannelData(
         name="AccuWeather NOW",
@@ -402,7 +402,7 @@ channels = [
         logo="https://i.imgur.com/M8wbVYK.png",
         group="Weather",
         country_code="",
-        epg_id="AccuWeatherNOW.us"
+        epg_id="AccuWeatherNOW.us",
     ),
     ChannelData(
         name="Fox Weather",
@@ -410,7 +410,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Fox_Weather_logo.svg/512px-Fox_Weather_logo.svg.png",
         group="Weather",
         country_code="",
-        epg_id="FoxWeather.us"
+        epg_id="FoxWeather.us",
     ),
     ChannelData(
         name="KTCA-DT5",
@@ -418,7 +418,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/b/be/Twin_Cities_Public_Television_logo_%28PBS%29.png",
         group="Weather",
         country_code="",
-        epg_id="KTCADT5.us"
+        epg_id="KTCADT5.us",
     ),
     ChannelData(
         name="WeatherNation",
@@ -426,7 +426,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/WeatherNation_Logo.svg/512px-WeatherNation_Logo.svg.png",
         group="Weather",
         country_code="",
-        epg_id="WeatherNation.us"
+        epg_id="WeatherNation.us",
     ),
     ChannelData(
         name="The Weather Network",
@@ -434,7 +434,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/thumb/b/bf/TWN_Logo_2011.svg/2560px-TWN_Logo_2011.svg.png",
         group="Weather",
         country_code="",
-        epg_id="TheWeatherNetwork.ca"
+        epg_id="TheWeatherNetwork.ca",
     ),
     ChannelData(
         name="Sky News Weather Ⓖ",
@@ -442,6 +442,6 @@ channels = [
         logo="https://pbs.twimg.com/profile_images/1604994875459518464/lGt2wEqM_400x400.jpg",
         group="Weather",
         country_code="",
-        epg_id="SkyNewsWeather.uk"
+        epg_id="SkyNewsWeather.uk",
     ),
 ]

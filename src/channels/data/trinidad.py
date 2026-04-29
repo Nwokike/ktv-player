@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/1E73l2j.png",
         group="Trinidad",
         country_code="TT",
-        epg_id="CNC3.tt"
+        epg_id="CNC3.tt",
     ),
     ChannelData(
         name="gayelle",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/GhWdqLq.jpg",
         group="Trinidad",
         country_code="TT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Synergy TV",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/ugAy0UG.jpg",
         group="Trinidad",
         country_code="TT",
-        epg_id="SynergyTV.tt"
+        epg_id="SynergyTV.tt",
     ),
     ChannelData(
         name="TTT",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/rxf4x8J.jpg",
         group="Trinidad",
         country_code="TT",
-        epg_id="TTT.tt"
+        epg_id="TTT.tt",
     ),
     ChannelData(
         name="IBN",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/hSJGncF.jpg",
         group="Trinidad",
         country_code="TT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Trinity TV",
@@ -50,6 +50,6 @@ channels = [
         logo="https://i.imgur.com/prgVynR.jpg",
         group="Trinidad",
         country_code="TT",
-        epg_id=""
+        epg_id="",
     ),
 ]

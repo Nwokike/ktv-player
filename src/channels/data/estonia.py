@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/5URjPgG.png",
         group="Estonia",
         country_code="EE",
-        epg_id="ETV.ee"
+        epg_id="ETV.ee",
     ),
     ChannelData(
         name="ETV2 Ⓖ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/fUjGHDa.png",
         group="Estonia",
         country_code="EE",
-        epg_id="ETV2.ee"
+        epg_id="ETV2.ee",
     ),
     ChannelData(
         name="ETV+ Ⓖ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/YAubPlU.png",
         group="Estonia",
         country_code="EE",
-        epg_id="ETVPlus.ee"
+        epg_id="ETVPlus.ee",
     ),
     ChannelData(
         name="Riigikogu",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/7uWaZLF.png",
         group="Estonia",
         country_code="EE",
-        epg_id="Riigikogu.ee"
+        epg_id="Riigikogu.ee",
     ),
     ChannelData(
         name="Taevas TV7",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/usXedIj.png",
         group="Estonia",
         country_code="EE",
-        epg_id="TaevasTV7.fi"
+        epg_id="TaevasTV7.fi",
     ),
     ChannelData(
         name="Life TV Estonia",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/JhrTB82.png",
         group="Estonia",
         country_code="EE",
-        epg_id="LifeTV.ee"
+        epg_id="LifeTV.ee",
     ),
     ChannelData(
         name="Life TV Europe",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/JhrTB82.png",
         group="Estonia",
         country_code="EE",
-        epg_id="LifeTVEurope.ee"
+        epg_id="LifeTVEurope.ee",
     ),
     ChannelData(
         name="TBN Baltia",
@@ -66,6 +66,6 @@ channels = [
         logo="https://i.imgur.com/rKBaK56.png",
         group="Estonia",
         country_code="EE",
-        epg_id="TBNBaltia.ee"
+        epg_id="TBNBaltia.ee",
     ),
 ]

@@ -10,7 +10,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/9/93/Logo_of_BHT_1_%282003-2012%29.png",
         group="Bosnia and Herzegovina",
         country_code="BA",
-        epg_id="BHT1.ba"
+        epg_id="BHT1.ba",
     ),
     ChannelData(
         name="Federalna televizija (FTV) Ⓢ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/Jpvs4u3.png",
         group="Bosnia and Herzegovina",
         country_code="BA",
-        epg_id="FederalnaTV.ba"
+        epg_id="FederalnaTV.ba",
     ),
     ChannelData(
         name="Televizija Republike Srpske (RTRS)",
@@ -26,7 +26,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/RTRS_Logo.svg/640px-RTRS_Logo.svg.png",
         group="Bosnia and Herzegovina",
         country_code="BA",
-        epg_id="RTRSTV.ba"
+        epg_id="RTRSTV.ba",
     ),
     ChannelData(
         name="RTRS PLUS Ⓢ",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/k06WvYl.png",
         group="Bosnia and Herzegovina",
         country_code="BA",
-        epg_id="RTRSplus.ba"
+        epg_id="RTRSplus.ba",
     ),
     ChannelData(
         name="N1 Bosna i Hercegovina",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/72oMSWz.png",
         group="Bosnia and Herzegovina",
         country_code="BA",
-        epg_id="N1BosniaHerzegovina.ba"
+        epg_id="N1BosniaHerzegovina.ba",
     ),
     ChannelData(
         name="RTV HB Ⓢ",
@@ -50,7 +50,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/6/60/Logo_of_TV_Herceg-Bosne.png",
         group="Bosnia and Herzegovina",
         country_code="BA",
-        epg_id="RTVHB.ba"
+        epg_id="RTVHB.ba",
     ),
     ChannelData(
         name="RTV BN Ⓢ",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/DUBvfWb.png",
         group="Bosnia and Herzegovina",
         country_code="BA",
-        epg_id="BNTV.ba"
+        epg_id="BNTV.ba",
     ),
     ChannelData(
         name="RTV Glas Drine",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/9NgxOdb.png",
         group="Bosnia and Herzegovina",
         country_code="BA",
-        epg_id="RTVGlasDrine.ba"
+        epg_id="RTVGlasDrine.ba",
     ),
     ChannelData(
         name="Sevdah Ⓢ",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/V6W3yEp.png",
         group="Bosnia and Herzegovina",
         country_code="BA",
-        epg_id="SevdahTV.ba"
+        epg_id="SevdahTV.ba",
     ),
     ChannelData(
         name="TNT Kids",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/irTDbpn.png",
         group="Bosnia and Herzegovina",
         country_code="BA",
-        epg_id="TNTKidsTV.ba"
+        epg_id="TNTKidsTV.ba",
     ),
     ChannelData(
         name="Televizija 5",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/znpvJys.png",
         group="Bosnia and Herzegovina",
         country_code="BA",
-        epg_id="Televizija5.ba"
+        epg_id="Televizija5.ba",
     ),
     ChannelData(
         name="Kanal 6",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/GGhvR0l.png",
         group="Bosnia and Herzegovina",
         country_code="BA",
-        epg_id="Kanal6.ba"
+        epg_id="Kanal6.ba",
     ),
     ChannelData(
         name="SuperTV",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/XYWgd3E.png",
         group="Bosnia and Herzegovina",
         country_code="BA",
-        epg_id="SuperTV.ba"
+        epg_id="SuperTV.ba",
     ),
     ChannelData(
         name="Neon TV",
@@ -114,7 +114,7 @@ channels = [
         logo="https://i.imgur.com/thC9NFp.png",
         group="Bosnia and Herzegovina",
         country_code="BA",
-        epg_id="ntv.ba"
+        epg_id="ntv.ba",
     ),
     ChannelData(
         name="RTV ZE Ⓢ",
@@ -122,7 +122,7 @@ channels = [
         logo="https://i.imgur.com/TKUaflB.png",
         group="Bosnia and Herzegovina",
         country_code="BA",
-        epg_id="RTVZenica.ba"
+        epg_id="RTVZenica.ba",
     ),
     ChannelData(
         name="TV BPK Ⓢ",
@@ -130,6 +130,6 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/en/d/df/Logo_of_RTV_BPK_Gora%C5%BEde.jpg",
         group="Bosnia and Herzegovina",
         country_code="BA",
-        epg_id="RTVBPK.ba"
+        epg_id="RTVBPK.ba",
     ),
 ]

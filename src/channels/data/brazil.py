@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/c8ztQnF.png",
         group="Brazil",
         country_code="BR",
-        epg_id="COMBrasil.br"
+        epg_id="COMBrasil.br",
     ),
     ChannelData(
         name="SBT Ⓨ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://logodownload.org/wp-content/uploads/2013/12/sbt-logo.png",
         group="Brazil",
         country_code="BR",
-        epg_id="SBTNacional.br"
+        epg_id="SBTNacional.br",
     ),
     ChannelData(
         name="RBC Ⓨ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://portal.rbc1.com.br/public/portal/img/layout/logorbc.png",
         group="Brazil",
         country_code="BR",
-        epg_id="RBC.br"
+        epg_id="RBC.br",
     ),
     ChannelData(
         name="Record News",
@@ -34,7 +34,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/4/46/Record_News_logo_2023.svg",
         group="Brazil",
         country_code="BR",
-        epg_id="RecordNews.br"
+        epg_id="RecordNews.br",
     ),
     ChannelData(
         name="ISTV",
@@ -42,7 +42,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/pt/b/b5/Logotipo_da_ISTV.png",
         group="Brazil",
         country_code="BR",
-        epg_id="ISTVHD.br"
+        epg_id="ISTVHD.br",
     ),
     ChannelData(
         name="Rede Brasil",
@@ -50,7 +50,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/d/d1/Marca_rede_brasil_rgb-color.png",
         group="Brazil",
         country_code="BR",
-        epg_id="RedeBrasil.br"
+        epg_id="RedeBrasil.br",
     ),
     ChannelData(
         name="TV Câmara",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/UpV2PRk.png",
         group="Brazil",
         country_code="BR",
-        epg_id="TVCamara.br"
+        epg_id="TVCamara.br",
     ),
     ChannelData(
         name="TVE RS",
@@ -66,7 +66,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/c/c2/Logotipo_da_TVE_RS.png",
         group="Brazil",
         country_code="BR",
-        epg_id="TVERS.br"
+        epg_id="TVERS.br",
     ),
     ChannelData(
         name="TV Cultura",
@@ -74,6 +74,6 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/8/82/Cultura_logo_2013.svg",
         group="Brazil",
         country_code="BR",
-        epg_id="TVCultura.br"
+        epg_id="TVCultura.br",
     ),
 ]

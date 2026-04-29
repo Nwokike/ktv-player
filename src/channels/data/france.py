@@ -10,7 +10,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Arte_Logo_2017.svg/12px-Arte_Logo_2017.svg.png",
         group="France",
         country_code="FR",
-        epg_id="ARTEFrench.fr"
+        epg_id="ARTEFrench.fr",
     ),
     ChannelData(
         name="C8 Ⓓ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/LXhXF8l.png",
         group="France",
         country_code="FR",
-        epg_id="C8.fr"
+        epg_id="C8.fr",
     ),
     ChannelData(
         name="NRJ 12",
@@ -26,7 +26,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/NRJ12_logo_2015.svg/749px-NRJ12_logo_2015.svg.png",
         group="France",
         country_code="FR",
-        epg_id="NRJ12.fr"
+        epg_id="NRJ12.fr",
     ),
     ChannelData(
         name="LCP",
@@ -34,7 +34,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/fr/thumb/6/6a/Logo_LCP-AN_-_Public_S%C3%A9nat_%282019%29.svg/53px-Logo_LCP-AN_-_Public_S%C3%A9nat_%282019%29.svg.png",
         group="France",
         country_code="FR",
-        epg_id="LCP.fr"
+        epg_id="LCP.fr",
     ),
     ChannelData(
         name="Public Sénat",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/bJOdFT1.png",
         group="France",
         country_code="FR",
-        epg_id="PublicSenat.fr"
+        epg_id="PublicSenat.fr",
     ),
     ChannelData(
         name="CNews Ⓓ",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/UMRGAHx.png",
         group="France",
         country_code="FR",
-        epg_id="CNews.fr"
+        epg_id="CNews.fr",
     ),
     ChannelData(
         name="franceinfo: Ⓨ",
@@ -58,7 +58,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Franceinfo.svg/640px-Franceinfo.svg.png",
         group="France",
         country_code="FR",
-        epg_id="Franceinfo.fr"
+        epg_id="Franceinfo.fr",
     ),
     ChannelData(
         name="France 24 Ⓨ",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/61MSiq9.png",
         group="France",
         country_code="FR",
-        epg_id="France24French.fr"
+        epg_id="France24French.fr",
     ),
     ChannelData(
         name="Euronews Français Ⓨ",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/3Lr5iAj.png",
         group="France",
         country_code="FR",
-        epg_id="EuronewsFrench.fr"
+        epg_id="EuronewsFrench.fr",
     ),
     ChannelData(
         name="Africanews Ⓨ",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/xocvePC.png",
         group="France",
         country_code="FR",
-        epg_id="Africanews.cg"
+        epg_id="Africanews.cg",
     ),
     ChannelData(
         name="L'Équipe ⒹⒼ",
@@ -90,7 +90,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/L%27%C3%89quipe_wordmark.svg/640px-L%27%C3%89quipe_wordmark.svg.png",
         group="France",
         country_code="FR",
-        epg_id="LEquipe.fr"
+        epg_id="LEquipe.fr",
     ),
     ChannelData(
         name="France Inter Ⓨ",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/d9Ncl8m.png",
         group="France",
         country_code="FR",
-        epg_id="FranceInter.fr"
+        epg_id="FranceInter.fr",
     ),
     ChannelData(
         name="CGTN Français",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/fMsJYzl.png",
         group="France",
         country_code="FR",
-        epg_id="CGTNFrench.cn"
+        epg_id="CGTNFrench.cn",
     ),
     ChannelData(
         name="TV5 Monde Info",
@@ -114,7 +114,7 @@ channels = [
         logo="https://i.imgur.com/NcysrWH.png",
         group="France",
         country_code="FR",
-        epg_id="TV5MondeInfo.fr"
+        epg_id="TV5MondeInfo.fr",
     ),
     ChannelData(
         name="TV5 Monde FBS",
@@ -122,7 +122,7 @@ channels = [
         logo="https://i.imgur.com/uPmwTo9.png",
         group="France",
         country_code="FR",
-        epg_id="TV5MondeFranceBelgiumSwitzerland.fr"
+        epg_id="TV5MondeFranceBelgiumSwitzerland.fr",
     ),
     ChannelData(
         name="TV5 Monde Europe",
@@ -130,6 +130,6 @@ channels = [
         logo="https://i.imgur.com/uPmwTo9.png",
         group="France",
         country_code="FR",
-        epg_id="TV5MondeEurope.fr"
+        epg_id="TV5MondeEurope.fr",
     ),
 ]

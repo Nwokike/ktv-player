@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/UbD0Ndr.png",
         group="Iran",
         country_code="IR",
-        epg_id="AlalamNewsChannel.ir"
+        epg_id="AlalamNewsChannel.ir",
     ),
     ChannelData(
         name="Press TV",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/X3YP2Gg.png",
         group="Iran",
         country_code="IR",
-        epg_id="PressTV.ir"
+        epg_id="PressTV.ir",
     ),
     ChannelData(
         name="Press TV French",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/X3YP2Gg.png",
         group="Iran",
         country_code="IR",
-        epg_id="PressTVFrench.ir"
+        epg_id="PressTVFrench.ir",
     ),
     ChannelData(
         name="IranPress Ⓢ",
@@ -34,6 +34,6 @@ channels = [
         logo="https://i.imgur.com/Qrubr3v.png",
         group="Iran",
         country_code="IR",
-        epg_id="IranPress.ir"
+        epg_id="IranPress.ir",
     ),
 ]

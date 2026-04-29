@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/eZrhTam.png",
         group="Nigeria",
         country_code="NG",
-        epg_id="AdvocateBroadcastingNetwork.ng"
+        epg_id="AdvocateBroadcastingNetwork.ng",
     ),
     ChannelData(
         name="AMusic Channel",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/SFKN9Vl.jpeg",
         group="Nigeria",
         country_code="NG",
-        epg_id="AMusicChannel.ng"
+        epg_id="AMusicChannel.ng",
     ),
     ChannelData(
         name="Channels 24",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/ABjlIkm.png",
         group="Nigeria",
         country_code="NG",
-        epg_id="Channels24.ng"
+        epg_id="Channels24.ng",
     ),
     ChannelData(
         name="Channels TV",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/O237VLC.png",
         group="Nigeria",
         country_code="NG",
-        epg_id="ChannelsTV.ng"
+        epg_id="ChannelsTV.ng",
     ),
     ChannelData(
         name="Itage TV",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/ojLIfkt.jpeg",
         group="Nigeria",
         country_code="NG",
-        epg_id="ItageTV.ng"
+        epg_id="ItageTV.ng",
     ),
     ChannelData(
         name="LN247",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/zGWEeZT.jpeg",
         group="Nigeria",
         country_code="NG",
-        epg_id="LN247.ng"
+        epg_id="LN247.ng",
     ),
     ChannelData(
         name="News Central",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/1oSxhmp.png",
         group="Nigeria",
         country_code="NG",
-        epg_id="NewsCentral.ng"
+        epg_id="NewsCentral.ng",
     ),
     ChannelData(
         name="OSBC TV",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/TwWsjy5.jpeg",
         group="Nigeria",
         country_code="NG",
-        epg_id="OSBCTV.ng"
+        epg_id="OSBCTV.ng",
     ),
     ChannelData(
         name="Rave TV",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/fDSyf6u.png",
         group="Nigeria",
         country_code="NG",
-        epg_id="RaveTV.ng"
+        epg_id="RaveTV.ng",
     ),
     ChannelData(
         name="Silverbird News 24",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/ssEAjq5.jpeg",
         group="Nigeria",
         country_code="NG",
-        epg_id="SilverbirdNews24.ng"
+        epg_id="SilverbirdNews24.ng",
     ),
     ChannelData(
         name="Soundcity TV",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/zfi4SXW.png",
         group="Nigeria",
         country_code="NG",
-        epg_id="SoundcityTV.ng"
+        epg_id="SoundcityTV.ng",
     ),
     ChannelData(
         name="Superscreen TV",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/DuhRy48.png",
         group="Nigeria",
         country_code="NG",
-        epg_id="SuperscreenTV.ng"
+        epg_id="SuperscreenTV.ng",
     ),
     ChannelData(
         name="TVC",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/49XR2N3.jpeg",
         group="Nigeria",
         country_code="NG",
-        epg_id="TVC.ng"
+        epg_id="TVC.ng",
     ),
     ChannelData(
         name="TVC News",
@@ -114,7 +114,7 @@ channels = [
         logo="https://i.imgur.com/6ImhXFB.jpeg",
         group="Nigeria",
         country_code="NG",
-        epg_id="TVCNews.ng"
+        epg_id="TVCNews.ng",
     ),
     ChannelData(
         name="Waffi TV",
@@ -122,7 +122,7 @@ channels = [
         logo="https://i.imgur.com/ejlCb5g.png",
         group="Nigeria",
         country_code="NG",
-        epg_id="WaffiTV.ng"
+        epg_id="WaffiTV.ng",
     ),
     ChannelData(
         name="Wazobia Max TV Abuja",
@@ -130,7 +130,7 @@ channels = [
         logo="https://i.imgur.com/sEnLR0B.jpeg",
         group="Nigeria",
         country_code="NG",
-        epg_id="WazobiaMaxTVAbuja.ng"
+        epg_id="WazobiaMaxTVAbuja.ng",
     ),
     ChannelData(
         name="Wazobia Max TV Nigeria",
@@ -138,7 +138,7 @@ channels = [
         logo="https://i.imgur.com/sEnLR0B.jpeg",
         group="Nigeria",
         country_code="NG",
-        epg_id="WazobiaMaxTVNigeria.ng"
+        epg_id="WazobiaMaxTVNigeria.ng",
     ),
     ChannelData(
         name="Wazobia Max TV Port Harcourt",
@@ -146,6 +146,6 @@ channels = [
         logo="https://i.imgur.com/sEnLR0B.jpeg",
         group="Nigeria",
         country_code="NG",
-        epg_id="WazobiaMaxTVPortHarcourt.ng"
+        epg_id="WazobiaMaxTVPortHarcourt.ng",
     ),
 ]

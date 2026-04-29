@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/HIwJ4lc.png",
         group="Armenia",
         country_code="AM",
-        epg_id="Armenia1.am"
+        epg_id="Armenia1.am",
     ),
     ChannelData(
         name="Kentron TV Ⓢ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/eCaxBFn.png",
         group="Armenia",
         country_code="AM",
-        epg_id="KentronTV.am"
+        epg_id="KentronTV.am",
     ),
     ChannelData(
         name="Armenia TV Ⓢ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/UnoI5uM.png",
         group="Armenia",
         country_code="AM",
-        epg_id="ArmeniaTV.am"
+        epg_id="ArmeniaTV.am",
     ),
     ChannelData(
         name="5TV Ⓢ",
@@ -34,6 +34,6 @@ channels = [
         logo="https://i.imgur.com/jOGZZDo.png",
         group="Armenia",
         country_code="AM",
-        epg_id="5TV.am"
+        epg_id="5TV.am",
     ),
 ]

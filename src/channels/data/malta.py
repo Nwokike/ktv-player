@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/Ym1L7No.png",
         group="Malta",
         country_code="MT",
-        epg_id="One.mt"
+        epg_id="One.mt",
     ),
     ChannelData(
         name="Smash TV",
@@ -18,6 +18,6 @@ channels = [
         logo="https://i.imgur.com/ZKF0fG3.png",
         group="Malta",
         country_code="MT",
-        epg_id="SmashTV.mt"
+        epg_id="SmashTV.mt",
     ),
 ]

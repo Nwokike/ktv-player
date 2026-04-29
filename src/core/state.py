@@ -1,5 +1,5 @@
 import flet as ft
-from dataclasses import dataclass, field
+
 
 @ft.observable
 class AppState:
@@ -11,13 +11,13 @@ class AppState:
     country_channels: dict[str, list[dict]] = {}
     favorites: list[str] = []
     current_view: str = "/"
-    
+
     # Onboarding & Legal
     user_country: str = ""
     has_accepted_terms: bool = False
     is_first_launch: bool = True
     theme_mode: ft.ThemeMode = ft.ThemeMode.SYSTEM
-    
+
     def __init__(self):
         self.history = []
         self.channels = []
@@ -31,6 +31,7 @@ class AppState:
         self.history.insert(0, url)
         if len(self.history) > 20:
             self.history = self.history[:20]
+
 
 # Single instance for the application
 state = AppState()

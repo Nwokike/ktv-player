@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/T7EWAe7.png",
         group="Slovakia",
         country_code="SK",
-        epg_id="Jednotka.sk"
+        epg_id="Jednotka.sk",
     ),
     ChannelData(
         name=":Dvojka",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/Ksi25UD.png",
         group="Slovakia",
         country_code="SK",
-        epg_id="Dvojka.sk"
+        epg_id="Dvojka.sk",
     ),
     ChannelData(
         name=":24",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/sdSsFU0.png",
         group="Slovakia",
         country_code="SK",
-        epg_id="24.sk"
+        epg_id="24.sk",
     ),
     ChannelData(
         name=":Šport",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/YzHipRF.png",
         group="Slovakia",
         country_code="SK",
-        epg_id="Sport.sk"
+        epg_id="Sport.sk",
     ),
     ChannelData(
         name=":O",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/Nf5gEDc.png",
         group="Slovakia",
         country_code="SK",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="STVR",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/Nf5gEDc.png",
         group="Slovakia",
         country_code="SK",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="NR SR",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/sPDiS5q.png",
         group="Slovakia",
         country_code="SK",
-        epg_id="TVNRSR.sk"
+        epg_id="TVNRSR.sk",
     ),
     ChannelData(
         name="JOJ",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/5BAWD0z.png",
         group="Slovakia",
         country_code="SK",
-        epg_id="TVJOJ.sk"
+        epg_id="TVJOJ.sk",
     ),
     ChannelData(
         name="JOJ Plus",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/fKPliTj.png",
         group="Slovakia",
         country_code="SK",
-        epg_id="JOJPlus.sk"
+        epg_id="JOJPlus.sk",
     ),
     ChannelData(
         name="WAU",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/wO5ifff.png",
         group="Slovakia",
         country_code="SK",
-        epg_id="JOJWAU.sk"
+        epg_id="JOJWAU.sk",
     ),
     ChannelData(
         name="JOJ 24",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/owEVXRE.png",
         group="Slovakia",
         country_code="SK",
-        epg_id="JOJ24.sk"
+        epg_id="JOJ24.sk",
     ),
     ChannelData(
         name="JOJ Šport",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/QWEY2a5.png",
         group="Slovakia",
         country_code="SK",
-        epg_id="JOJSport.sk"
+        epg_id="JOJSport.sk",
     ),
     ChannelData(
         name="Senzi",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/W82dwzf.png",
         group="Slovakia",
         country_code="SK",
-        epg_id="Senzi.sk"
+        epg_id="Senzi.sk",
     ),
     ChannelData(
         name="TA3 Ⓢ",
@@ -114,6 +114,6 @@ channels = [
         logo="https://i.imgur.com/kPFBxc9.png",
         group="Slovakia",
         country_code="SK",
-        epg_id="TA3.sk"
+        epg_id="TA3.sk",
     ),
 ]

@@ -10,7 +10,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/2/26/Panamericana_tv_2009.png",
         group="Peru",
         country_code="PE",
-        epg_id="PanamericanaTV.pe"
+        epg_id="PanamericanaTV.pe",
     ),
     ChannelData(
         name="ATV+ Noticias",
@@ -18,7 +18,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/f/f4/Atv_noticias_logo.png",
         group="Peru",
         country_code="PE",
-        epg_id="ATVPlus.pe"
+        epg_id="ATVPlus.pe",
     ),
     ChannelData(
         name="Karibeña TV",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.pinimg.com/280x280_RS/11/85/b6/1185b667fe3f80d7072359d7ce7ce52d.jpg",
         group="Peru",
         country_code="PE",
-        epg_id="Karibena.pe"
+        epg_id="Karibena.pe",
     ),
     ChannelData(
         name="Top Latino TV",
@@ -34,6 +34,6 @@ channels = [
         logo="https://static.mytuner.mobi/media/tvos_radios/fTmfsKeREm.png",
         group="Peru",
         country_code="PE",
-        epg_id="TopLatinoTV.pe"
+        epg_id="TopLatinoTV.pe",
     ),
 ]

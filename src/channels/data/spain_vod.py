@@ -10,7 +10,7 @@ channels = [
         logo="https://hqm.es/wp-content/uploads/arabic-hqm-logo.png",
         group="Spain VOD",
         country_code="",
-        epg_id="HQMArabic.es"
+        epg_id="HQMArabic.es",
     ),
     ChannelData(
         name="HQM Baladas",
@@ -18,7 +18,7 @@ channels = [
         logo="https://hqm.es/wp-content/uploads/baladas-hqm-logo.png",
         group="Spain VOD",
         country_code="",
-        epg_id="HQMBaladas.es"
+        epg_id="HQMBaladas.es",
     ),
     ChannelData(
         name="HQM Blues",
@@ -26,7 +26,7 @@ channels = [
         logo="https://hqm.es/wp-content/uploads/blues-hqm-logo.png",
         group="Spain VOD",
         country_code="",
-        epg_id="HQMBlues.es"
+        epg_id="HQMBlues.es",
     ),
     ChannelData(
         name="HQM Chill Out",
@@ -34,7 +34,7 @@ channels = [
         logo="https://hqm.es/wp-content/uploads/chill-out-hqm-logo.png",
         group="Spain VOD",
         country_code="",
-        epg_id="HQMChillOut.es"
+        epg_id="HQMChillOut.es",
     ),
     ChannelData(
         name="HQM Classic",
@@ -42,7 +42,7 @@ channels = [
         logo="https://hqm.es/wp-content/uploads/classic-hqm-logo.png",
         group="Spain VOD",
         country_code="",
-        epg_id="HQMClassic.es"
+        epg_id="HQMClassic.es",
     ),
     ChannelData(
         name="HQM Dance",
@@ -50,7 +50,7 @@ channels = [
         logo="https://hqm.es/wp-content/uploads/dance-hqm-logo.png",
         group="Spain VOD",
         country_code="",
-        epg_id="HQMDance.es"
+        epg_id="HQMDance.es",
     ),
     ChannelData(
         name="HQM Folk",
@@ -58,7 +58,7 @@ channels = [
         logo="https://hqm.es/wp-content/uploads/folk-hqm-logo.png",
         group="Spain VOD",
         country_code="",
-        epg_id="HQMFolk.es"
+        epg_id="HQMFolk.es",
     ),
     ChannelData(
         name="HQM Gym",
@@ -66,7 +66,7 @@ channels = [
         logo="https://hqm.es/wp-content/uploads/gym-hqm-logo.png",
         group="Spain VOD",
         country_code="",
-        epg_id="HQMGym.es"
+        epg_id="HQMGym.es",
     ),
     ChannelData(
         name="HQM Hip Hop",
@@ -74,7 +74,7 @@ channels = [
         logo="https://hqm.es/wp-content/uploads/hip-hop-hqm-logo.png",
         group="Spain VOD",
         country_code="",
-        epg_id="HQMHipHop.es"
+        epg_id="HQMHipHop.es",
     ),
     ChannelData(
         name="HQM Hits",
@@ -82,7 +82,7 @@ channels = [
         logo="https://hqm.es/wp-content/uploads/hits-hqm-logo.png",
         group="Spain VOD",
         country_code="",
-        epg_id="HQMHits.es"
+        epg_id="HQMHits.es",
     ),
     ChannelData(
         name="HQM Jazz",
@@ -90,7 +90,7 @@ channels = [
         logo="https://hqm.es/wp-content/uploads/jazz-hqm-logo.png",
         group="Spain VOD",
         country_code="",
-        epg_id="HQMJazz.es"
+        epg_id="HQMJazz.es",
     ),
     ChannelData(
         name="HQM Kids",
@@ -98,7 +98,7 @@ channels = [
         logo="https://hqm.es/wp-content/uploads/kids-hqm-logo.png",
         group="Spain VOD",
         country_code="",
-        epg_id="HQMKids.es"
+        epg_id="HQMKids.es",
     ),
     ChannelData(
         name="HQM Latin",
@@ -106,7 +106,7 @@ channels = [
         logo="https://hqm.es/wp-content/uploads/latin-hqm-logo.png",
         group="Spain VOD",
         country_code="",
-        epg_id="HQMLatin.es"
+        epg_id="HQMLatin.es",
     ),
     ChannelData(
         name="HQM Pop",
@@ -114,7 +114,7 @@ channels = [
         logo="https://hqm.es/wp-content/uploads/pop-hqm-logo.png",
         group="Spain VOD",
         country_code="",
-        epg_id="HQMPop.es"
+        epg_id="HQMPop.es",
     ),
     ChannelData(
         name="HQM Relax",
@@ -122,7 +122,7 @@ channels = [
         logo="https://hqm.es/wp-content/uploads/relax-hqm-logo.png",
         group="Spain VOD",
         country_code="",
-        epg_id="HQMRelax.es"
+        epg_id="HQMRelax.es",
     ),
     ChannelData(
         name="HQM Remember",
@@ -130,7 +130,7 @@ channels = [
         logo="https://hqm.es/wp-content/uploads/remember-hqm-logo.png",
         group="Spain VOD",
         country_code="",
-        epg_id="HQMRemember.es"
+        epg_id="HQMRemember.es",
     ),
     ChannelData(
         name="HQM Rock",
@@ -138,7 +138,7 @@ channels = [
         logo="https://hqm.es/wp-content/uploads/rock-hqm-logo.png",
         group="Spain VOD",
         country_code="",
-        epg_id="HQMRock.es"
+        epg_id="HQMRock.es",
     ),
     ChannelData(
         name="HQM Spanish",
@@ -146,6 +146,6 @@ channels = [
         logo="https://hqm.es/wp-content/uploads/spanish-hqm-logo.png",
         group="Spain VOD",
         country_code="",
-        epg_id="HQMSpanish.es"
+        epg_id="HQMSpanish.es",
     ),
 ]

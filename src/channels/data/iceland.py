@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/vxaSn1K.png",
         group="Iceland",
         country_code="IS",
-        epg_id="RUV.is"
+        epg_id="RUV.is",
     ),
     ChannelData(
         name="RÚV 2",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/yDKRuXQ.png",
         group="Iceland",
         country_code="IS",
-        epg_id="RUV2.is"
+        epg_id="RUV2.is",
     ),
     ChannelData(
         name="Alþingi",
@@ -26,6 +26,6 @@ channels = [
         logo="https://i.imgur.com/n170HMm.png",
         group="Iceland",
         country_code="IS",
-        epg_id="Althingi.is"
+        epg_id="Althingi.is",
     ),
 ]

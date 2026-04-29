@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/JHv0WxM.png",
         group="Documentaries (EN)",
         country_code="",
-        epg_id="CGTNDocumentary.cn"
+        epg_id="CGTNDocumentary.cn",
     ),
     ChannelData(
         name="RT Documentary English Ⓖ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/ZEi1Wgn.png",
         group="Documentaries (EN)",
         country_code="",
-        epg_id="RTDoc.ru"
+        epg_id="RTDoc.ru",
     ),
     ChannelData(
         name="Peer TV South Tyrol",
@@ -26,6 +26,6 @@ channels = [
         logo="https://www.peer.biz/peertv-iptv/peer-tv-south-tyrol.png",
         group="Documentaries (EN)",
         country_code="",
-        epg_id="PeerTV.it"
+        epg_id="PeerTV.it",
     ),
 ]

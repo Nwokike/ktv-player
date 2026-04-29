@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/neddXUd.png",
         group="Hungary",
         country_code="HU",
-        epg_id="M1.hu"
+        epg_id="M1.hu",
     ),
     ChannelData(
         name="RTL Klub",
@@ -18,7 +18,7 @@ channels = [
         logo="https://onlinestream.live/logos/6141.png",
         group="Hungary",
         country_code="HU",
-        epg_id="RTLKlub.hu"
+        epg_id="RTLKlub.hu",
     ),
     ChannelData(
         name="TV2",
@@ -26,7 +26,7 @@ channels = [
         logo="https://nlc.p3k.hu/uploads/2021/09/tv2-logo.jpg",
         group="Hungary",
         country_code="HU",
-        epg_id="TV2.hu"
+        epg_id="TV2.hu",
     ),
     ChannelData(
         name="ATV",
@@ -34,7 +34,7 @@ channels = [
         logo="https://onlinestream.live/logos/4739.png",
         group="Hungary",
         country_code="HU",
-        epg_id="ATV.hu"
+        epg_id="ATV.hu",
     ),
     ChannelData(
         name="Hír TV",
@@ -42,7 +42,7 @@ channels = [
         logo="https://onlinestream.live/logos/4740.png",
         group="Hungary",
         country_code="HU",
-        epg_id="HirTV.hu"
+        epg_id="HirTV.hu",
     ),
     ChannelData(
         name="Fix TV",
@@ -50,7 +50,7 @@ channels = [
         logo="https://onlinestream.live/logos/1833.png",
         group="Hungary",
         country_code="HU",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="EWTN TV",
@@ -58,7 +58,7 @@ channels = [
         logo="https://katolikus.tv/wp-content/themes/bonum/img/ewtn-badge.jpg",
         group="Hungary",
         country_code="HU",
-        epg_id="BonumTV.hu"
+        epg_id="BonumTV.hu",
     ),
     ChannelData(
         name="Apostol TV",
@@ -66,7 +66,7 @@ channels = [
         logo="https://www.apostoltv.hu/images/header-logo.png",
         group="Hungary",
         country_code="HU",
-        epg_id="ApostolTV.hu"
+        epg_id="ApostolTV.hu",
     ),
     ChannelData(
         name="MUSICPlus",
@@ -74,7 +74,7 @@ channels = [
         logo="",
         group="Hungary",
         country_code="HU",
-        epg_id="MUSICPlus.hu"
+        epg_id="MUSICPlus.hu",
     ),
     ChannelData(
         name="Radio 1 Ⓨ",
@@ -82,7 +82,7 @@ channels = [
         logo="",
         group="Hungary",
         country_code="HU",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Oxygen Music",
@@ -90,7 +90,7 @@ channels = [
         logo="",
         group="Hungary",
         country_code="HU",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Dance TV",
@@ -98,7 +98,7 @@ channels = [
         logo="",
         group="Hungary",
         country_code="HU",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Izaura TV",
@@ -106,7 +106,7 @@ channels = [
         logo="https://onlinestream.live/logos/6141.png",
         group="Hungary",
         country_code="HU",
-        epg_id="IzauraTV.hu"
+        epg_id="IzauraTV.hu",
     ),
     ChannelData(
         name="Euronews Hungarian Ⓨ",
@@ -114,7 +114,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Euronews_2022.svg/640px-Euronews_2022.svg.png",
         group="Hungary",
         country_code="HU",
-        epg_id="EuronewsHungarian.fr"
+        epg_id="EuronewsHungarian.fr",
     ),
     ChannelData(
         name="Parlamenti közvetítés",
@@ -122,7 +122,7 @@ channels = [
         logo="",
         group="Hungary",
         country_code="HU",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Parlamenti TAB közvetítés",
@@ -130,7 +130,7 @@ channels = [
         logo="",
         group="Hungary",
         country_code="HU",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Balaton TV",
@@ -138,7 +138,7 @@ channels = [
         logo="https://i.imgur.com/ip8L5Vt.jpg",
         group="Hungary",
         country_code="HU",
-        epg_id="BalatonTV.hu"
+        epg_id="BalatonTV.hu",
     ),
     ChannelData(
         name="Budakalász",
@@ -146,7 +146,7 @@ channels = [
         logo="https://i.imgur.com/MGkvVQg.png",
         group="Hungary",
         country_code="HU",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Hatoscsatorna",
@@ -154,7 +154,7 @@ channels = [
         logo="https://i.imgur.com/vraAfd7.png",
         group="Hungary",
         country_code="HU",
-        epg_id="Hatoscsatorna.hu"
+        epg_id="Hatoscsatorna.hu",
     ),
     ChannelData(
         name="Komlos TV",
@@ -162,7 +162,7 @@ channels = [
         logo="https://i.imgur.com/MDYb5yz.png",
         group="Hungary",
         country_code="HU",
-        epg_id="KomlosTV.hu"
+        epg_id="KomlosTV.hu",
     ),
     ChannelData(
         name="Ózdi Városi TV",
@@ -170,7 +170,7 @@ channels = [
         logo="https://i.imgur.com/5cOpdRp.jpg",
         group="Hungary",
         country_code="HU",
-        epg_id="OzdiVarosiTV.hu"
+        epg_id="OzdiVarosiTV.hu",
     ),
     ChannelData(
         name="Pannon RTV",
@@ -178,7 +178,7 @@ channels = [
         logo="https://i.imgur.com/iD5tCjX.png",
         group="Hungary",
         country_code="HU",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="TV7 Békéscsaba",
@@ -186,7 +186,7 @@ channels = [
         logo="https://i.imgur.com/G9Ib5K3.png",
         group="Hungary",
         country_code="HU",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="VTV Füzesabony",
@@ -194,7 +194,7 @@ channels = [
         logo="https://i.imgur.com/7ZPYJJ0.jpg",
         group="Hungary",
         country_code="HU",
-        epg_id="VTVFuzesabony.hu"
+        epg_id="VTVFuzesabony.hu",
     ),
     ChannelData(
         name="Hegyvidék TV",
@@ -202,7 +202,7 @@ channels = [
         logo="https://hegyvidektv.hu/wp-content/uploads/2020/08/hegyvidek.jpg",
         group="Hungary",
         country_code="HU",
-        epg_id="HegyvidekTV.hu"
+        epg_id="HegyvidekTV.hu",
     ),
     ChannelData(
         name="16TV",
@@ -210,7 +210,7 @@ channels = [
         logo="http://www.16tv.hu/images/xlogo-green.png.pagespeed.ic.79XBdS6JYn.png",
         group="Hungary",
         country_code="HU",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="CityTV (Belváros Lipótváros)",
@@ -218,7 +218,7 @@ channels = [
         logo="https://www.citytv.hu/images/logo.png",
         group="Hungary",
         country_code="HU",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="FehérvárTV",
@@ -226,7 +226,7 @@ channels = [
         logo="https://www.fehervartv.hu/css/img/icon-1-2.png",
         group="Hungary",
         country_code="HU",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="AlföldTV",
@@ -234,7 +234,7 @@ channels = [
         logo="http://www.dealood.com/content/uploads/images/March2019/5c9721a07ea87-images-large.png",
         group="Hungary",
         country_code="HU",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Gyöngyös TV",
@@ -242,7 +242,7 @@ channels = [
         logo="https://i.imgur.com/RHgaPCk.png",
         group="Hungary",
         country_code="HU",
-        epg_id="GyongyosiTV.hu"
+        epg_id="GyongyosiTV.hu",
     ),
     ChannelData(
         name="Halom TV",
@@ -250,7 +250,7 @@ channels = [
         logo="https://www.halomtv.hu/sites/all/themes/gfx_zen/logo.png",
         group="Hungary",
         country_code="HU",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Kapos TV",
@@ -258,7 +258,7 @@ channels = [
         logo="https://kapos.hu/static/keptar/13/b/9490.jpg",
         group="Hungary",
         country_code="HU",
-        epg_id="KaposTV.hu"
+        epg_id="KaposTV.hu",
     ),
     ChannelData(
         name="Kecskemét TV",
@@ -266,7 +266,7 @@ channels = [
         logo="https://kecskemetitv.hu/templates/kecskemetitv/img/ktv_logo.png",
         group="Hungary",
         country_code="HU",
-        epg_id="KecskemetiTV.hu"
+        epg_id="KecskemetiTV.hu",
     ),
     ChannelData(
         name="Lóverseny közvetítés",
@@ -274,7 +274,7 @@ channels = [
         logo="https://kincsempark.hu/wp-content/uploads/2016/11/fejlec_logo_f-1.png",
         group="Hungary",
         country_code="HU",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Zalaegerszeg TV",
@@ -282,7 +282,7 @@ channels = [
         logo="https://zegtv.hu/wp-content/themes/assembly/images/zegtv-logo.png",
         group="Hungary",
         country_code="HU",
-        epg_id="ZalaegerszegiTV.hu"
+        epg_id="ZalaegerszegiTV.hu",
     ),
     ChannelData(
         name="Zugló TV",
@@ -290,7 +290,7 @@ channels = [
         logo="http://zuglotv.hu/wp-content/themes/ztv/uploads/ztv_logo1.jpg",
         group="Hungary",
         country_code="HU",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tisza TV",
@@ -298,7 +298,7 @@ channels = [
         logo="https://www.tiszatv.hu/style/tiszatv_logo.png",
         group="Hungary",
         country_code="HU",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="DTV",
@@ -306,7 +306,7 @@ channels = [
         logo="https://i.imgur.com/YSpqmSO.png",
         group="Hungary",
         country_code="HU",
-        epg_id="DTV.hu"
+        epg_id="DTV.hu",
     ),
     ChannelData(
         name="Bajai TV",
@@ -314,7 +314,7 @@ channels = [
         logo="https://i.imgur.com/cyReGWh.png",
         group="Hungary",
         country_code="HU",
-        epg_id="BajaiTV.hu"
+        epg_id="BajaiTV.hu",
     ),
     ChannelData(
         name="Vásárhelyi Televízió",
@@ -322,7 +322,7 @@ channels = [
         logo="https://i.imgur.com/WOEqdmx.png",
         group="Hungary",
         country_code="HU",
-        epg_id="VasarhelyiTelevizio.hu"
+        epg_id="VasarhelyiTelevizio.hu",
     ),
     ChannelData(
         name="TV Eger",
@@ -330,7 +330,7 @@ channels = [
         logo="https://i.imgur.com/GUVW073.png",
         group="Hungary",
         country_code="HU",
-        epg_id="TVEger.hu"
+        epg_id="TVEger.hu",
     ),
     ChannelData(
         name="Putnok Városi TV",
@@ -338,7 +338,7 @@ channels = [
         logo="https://i.imgur.com/eKXPBFb.png",
         group="Hungary",
         country_code="HU",
-        epg_id="PVTV.hu"
+        epg_id="PVTV.hu",
     ),
     ChannelData(
         name="Miskolc TV",
@@ -346,7 +346,7 @@ channels = [
         logo="https://i.imgur.com/IoiNus2.png",
         group="Hungary",
         country_code="HU",
-        epg_id="MiskolcTV.hu"
+        epg_id="MiskolcTV.hu",
     ),
     ChannelData(
         name="Oroszlányi Városi Televízió",
@@ -354,7 +354,7 @@ channels = [
         logo="https://i.imgur.com/P0fxUH5.png",
         group="Hungary",
         country_code="HU",
-        epg_id="OroszlanyiVarosiTelevizio.hu"
+        epg_id="OroszlanyiVarosiTelevizio.hu",
     ),
     ChannelData(
         name="Berente TV",
@@ -362,7 +362,7 @@ channels = [
         logo="",
         group="Hungary",
         country_code="HU",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Budapest Európa TV",
@@ -370,7 +370,7 @@ channels = [
         logo="",
         group="Hungary",
         country_code="HU",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Héviz TV",
@@ -378,7 +378,7 @@ channels = [
         logo="",
         group="Hungary",
         country_code="HU",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Jászsági Térségi TV",
@@ -386,7 +386,7 @@ channels = [
         logo="",
         group="Hungary",
         country_code="HU",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Kanizsa TV",
@@ -394,7 +394,7 @@ channels = [
         logo="",
         group="Hungary",
         country_code="HU",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Líceum TV",
@@ -402,7 +402,7 @@ channels = [
         logo="",
         group="Hungary",
         country_code="HU",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="M2 / Petőfi TV",
@@ -410,7 +410,7 @@ channels = [
         logo="https://i.imgur.com/CzaDhmA.png",
         group="Hungary",
         country_code="HU",
-        epg_id="M2.hu"
+        epg_id="M2.hu",
     ),
     ChannelData(
         name="M4 Sport",
@@ -418,7 +418,7 @@ channels = [
         logo="https://nb1.hu/uploads/news/3/31023.jpg",
         group="Hungary",
         country_code="HU",
-        epg_id="M4Sport.hu"
+        epg_id="M4Sport.hu",
     ),
     ChannelData(
         name="M5 Hungary",
@@ -426,7 +426,7 @@ channels = [
         logo="https://i.imgur.com/qLQz2V6.png",
         group="Hungary",
         country_code="HU",
-        epg_id="M5.hu"
+        epg_id="M5.hu",
     ),
     ChannelData(
         name="Duna TV",
@@ -434,7 +434,7 @@ channels = [
         logo="https://i.imgur.com/b4RXacY.png",
         group="Hungary",
         country_code="HU",
-        epg_id="DunaTV.hu"
+        epg_id="DunaTV.hu",
     ),
     ChannelData(
         name="Duna World / M4+ Sport",
@@ -442,6 +442,6 @@ channels = [
         logo="https://i.imgur.com/DciAdFF.png",
         group="Hungary",
         country_code="HU",
-        epg_id="DunaWorld.hu"
+        epg_id="DunaWorld.hu",
     ),
 ]

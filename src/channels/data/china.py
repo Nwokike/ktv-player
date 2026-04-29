@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/uHU6Vc0.png",
         group="China",
         country_code="CN",
-        epg_id="CCTV1.cn"
+        epg_id="CCTV1.cn",
     ),
     ChannelData(
         name="CCTV-2 财经",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/6C9JEYt.png",
         group="China",
         country_code="CN",
-        epg_id="CCTV2.cn"
+        epg_id="CCTV2.cn",
     ),
     ChannelData(
         name="CCTV-4 中文国际（亚） Ⓨ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/ovUSVEQ.png",
         group="China",
         country_code="CN",
-        epg_id="CCTV4Asia.cn"
+        epg_id="CCTV4Asia.cn",
     ),
     ChannelData(
         name="CCTV-4 中文国际（美） Ⓢ",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/1TPiRqR.png",
         group="China",
         country_code="CN",
-        epg_id="CCTV4America.cn"
+        epg_id="CCTV4America.cn",
     ),
     ChannelData(
         name="CCTV-5 体育",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/Mut2omN.png",
         group="China",
         country_code="CN",
-        epg_id="CCTV5.cn"
+        epg_id="CCTV5.cn",
     ),
     ChannelData(
         name="CCTV-5+ 体育赛事",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/UNjmQVS.png",
         group="China",
         country_code="CN",
-        epg_id="CCTV5Plus.cn"
+        epg_id="CCTV5Plus.cn",
     ),
     ChannelData(
         name="CCTV-7 国防军事",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/GhXlUpM.png",
         group="China",
         country_code="CN",
-        epg_id="CCTV7.cn"
+        epg_id="CCTV7.cn",
     ),
     ChannelData(
         name="CCTV-8 电视剧",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/Qg1opg9.png",
         group="China",
         country_code="CN",
-        epg_id="CCTV8.cn"
+        epg_id="CCTV8.cn",
     ),
     ChannelData(
         name="CCTV-9 纪录",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/Ruyzhu5.png",
         group="China",
         country_code="CN",
-        epg_id="CCTV9.cn"
+        epg_id="CCTV9.cn",
     ),
     ChannelData(
         name="CCTV-10 科教",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/W8JNs1s.png",
         group="China",
         country_code="CN",
-        epg_id="CCTV10.cn"
+        epg_id="CCTV10.cn",
     ),
     ChannelData(
         name="CCTV-13 新闻",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/pPO8uJN.png",
         group="China",
         country_code="CN",
-        epg_id="CCTV13.cn"
+        epg_id="CCTV13.cn",
     ),
     ChannelData(
         name="CCTV-17 农业农村",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/XMsoHut.png",
         group="China",
         country_code="CN",
-        epg_id="CCTV17.cn"
+        epg_id="CCTV17.cn",
     ),
     ChannelData(
         name="CETV-1",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/AMcIAOV.png",
         group="China",
         country_code="CN",
-        epg_id="CETV1.cn"
+        epg_id="CETV1.cn",
     ),
     ChannelData(
         name="CETV-2",
@@ -114,7 +114,7 @@ channels = [
         logo="https://i.imgur.com/a9mvoeP.png",
         group="China",
         country_code="CN",
-        epg_id="CETV2.cn"
+        epg_id="CETV2.cn",
     ),
     ChannelData(
         name="CETV-3",
@@ -122,7 +122,7 @@ channels = [
         logo="https://i.imgur.com/t8o5ZKt.png",
         group="China",
         country_code="CN",
-        epg_id="CETV3.cn"
+        epg_id="CETV3.cn",
     ),
     ChannelData(
         name="CETV-4",
@@ -130,7 +130,7 @@ channels = [
         logo="https://i.imgur.com/BRe0ybV.png",
         group="China",
         country_code="CN",
-        epg_id="CETV4.cn"
+        epg_id="CETV4.cn",
     ),
     ChannelData(
         name="TV BRICS Chinese",
@@ -138,6 +138,6 @@ channels = [
         logo="https://i.imgur.com/896132Z.png",
         group="China",
         country_code="CN",
-        epg_id="TVBRICSChinese.cn"
+        epg_id="TVBRICSChinese.cn",
     ),
 ]

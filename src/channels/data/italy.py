@@ -10,7 +10,7 @@ channels = [
         logo="https://i.imgur.com/CAx7yRm.png",
         group="Italy",
         country_code="IT",
-        epg_id="Rai1.it"
+        epg_id="Rai1.it",
     ),
     ChannelData(
         name="Rai 2 Ⓖ",
@@ -18,7 +18,7 @@ channels = [
         logo="https://i.imgur.com/zA0PTcs.png",
         group="Italy",
         country_code="IT",
-        epg_id="Rai2.it"
+        epg_id="Rai2.it",
     ),
     ChannelData(
         name="Rai 3 Ⓖ",
@@ -26,7 +26,7 @@ channels = [
         logo="https://i.imgur.com/9kuQCIi.png",
         group="Italy",
         country_code="IT",
-        epg_id="Rai3.it"
+        epg_id="Rai3.it",
     ),
     ChannelData(
         name="Rete 4 Ⓖ",
@@ -34,7 +34,7 @@ channels = [
         logo="https://i.imgur.com/GWx2Fkl.png",
         group="Italy",
         country_code="IT",
-        epg_id="Rete4.it"
+        epg_id="Rete4.it",
     ),
     ChannelData(
         name="Canale 5 Ⓖ",
@@ -42,7 +42,7 @@ channels = [
         logo="https://i.imgur.com/p6YdiR1.png",
         group="Italy",
         country_code="IT",
-        epg_id="Canale5.it"
+        epg_id="Canale5.it",
     ),
     ChannelData(
         name="Italia 1 Ⓖ",
@@ -50,7 +50,7 @@ channels = [
         logo="https://i.imgur.com/oCiOxBG.png",
         group="Italy",
         country_code="IT",
-        epg_id="Italia1.it"
+        epg_id="Italia1.it",
     ),
     ChannelData(
         name="La7",
@@ -58,7 +58,7 @@ channels = [
         logo="https://i.imgur.com/F90mpSa.png",
         group="Italy",
         country_code="IT",
-        epg_id="La7.it"
+        epg_id="La7.it",
     ),
     ChannelData(
         name="TV8 Ⓖ",
@@ -66,7 +66,7 @@ channels = [
         logo="https://i.imgur.com/xvoHVOU.png",
         group="Italy",
         country_code="IT",
-        epg_id="TV8.it"
+        epg_id="TV8.it",
     ),
     ChannelData(
         name="Nove",
@@ -74,7 +74,7 @@ channels = [
         logo="https://i.imgur.com/Hp723RU.png",
         group="Italy",
         country_code="IT",
-        epg_id="Nove.it"
+        epg_id="Nove.it",
     ),
     ChannelData(
         name="20 Mediaset Ⓖ",
@@ -82,7 +82,7 @@ channels = [
         logo="https://i.imgur.com/It13jwX.png",
         group="Italy",
         country_code="IT",
-        epg_id="20.it"
+        epg_id="20.it",
     ),
     ChannelData(
         name="Rai 4 Ⓖ",
@@ -90,7 +90,7 @@ channels = [
         logo="https://i.imgur.com/XFkZRfv.png",
         group="Italy",
         country_code="IT",
-        epg_id="Rai4.it"
+        epg_id="Rai4.it",
     ),
     ChannelData(
         name="Iris Ⓖ",
@@ -98,7 +98,7 @@ channels = [
         logo="https://i.imgur.com/Ixz1BY3.png",
         group="Italy",
         country_code="IT",
-        epg_id="Iris.it"
+        epg_id="Iris.it",
     ),
     ChannelData(
         name="Rai 5 Ⓖ",
@@ -106,7 +106,7 @@ channels = [
         logo="https://i.imgur.com/Leu2zTO.png",
         group="Italy",
         country_code="IT",
-        epg_id="Rai5.it"
+        epg_id="Rai5.it",
     ),
     ChannelData(
         name="Rai Movie Ⓖ",
@@ -114,7 +114,7 @@ channels = [
         logo="https://i.imgur.com/RKpO8CE.png",
         group="Italy",
         country_code="IT",
-        epg_id="RaiMovie.it"
+        epg_id="RaiMovie.it",
     ),
     ChannelData(
         name="Rai Premium Ⓖ",
@@ -122,7 +122,7 @@ channels = [
         logo="https://i.imgur.com/RKI4nFy.png",
         group="Italy",
         country_code="IT",
-        epg_id="RaiPremium.it"
+        epg_id="RaiPremium.it",
     ),
     ChannelData(
         name="Cielo Ⓖ",
@@ -130,7 +130,7 @@ channels = [
         logo="https://i.imgur.com/cPluF03.png",
         group="Italy",
         country_code="IT",
-        epg_id="CieloTV.it"
+        epg_id="CieloTV.it",
     ),
     ChannelData(
         name="27 Twentyseven Ⓖ",
@@ -138,7 +138,7 @@ channels = [
         logo="https://i.imgur.com/y2PdPCK.png",
         group="Italy",
         country_code="IT",
-        epg_id="27Twentyseven.it"
+        epg_id="27Twentyseven.it",
     ),
     ChannelData(
         name="TV 2000",
@@ -146,7 +146,7 @@ channels = [
         logo="https://i.imgur.com/x7RaK3a.png",
         group="Italy",
         country_code="IT",
-        epg_id="TV2000.va"
+        epg_id="TV2000.va",
     ),
     ChannelData(
         name="La7 Cinema",
@@ -154,7 +154,7 @@ channels = [
         logo="https://i.imgur.com/khPweok.png",
         group="Italy",
         country_code="IT",
-        epg_id="La7Cinema.it"
+        epg_id="La7Cinema.it",
     ),
     ChannelData(
         name="La 5 Ⓖ",
@@ -162,7 +162,7 @@ channels = [
         logo="https://i.imgur.com/UNyJaho.png",
         group="Italy",
         country_code="IT",
-        epg_id="La5.it"
+        epg_id="La5.it",
     ),
     ChannelData(
         name="Real Time",
@@ -170,7 +170,7 @@ channels = [
         logo="https://i.imgur.com/9dcTYg1.png",
         group="Italy",
         country_code="IT",
-        epg_id="RealTimeItaly.it"
+        epg_id="RealTimeItaly.it",
     ),
     ChannelData(
         name="QVC",
@@ -178,7 +178,7 @@ channels = [
         logo="https://i.imgur.com/Ea7iUX2.png",
         group="Italy",
         country_code="IT",
-        epg_id="QVCItaly.it"
+        epg_id="QVCItaly.it",
     ),
     ChannelData(
         name="Food Network",
@@ -186,7 +186,7 @@ channels = [
         logo="https://i.imgur.com/i60OYr9.png",
         group="Italy",
         country_code="IT",
-        epg_id="FoodNetworkItaly.it"
+        epg_id="FoodNetworkItaly.it",
     ),
     ChannelData(
         name="Cine34   Ⓖ",
@@ -194,7 +194,7 @@ channels = [
         logo="https://i.imgur.com/YyldwhI.png",
         group="Italy",
         country_code="IT",
-        epg_id="Cine34.it"
+        epg_id="Cine34.it",
     ),
     ChannelData(
         name="Focus Ⓖ",
@@ -202,7 +202,7 @@ channels = [
         logo="https://i.imgur.com/M4smqpF.png",
         group="Italy",
         country_code="IT",
-        epg_id="Focus.it"
+        epg_id="Focus.it",
     ),
     ChannelData(
         name="RTL 102.5",
@@ -210,7 +210,7 @@ channels = [
         logo="https://i.imgur.com/KdissvS.png",
         group="Italy",
         country_code="IT",
-        epg_id="RTL1025TV.it"
+        epg_id="RTL1025TV.it",
     ),
     ChannelData(
         name="Discovery Channel",
@@ -218,7 +218,7 @@ channels = [
         logo="https://i.imgur.com/5IxIFJ0.png",
         group="Italy",
         country_code="IT",
-        epg_id="DiscoveryChannel.it"
+        epg_id="DiscoveryChannel.it",
     ),
     ChannelData(
         name="Giallo",
@@ -226,7 +226,7 @@ channels = [
         logo="https://i.imgur.com/0PIRwZS.png",
         group="Italy",
         country_code="IT",
-        epg_id="Giallo.it"
+        epg_id="Giallo.it",
     ),
     ChannelData(
         name="Top Crime   Ⓖ",
@@ -234,7 +234,7 @@ channels = [
         logo="https://i.imgur.com/RFIwv9O.png",
         group="Italy",
         country_code="IT",
-        epg_id="TopCrime.it"
+        epg_id="TopCrime.it",
     ),
     ChannelData(
         name="BOING   Ⓖ",
@@ -242,7 +242,7 @@ channels = [
         logo="https://i.imgur.com/niSlrqT.png",
         group="Italy",
         country_code="IT",
-        epg_id="BoingItaly.it"
+        epg_id="BoingItaly.it",
     ),
     ChannelData(
         name="K2",
@@ -250,7 +250,7 @@ channels = [
         logo="https://i.imgur.com/wlLgSiA.png",
         group="Italy",
         country_code="IT",
-        epg_id="K2.it"
+        epg_id="K2.it",
     ),
     ChannelData(
         name="Rai Gulp Ⓖ",
@@ -258,7 +258,7 @@ channels = [
         logo="https://i.imgur.com/lu1DPVb.png",
         group="Italy",
         country_code="IT",
-        epg_id="RaiGulp.it"
+        epg_id="RaiGulp.it",
     ),
     ChannelData(
         name="Rai YoYo Ⓖ",
@@ -266,7 +266,7 @@ channels = [
         logo="https://i.imgur.com/DRSa3ys.png",
         group="Italy",
         country_code="IT",
-        epg_id="RaiYoyo.it"
+        epg_id="RaiYoyo.it",
     ),
     ChannelData(
         name="Frisbee",
@@ -274,7 +274,7 @@ channels = [
         logo="https://i.imgur.com/9y1zIAe.png",
         group="Italy",
         country_code="IT",
-        epg_id="Frisbee.it"
+        epg_id="Frisbee.it",
     ),
     ChannelData(
         name="Cartoonito Ⓖ",
@@ -282,7 +282,7 @@ channels = [
         logo="https://i.imgur.com/oK2DcDJ.png",
         group="Italy",
         country_code="IT",
-        epg_id="CartoonitoItaly.it"
+        epg_id="CartoonitoItaly.it",
     ),
     ChannelData(
         name="Super!",
@@ -290,7 +290,7 @@ channels = [
         logo="https://i.imgur.com/1124YEp.png",
         group="Italy",
         country_code="IT",
-        epg_id="Super.it"
+        epg_id="Super.it",
     ),
     ChannelData(
         name="Rai News 24 Ⓖ",
@@ -298,7 +298,7 @@ channels = [
         logo="https://i.imgur.com/gdzGwB6.png",
         group="Italy",
         country_code="IT",
-        epg_id="RaiNews24.it"
+        epg_id="RaiNews24.it",
     ),
     ChannelData(
         name="Italia 2 Ⓖ",
@@ -306,7 +306,7 @@ channels = [
         logo="https://i.imgur.com/nq48sjO.png",
         group="Italy",
         country_code="IT",
-        epg_id="Italia2.it"
+        epg_id="Italia2.it",
     ),
     ChannelData(
         name="Sky TG24 Ⓖ",
@@ -314,7 +314,7 @@ channels = [
         logo="https://i.imgur.com/q4d3Dah.png",
         group="Italy",
         country_code="IT",
-        epg_id="SkyTG24.it"
+        epg_id="SkyTG24.it",
     ),
     ChannelData(
         name="TGCOM 24 Ⓖ",
@@ -322,7 +322,7 @@ channels = [
         logo="https://i.imgur.com/xautVD8.png",
         group="Italy",
         country_code="IT",
-        epg_id="TGCom24.it"
+        epg_id="TGCom24.it",
     ),
     ChannelData(
         name="DMAX",
@@ -330,7 +330,7 @@ channels = [
         logo="https://i.imgur.com/dmEmRX7.png",
         group="Italy",
         country_code="IT",
-        epg_id="DMAXItaly.it"
+        epg_id="DMAXItaly.it",
     ),
     ChannelData(
         name="Rai Storia Ⓖ",
@@ -338,7 +338,7 @@ channels = [
         logo="https://i.imgur.com/K8y5q8x.png",
         group="Italy",
         country_code="IT",
-        epg_id="RaiStoria.it"
+        epg_id="RaiStoria.it",
     ),
     ChannelData(
         name="Mediaset Extra Ⓖ",
@@ -346,7 +346,7 @@ channels = [
         logo="https://i.imgur.com/mM8lopo.png",
         group="Italy",
         country_code="IT",
-        epg_id="MediasetExtra.it"
+        epg_id="MediasetExtra.it",
     ),
     ChannelData(
         name="HGTV – Home & Garden Tv",
@@ -354,7 +354,7 @@ channels = [
         logo="https://i.imgur.com/emLNC0U.png",
         group="Italy",
         country_code="IT",
-        epg_id="HGTVItaly.it"
+        epg_id="HGTVItaly.it",
     ),
     ChannelData(
         name="Rai Scuola Ⓖ",
@@ -362,7 +362,7 @@ channels = [
         logo="https://i.imgur.com/tmtJW6s.png",
         group="Italy",
         country_code="IT",
-        epg_id="RaiScuola.it"
+        epg_id="RaiScuola.it",
     ),
     ChannelData(
         name="Rai Sport Ⓖ",
@@ -370,7 +370,7 @@ channels = [
         logo="https://i.imgur.com/xsGljsb.png",
         group="Italy",
         country_code="IT",
-        epg_id="RaiSport.it"
+        epg_id="RaiSport.it",
     ),
     ChannelData(
         name="Motor Trend",
@@ -378,7 +378,7 @@ channels = [
         logo="https://i.imgur.com/ipj2H0n.png",
         group="Italy",
         country_code="IT",
-        epg_id="MotorTrend.it"
+        epg_id="MotorTrend.it",
     ),
     ChannelData(
         name="Sportitalia Plus",
@@ -386,7 +386,7 @@ channels = [
         logo="https://i.imgur.com/hu56Ya5.png",
         group="Italy",
         country_code="IT",
-        epg_id="Sportitalia.it"
+        epg_id="Sportitalia.it",
     ),
     ChannelData(
         name="Travel TV",
@@ -394,7 +394,7 @@ channels = [
         logo="https://i.imgur.com/aXAUyLN.png",
         group="Italy",
         country_code="IT",
-        epg_id="TravelTV.it"
+        epg_id="TravelTV.it",
     ),
     ChannelData(
         name="Donna TV Ⓢ",
@@ -402,7 +402,7 @@ channels = [
         logo="https://i.imgur.com/Aa1Abme.png",
         group="Italy",
         country_code="IT",
-        epg_id="DonnaTV.it"
+        epg_id="DonnaTV.it",
     ),
     ChannelData(
         name="SuperTennis",
@@ -410,7 +410,7 @@ channels = [
         logo="https://i.imgur.com/GzsPlbX.png",
         group="Italy",
         country_code="IT",
-        epg_id="SuperTennis.it"
+        epg_id="SuperTennis.it",
     ),
     ChannelData(
         name="Alma TV",
@@ -418,7 +418,7 @@ channels = [
         logo="https://i.imgur.com/Y8JiDwN.png",
         group="Italy",
         country_code="IT",
-        epg_id="AlmaTV.it"
+        epg_id="AlmaTV.it",
     ),
     ChannelData(
         name="Radio 105 TV Ⓖ",
@@ -426,7 +426,7 @@ channels = [
         logo="https://i.imgur.com/3NiLKvj.png",
         group="Italy",
         country_code="IT",
-        epg_id="Radio105TV.it"
+        epg_id="Radio105TV.it",
     ),
     ChannelData(
         name="R101 TV Ⓖ",
@@ -434,7 +434,7 @@ channels = [
         logo="https://i.imgur.com/mWeEa9T.png",
         group="Italy",
         country_code="IT",
-        epg_id="R101TV.it"
+        epg_id="R101TV.it",
     ),
     ChannelData(
         name="Deejay TV",
@@ -442,7 +442,7 @@ channels = [
         logo="https://i.imgur.com/rlaKH6k.png",
         group="Italy",
         country_code="IT",
-        epg_id="DeejayTV.it"
+        epg_id="DeejayTV.it",
     ),
     ChannelData(
         name="RadioItaliaTV",
@@ -450,7 +450,7 @@ channels = [
         logo="https://i.imgur.com/4VCEJuJ.png",
         group="Italy",
         country_code="IT",
-        epg_id="RadioItaliaTV.it"
+        epg_id="RadioItaliaTV.it",
     ),
     ChannelData(
         name="Radio KISS KISS TV",
@@ -458,7 +458,7 @@ channels = [
         logo="https://i.imgur.com/UTStxDW.png",
         group="Italy",
         country_code="IT",
-        epg_id="KissKissTV.it"
+        epg_id="KissKissTV.it",
     ),
     ChannelData(
         name="Rai Radio 2 Visual Radio",
@@ -466,7 +466,7 @@ channels = [
         logo="https://i.imgur.com/nVBet0h.png",
         group="Italy",
         country_code="IT",
-        epg_id="RaiRadio2Visual.it"
+        epg_id="RaiRadio2Visual.it",
     ),
     ChannelData(
         name="RTL 102.5 Traffic",
@@ -474,7 +474,7 @@ channels = [
         logo="https://i.imgur.com/GH7byqm.jpeg",
         group="Italy",
         country_code="IT",
-        epg_id="RTL1025Traffic.it"
+        epg_id="RTL1025Traffic.it",
     ),
     ChannelData(
         name="MAN-GA",
@@ -482,7 +482,7 @@ channels = [
         logo="https://i.imgur.com/8a6WYU2.png",
         group="Italy",
         country_code="IT",
-        epg_id="Manga.it"
+        epg_id="Manga.it",
     ),
     ChannelData(
         name="Radio24-IlSole24OreTV",
@@ -490,7 +490,7 @@ channels = [
         logo="https://i.imgur.com/NTqrdWW.png",
         group="Italy",
         country_code="IT",
-        epg_id="Radio24TV.it"
+        epg_id="Radio24TV.it",
     ),
     ChannelData(
         name="BeJoy.Kids",
@@ -498,7 +498,7 @@ channels = [
         logo="https://i.imgur.com/zuR9Go5.png",
         group="Italy",
         country_code="IT",
-        epg_id="BeJoyKids.it"
+        epg_id="BeJoyKids.it",
     ),
     ChannelData(
         name="Gambero Rosso",
@@ -506,7 +506,7 @@ channels = [
         logo="https://i.imgur.com/RApMW5x.png",
         group="Italy",
         country_code="IT",
-        epg_id="GamberoRosso.it"
+        epg_id="GamberoRosso.it",
     ),
     ChannelData(
         name="RadioFreccia",
@@ -514,7 +514,7 @@ channels = [
         logo="https://i.imgur.com/J5N9F7Z.png",
         group="Italy",
         country_code="IT",
-        epg_id="RadioFrecciaTV.it"
+        epg_id="RadioFrecciaTV.it",
     ),
     ChannelData(
         name="RDS Social TV",
@@ -522,7 +522,7 @@ channels = [
         logo="https://i.imgur.com/TY6FhqI.png",
         group="Italy",
         country_code="IT",
-        epg_id="RDSSocialTV.it"
+        epg_id="RDSSocialTV.it",
     ),
     ChannelData(
         name="Radio ZETA",
@@ -530,7 +530,7 @@ channels = [
         logo="https://i.imgur.com/0MgCm1n.png",
         group="Italy",
         country_code="IT",
-        epg_id="RadioZetaTV.it"
+        epg_id="RadioZetaTV.it",
     ),
     ChannelData(
         name="Radio TV Serie A con RDS",
@@ -538,7 +538,7 @@ channels = [
         logo="https://i.imgur.com/NzDeCIx.png",
         group="Italy",
         country_code="IT",
-        epg_id="RadioTVSerieA.it"
+        epg_id="RadioTVSerieA.it",
     ),
     ChannelData(
         name="Sportitalia SOLOCALCIO",
@@ -546,7 +546,7 @@ channels = [
         logo="https://i.imgur.com/hu56Ya5.png",
         group="Italy",
         country_code="IT",
-        epg_id="SportitaliaSolocalcio.it"
+        epg_id="SportitaliaSolocalcio.it",
     ),
     ChannelData(
         name="BIKE Channel",
@@ -554,7 +554,7 @@ channels = [
         logo="https://i.imgur.com/4IzVSQI.png",
         group="Italy",
         country_code="IT",
-        epg_id="Bike.it"
+        epg_id="Bike.it",
     ),
     ChannelData(
         name="Radio Montecarlo TV Ⓖ",
@@ -562,7 +562,7 @@ channels = [
         logo="https://i.imgur.com/3TMMXmS.png",
         group="Italy",
         country_code="IT",
-        epg_id="RadioMonteCarloTV.it"
+        epg_id="RadioMonteCarloTV.it",
     ),
     ChannelData(
         name="Virgin Radio TV Ⓖ",
@@ -570,7 +570,7 @@ channels = [
         logo="https://i.imgur.com/7Im3HI1.png",
         group="Italy",
         country_code="IT",
-        epg_id="VirginRadioTV.it"
+        epg_id="VirginRadioTV.it",
     ),
     ChannelData(
         name="Senato TV",
@@ -578,7 +578,7 @@ channels = [
         logo="https://i.imgur.com/FoQoNZW.png",
         group="Italy",
         country_code="IT",
-        epg_id="SenatoTV.it"
+        epg_id="SenatoTV.it",
     ),
     ChannelData(
         name="Camera dei Deputati Ⓢ",
@@ -586,7 +586,7 @@ channels = [
         logo="https://i.imgur.com/fqGn1k9.png",
         group="Italy",
         country_code="IT",
-        epg_id="CameradeiDeputati.it"
+        epg_id="CameradeiDeputati.it",
     ),
     ChannelData(
         name="Rai 4K Ⓖ",
@@ -594,7 +594,7 @@ channels = [
         logo="https://i.imgur.com/5gkt9DD.png",
         group="Italy",
         country_code="IT",
-        epg_id="Rai4K.it"
+        epg_id="Rai4K.it",
     ),
     ChannelData(
         name="UniNettuno University TV Ⓖ",
@@ -602,7 +602,7 @@ channels = [
         logo="https://i.imgur.com/BOGMeio.png",
         group="Italy",
         country_code="IT",
-        epg_id="UniNettunoUniversityTV.it"
+        epg_id="UniNettunoUniversityTV.it",
     ),
     ChannelData(
         name="111 Tv",
@@ -610,7 +610,7 @@ channels = [
         logo="https://i.imgur.com/4jY8yAI.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="12 Tv Parma",
@@ -618,7 +618,7 @@ channels = [
         logo="https://i.imgur.com/xnUgx6b.png",
         group="Italy",
         country_code="IT",
-        epg_id="12TVParma.it"
+        epg_id="12TVParma.it",
     ),
     ChannelData(
         name="4 You Tv",
@@ -626,7 +626,7 @@ channels = [
         logo="https://i.imgur.com/NN0cSbz.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Abc Tv",
@@ -634,7 +634,7 @@ channels = [
         logo="https://i.imgur.com/nVmIeTD.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="AB Channel",
@@ -642,7 +642,7 @@ channels = [
         logo="https://i.imgur.com/k8EPLB9.png",
         group="Italy",
         country_code="IT",
-        epg_id="ABChannel.it"
+        epg_id="ABChannel.it",
     ),
     ChannelData(
         name="Alpauno",
@@ -650,7 +650,7 @@ channels = [
         logo="https://i.imgur.com/4QKFtUa.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Alto Adige Tv",
@@ -658,7 +658,7 @@ channels = [
         logo="https://i.imgur.com/S2sCFQi.png",
         group="Italy",
         country_code="IT",
-        epg_id="AltoAdigeTV.it"
+        epg_id="AltoAdigeTV.it",
     ),
     ChannelData(
         name="Antenna 2 Bergamo",
@@ -666,7 +666,7 @@ channels = [
         logo="https://i.imgur.com/NfvHIAw.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Antenna 3 Massa",
@@ -674,7 +674,7 @@ channels = [
         logo="https://i.imgur.com/CHDU86j.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Antenna 3 Veneto Nord Est",
@@ -682,7 +682,7 @@ channels = [
         logo="https://i.imgur.com/NiVHLwp.png",
         group="Italy",
         country_code="IT",
-        epg_id="AntennaTreNordest.it"
+        epg_id="AntennaTreNordest.it",
     ),
     ChannelData(
         name="Antenna Sud",
@@ -690,7 +690,7 @@ channels = [
         logo="https://i.imgur.com/b8y6ImZ.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Antenna Sud Extra",
@@ -698,7 +698,7 @@ channels = [
         logo="https://i.imgur.com/6tBv8VD.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Aristanis SuperTv",
@@ -706,7 +706,7 @@ channels = [
         logo="https://i.imgur.com/v8PlAJO.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Arte Network Orler",
@@ -714,7 +714,7 @@ channels = [
         logo="https://i.imgur.com/DP5y0Er.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Aurora Arte",
@@ -722,7 +722,7 @@ channels = [
         logo="https://i.imgur.com/BoLZ5wG.png",
         group="Italy",
         country_code="IT",
-        epg_id="AuroraArte.it"
+        epg_id="AuroraArte.it",
     ),
     ChannelData(
         name="Azzurra Tv Vco",
@@ -730,7 +730,7 @@ channels = [
         logo="https://i.imgur.com/mSWw8uW.png",
         group="Italy",
         country_code="IT",
-        epg_id="AzzurraTV.it"
+        epg_id="AzzurraTV.it",
     ),
     ChannelData(
         name="Basilicata 1 Tv",
@@ -738,7 +738,7 @@ channels = [
         logo="https://i.imgur.com/VS6CQ88.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Bergamo Tv",
@@ -746,7 +746,7 @@ channels = [
         logo="https://i.imgur.com/1doR6Vl.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="BOM Channel",
@@ -754,7 +754,7 @@ channels = [
         logo="https://i.imgur.com/hISoOK3.png",
         group="Italy",
         country_code="IT",
-        epg_id="BomChannel.it"
+        epg_id="BomChannel.it",
     ),
     ChannelData(
         name="ByoBlu",
@@ -762,7 +762,7 @@ channels = [
         logo="https://i.imgur.com/1xaHGtU.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Cafe Tv 24",
@@ -770,7 +770,7 @@ channels = [
         logo="https://i.imgur.com/KbcbxFw.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Calabria Uno Tv",
@@ -778,7 +778,7 @@ channels = [
         logo="https://i.imgur.com/2TK1GQ5.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Calabria tv",
@@ -786,7 +786,7 @@ channels = [
         logo="https://i.imgur.com/qWirucd.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Canale 10",
@@ -794,7 +794,7 @@ channels = [
         logo="https://i.imgur.com/KuQcjYV.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Canale 2",
@@ -802,7 +802,7 @@ channels = [
         logo="https://i.imgur.com/ETqDkS1.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Canale 21",
@@ -810,7 +810,7 @@ channels = [
         logo="https://i.imgur.com/mU6Cq89.png",
         group="Italy",
         country_code="IT",
-        epg_id="Canale21.it"
+        epg_id="Canale21.it",
     ),
     ChannelData(
         name="Canale 21 Extra",
@@ -818,7 +818,7 @@ channels = [
         logo="https://i.imgur.com/cDAsrBl.png",
         group="Italy",
         country_code="IT",
-        epg_id="Canale21Extra.it"
+        epg_id="Canale21Extra.it",
     ),
     ChannelData(
         name="Canale 7",
@@ -826,7 +826,7 @@ channels = [
         logo="https://i.imgur.com/9cuOLCn.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Canale 74 Sicilia",
@@ -834,7 +834,7 @@ channels = [
         logo="https://i.imgur.com/18JIVgu.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Canale 8 Campania",
@@ -842,7 +842,7 @@ channels = [
         logo="https://i.imgur.com/ElAS2WC.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Canale Italia",
@@ -850,7 +850,7 @@ channels = [
         logo="https://i.imgur.com/QlwLRyh.png",
         group="Italy",
         country_code="IT",
-        epg_id="CanaleItalia.it"
+        epg_id="CanaleItalia.it",
     ),
     ChannelData(
         name="Carina Tv",
@@ -858,7 +858,7 @@ channels = [
         logo="https://i.imgur.com/FMGcm6I.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Casa Italia 53",
@@ -866,7 +866,7 @@ channels = [
         logo="https://i.imgur.com/O4GQVCk.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Casa Sanremo Tv",
@@ -874,7 +874,7 @@ channels = [
         logo="https://i.imgur.com/WL3SFTs.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Castrovillari Tv",
@@ -882,7 +882,7 @@ channels = [
         logo="https://i.imgur.com/V0kjYNG.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Cittaceleste Tv",
@@ -890,7 +890,7 @@ channels = [
         logo="https://i.imgur.com/9RVriNK.jpeg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Company Tv",
@@ -898,7 +898,7 @@ channels = [
         logo="https://i.imgur.com/IbabUDd.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Cremona 1",
@@ -906,7 +906,7 @@ channels = [
         logo="https://i.imgur.com/a5d0F01.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Cusano Italia Tv",
@@ -914,7 +914,7 @@ channels = [
         logo="https://i.imgur.com/9F1sVjZ.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Cusano News 7",
@@ -922,7 +922,7 @@ channels = [
         logo="https://i.imgur.com/L49Ie1Q.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Delta Tv",
@@ -930,7 +930,7 @@ channels = [
         logo="https://i.imgur.com/mfwVXt7.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Deluxe 139",
@@ -938,7 +938,7 @@ channels = [
         logo="https://i.imgur.com/kRexw3w.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Di.Tv 80",
@@ -946,7 +946,7 @@ channels = [
         logo="https://i.imgur.com/kHxTsJw.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Di.Tv 92",
@@ -954,7 +954,7 @@ channels = [
         logo="https://i.imgur.com/g3SI08H.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Digital Tv7 Benevento",
@@ -962,7 +962,7 @@ channels = [
         logo="https://i.imgur.com/NaQkklP.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Donna Shopping Tv",
@@ -970,7 +970,7 @@ channels = [
         logo="https://i.imgur.com/oLDvx2T.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="E'live Brescia Tv",
@@ -978,7 +978,7 @@ channels = [
         logo="https://i.imgur.com/bZ3B7pi.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Easy Tv Canale 190",
@@ -986,7 +986,7 @@ channels = [
         logo="https://i.imgur.com/LKrVuRR.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Entella Tv",
@@ -994,7 +994,7 @@ channels = [
         logo="https://i.imgur.com/1VPXKrW.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="EQUtv",
@@ -1002,7 +1002,7 @@ channels = [
         logo="https://i.imgur.com/x9Wdz7h.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Equos Tv",
@@ -1010,7 +1010,7 @@ channels = [
         logo="https://i.imgur.com/YwyfNDF.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Espansione Tv",
@@ -1018,7 +1018,7 @@ channels = [
         logo="https://i.imgur.com/mm9HKpD.png",
         group="Italy",
         country_code="IT",
-        epg_id="EspansioneTV.it"
+        epg_id="EspansioneTV.it",
     ),
     ChannelData(
         name="Esperia Tv",
@@ -1026,7 +1026,7 @@ channels = [
         logo="https://patbuweb.com/tivustream/chanlogoz/ita/esperiatv.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Etna Espresso Channel",
@@ -1034,7 +1034,7 @@ channels = [
         logo="https://i.imgur.com/hMUxytZ.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="è Tv Marche",
@@ -1042,7 +1042,7 @@ channels = [
         logo="https://i.imgur.com/vxgbFnR.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="è Tv Rete7",
@@ -1050,7 +1050,7 @@ channels = [
         logo="https://i.imgur.com/FXFzJhM.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="è Tv Umbria",
@@ -1058,7 +1058,7 @@ channels = [
         logo="https://i.imgur.com/DASRCe2.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Euro Tv",
@@ -1066,7 +1066,7 @@ channels = [
         logo="https://i.imgur.com/HCl5Zbu.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Extra Tv",
@@ -1074,7 +1074,7 @@ channels = [
         logo="https://i.imgur.com/KCBurST.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="FM Tv Marche",
@@ -1082,7 +1082,7 @@ channels = [
         logo="https://i.imgur.com/yY01NhL.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Fano Tv",
@@ -1090,7 +1090,7 @@ channels = [
         logo="https://i.imgur.com/orqEzJ6.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Fascino Tv",
@@ -1098,7 +1098,7 @@ channels = [
         logo="https://i.imgur.com/4XYYY5B.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="GRP Televisione",
@@ -1106,7 +1106,7 @@ channels = [
         logo="https://i.imgur.com/1zNPpVE.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="GarganoTv",
@@ -1114,7 +1114,7 @@ channels = [
         logo="https://i.imgur.com/OlJohKK.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Giornale Radio Tv",
@@ -1122,7 +1122,7 @@ channels = [
         logo="https://i.imgur.com/TMtvCLL.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Giovanni Paolo Tv",
@@ -1130,7 +1130,7 @@ channels = [
         logo="https://i.imgur.com/GH5eJE6.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Globus Television",
@@ -1138,7 +1138,7 @@ channels = [
         logo="https://i.imgur.com/yUTYqCv.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Gold Tv",
@@ -1146,7 +1146,7 @@ channels = [
         logo="https://i.imgur.com/3rVi4kD.png",
         group="Italy",
         country_code="IT",
-        epg_id="GoldTV.it"
+        epg_id="GoldTV.it",
     ),
     ChannelData(
         name="GO-TV Channel",
@@ -1154,7 +1154,7 @@ channels = [
         logo="https://i.imgur.com/xgjrAAn.png",
         group="Italy",
         country_code="IT",
-        epg_id="GOTVCanale163.it"
+        epg_id="GOTVCanale163.it",
     ),
     ChannelData(
         name="GS Channel",
@@ -1162,7 +1162,7 @@ channels = [
         logo="https://i.imgur.com/ExfxCRv.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Icaro Tv Rimini",
@@ -1170,7 +1170,7 @@ channels = [
         logo="https://i.imgur.com/z05VSSN.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Idea Plus",
@@ -1178,7 +1178,7 @@ channels = [
         logo="https://i.imgur.com/2edmxYF.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="il61",
@@ -1186,7 +1186,7 @@ channels = [
         logo="https://i.imgur.com/1rUZsBv.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Italia 2 Tv",
@@ -1194,7 +1194,7 @@ channels = [
         logo="https://i.imgur.com/ISbxfY0.png",
         group="Italy",
         country_code="IT",
-        epg_id="Italia2TV.it"
+        epg_id="Italia2TV.it",
     ),
     ChannelData(
         name="Italia 7",
@@ -1202,7 +1202,7 @@ channels = [
         logo="https://i.imgur.com/YBXkY4w.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Italia 8 Prestige",
@@ -1210,7 +1210,7 @@ channels = [
         logo="https://i.imgur.com/uDxWI4a.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Italia Channel",
@@ -1218,7 +1218,7 @@ channels = [
         logo="https://i.imgur.com/zuuKXGv.png",
         group="Italy",
         country_code="IT",
-        epg_id="ItaliaChannel.it"
+        epg_id="ItaliaChannel.it",
     ),
     ChannelData(
         name="Iunior Tv",
@@ -1226,7 +1226,7 @@ channels = [
         logo="https://i.imgur.com/9jeNlLE.png",
         group="Italy",
         country_code="IT",
-        epg_id="IuniorTV.it"
+        epg_id="IuniorTV.it",
     ),
     ChannelData(
         name="L'Altro Corriere Tv",
@@ -1234,7 +1234,7 @@ channels = [
         logo="https://i.imgur.com/dgj79J3.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="La Nuova Tv",
@@ -1242,7 +1242,7 @@ channels = [
         logo="https://i.imgur.com/wg8FhdN.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="La Tenda Tv",
@@ -1250,7 +1250,7 @@ channels = [
         logo="https://i.imgur.com/XnBp0hT.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="La tr3 Marsala",
@@ -1258,7 +1258,7 @@ channels = [
         logo="https://i.imgur.com/XlxpfEx.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="LaC News 24",
@@ -1266,7 +1266,7 @@ channels = [
         logo="https://i.imgur.com/02vCECa.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="LaC Tv Calabria",
@@ -1274,7 +1274,7 @@ channels = [
         logo="https://i.imgur.com/2Ef6crS.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Lab Tv",
@@ -1282,7 +1282,7 @@ channels = [
         logo="https://i.imgur.com/OpRS6Fl.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Lazio Tv",
@@ -1290,7 +1290,7 @@ channels = [
         logo="https://i.imgur.com/DAj5Uwb.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Le Cronache Lucane Tv",
@@ -1298,7 +1298,7 @@ channels = [
         logo="https://i.imgur.com/EBY3IZL.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Lira Tv",
@@ -1306,7 +1306,7 @@ channels = [
         logo="https://i.imgur.com/S0ReVEo.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Lombardia Tv",
@@ -1314,7 +1314,7 @@ channels = [
         logo="https://i.imgur.com/aksVy9f.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Love in Venice",
@@ -1322,7 +1322,7 @@ channels = [
         logo="https://i.imgur.com/lLBzzce.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Lucania Tv",
@@ -1330,7 +1330,7 @@ channels = [
         logo="https://i.imgur.com/wuUNVR5.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Made in BO",
@@ -1338,7 +1338,7 @@ channels = [
         logo="https://i.imgur.com/WFnrMS0.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Maria Vision",
@@ -1346,7 +1346,7 @@ channels = [
         logo="https://i.imgur.com/fdx5YXi.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Matrix Tv",
@@ -1354,7 +1354,7 @@ channels = [
         logo="https://i.imgur.com/m1HeXrn.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Mediterranea Tv",
@@ -1362,7 +1362,7 @@ channels = [
         logo="https://i.imgur.com/GUTOqRt.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Medjugorje Italia Tv",
@@ -1370,7 +1370,7 @@ channels = [
         logo="https://i.imgur.com/hkZScXf.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Medjugorje Tv Puglia",
@@ -1378,7 +1378,7 @@ channels = [
         logo="https://i.imgur.com/IWBeddh.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Minformo Tv",
@@ -1386,7 +1386,7 @@ channels = [
         logo="https://i.imgur.com/VJNtnZM.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Motori Tv",
@@ -1394,7 +1394,7 @@ channels = [
         logo="https://i.imgur.com/NWXQKbl.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="NTI Canale 271",
@@ -1402,7 +1402,7 @@ channels = [
         logo="https://i.imgur.com/zlmcUe0.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="News24 City",
@@ -1410,7 +1410,7 @@ channels = [
         logo="https://i.imgur.com/dak9AtV.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Nuova TV Nazionale",
@@ -1418,7 +1418,7 @@ channels = [
         logo="https://i.imgur.com/QWlRuXg.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Nuova Tv 1",
@@ -1426,7 +1426,7 @@ channels = [
         logo="https://i.imgur.com/1yqTZhR.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Nuova Tv 2",
@@ -1434,7 +1434,7 @@ channels = [
         logo="https://i.imgur.com/0vauyV3.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Nuvola Tv",
@@ -1442,7 +1442,7 @@ channels = [
         logo="https://i.imgur.com/EDGez2x.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Odeon 24",
@@ -1450,7 +1450,7 @@ channels = [
         logo="https://i.imgur.com/M1tVBuH.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Ofanto Tv",
@@ -1458,7 +1458,7 @@ channels = [
         logo="https://i.imgur.com/UCgATWn.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Onda Novara Tv",
@@ -1466,7 +1466,7 @@ channels = [
         logo="https://i.imgur.com/Qoh9CFy.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Onda Tv Sicilia",
@@ -1474,7 +1474,7 @@ channels = [
         logo="https://i.imgur.com/0c5Y6lr.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Onda Web Radio",
@@ -1482,7 +1482,7 @@ channels = [
         logo="https://i.imgur.com/3hTvrC8.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Ora Tv",
@@ -1490,7 +1490,7 @@ channels = [
         logo="https://i.imgur.com/clWVrvE.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Orler Tv",
@@ -1498,7 +1498,7 @@ channels = [
         logo="https://i.imgur.com/dBkxD8e.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Otto Channel",
@@ -1506,7 +1506,7 @@ channels = [
         logo="https://i.imgur.com/HRonD2N.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Padre Pio Tv",
@@ -1514,7 +1514,7 @@ channels = [
         logo="https://i.imgur.com/7ajxEPH.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Paradise Tv",
@@ -1522,7 +1522,7 @@ channels = [
         logo="https://i.imgur.com/okIBfIb.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Parole di Vita",
@@ -1530,7 +1530,7 @@ channels = [
         logo="https://i.imgur.com/M9mIiZD.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Partenope Tv",
@@ -1538,7 +1538,7 @@ channels = [
         logo="https://i.imgur.com/FtuWkj1.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Peer Tv Alto Adige",
@@ -1546,7 +1546,7 @@ channels = [
         logo="https://www.peer.biz/peertv-iptv/peer-tv-alto-adige.png",
         group="Italy",
         country_code="IT",
-        epg_id="PeerTV.it"
+        epg_id="PeerTV.it",
     ),
     ChannelData(
         name="Peer TV Südtirol",
@@ -1554,7 +1554,7 @@ channels = [
         logo="https://www.peer.biz/peertv-iptv/peer-tv-suedtirol.png",
         group="Italy",
         country_code="IT",
-        epg_id="PeerTV.de"
+        epg_id="PeerTV.de",
     ),
     ChannelData(
         name="Pop Tv",
@@ -1562,7 +1562,7 @@ channels = [
         logo="https://i.imgur.com/TeolCu9.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Prima Tv Napoli",
@@ -1570,7 +1570,7 @@ channels = [
         logo="https://i.imgur.com/yPuQeEy.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Prima Tv Sicilia",
@@ -1578,7 +1578,7 @@ channels = [
         logo="https://i.imgur.com/br45JER.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="PrimaFREE",
@@ -1586,7 +1586,7 @@ channels = [
         logo="https://i.imgur.com/YrSSmOL.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Primantenna Torino",
@@ -1594,7 +1594,7 @@ channels = [
         logo="https://i.imgur.com/sqEcPFs.gif",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Primocanale",
@@ -1602,7 +1602,7 @@ channels = [
         logo="https://i.imgur.com/xWF1A1U.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Promovideo Tv",
@@ -1610,7 +1610,7 @@ channels = [
         logo="https://i.imgur.com/MwK9HVG.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Quarto Canale Flegreo",
@@ -1618,7 +1618,7 @@ channels = [
         logo="https://i.imgur.com/8RKY3Du.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Radio 3M InBlu",
@@ -1626,7 +1626,7 @@ channels = [
         logo="https://i.imgur.com/d7O7Uqa.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Radio 51 Tv",
@@ -1634,7 +1634,7 @@ channels = [
         logo="https://uaznao.com/wp-content/uploads/2023/03/radio51.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Radio Birikina Tv",
@@ -1642,7 +1642,7 @@ channels = [
         logo="https://uaznao.com/wp-content/uploads/2023/03/radiobirikina.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Radio Bruno Tv",
@@ -1650,7 +1650,7 @@ channels = [
         logo="https://i.imgur.com/y4vKE83.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Radio Ibiza",
@@ -1658,7 +1658,7 @@ channels = [
         logo="https://i.imgur.com/uu0DHY5.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Radio Immagine Tv",
@@ -1666,7 +1666,7 @@ channels = [
         logo="https://i.imgur.com/iQlXRAB.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Radio Italia Cina Tv",
@@ -1674,7 +1674,7 @@ channels = [
         logo="https://i.imgur.com/QGkyrO3.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Radio Libertà",
@@ -1682,7 +1682,7 @@ channels = [
         logo="https://i.imgur.com/HRvPlf5.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Radio m2o Tv",
@@ -1690,7 +1690,7 @@ channels = [
         logo="https://i.imgur.com/wl30UFj.png",
         group="Italy",
         country_code="IT",
-        epg_id="m2oTV.it"
+        epg_id="m2oTV.it",
     ),
     ChannelData(
         name="Radio Monte Kronio Tv (R.M.K.)",
@@ -1698,7 +1698,7 @@ channels = [
         logo="https://i.imgur.com/t0I2Shi.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Radio Norba Tv",
@@ -1706,7 +1706,7 @@ channels = [
         logo="https://i.imgur.com/qftBPM9.png",
         group="Italy",
         country_code="IT",
-        epg_id="RadionorbaTV.it"
+        epg_id="RadionorbaTV.it",
     ),
     ChannelData(
         name="Radio Piter Pan Tv",
@@ -1714,7 +1714,7 @@ channels = [
         logo="https://uaznao.com/wp-content/uploads/2023/03/radiopiterpan.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Radio Radio Tv",
@@ -1722,7 +1722,7 @@ channels = [
         logo="https://i.imgur.com/iKuRg2b.png",
         group="Italy",
         country_code="IT",
-        epg_id="RadioRadioTV.it"
+        epg_id="RadioRadioTV.it",
     ),
     ChannelData(
         name="Radio Radiosa Tv",
@@ -1730,7 +1730,7 @@ channels = [
         logo="https://i.imgur.com/8kqyxvz.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Radio Roma",
@@ -1738,7 +1738,7 @@ channels = [
         logo="https://i.imgur.com/RKvfStm.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Radio Roma Television",
@@ -1746,7 +1746,7 @@ channels = [
         logo="https://i.imgur.com/RKvfStm.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Ran Friul",
@@ -1754,7 +1754,7 @@ channels = [
         logo="https://i.imgur.com/Qs5eQPM.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="RDE Tv",
@@ -1762,7 +1762,7 @@ channels = [
         logo="https://i.imgur.com/NiwPlrr.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Reggio Tv",
@@ -1770,7 +1770,7 @@ channels = [
         logo="https://i.imgur.com/merrg2C.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Rei Tv",
@@ -1778,7 +1778,7 @@ channels = [
         logo="https://i.imgur.com/YNRWFOo.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Rete 55",
@@ -1786,7 +1786,7 @@ channels = [
         logo="https://i.imgur.com/EsZn2cj.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Rete 8 Vga",
@@ -1794,7 +1794,7 @@ channels = [
         logo="https://i.imgur.com/3wF2AJX.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Rete 8",
@@ -1802,7 +1802,7 @@ channels = [
         logo="https://i.imgur.com/bGsjPRh.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Rete 8 Sport",
@@ -1810,7 +1810,7 @@ channels = [
         logo="https://i.imgur.com/uUAjWlF.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Rete Biella Tv",
@@ -1818,7 +1818,7 @@ channels = [
         logo="https://i.imgur.com/e2ryHx7.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Rete Mia",
@@ -1826,7 +1826,7 @@ channels = [
         logo="https://i.imgur.com/kCJ621Q.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Rete Oro Tv",
@@ -1834,7 +1834,7 @@ channels = [
         logo="https://i.imgur.com/OCxGtwA.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Rete Sole",
@@ -1842,7 +1842,7 @@ channels = [
         logo="https://i.imgur.com/u0ezKgE.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Rete Tv Italia",
@@ -1850,7 +1850,7 @@ channels = [
         logo="https://i.imgur.com/lXGWoV9.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Rete Veneta",
@@ -1858,7 +1858,7 @@ channels = [
         logo="https://i.imgur.com/cInhQFp.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Roma Tv 82",
@@ -1866,7 +1866,7 @@ channels = [
         logo="https://i.imgur.com/C3UnlFF.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Rossini Tv",
@@ -1874,7 +1874,7 @@ channels = [
         logo="https://i.imgur.com/K0Em0nx.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="RTC Quarta Rete",
@@ -1882,7 +1882,7 @@ channels = [
         logo="https://i.imgur.com/rFGA6qL.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="RTC Telecalabria",
@@ -1890,7 +1890,7 @@ channels = [
         logo="https://i.imgur.com/tTYLcuh.jpg",
         group="Italy",
         country_code="IT",
-        epg_id="RTCTelecalabria.it"
+        epg_id="RTCTelecalabria.it",
     ),
     ChannelData(
         name="RTI Calabria",
@@ -1898,7 +1898,7 @@ channels = [
         logo="https://i.imgur.com/hVzEvmo.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="RTL 102.5 + Plus",
@@ -1906,7 +1906,7 @@ channels = [
         logo="https://i.imgur.com/mPqDtCO.png",
         group="Italy",
         country_code="IT",
-        epg_id="RTL1025Plus.it"
+        epg_id="RTL1025Plus.it",
     ),
     ChannelData(
         name="RTM Manduria",
@@ -1914,7 +1914,7 @@ channels = [
         logo="https://i.imgur.com/WwzU0EP.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="RTR99 Tv",
@@ -1922,7 +1922,7 @@ channels = [
         logo="https://i.imgur.com/mkO95pD.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Rtp Tv",
@@ -1930,7 +1930,7 @@ channels = [
         logo="https://i.imgur.com/I1hYI0C.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Rttr",
@@ -1938,7 +1938,7 @@ channels = [
         logo="https://i.imgur.com/z7xMArA.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Rtv 38 Toscana",
@@ -1946,7 +1946,7 @@ channels = [
         logo="https://i.imgur.com/xqlhJqK.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="SL 48 Tv",
@@ -1954,7 +1954,7 @@ channels = [
         logo="https://i.imgur.com/b58oouu.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="ST Europe Channel",
@@ -1962,7 +1962,7 @@ channels = [
         logo="https://i.imgur.com/QpPgSfr.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Sardegna 1",
@@ -1970,7 +1970,7 @@ channels = [
         logo="https://i.imgur.com/YNEW2h2.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Set Tv Cilento",
@@ -1978,7 +1978,7 @@ channels = [
         logo="https://i.imgur.com/qN5D1jD.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Sesta Rete",
@@ -1986,7 +1986,7 @@ channels = [
         logo="https://i.imgur.com/0B0S2gI.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Sicilia 24 Tv",
@@ -1994,7 +1994,7 @@ channels = [
         logo="https://i.imgur.com/GhQX36O.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Sicilia Tv",
@@ -2002,7 +2002,7 @@ channels = [
         logo="https://i.imgur.com/I5FoThW.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Sienatv",
@@ -2010,7 +2010,7 @@ channels = [
         logo="https://i.imgur.com/gcysky4.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Sophia Tv",
@@ -2018,7 +2018,7 @@ channels = [
         logo="https://i.imgur.com/fiLNK3b.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Stiletv",
@@ -2026,7 +2026,7 @@ channels = [
         logo="https://i.imgur.com/ZP3cJi7.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Super J Tv",
@@ -2034,7 +2034,7 @@ channels = [
         logo="https://i.imgur.com/5oy5Nuu.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Super Six",
@@ -2042,7 +2042,7 @@ channels = [
         logo="https://i.imgur.com/kHSuyub.png",
         group="Italy",
         country_code="IT",
-        epg_id="SuperSix.it"
+        epg_id="SuperSix.it",
     ),
     ChannelData(
         name="Supertv",
@@ -2050,7 +2050,7 @@ channels = [
         logo="https://i.imgur.com/7gUZcEh.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="T9",
@@ -2058,7 +2058,7 @@ channels = [
         logo="https://i.imgur.com/XzL05Py.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="TRC Santeramo",
@@ -2066,7 +2066,7 @@ channels = [
         logo="https://i.imgur.com/VbYdS8P.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="TRL Tele Radio Leo",
@@ -2074,7 +2074,7 @@ channels = [
         logo="https://i.imgur.com/qAagkJT.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="TSD Tv Arezzo(Tele San Domenico)",
@@ -2082,7 +2082,7 @@ channels = [
         logo="https://i.imgur.com/WQ8eQXc.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="TVL (TV Libera Pistoia)",
@@ -2090,7 +2090,7 @@ channels = [
         logo="https://i.imgur.com/07geF0L.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tcf Tv",
@@ -2098,7 +2098,7 @@ channels = [
         logo="https://i.imgur.com/fiylFs2.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tci",
@@ -2106,7 +2106,7 @@ channels = [
         logo="https://i.imgur.com/lCZTaKs.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Teatro Tv",
@@ -2114,7 +2114,7 @@ channels = [
         logo="https://i.imgur.com/UsvffQL.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele A",
@@ -2122,7 +2122,7 @@ channels = [
         logo="https://i.imgur.com/l7Za9KH.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Abruzzo Tv",
@@ -2130,7 +2130,7 @@ channels = [
         logo="https://i.imgur.com/koB8J4b.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Acras",
@@ -2138,7 +2138,7 @@ channels = [
         logo="https://i.imgur.com/90Lsv8q.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Arena",
@@ -2146,7 +2146,7 @@ channels = [
         logo="https://i.imgur.com/9hsoWMO.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Bari",
@@ -2154,7 +2154,7 @@ channels = [
         logo="https://i.imgur.com/HYSz4rx.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Belluno",
@@ -2162,7 +2162,7 @@ channels = [
         logo="https://i.imgur.com/YiM2Z7E.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Boario",
@@ -2170,7 +2170,7 @@ channels = [
         logo="https://i.imgur.com/LlLD3L6.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Bruzzano",
@@ -2178,7 +2178,7 @@ channels = [
         logo="https://i.imgur.com/7TWbCDt.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Chiara",
@@ -2186,7 +2186,7 @@ channels = [
         logo="https://i.imgur.com/Q5XpnXR.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Telecolor",
@@ -2194,7 +2194,7 @@ channels = [
         logo="https://i.imgur.com/urUG78J.png",
         group="Italy",
         country_code="IT",
-        epg_id="TelecolorLombardia.it"
+        epg_id="TelecolorLombardia.it",
     ),
     ChannelData(
         name="Tele Cupole",
@@ -2202,7 +2202,7 @@ channels = [
         logo="https://i.imgur.com/ZmUI9zb.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Estense",
@@ -2210,7 +2210,7 @@ channels = [
         logo="https://i.imgur.com/X7i7DWo.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Foggia",
@@ -2218,7 +2218,7 @@ channels = [
         logo="https://i.imgur.com/M7tqBu9.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Friuli",
@@ -2226,7 +2226,7 @@ channels = [
         logo="https://i.imgur.com/AoQxZxD.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Ischia",
@@ -2234,7 +2234,7 @@ channels = [
         logo="https://i.imgur.com/vihHVQn.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Jonio",
@@ -2242,7 +2242,7 @@ channels = [
         logo="https://i.imgur.com/qJeDV8R.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Liberta' HD",
@@ -2250,7 +2250,7 @@ channels = [
         logo="https://i.imgur.com/XzAB5k7.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Liguria Sud",
@@ -2258,7 +2258,7 @@ channels = [
         logo="https://i.imgur.com/BeLAYJ6.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Mantova",
@@ -2266,7 +2266,7 @@ channels = [
         logo="https://i.imgur.com/bkSPcs4.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Mia",
@@ -2274,7 +2274,7 @@ channels = [
         logo="https://i.imgur.com/SdXpCwL.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Mia Extra",
@@ -2282,7 +2282,7 @@ channels = [
         logo="https://i.imgur.com/upzBG32.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Mistretta",
@@ -2290,7 +2290,7 @@ channels = [
         logo="https://i.imgur.com/OJ3zUS0.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Molise",
@@ -2298,7 +2298,7 @@ channels = [
         logo="https://i.imgur.com/u5VD0x9.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Nord Genova",
@@ -2306,7 +2306,7 @@ channels = [
         logo="https://i.imgur.com/I6yegEK.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Nostra",
@@ -2314,7 +2314,7 @@ channels = [
         logo="https://i.imgur.com/FACahKZ.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Occidente",
@@ -2322,7 +2322,7 @@ channels = [
         logo="https://i.imgur.com/3aOiWKa.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Oltre",
@@ -2330,7 +2330,7 @@ channels = [
         logo="https://i.imgur.com/PxtJAxs.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele One",
@@ -2338,7 +2338,7 @@ channels = [
         logo="https://i.imgur.com/9trB6mj.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Pace Trento",
@@ -2346,7 +2346,7 @@ channels = [
         logo="https://i.imgur.com/o5sQCpF.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Pavia",
@@ -2354,7 +2354,7 @@ channels = [
         logo="https://i.imgur.com/YVodo4T.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Pegaso",
@@ -2362,7 +2362,7 @@ channels = [
         logo="https://i.imgur.com/FQkM8Vd.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Piadena",
@@ -2370,7 +2370,7 @@ channels = [
         logo="https://i.imgur.com/VqaPuQN.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Pordenone",
@@ -2378,7 +2378,7 @@ channels = [
         logo="https://i.imgur.com/dbYwXwg.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Quattro Trieste",
@@ -2386,7 +2386,7 @@ channels = [
         logo="https://i.imgur.com/MFxQxve.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Radio Ercolano",
@@ -2394,7 +2394,7 @@ channels = [
         logo="https://i.imgur.com/YPuoy8N.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Radio Pace 1",
@@ -2402,7 +2402,7 @@ channels = [
         logo="https://i.imgur.com/ORkkXM8.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Radio Pace 2",
@@ -2410,7 +2410,7 @@ channels = [
         logo="https://i.imgur.com/U4E3eEr.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Radio Pace 3",
@@ -2418,7 +2418,7 @@ channels = [
         logo="https://i.imgur.com/pTqIxFD.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Radio Pace 4",
@@ -2426,7 +2426,7 @@ channels = [
         logo="https://i.imgur.com/KPHHsN5.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Radio Orte",
@@ -2434,7 +2434,7 @@ channels = [
         logo="https://i.imgur.com/uX2uxvN.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Radio Sciacca",
@@ -2442,7 +2442,7 @@ channels = [
         logo="https://i.imgur.com/suhz5mE.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Sirio",
@@ -2450,7 +2450,7 @@ channels = [
         logo="https://i.imgur.com/mDN6QX1.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Spazio Messina",
@@ -2458,7 +2458,7 @@ channels = [
         logo="https://i.imgur.com/Io5w6lT.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Sud Puglia",
@@ -2466,7 +2466,7 @@ channels = [
         logo="https://i.imgur.com/fqTLtvs.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Tricolore",
@@ -2474,7 +2474,7 @@ channels = [
         logo="https://i.imgur.com/A2XouAd.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Tutto",
@@ -2482,7 +2482,7 @@ channels = [
         logo="https://i.imgur.com/sZxMP7g.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Tutto 2",
@@ -2490,7 +2490,7 @@ channels = [
         logo="https://i.imgur.com/mxXbMaw.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Tutto 24",
@@ -2498,7 +2498,7 @@ channels = [
         logo="https://i.imgur.com/weKWQgx.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Venezia",
@@ -2506,7 +2506,7 @@ channels = [
         logo="https://i.imgur.com/SavGpCE.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele Video Agrigento (T.V.A.)",
@@ -2514,7 +2514,7 @@ channels = [
         logo="https://i.imgur.com/AaPr63E.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tele8 Tv",
@@ -2522,7 +2522,7 @@ channels = [
         logo="https://i.imgur.com/dM0HE6O.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="TeleAmbiente",
@@ -2530,7 +2530,7 @@ channels = [
         logo="https://i.imgur.com/jxZcQhU.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Telecampione",
@@ -2538,7 +2538,7 @@ channels = [
         logo="https://i.imgur.com/LhjwmME.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Telecittà Padova",
@@ -2546,7 +2546,7 @@ channels = [
         logo="https://i.imgur.com/xvVgEaA.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Telecity Lombardia",
@@ -2554,7 +2554,7 @@ channels = [
         logo="https://i.imgur.com/ECvJ3ZD.jpeg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Telecity Piemonte",
@@ -2562,7 +2562,7 @@ channels = [
         logo="https://i.imgur.com/CrlzHjv.jpeg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Telecity Valle D'Aosta",
@@ -2570,7 +2570,7 @@ channels = [
         logo="https://i.imgur.com/T9EsAOX.jpeg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="TeleCostaSmeralda",
@@ -2578,7 +2578,7 @@ channels = [
         logo="https://i.imgur.com/QLqkbss.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Telegenova",
@@ -2586,7 +2586,7 @@ channels = [
         logo="https://i.imgur.com/D6HC0So.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Teleiblea",
@@ -2594,7 +2594,7 @@ channels = [
         logo="https://i.imgur.com/n1THygZ.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Teleitalia 41",
@@ -2602,7 +2602,7 @@ channels = [
         logo="https://i.imgur.com/lTuPSOn.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Telejato",
@@ -2610,7 +2610,7 @@ channels = [
         logo="https://i.imgur.com/r3Dqzdj.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Teleleonessa",
@@ -2618,7 +2618,7 @@ channels = [
         logo="https://i.imgur.com/jq3etlV.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="TeleMajg",
@@ -2626,7 +2626,7 @@ channels = [
         logo="https://i.imgur.com/9tefonp.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Telenova",
@@ -2634,7 +2634,7 @@ channels = [
         logo="https://i.imgur.com/x41IkJK.png",
         group="Italy",
         country_code="IT",
-        epg_id="Telenova.it"
+        epg_id="Telenova.it",
     ),
     ChannelData(
         name="Telerama",
@@ -2642,7 +2642,7 @@ channels = [
         logo="https://i.imgur.com/enfqUlI.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="TeleRegione",
@@ -2650,7 +2650,7 @@ channels = [
         logo="https://i.imgur.com/i5WozUP.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="TeleRegione Color",
@@ -2658,7 +2658,7 @@ channels = [
         logo="https://i.imgur.com/vi5Nf3S.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="TeleRegione Live",
@@ -2666,7 +2666,7 @@ channels = [
         logo="https://i.imgur.com/DBrt8L3.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="TeleRent 7Gold",
@@ -2674,7 +2674,7 @@ channels = [
         logo="https://i.imgur.com/YZadq0M.png",
         group="Italy",
         country_code="IT",
-        epg_id="7Gold.it"
+        epg_id="7Gold.it",
     ),
     ChannelData(
         name="Telereporter",
@@ -2682,7 +2682,7 @@ channels = [
         logo="https://i.imgur.com/WIo6SPc.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Teleromagna",
@@ -2690,7 +2690,7 @@ channels = [
         logo="https://i.imgur.com/4jWadI8.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Teleromagna 24",
@@ -2698,7 +2698,7 @@ channels = [
         logo="https://i.imgur.com/Bpml478.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="TeleRomaDue",
@@ -2706,7 +2706,7 @@ channels = [
         logo="https://i.imgur.com/78hA7ma.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Telesud Trapani",
@@ -2714,7 +2714,7 @@ channels = [
         logo="https://i.imgur.com/tpZvU1P.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Telesveva",
@@ -2722,7 +2722,7 @@ channels = [
         logo="https://i.imgur.com/SCDETZC.jpeg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Teleuniverso",
@@ -2730,7 +2730,7 @@ channels = [
         logo="https://i.imgur.com/u8E9wBb.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Televallo Trapani",
@@ -2738,7 +2738,7 @@ channels = [
         logo="https://i.imgur.com/P6zuiRH.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="TG Norba 24",
@@ -2746,7 +2746,7 @@ channels = [
         logo="https://i.imgur.com/9MhrrJK.png",
         group="Italy",
         country_code="IT",
-        epg_id="TGNorba24.it"
+        epg_id="TGNorba24.it",
     ),
     ChannelData(
         name="TLT Molise",
@@ -2754,7 +2754,7 @@ channels = [
         logo="https://i.imgur.com/wgwD7gh.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Top Calcio 24",
@@ -2762,7 +2762,7 @@ channels = [
         logo="https://i.imgur.com/DnVPKPE.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tremedia Tv",
@@ -2770,7 +2770,7 @@ channels = [
         logo="https://i.imgur.com/dqRV1ff.jpeg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Trentino Tv",
@@ -2778,7 +2778,7 @@ channels = [
         logo="https://i.imgur.com/ROKOCR2.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tuscia Sabina 2000Tv",
@@ -2786,7 +2786,7 @@ channels = [
         logo="https://i.imgur.com/Tq5nEAy.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tv 12",
@@ -2794,7 +2794,7 @@ channels = [
         logo="https://i.imgur.com/oxv08pJ.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tv Campi Flegrei",
@@ -2802,7 +2802,7 @@ channels = [
         logo="https://i.imgur.com/9d2K1nX.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tv Luna Napoli",
@@ -2810,7 +2810,7 @@ channels = [
         logo="https://i.imgur.com/jxhuoyE.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tv Prato",
@@ -2818,7 +2818,7 @@ channels = [
         logo="https://i.imgur.com/zDeVpZd.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tv Qui Modena",
@@ -2826,7 +2826,7 @@ channels = [
         logo="https://i.imgur.com/4bOYlfg.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tv Uno",
@@ -2834,7 +2834,7 @@ channels = [
         logo="https://i.imgur.com/OtCwYsh.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tv Yes",
@@ -2842,7 +2842,7 @@ channels = [
         logo="https://i.imgur.com/1wsO8U7.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tva Vicenza",
@@ -2850,7 +2850,7 @@ channels = [
         logo="https://i.imgur.com/FtFuPCC.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tvm Palermo",
@@ -2858,7 +2858,7 @@ channels = [
         logo="https://i.imgur.com/uqOdAXB.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tvr Xenon",
@@ -2866,7 +2866,7 @@ channels = [
         logo="https://i.imgur.com/kLzW1Pf.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Tvrs Tv",
@@ -2874,7 +2874,7 @@ channels = [
         logo="https://i.imgur.com/6p7hTmY.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Umbria+ TRT",
@@ -2882,7 +2882,7 @@ channels = [
         logo="https://i.imgur.com/CU6BBgs.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Umbria Tv",
@@ -2890,7 +2890,7 @@ channels = [
         logo="https://i.imgur.com/XKCVEmK.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Uno Tv",
@@ -2898,7 +2898,7 @@ channels = [
         logo="https://i.imgur.com/4PNbqqL.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Uno4 Tv",
@@ -2906,7 +2906,7 @@ channels = [
         logo="https://i.imgur.com/wfPPpBA.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Vera Tv",
@@ -2914,7 +2914,7 @@ channels = [
         logo="https://i.imgur.com/djMvkvN.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="VB33",
@@ -2922,7 +2922,7 @@ channels = [
         logo="https://i.imgur.com/ygDuIxU.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Video Calabria",
@@ -2930,7 +2930,7 @@ channels = [
         logo="https://i.imgur.com/Bc2AvIm.png",
         group="Italy",
         country_code="IT",
-        epg_id="VideoCalabria.it"
+        epg_id="VideoCalabria.it",
     ),
     ChannelData(
         name="Video Mediterraneo",
@@ -2938,7 +2938,7 @@ channels = [
         logo="https://i.imgur.com/hJHC3uQ.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Video Nola",
@@ -2946,7 +2946,7 @@ channels = [
         logo="https://i.imgur.com/M5z5UoD.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Video Regione Sicilia",
@@ -2954,7 +2954,7 @@ channels = [
         logo="https://i.imgur.com/0szwnR3.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Video Star Tv Sicilia",
@@ -2962,7 +2962,7 @@ channels = [
         logo="https://i.imgur.com/1ddJVZ7.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Video Touring Tv",
@@ -2970,7 +2970,7 @@ channels = [
         logo="https://i.imgur.com/E2Feao5.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Videolina",
@@ -2978,7 +2978,7 @@ channels = [
         logo="https://i.imgur.com/bnDZJwd.gif",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Videonovara",
@@ -2986,7 +2986,7 @@ channels = [
         logo="https://i.imgur.com/NnO7E5I.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Videotelecarnia",
@@ -2994,7 +2994,7 @@ channels = [
         logo="https://i.imgur.com/r4K9JHW.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Vintage Radio Tv",
@@ -3002,7 +3002,7 @@ channels = [
         logo="https://i.imgur.com/n3LtBNT.jpg",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Vuemme Tv",
@@ -3010,7 +3010,7 @@ channels = [
         logo="https://i.imgur.com/x5A0xU6.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Webcom Tv",
@@ -3018,7 +3018,7 @@ channels = [
         logo="https://i.imgur.com/KLwj2vj.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="WLTV",
@@ -3026,7 +3026,7 @@ channels = [
         logo="https://i.imgur.com/aL8jKtU.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Yvii Tv",
@@ -3034,7 +3034,7 @@ channels = [
         logo="https://i.imgur.com/yP5AvDo.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Zerouno Tv Music",
@@ -3042,7 +3042,7 @@ channels = [
         logo="https://i.imgur.com/r74lqW8.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Zerouno Tv News",
@@ -3050,7 +3050,7 @@ channels = [
         logo="https://i.imgur.com/vxRzyjE.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Radio Colonna Tv Ⓨ",
@@ -3058,7 +3058,7 @@ channels = [
         logo="https://i.imgur.com/EcQvDfq.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="TRM h24 Ⓨ",
@@ -3066,7 +3066,7 @@ channels = [
         logo="https://i.imgur.com/d47CdYU.png",
         group="Italy",
         country_code="IT",
-        epg_id="TRMh24.it"
+        epg_id="TRMh24.it",
     ),
     ChannelData(
         name="Euronews Italian Ⓨ",
@@ -3074,7 +3074,7 @@ channels = [
         logo="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Euronews_2022.svg/640px-Euronews_2022.svg.png",
         group="Italy",
         country_code="IT",
-        epg_id="EuronewsItalian.fr"
+        epg_id="EuronewsItalian.fr",
     ),
     ChannelData(
         name="Antenna Sicilia Ⓣ",
@@ -3082,7 +3082,7 @@ channels = [
         logo="https://i.imgur.com/8DOdqsE.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Telecolor Ⓣ",
@@ -3090,7 +3090,7 @@ channels = [
         logo="https://i.imgur.com/rfNg6fw.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="Teleroma 56 Ⓣ",
@@ -3098,7 +3098,7 @@ channels = [
         logo="https://i.imgur.com/wGfpUj8.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
     ChannelData(
         name="TeleRadioStereo Ⓣ",
@@ -3106,6 +3106,6 @@ channels = [
         logo="https://i.imgur.com/eRNgqnA.png",
         group="Italy",
         country_code="IT",
-        epg_id=""
+        epg_id="",
     ),
 ]
