@@ -1,5 +1,5 @@
 [project]
-name = "ktv-player"
+name = "KTV"
 version = "0.1.0"
 description = "A lightning-fast TV player built for seamless network streaming and custom channel addition."
 readme = "README.md"
@@ -52,7 +52,7 @@ build_version = "1.0.0"
 usesCleartextTraffic = "true"
 
 [tool.flet.android.meta_data]
-"com.google.android.gms.ads.APPLICATION_ID" = "ca-app-pub-3940256099942544~3347511713"
+"com.google.android.gms.ads.APPLICATION_ID" = "ca-app-pub-5679949845754640~8438792639"
 
 [tool.flet.android.permission]
 "android.permission.INTERNET" = true
