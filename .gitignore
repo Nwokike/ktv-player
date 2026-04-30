@@ -13,8 +13,10 @@ dist/
 
 # Flet
 .flet/
-assets/lottie/*.json
-channels_cache.json
+
+# Coverage & Testing
+.coverage
+htmlcov/
 
 # IDEs
 .vscode/

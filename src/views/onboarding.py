@@ -6,10 +6,7 @@ from channels.provider import channel_provider
 from database.manager import db_manager
 
 
-def build_onboarding_view(on_complete: callable) -> ft.View:
-    """Builds the onboarding view."""
-    print("DEBUG: Building Onboarding View")
-
+def build_onboarding_view(page_obj: ft.Page, on_complete: callable) -> ft.View:
     selected_country = ft.Ref[ft.Dropdown]()
     terms_checked = ft.Ref[ft.Checkbox]()
 
@@ -25,12 +22,10 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
 
     palette = _palette()
 
-    try:
-        countries = channel_provider.get_countries()
-        countries.append({"name": "Other"})
-    except Exception as e:
-        print(f"DEBUG: Error getting countries: {e}")
-        countries = [{"name": "Global"}, {"name": "Other"}]
+    countries_from_playlist = channel_provider.get_countries()
+    if not countries_from_playlist:
+        countries_from_playlist = [{"name": "Global"}]
+    countries_from_playlist.append({"name": "Other"})
 
     async def handle_submit(e):
         if not terms_checked.current.value:
@@ -96,7 +91,7 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
             ),
             ft.Dropdown(
                 ref=selected_country,
-                options=[ft.dropdown.Option(c["name"]) for c in countries],
+                options=[ft.dropdown.Option(c["name"]) for c in countries_from_playlist],
                 expand=True,
                 border_radius=15,
                 filled=True,
@@ -123,8 +118,6 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
                 padding=15,
                 bgcolor=palette["surface"],
                 border_radius=10,
-                # FIX 1: Removed 'expand=True' from this Container.
-                # This stops it from clipping against the Column, allowing all 3 lines to show!
             ),
             ft.Row(
                 [
@@ -145,7 +138,7 @@ def build_onboarding_view(on_complete: callable) -> ft.View:
                 content="Start Watching",
                 on_click=handle_submit,
                 style=ft.ButtonStyle(
-                    color="white",  # String literal fallback to avoid Enum crash
+                    color="white",
                     bgcolor=AppColors.PRIMARY,
                     padding=20,
                     shape=ft.RoundedRectangleBorder(radius=15),

@@ -1,6 +1,6 @@
 [project]
 name = "KTV"
-version = "0.1.0"
+version = "1.0.0"
 description = "A lightning-fast TV player built for seamless network streaming and custom channel addition."
 readme = "README.md"
 requires-python = ">=3.13"
@@ -8,32 +8,9 @@ dependencies = [
     "aiosqlite>=0.22.1",
     "flet>=0.84.0",
     "flet-ads>=0.84.0",
-    "flet-lottie>=0.84.0",
     "flet-video>=0.84.0",
     "httpx>=0.28.1",
-    "m3u-parser>=0.4.2",
-    "flet-permission-handler>=0.84.0",
 ]
-
-[dependency-groups]
-dev = [
-    "pytest>=9.0.3",
-    "pytest-asyncio>=1.3.0",
-    "pytest-cov>=7.1.0",
-    "ruff>=0.15.12",
-]
-
-[tool.pytest.ini_options]
-asyncio_mode = "auto"
-testpaths = ["tests"]
-
-[tool.ruff]
-line-length = 100
-target-version = "py313"
-
-[tool.coverage.run]
-source = ["src/core", "src/services", "src/database", "src/components", "src/views"]
-omit = ["tests/*"]
 
 [tool.flet]
 app_name = "ktv_player"

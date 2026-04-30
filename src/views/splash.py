@@ -3,8 +3,6 @@ from core.theme import AppColors
 
 
 def build_splash_view() -> ft.View:
-    """Builds the splash screen view with minimal logic for diagnosis."""
-
     return ft.View(
         route="/",
         controls=[
@@ -32,7 +30,7 @@ def build_splash_view() -> ft.View:
                 ),
                 expand=True,
                 alignment=ft.Alignment(0, 0),
-                bgcolor=AppColors.SPLASH_BG,  # Slightly lighter to match logo better
+                bgcolor=AppColors.SPLASH_BG,
             )
         ],
         padding=0,

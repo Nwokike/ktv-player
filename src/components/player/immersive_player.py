@@ -9,7 +9,6 @@ class ImmersivePlayer(ft.Stack):
         self.on_close = on_close
         self.expand = True
 
-        # Native media_kit controls handling hardware acceleration and fullscreen
         self.video = fv.Video(
             playlist=[fv.VideoMedia(self.resource)],
             autoplay=True,
@@ -31,7 +30,7 @@ class ImmersivePlayer(ft.Stack):
                 on_click=self.handle_close,
             ),
             left=15,
-            top=40,  # Safely clears the Android status bar/notch in portrait
+            top=40,
         )
 
         self.controls = [
@@ -41,12 +40,7 @@ class ImmersivePlayer(ft.Stack):
         ]
 
     def handle_close(self, e):
-        # We REMOVED the self.page.run_task(self.video.stop) here!
-        # Flet automatically disposes of the video instance when we route away,
-        # so removing it manually causes a race condition and crashes the app.
-
         if self.on_close:
-            # Smart callback handler
             try:
                 self.on_close(e)
             except TypeError:

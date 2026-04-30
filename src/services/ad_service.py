@@ -3,6 +3,7 @@ import flet_ads as fta
 import asyncio
 from typing import Optional, Callable
 
+
 class AdService:
     BANNER_ID = "ca-app-pub-5679949845754640/5591770463"
     INTERSTITIAL_ID = "ca-app-pub-5679949845754640/8701238822"
@@ -19,7 +20,6 @@ class AdService:
         return self.INTERSTITIAL_ID
 
     def _create_ad_container(self, ad_control: ft.Control, width: int) -> ft.Control:
-        """Wraps the ad with the polite 'Support the developer' text."""
         return ft.Container(
             content=ft.Column(
                 [
@@ -40,76 +40,62 @@ class AdService:
         )
 
     def get_native_style_ad(self) -> ft.Control:
-        """Returns a 300x250 Medium Rectangle ad with support text."""
         if not self.page.platform.is_mobile():
             return ft.Container(width=0, height=0)
-
         try:
             ad = fta.BannerAd(
                 unit_id=self.get_banner_unit_id(),
                 width=300,
                 height=250,
-                on_error=lambda e: print(f"Native Ad error: {e.data}"),
+                on_error=lambda e: None,
             )
             return self._create_ad_container(ad, width=300)
-        except Exception as e:
-            print(f"Ad rendering skipped: {e}")
+        except Exception:
             return ft.Container(width=0, height=0)
 
     def get_standard_banner_ad(self) -> ft.Control:
-        """Returns a 320x100 Large Banner ad with support text."""
         if not self.page.platform.is_mobile():
             return ft.Container(width=0, height=0)
-
         try:
             ad = fta.BannerAd(
                 unit_id=self.get_banner_unit_id(),
                 width=320,
                 height=100,
-                on_error=lambda e: print(f"Banner Ad error: {e.data}"),
+                on_error=lambda e: None,
             )
             return self._create_ad_container(ad, width=320)
-        except Exception as e:
-            print(f"Ad rendering skipped: {e}")
+        except Exception:
             return ft.Container(width=0, height=0)
 
     async def preload_interstitial(self, on_close: Optional[Callable] = None):
-        """Creates a new InterstitialAd in memory without adding it to the UI."""
         self._on_interstitial_close = on_close
-
         try:
             if not self.page.platform.is_mobile():
                 return
 
             self.interstitial = fta.InterstitialAd(
                 unit_id=self.get_interstitial_unit_id(),
-                on_load=lambda e: print("Interstitial loaded"),
-                on_error=lambda e: print(f"Interstitial error: {e.data}"),
+                on_load=lambda e: None,
+                on_error=lambda e: None,
                 on_close=self._handle_close,
             )
-        except Exception as e:
-            print(f"Unexpected ad error: {e}")
+        except Exception:
             self.interstitial = None
 
     async def _handle_close(self, e):
-        print("Interstitial closed")
-
         if self._on_interstitial_close:
             if asyncio.iscoroutinefunction(self._on_interstitial_close):
                 await self._on_interstitial_close()
             else:
                 self._on_interstitial_close()
 
-        # Preload the next one immediately so it's ready for the next click
         await self.preload_interstitial(on_close=self._on_interstitial_close)
 
     async def show_interstitial(self) -> bool:
-        """Shows the preloaded interstitial. Returns True if shown, False otherwise."""
         if self.interstitial:
             try:
                 await self.interstitial.show()
                 return True
-            except Exception as e:
-                print(f"Failed to show interstitial: {e}")
+            except Exception:
                 return False
         return False
