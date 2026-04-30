@@ -205,15 +205,7 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
                 )
             )
 
-            if (i + 1) % 12 == 6:
-                controls.append(
-                    ft.Container(
-                        content=ad_service.get_native_style_ad(),
-                        col=12,
-                        alignment=ft.Alignment.CENTER,
-                    )
-                )
-            elif (i + 1) % 12 == 0:
+            if (i + 1) % 12 == 0:
                 controls.append(
                     ft.Container(
                         content=ad_service.get_standard_banner_ad(),
@@ -593,6 +585,11 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
                     bgcolor=ft.Colors.SURFACE,
                 ),
                 expand=True,
+            ),
+            ft.Container(
+                content=ad_service.get_anchor_banner_ad(),
+                alignment=ft.Alignment.CENTER,
+                padding=ft.Padding(0, 5, 0, 5),
             )
         ],
         padding=0,

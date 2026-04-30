@@ -141,8 +141,6 @@ async def main(page: ft.Page):
                         except Exception:
                             pass
 
-                await ad_service.show_interstitial()
-
             page.views.pop()
             previous_view = page.views[-1]
             await navigate(previous_view.route)

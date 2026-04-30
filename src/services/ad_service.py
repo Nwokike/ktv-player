@@ -67,6 +67,26 @@ class AdService:
         except Exception:
             return ft.Container(width=0, height=0)
 
+    def get_anchor_banner_ad(self) -> ft.Control:
+        if not self.page.platform.is_mobile():
+            return ft.Container(width=0, height=0)
+        try:
+            ad = fta.BannerAd(
+                unit_id=self.get_banner_unit_id(),
+                width=320,
+                height=50,
+                on_error=lambda e: None,
+            )
+            # Anchor banners don't need padding/text, just the ad itself centered
+            return ft.Container(
+                content=ad,
+                width=320,
+                height=50,
+                alignment=ft.Alignment.CENTER,
+            )
+        except Exception:
+            return ft.Container(width=0, height=0)
+
     async def preload_interstitial(self, on_close: Optional[Callable] = None):
         self._on_interstitial_close = on_close
         try:

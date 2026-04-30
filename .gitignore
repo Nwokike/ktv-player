@@ -5,6 +5,7 @@ __pycache__/
 .venv/
 dist/
 *.egg-info/
+build/
 
 # Databases
 *.db
