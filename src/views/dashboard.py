@@ -222,21 +222,32 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
         return interactive_card
 
     def build_grid(channels):
-        grid = ft.GridView(
-            max_extent=130,
-            child_aspect_ratio=0.85,
-            spacing=12,
-            run_spacing=12,
-        )
+        grid = ft.ResponsiveRow(spacing=12, run_spacing=12)
 
-        for c in channels:
-            grid.controls.append(create_channel_card(c))
+        for i, c in enumerate(channels):
+            card = create_channel_card(c)
+            card_wrapper = ft.Container(
+                content=card,
+                col={"xs": 4, "sm": 3, "md": 2, "lg": 2},
+            )
+            grid.controls.append(card_wrapper)
+
+            if (i + 1) % 12 == 0 and (i + 1) < len(channels):
+                grid.controls.append(
+                    ft.Container(
+                        content=ad_service.get_standard_banner_ad(),
+                        col=12,
+                        alignment=ft.Alignment.CENTER,
+                        padding=ft.Padding(0, 5, 0, 5),
+                    )
+                )
 
         return grid
 
     def _collect_cards_data(grid) -> list:
         cards_data = []
-        for card in grid.controls:
+        for wrapper in grid.controls:
+            card = getattr(wrapper, "content", None)
             if card and getattr(card, "data", None):
                 url = card.data.get("url")
                 indicator = card.data.get("indicator")
@@ -462,7 +473,6 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
                 group_names.remove(state.user_country)
                 group_names.insert(0, state.user_country)
 
-            ad_counter = 0
             for name in group_names:
                 channels = groups[name]
                 should_expand = (tab_index == 0 and name == state.user_country) or (
@@ -485,16 +495,6 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
                         controls=tile_controls,
                     )
                 )
-
-                ad_counter += 1
-                if ad_counter % 4 == 0:
-                    target.controls.append(
-                        ft.Container(
-                            content=ad_service.get_standard_banner_ad(),
-                            alignment=ft.Alignment.CENTER,
-                            padding=ft.Padding(0, 5, 0, 5),
-                        )
-                    )
 
     tab_view_container = ft.TabBarView(
         controls=[countries_content, categories_content, custom_content, preferences_content],

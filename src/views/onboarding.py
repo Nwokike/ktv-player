@@ -95,6 +95,8 @@ def build_onboarding_view(page_obj: ft.Page, on_complete: callable) -> ft.View:
                 size=18,
                 weight=ft.FontWeight.W_500,
                 color=palette["text"],
+                text_align=ft.TextAlign.CENTER,
+                width=float("inf"),
             ),
             ft.Dropdown(
                 ref=selected_country,
@@ -111,7 +113,7 @@ def build_onboarding_view(page_obj: ft.Page, on_complete: callable) -> ft.View:
                 focused_border_color=AppColors.PRIMARY,
                 content_padding=ft.Padding.symmetric(horizontal=16, vertical=14),
                 menu_style=ft.MenuStyle(bgcolor=palette["surface_variant"]),
-                text_align=ft.TextAlign.START,
+                text_align=ft.TextAlign.CENTER,
                 menu_height=300,
             ),
             ft.Divider(height=20, color=AppColors.TRANSPARENT),
