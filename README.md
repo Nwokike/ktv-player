@@ -22,13 +22,12 @@
 
 | Platform | Download | Notes |
 |:--------:|:--------:|:------|
-| 🤖 **Android (Universal)** | [**ktv.apk**](dl/ktv.apk) | Works on all Android devices (ARM64, ARMv7, x86_64) |
-| 🤖 **Android (ARM64)** | [**ktv-arm64-v8a.apk**](dl/ktv-arm64-v8a.apk) | For modern 64-bit Android devices |
-| 🤖 **Android (ARM32)** | [**ktv-armeabi-v7a.apk**](dl/ktv-armeabi-v7a.apk) | For older 32-bit Android devices |
-| 🤖 **Android (x86_64)** | [**ktv-x86_64.apk**](dl/ktv-x86_64.apk) | For Android emulators / ChromeOS |
-| 🪟 **Windows** | [**KTV_Player_Setup.exe**](dl/KTV_Player_Setup.exe) | Windows 10/11 Installer (64-bit) |
-| 🐧 **Linux** | [**linux-app.zip**](dl/linux-app.zip) | x86_64, requires GTK 3 |
-
+| 🤖 **Android (Universal)** | [**ktv.apk**](https://github.com/Nwokike/ktv-player/releases/latest/download/ktv.apk) | Works on all Android devices (ARM64, ARMv7, x86_64) |
+| 🤖 **Android (ARM64)** | [**ktv-arm64-v8a.apk**](https://github.com/Nwokike/ktv-player/releases/latest/download/ktv-arm64-v8a.apk) | For modern 64-bit Android devices |
+| 🤖 **Android (ARM32)** | [**ktv-armeabi-v7a.apk**](https://github.com/Nwokike/ktv-player/releases/latest/download/ktv-armeabi-v7a.apk) | For older 32-bit Android devices |
+| 🤖 **Android (x86_64)** | [**ktv-x86_64.apk**](https://github.com/Nwokike/ktv-player/releases/latest/download/ktv-x86_64.apk) | For Android emulators / ChromeOS |
+| 🪟 **Windows** | [**KTV_Player_Setup.exe**](https://github.com/Nwokike/ktv-player/releases/latest/download/KTV_Player_Setup.exe) | Windows 10/11 Installer (64-bit) |
+| 🐧 **Linux** | [**linux-app.zip**](https://github.com/Nwokike/ktv-player/releases/latest/download/linux-app.zip) | x86_64, requires GTK 3 |
 ---
 
 ## Screenshots
