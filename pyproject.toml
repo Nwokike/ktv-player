@@ -1,5 +1,5 @@
 [project]
-name = "KTV"
+name = "ktv"
 version = "1.0.0"
 description = "A lightning-fast TV player built for seamless network streaming and custom channel addition."
 readme = "README.md"
@@ -13,17 +13,15 @@ dependencies = [
 ]
 
 [tool.flet]
-app_name = "ktv_player"
-product_name = "KTV Player"
-org_domain = "ng.kiri"
+org = "ng.kiri"
+product = "KTV Player"
+build_number = 1
 
 [tool.flet.app]
 path = "src"
 
 [tool.flet.android]
-package_name = "ng.kiri.ktvplayer"
-build_number = 1
-build_version = "1.0.0"
+bundle_id = "ng.kiri.ktvplayer"
 
 [tool.flet.android.manifest_application]
 usesCleartextTraffic = "true"
@@ -35,3 +33,7 @@ usesCleartextTraffic = "true"
 "android.permission.INTERNET" = true
 "android.permission.ACCESS_NETWORK_STATE" = true
 "android.permission.WAKE_LOCK" = true
+
+[tool.flet.android.feature]
+"android.software.leanback" = false
+"android.hardware.touchscreen" = false

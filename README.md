@@ -2,54 +2,105 @@
   <img src="src/assets/icon.png" alt="KTV Player" width="140" />
 </p>
 
-# KTV Player
+<h1 align="center">KTV Player</h1>
 
-A high-performance, cross-platform IPTV rendering engine built with Python and Flet. KTV Player is designed to handle massive M3U8 playlists and live stream URLs with zero latency, utilizing local caching and asynchronous DOM rendering.
+<p align="center">
+  A high-performance, cross-platform IPTV rendering engine built with Python and Flet.<br/>
+  Handles massive M3U8 playlists with zero-lag virtual scrolling and real-time stream validation.
+</p>
 
-## Core Features
+<p align="center">
+  <a href="apk/KTV.apk"><strong>📥 Download for Android (Universal APK)</strong></a><br/>
+  <sub>Supports all Android architectures — ARM64, ARMv7, and x86_64 in a single build.</sub>
+</p>
 
-* **Asynchronous Rendering Engine:** Utilizes Flet and Flutter's hardware-accelerated canvas for smooth UI performance, even with 10,000+ channels.
-* **Dynamic M3U Parsing:** Parses and validates complex `.m3u` and `.m3u8` playlists in background threads to prevent UI blocking.
-* **Smart Categorization:** Automatically groups networks by Country and Category based on playlist metadata.
-* **Deep-Link Integration:** Supports `ktv://play?url=<base64>` deep-linking for seamless integration with external catalogs and intent triggers.
-* **Glassmorphism UI:** A premium, modern interface optimized for both mobile touchscreens and TV remotes.
-* **Local Persistence:** High-speed WAL-mode SQLite database for managing watch history, favorites, and custom network configurations.
+---
 
-## Architecture Stack
+## Screenshots
 
-* **Frontend:** Flet (Python to Flutter engine)
-* **Video Playback:** `flet-video`
-* **Database:** `aiosqlite` (Asynchronous SQLite)
-* **Monetization:** `flet-ads` (Google AdMob Interstitial & Banner integration)
-* **Network:** `httpx` (Async HTTP client)
+### Desktop & TV Experience
 
-## Installation & Development
+<p align="center">
+  <img src="screenshots/dashboard_my_country.png" width="90%" alt="Home Dashboard" />
+</p>
+<p align="center"><em>Your home country channels load first — live indicators show stream status in real time</em></p>
 
-This project utilizes `uv` for lightning-fast dependency management.
+<p align="center">
+  <img src="screenshots/search_al_jazera_dark.png" width="90%" alt="Instant Search in Dark Mode" />
+</p>
+<p align="center"><em>Instant search across all channels — find Al Jazeera EN and AR feeds in one keystroke</em></p>
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/Kiri-labs/ktv-player.git
-   cd ktv-player
-   ```
+<p align="center">
+  <img src="screenshots/Custom_add.png" width="90%" alt="Stealth Shortcodes" />
+</p>
+<p align="center"><em>Add custom playlists or single channels</em></p>
 
-2. **Install dependencies:**
-   ```bash
-   uv sync .
-   ```
+<table>
+  <tr>
+    <td><img src="screenshots/category_tab.png" width="100%" alt="Browse by Category" /></td>
+    <td><img src="screenshots/other_country.png" width="100%" alt="Browse by Region" /></td>
+  </tr>
+  <tr>
+    <td align="center"><em>Browse by category — News, Business, Documentaries, Kids</em></td>
+    <td align="center"><em>Explore VOD libraries and regional collections</em></td>
+  </tr>
+</table>
 
-3. **Run locally:**
-   ```bash
-   uv run flet run src/main.py
-   ```
+### Mobile Experience
 
-## Production Build
+<table>
+  <tr>
+    <td width="50%"><img src="screenshots/mobile_view.png" width="280" alt="Mobile Light Mode" /></td>
+    <td width="50%"><img src="screenshots/mobile_view_dark_mode.png" width="280" alt="Mobile Dark Mode" /></td>
+  </tr>
+  <tr>
+    <td align="center"><em>Compact mobile layout with live stream indicators</em></td>
+    <td align="center"><em>Full dark mode — easy on the eyes for late-night watching</em></td>
+  </tr>
+</table>
 
-To compile the application into a standalone Android APK:
+---
+
+## Features
+
+- **Virtual-Scrolled Grid** — Only visible channels are rendered. A 300-channel group loads as fast as a 10-channel group.
+- **Real-Time Stream Indicators** — Green/red dots validate streams in batches. Results cached per session — no redundant checks.
+- **Smart Categorization** — Auto-groups channels by Country and Category from playlist metadata.
+- **Custom Playlists** — Add any M3U8 URL or single stream. Stealth shortcodes for curated collections.
+- **TV Remote Ready** — D-pad navigation with visible focus highlights. Built for Android TV and Fire Stick.
+- **Dark/Light Mode** — System-aware theme with Glassmorphism UI.
+- **AdMob Integration** — Non-intrusive anchor banners and interstitials.
+- **Offline-First** — 24-hour playlist cache. WAL-mode SQLite for instant history and favorites.
+
+## Architecture
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Flet (Python → Flutter) |
+| Video | `flet-video` |
+| Database | `aiosqlite` (async SQLite, WAL mode) |
+| Network | `httpx` (async, connection pooling) |
+| Ads | `flet-ads` (Google AdMob) |
+
+## Quick Start
 
 ```bash
-flet build apk src
+git clone https://github.com/Nwokike/ktv-player.git
+cd ktv-player
+uv sync
+uv run flet run src/main.py
+```
+
+## Build
+
+```bash
+# Android APK
+flet build apk
+
+# Windows
+flet build windows
 ```
 
 ## Legal Disclaimer
+
 KTV Player is a network utility and media player. It includes a built-in directory of publicly available, legal, free-to-air broadcasts. It does not contain, host, or distribute any copyrighted premium media. Users are solely responsible for ensuring they have the legal right to access any third-party networks they manually configure via the custom playlist integration.

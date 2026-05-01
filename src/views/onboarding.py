@@ -66,21 +66,28 @@ def build_onboarding_view(page_obj: ft.Page, on_complete: callable) -> ft.View:
         "networks you manually configure within the custom library section of this app."
     )
 
-    content = ft.Column(
-        [
-            ft.Image(src="/icon.png", width=100, height=100),
-            ft.Text(
-                "Welcome",
-                size=32,
-                weight=ft.FontWeight.BOLD,
-                color=palette["text"],
-                text_align=ft.TextAlign.CENTER,
-            ),
-            ft.Text(
-                "A lightning-fast TV player built for seamless network streaming and custom channel addition.",
-                size=16,
-                text_align=ft.TextAlign.CENTER,
-                color=palette["text_dim"],
+    content = ft.ListView(
+        controls=[
+            ft.Container(height=40),
+            ft.Column(
+                [
+                    ft.Image(src="/icon.png", width=100, height=100),
+                    ft.Text(
+                        "Welcome",
+                        size=32,
+                        weight=ft.FontWeight.BOLD,
+                        color=palette["text"],
+                        text_align=ft.TextAlign.CENTER,
+                    ),
+                    ft.Text(
+                        "A lightning-fast TV player built for seamless network streaming and custom channel addition.",
+                        size=16,
+                        text_align=ft.TextAlign.CENTER,
+                        color=palette["text_dim"],
+                    ),
+                ],
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                spacing=10,
             ),
             ft.Divider(height=20, color=AppColors.TRANSPARENT),
             ft.Text(
@@ -92,7 +99,6 @@ def build_onboarding_view(page_obj: ft.Page, on_complete: callable) -> ft.View:
             ft.Dropdown(
                 ref=selected_country,
                 options=[ft.dropdown.Option(c["name"]) for c in countries_from_playlist],
-                expand=True,
                 border_radius=15,
                 filled=True,
                 fill_color=palette["surface_variant"],
@@ -106,6 +112,7 @@ def build_onboarding_view(page_obj: ft.Page, on_complete: callable) -> ft.View:
                 content_padding=ft.Padding.symmetric(horizontal=16, vertical=14),
                 menu_style=ft.MenuStyle(bgcolor=palette["surface_variant"]),
                 text_align=ft.TextAlign.START,
+                max_menu_height=300,
             ),
             ft.Divider(height=20, color=AppColors.TRANSPARENT),
             ft.Container(
@@ -143,13 +150,13 @@ def build_onboarding_view(page_obj: ft.Page, on_complete: callable) -> ft.View:
                     padding=20,
                     shape=ft.RoundedRectangleBorder(radius=15),
                 ),
-                expand=True,
+                width=float("inf"),
             ),
+            ft.Container(height=40),
         ],
-        alignment=ft.MainAxisAlignment.CENTER,
-        horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
+        expand=True,
         spacing=10,
-        tight=True,
+        padding=ft.Padding(40, 0, 40, 0),
     )
 
     return ft.View(
@@ -158,9 +165,7 @@ def build_onboarding_view(page_obj: ft.Page, on_complete: callable) -> ft.View:
             ft.Container(
                 content=content,
                 expand=True,
-                padding=40,
                 bgcolor=palette["page_bg"],
-                alignment=ft.Alignment.CENTER,
             )
         ],
         vertical_alignment=ft.MainAxisAlignment.CENTER,

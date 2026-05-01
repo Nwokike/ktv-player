@@ -8,6 +8,8 @@ from components.ui.glass_container import GlassContainer
 from database.manager import db_manager
 from services.ad_service import AdService
 
+_liveliness_cache = {}
+
 
 def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdService) -> ft.View:
     view_state = {
@@ -24,33 +26,56 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
     custom_content = ft.ListView(expand=True, spacing=15)
     preferences_content = ft.ListView(expand=True, spacing=15)
 
-    check_semaphore = asyncio.Semaphore(5)
+    check_semaphore = asyncio.Semaphore(8)
     _shared_http_client = None
 
     def _get_http_client():
         nonlocal _shared_http_client
         if _shared_http_client is None or _shared_http_client.is_closed:
-            _shared_http_client = httpx.AsyncClient(timeout=3.0, follow_redirects=True)
+            _shared_http_client = httpx.AsyncClient(
+                timeout=3.0,
+                follow_redirects=True,
+                limits=httpx.Limits(max_connections=20, max_keepalive_connections=10),
+            )
         return _shared_http_client
 
-    async def check_channel_liveliness(url: str, indicator: ft.Container):
-        if not url:
-            return
+    async def _check_single(url: str) -> tuple[str, bool]:
+        cached = _liveliness_cache.get(url)
+        if cached is not None:
+            return (url, cached)
+
         async with check_semaphore:
             try:
                 client = _get_http_client()
                 resp = await client.head(url, timeout=2.0)
-                if resp.status_code < 400:
-                    indicator.bgcolor = AppColors.SUCCESS
-                else:
-                    indicator.bgcolor = AppColors.ERROR
+                is_live = resp.status_code < 400
+                _liveliness_cache[url] = is_live
+                return (url, is_live)
             except Exception:
-                indicator.bgcolor = AppColors.ERROR
+                _liveliness_cache[url] = False
+                return (url, False)
+
+    async def _fire_liveliness_batch(cards_data: list):
+        BATCH_SIZE = 10
+        for i in range(0, len(cards_data), BATCH_SIZE):
+            batch = cards_data[i : i + BATCH_SIZE]
+            tasks = [_check_single(cd["url"]) for cd in batch]
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+
+            for cd, result in zip(batch, results):
+                if isinstance(result, tuple):
+                    _, is_live = result
+                    cd["indicator"].bgcolor = AppColors.SUCCESS if is_live else AppColors.ERROR
+                else:
+                    cd["indicator"].bgcolor = AppColors.ERROR
 
             try:
-                indicator.update()
+                page_obj.update()
             except Exception:
                 pass
+
+            if i + BATCH_SIZE < len(cards_data):
+                await asyncio.sleep(0.05)
 
     def close_dialog(e_page_obj):
         e_page_obj.pop_dialog()
@@ -145,8 +170,16 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
     )
 
     def create_channel_card(c):
+        url = c.get("url", "")
+        cached = _liveliness_cache.get(url)
+        initial_color = AppColors.GREY_DIM
+        if cached is True:
+            initial_color = AppColors.SUCCESS
+        elif cached is False:
+            initial_color = AppColors.ERROR
+
         status_indicator = ft.Container(
-            width=10, height=10, border_radius=5, bgcolor=AppColors.GREY_DIM
+            width=10, height=10, border_radius=5, bgcolor=initial_color
         )
 
         card_visual = GlassContainer(
@@ -175,50 +208,41 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
             ),
             padding=10,
             border_radius=25,
-            height=130,
+            focusable=True,
         )
 
         interactive_card = ft.Container(
             content=card_visual,
             border_radius=25,
             ink=True,
-            on_click=lambda e, url=c.get("url"): page_obj.run_task(on_play, url),
+            on_click=lambda e, play_url=url: page_obj.run_task(on_play, play_url),
         )
 
-        interactive_card.data = {"url": c.get("url"), "indicator": status_indicator}
+        interactive_card.data = {"url": url, "indicator": status_indicator}
         return interactive_card
 
     def build_grid(channels):
-        controls = []
-
-        for i, c in enumerate(channels):
-            controls.append(
-                ft.Container(
-                    content=create_channel_card(c),
-                    col={
-                        "xs": 4,
-                        "sm": 3,
-                        "md": 2,
-                        "lg": 2,
-                        "xl": 1,
-                    },
-                )
-            )
-
-            if (i + 1) % 12 == 0:
-                controls.append(
-                    ft.Container(
-                        content=ad_service.get_standard_banner_ad(),
-                        col=12,
-                        alignment=ft.Alignment.CENTER,
-                    )
-                )
-
-        return ft.ResponsiveRow(
-            controls=controls,
-            spacing=15,
-            run_spacing=15,
+        grid = ft.GridView(
+            max_extent=130,
+            child_aspect_ratio=0.85,
+            spacing=12,
+            run_spacing=12,
         )
+
+        for c in channels:
+            grid.controls.append(create_channel_card(c))
+
+        return grid
+
+    def _collect_cards_data(grid) -> list:
+        cards_data = []
+        for card in grid.controls:
+            if card and getattr(card, "data", None):
+                url = card.data.get("url")
+                indicator = card.data.get("indicator")
+                if url and indicator:
+                    cards_data.append({"url": url, "indicator": indicator})
+        return cards_data
 
     def handle_expansion(e, channels):
         if str(e.data).lower() == "true":
@@ -226,18 +250,9 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
                 grid = build_grid(channels)
                 e.control.controls = [grid]
                 e.control.update()
-
-                check_count = 0
-                max_checks = 15
-                for responsive_col in grid.controls:
-                    card = responsive_col.content
-                    if card and getattr(card, "data", None):
-                        url = card.data.get("url")
-                        indicator = card.data.get("indicator")
-                        if url and indicator:
-                            check_count += 1
-                            if check_count <= max_checks:
-                                page_obj.run_task(check_channel_liveliness, url, indicator)
+                cards_data = _collect_cards_data(grid)
+                if cards_data:
+                    page_obj.run_task(_fire_liveliness_batch, cards_data)
 
     def update_tab_content(tab_index: int):
         target = [countries_content, categories_content, custom_content, preferences_content][
@@ -447,6 +462,7 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
                 group_names.remove(state.user_country)
                 group_names.insert(0, state.user_country)
 
+            ad_counter = 0
             for name in group_names:
                 channels = groups[name]
                 should_expand = (tab_index == 0 and name == state.user_country) or (
@@ -457,18 +473,9 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
                 if should_expand:
                     grid = build_grid(channels)
                     tile_controls = [grid]
-
-                    check_count = 0
-                    max_checks = 15
-                    for responsive_col in grid.controls:
-                        card = responsive_col.content
-                        if card and getattr(card, "data", None):
-                            url = card.data.get("url")
-                            indicator = card.data.get("indicator")
-                            if url and indicator:
-                                check_count += 1
-                                if check_count <= max_checks:
-                                    page_obj.run_task(check_channel_liveliness, url, indicator)
+                    cards_data = _collect_cards_data(grid)
+                    if cards_data:
+                        page_obj.run_task(_fire_liveliness_batch, cards_data)
 
                 target.controls.append(
                     ft.ExpansionTile(
@@ -478,6 +485,16 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
                         controls=tile_controls,
                     )
                 )
+
+                ad_counter += 1
+                if ad_counter % 4 == 0:
+                    target.controls.append(
+                        ft.Container(
+                            content=ad_service.get_standard_banner_ad(),
+                            alignment=ft.Alignment.CENTER,
+                            padding=ft.Padding(0, 5, 0, 5),
+                        )
+                    )
 
     tab_view_container = ft.TabBarView(
         controls=[countries_content, categories_content, custom_content, preferences_content],
