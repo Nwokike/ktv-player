@@ -112,7 +112,7 @@ def build_onboarding_view(page_obj: ft.Page, on_complete: callable) -> ft.View:
                 content_padding=ft.Padding.symmetric(horizontal=16, vertical=14),
                 menu_style=ft.MenuStyle(bgcolor=palette["surface_variant"]),
                 text_align=ft.TextAlign.START,
-                max_menu_height=300,
+                menu_height=300,
             ),
             ft.Divider(height=20, color=AppColors.TRANSPARENT),
             ft.Container(
