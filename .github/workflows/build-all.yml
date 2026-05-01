@@ -18,6 +18,8 @@ env:
   PYTHONUTF8: "1"
   FLET_CLI_NO_RICH_OUTPUT: "1"
   UV_PYTHON: "3.13"
+  BUILD_VERSION: ${{ inputs.build_version || '1.0.0' }}
+  BUILD_NUMBER: ${{ inputs.build_number || '1' }}
 
 jobs:
   # ─── Windows ───────────────────────────────────────────
@@ -120,27 +122,27 @@ jobs:
   #         name: web-app
   #         path: build/web/
 
-  # ─── macOS (requires macOS runner) ─────────────────────
+  # ─── macOS ─────────────────────────────────────────────────────────────────
   build-macos:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
       - name: Build macOS
-        run: uv run flet build macos --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ inputs.build_version }} --build-number ${{ inputs.build_number }} -v
+        run: uv run flet build macos --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
       - uses: actions/upload-artifact@v4
         with:
           name: macos-app
           path: build/macos/
 
-  # ─── iOS (requires macOS runner + Apple signing) ───────
+  # ─── iOS ──────────────────────────────────────────────────────────────────
   build-ios:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
       - name: Build iOS
-        run: uv run flet build ipa --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ inputs.build_version }} --build-number ${{ inputs.build_number }} -v
+        run: uv run flet build ipa --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
       - uses: actions/upload-artifact@v4
         with:
           name: ios-app
