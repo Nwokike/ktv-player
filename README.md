@@ -9,8 +9,11 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20Android%20%7C%20Linux%20%7C%20Web-blue?style=flat-square" />
-  <img src="https://img.shields.io/badge/Built%20with-Flet%200.84-00B0FF?style=flat-square" />
+  <img src="https://img.shields.io/badge/Windows-0078D6?style=flat-square&logo=windows11&logoColor=white" alt="Windows" />
+  <img src="https://img.shields.io/badge/Android-3DDC84?style=flat-square&logo=android&logoColor=white" alt="Android" />
+  <img src="https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black" alt="Linux" />
+  <br>
+  <img src="https://img.shields.io/badge/Built%20with-Flet%200.84-00B0FF?style=flat-square" alt="Built with Flet" />
 </p>
 
 ---
@@ -23,7 +26,7 @@
 | 🤖 **Android (ARM64)** | [**ktv-arm64-v8a.apk**](dl/ktv-arm64-v8a.apk) | For modern 64-bit Android devices |
 | 🤖 **Android (ARM32)** | [**ktv-armeabi-v7a.apk**](dl/ktv-armeabi-v7a.apk) | For older 32-bit Android devices |
 | 🤖 **Android (x86_64)** | [**ktv-x86_64.apk**](dl/ktv-x86_64.apk) | For Android emulators / ChromeOS |
-| 🪟 **Windows** | [**windows-app.zip**](dl/windows-app.zip) | Windows 10/11 (64-bit) |
+| 🪟 **Windows** | [**KTV_Player_Setup.exe**](dl/KTV_Player_Setup.exe) | Windows 10/11 Installer (64-bit) |
 | 🐧 **Linux** | [**linux-app.zip**](dl/linux-app.zip) | x86_64, requires GTK 3 |
 
 ---
