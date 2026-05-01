@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "aiosqlite>=0.22.1",
-    "flet[all]>=0.84.0",
+    "flet>=0.84.0",
     "flet-ads>=0.84.0",
     "flet-video>=0.84.0",
     "httpx>=0.28.1",
