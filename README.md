@@ -5,14 +5,26 @@
 <h1 align="center">KTV Player</h1>
 
 <p align="center">
-  A high-performance, cross-platform IPTV rendering engine built with Python and Flet.<br/>
-  Handles massive M3U8 playlists with zero-lag virtual scrolling and real-time stream validation.
+  A high-performance, cross-platform IPTV rendering engine built with Python and Flet.
 </p>
 
 <p align="center">
-  <a href="apk/KTV.apk"><strong>📥 Download for Android (Universal APK)</strong></a><br/>
-  <sub>Supports all Android architectures — ARM64, ARMv7, and x86_64 in a single build.</sub>
+  <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20Android%20%7C%20Linux%20%7C%20Web-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/Built%20with-Flet%200.84-00B0FF?style=flat-square" />
 </p>
+
+---
+
+## Download
+
+| Platform | Download | Notes |
+|:--------:|:--------:|:------|
+| 🤖 **Android (Universal)** | [**ktv.apk**](dl/ktv.apk) | Works on all Android devices (ARM64, ARMv7, x86_64) |
+| 🤖 **Android (ARM64)** | [**ktv-arm64-v8a.apk**](dl/ktv-arm64-v8a.apk) | For modern 64-bit Android devices |
+| 🤖 **Android (ARM32)** | [**ktv-armeabi-v7a.apk**](dl/ktv-armeabi-v7a.apk) | For older 32-bit Android devices |
+| 🤖 **Android (x86_64)** | [**ktv-x86_64.apk**](dl/ktv-x86_64.apk) | For Android emulators / ChromeOS |
+| 🪟 **Windows** | [**windows-app.zip**](dl/windows-app.zip) | Windows 10/11 (64-bit) |
+| 🐧 **Linux** | [**linux-app.zip**](dl/linux-app.zip) | x86_64, requires GTK 3 |
 
 ---
 
@@ -31,7 +43,7 @@
 <p align="center"><em>Instant search across all channels — find Al Jazeera EN and AR feeds in one keystroke</em></p>
 
 <p align="center">
-  <img src="screenshots/Custom_add.png" width="90%" alt="Stealth Shortcodes" />
+  <img src="screenshots/Custom_add.png" width="90%" alt="Custom Playlists" />
 </p>
 <p align="center"><em>Add custom playlists or single channels</em></p>
 
@@ -41,8 +53,17 @@
     <td><img src="screenshots/other_country.png" width="100%" alt="Browse by Region" /></td>
   </tr>
   <tr>
-    <td align="center"><em>Browse by category — News, Business, Documentaries, Kids</em></td>
-    <td align="center"><em>Explore VOD libraries and regional collections</em></td>
+    <td align="center"><em>Browse by category — News, Business, Kids</em></td>
+    <td align="center"><em>Explore regional collections worldwide</em></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td><img src="screenshots/custom_list.png" width="100%" alt="Custom Library" /></td>
+  </tr>
+  <tr>
+    <td align="center"><em>Custom library — your personal channel collection</em></td>
   </tr>
 </table>
 
@@ -63,13 +84,11 @@
 
 ## Features
 
-- **Virtual-Scrolled Grid** — Only visible channels are rendered. A 300-channel group loads as fast as a 10-channel group.
-- **Real-Time Stream Indicators** — Green/red dots validate streams in batches. Results cached per session — no redundant checks.
+- **Real-Time Stream Indicators** — Green/red dots validate streams in batches. Results cached per session.
 - **Smart Categorization** — Auto-groups channels by Country and Category from playlist metadata.
 - **Custom Playlists** — Add any M3U8 URL or single stream. Stealth shortcodes for curated collections.
 - **TV Remote Ready** — D-pad navigation with visible focus highlights. Built for Android TV and Fire Stick.
 - **Dark/Light Mode** — System-aware theme with Glassmorphism UI.
-- **AdMob Integration** — Non-intrusive anchor banners and interstitials.
 - **Offline-First** — 24-hour playlist cache. WAL-mode SQLite for instant history and favorites.
 
 ## Architecture
@@ -77,29 +96,9 @@
 | Layer | Technology |
 |-------|-----------|
 | Frontend | Flet (Python → Flutter) |
-| Video | `flet-video` |
+| Video | `flet-video` (libmpv) |
 | Database | `aiosqlite` (async SQLite, WAL mode) |
 | Network | `httpx` (async, connection pooling) |
-| Ads | `flet-ads` (Google AdMob) |
-
-## Quick Start
-
-```bash
-git clone https://github.com/Nwokike/ktv-player.git
-cd ktv-player
-uv sync
-uv run flet run src/main.py
-```
-
-## Build
-
-```bash
-# Android APK
-flet build apk
-
-# Windows
-flet build windows
-```
 
 ## Legal Disclaimer
 
