@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
       - name: Build Windows
-        run: uv run flet build windows --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
+        run: uv run flet build windows --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
       - uses: actions/upload-artifact@v4
         with:
           name: windows-app
@@ -37,7 +37,7 @@ jobs:
           distribution: temurin
           java-version: 17
       - name: Build APK (universal)
-        run: uv run flet build apk --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
+        run: uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
       - uses: actions/upload-artifact@v4
         with:
           name: apk-universal
@@ -54,7 +54,7 @@ jobs:
           distribution: temurin
           java-version: 17
       - name: Build APK (split per ABI)
-        run: uv run flet build apk --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} --split-per-abi -v
+        run: uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} --split-per-abi -v
       - uses: actions/upload-artifact@v4
         with:
           name: apk-split-abi
@@ -71,7 +71,7 @@ jobs:
           distribution: temurin
           java-version: 17
       - name: Build AAB
-        run: uv run flet build aab --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
+        run: uv run flet build aab --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
       - uses: actions/upload-artifact@v4
         with:
           name: aab-playstore
@@ -94,7 +94,7 @@ jobs:
             gstreamer1.0-libav pkg-config libsecret-1-dev \
             liblzma-dev
       - name: Build Linux
-        run: uv run flet build linux --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
+        run: uv run flet build linux --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
       - uses: actions/upload-artifact@v4
         with:
           name: linux-app
@@ -107,7 +107,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
       - name: Build Web
-        run: uv run flet build web --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
+        run: uv run flet build web --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
       - uses: actions/upload-artifact@v4
         with:
           name: web-app
