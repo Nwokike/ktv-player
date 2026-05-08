@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       build_version:
-        description: "Build version (e.g. 0.1.1)"
+        description: "Build version (e.g. 1.0.1)"
         required: true
-        default: "0.1.1"
+        default: "1.0.1"
       build_number:
         description: "Build number"
         required: true
@@ -18,7 +18,7 @@ env:
   PYTHONUTF8: "1"
   FLET_CLI_NO_RICH_OUTPUT: "1"
   UV_PYTHON: "3.13"
-  BUILD_VERSION: ${{ inputs.build_version || '0.1.1' }}
+  BUILD_VERSION: ${{ inputs.build_version || '1.0.1' }}
   BUILD_NUMBER: ${{ inputs.build_number || '2' }}
 
 jobs:

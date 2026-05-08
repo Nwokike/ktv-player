@@ -17,7 +17,7 @@ env:
   PYTHONUTF8: "1"
   FLET_CLI_NO_RICH_OUTPUT: "1"
   UV_PYTHON: "3.13"
-  BUILD_VERSION: ${{ inputs.build_version || '1.0.0' }}
+  BUILD_VERSION: ${{ inputs.build_version || '1.0.1' }}
   BUILD_NUMBER: ${{ inputs.build_number || '1' }}
 
 jobs:
