@@ -1,10 +1,12 @@
 name: Build All Platforms
 
 on:
+  push:
+  pull_request:
   workflow_dispatch:
     inputs:
       build_version:
-        description: "Build version (e.g. 1.0.1)"
+        description: "Build version"
         required: true
         default: "1.0.1"
       build_number:
@@ -15,7 +17,7 @@ on:
 env:
   PYTHONUTF8: "1"
   FLET_CLI_NO_RICH_OUTPUT: "1"
-  UV_PYTHON: "3.13"
+  UV_PYTHON: "3.12"
   BUILD_VERSION: ${{ inputs.build_version || '1.0.1' }}
   BUILD_NUMBER: ${{ inputs.build_number || '2' }}
 
@@ -75,10 +77,60 @@ jobs:
           Set-Content -Path "installer.iss" -Value $IssContent -Encoding UTF8
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
           
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5.0.0
         with:
           name: windows-installer
           path: build/installer/KTV_Player_Setup.exe
+
+  # ─── Linux (With Official Media Drivers) ───────────────────
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Install Linux build dependencies
+        shell: bash
+        run: |
+          sudo apt update --allow-releaseinfo-change
+          sudo apt-get install -y --no-install-recommends \
+            clang ninja-build libgtk-3-dev libasound2-dev libmpv-dev mpv \
+            libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev \
+            gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
+            gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 \
+            gstreamer1.0-qt5 gstreamer1.0-pulseaudio pkg-config libsecret-1-0 libsecret-1-dev
+          sudo apt-get clean
+      - name: Build Linux
+        run: uv run flet build linux --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
+      - uses: actions/upload-artifact@v5.0.0
+        with:
+          name: linux-app
+          path: build/linux/
+
+  # ─── macOS ─────────────────────────────────────────────
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Build macOS
+        run: uv run flet build macos --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
+      - uses: actions/upload-artifact@v5.0.0
+        with:
+          name: macos-app
+          path: build/macos/
+
+  # ─── Web ───────────────────────────────────────────────
+  build-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Build Web
+        run: uv run flet build web --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
+      - uses: actions/upload-artifact@v5.0.0
+        with:
+          name: web-app
+          path: build/web/
 
   # ─── Android APK (universal) ───────────────────────────
   build-apk:
@@ -90,9 +142,18 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
+      - name: Decode Keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: echo "$KEYSTORE_BASE64" | base64 --decode > upload-key.jks
       - name: Build APK (universal)
+        env:
+          FLET_ANDROID_SIGNING_KEY_STORE: upload-key.jks
+          FLET_ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5.0.0
         with:
           name: apk-universal
           path: build/apk/
@@ -107,9 +168,18 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
+      - name: Decode Keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: echo "$KEYSTORE_BASE64" | base64 --decode > upload-key.jks
       - name: Build APK (split per ABI)
+        env:
+          FLET_ANDROID_SIGNING_KEY_STORE: upload-key.jks
+          FLET_ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} --split-per-abi -v
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5.0.0
         with:
           name: apk-split-abi
           path: build/apk/
@@ -124,32 +194,18 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
+      - name: Decode Keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: echo "$KEYSTORE_BASE64" | base64 --decode > upload-key.jks
       - name: Build AAB
+        env:
+          FLET_ANDROID_SIGNING_KEY_STORE: upload-key.jks
+          FLET_ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: uv run flet build aab --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5.0.0
         with:
           name: aab-playstore
           path: build/aab/
-
-  # ─── Linux ─────────────────────────────────────────────
-  build-linux:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
-      - name: Install Linux build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            clang ninja-build libgtk-3-dev \
-            libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
-            gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
-            gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
-            gstreamer1.0-libav pkg-config libsecret-1-dev \
-            libmpv-dev liblzma-dev
-      - name: Build Linux
-        run: uv run flet build linux --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
-      - uses: actions/upload-artifact@v4
-        with:
-          name: linux-app
-          path: build/linux/
