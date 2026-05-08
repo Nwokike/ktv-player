@@ -7,6 +7,7 @@ from core.theme import AppColors
 from components.ui.glass_container import GlassContainer
 from database.manager import db_manager
 from services.ad_service import AdService
+from core.focus_manager import FocusManager
 
 _liveliness_cache = {}
 
@@ -55,8 +56,9 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
                 _liveliness_cache[url] = False
                 return (url, False)
 
-    async def _fire_liveliness_batch(cards_data: list):
+    async def _fire_liveliness_batch(cards_data: list, target_control=None):
         BATCH_SIZE = 10
+        UPDATE_INTERVAL = 3  # Only call update() every N batches
         for i in range(0, len(cards_data), BATCH_SIZE):
             batch = cards_data[i : i + BATCH_SIZE]
             tasks = [_check_single(cd["url"]) for cd in batch]
@@ -69,12 +71,18 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
                 else:
                     cd["indicator"].bgcolor = AppColors.ERROR
 
-            try:
-                page_obj.update()
-            except Exception:
-                pass
+            batch_num = i // BATCH_SIZE
+            is_last = (i + BATCH_SIZE) >= len(cards_data)
+            if is_last or (batch_num % UPDATE_INTERVAL == 0):
+                try:
+                    if target_control:
+                        target_control.update()
+                    else:
+                        page_obj.update()
+                except Exception:
+                    pass
 
-            if i + BATCH_SIZE < len(cards_data):
+            if not is_last:
                 await asyncio.sleep(0.05)
 
     def close_dialog(e_page_obj):
@@ -131,10 +139,39 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
             page_obj.snack_bar.open = True
             page_obj.update()
 
+    async def focus_field(field_ref):
+        if field_ref.current:
+            await field_ref.current.focus()
+
+    def create_tv_field(label, hint, ref, next_ref=None, is_submit=False):
+        # Wrapper container for TV navigation
+        container = ft.Container(
+            content=ft.Column([
+                ft.Text(label, size=12, color=AppColors.GREY_DIM, weight=ft.FontWeight.W_500),
+                ft.TextField(
+                    ref=ref,
+                    hint_text=hint,
+                    border=ft.InputBorder.NONE,
+                    height=40,
+                    content_padding=ft.Padding(10, 0, 10, 0),
+                    on_submit=lambda e: page_obj.run_task(focus_field, next_ref) if next_ref else (page_obj.run_task(handle_add, e) if is_submit else None),
+                ),
+            ], spacing=2),
+            padding=10,
+            border=ft.Border.all(1, AppColors.GREY_DIM),
+            border_radius=8,
+            on_click=lambda e: page_obj.run_task(focus_field, ref),
+        )
+        container.on_focus = lambda e: FocusManager.focus_style(e.control, True, AppColors.PRIMARY)
+        container.on_blur = lambda e: FocusManager.focus_style(e.control, False, AppColors.GREY_DIM)
+        container.tab_index = 0
+        return container
+
     add_dialog = ft.AlertDialog(
-        title=ft.Text("Add Custom Content"),
+        title=ft.Text("Add Custom Content", weight=ft.FontWeight.BOLD),
         content=ft.Column(
             [
+                ft.Text("Type", size=12, color=AppColors.GREY_DIM, weight=ft.FontWeight.W_500),
                 ft.SegmentedButton(
                     selected=[view_state["add_type"]],
                     allow_empty_selection=False,
@@ -152,24 +189,41 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
                         ),
                     ],
                 ),
-                ft.TextField(ref=new_name, label="Name", hint_text="Enter reference name"),
-                ft.TextField(ref=new_url, label="URL", hint_text="Enter M3U8 or Playlist URL"),
+                ft.Divider(height=10, color=ft.Colors.TRANSPARENT),
+                create_tv_field("Name", "Enter reference name", new_name, next_ref=new_url),
+                create_tv_field("URL", "Enter M3U8 or Playlist URL", new_url, is_submit=True),
+                ft.Text(
+                    "Tip: Press OK/Enter to start editing, then Enter to move.",
+                    size=11,
+                    color=AppColors.GREY_DIM,
+                    italic=True,
+                ),
             ],
             tight=True,
-            spacing=15,
-            width=400,
+            spacing=10,
+            width=500,
         ),
         actions=[
-            ft.TextButton(content="Cancel", on_click=lambda e: close_dialog(page_obj)),
+            ft.TextButton(
+                content="Cancel", 
+                on_click=lambda e: close_dialog(page_obj),
+                style=ft.ButtonStyle(padding=20)
+            ),
             ft.FilledButton(
-                content="Add",
+                content="Add Content",
                 on_click=handle_add,
-                style=ft.ButtonStyle(bgcolor=AppColors.PRIMARY, color=ft.Colors.WHITE),
+                style=ft.ButtonStyle(
+                    bgcolor=AppColors.PRIMARY, 
+                    color=ft.Colors.WHITE,
+                    padding=20,
+                    shape=ft.RoundedRectangleBorder(radius=8)
+                ),
             ),
         ],
+        actions_alignment=ft.MainAxisAlignment.END,
     )
 
-    def create_channel_card(c):
+    def create_channel_card(c, card_index=0):
         url = c.get("url", "")
         cached = _liveliness_cache.get(url)
         initial_color = AppColors.GREY_DIM
@@ -182,6 +236,7 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
             width=10, height=10, border_radius=5, bgcolor=initial_color
         )
 
+        card_key = f"ch_{card_index}_{hash(url) % 10000}"
         card_visual = GlassContainer(
             content=ft.Column(
                 [
@@ -209,6 +264,7 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
             padding=10,
             border_radius=25,
             focusable=True,
+            key=card_key,
         )
 
         interactive_card = ft.Container(
@@ -225,7 +281,7 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
         grid = ft.ResponsiveRow(spacing=12, run_spacing=12)
 
         for i, c in enumerate(channels):
-            card = create_channel_card(c)
+            card = create_channel_card(c, card_index=i)
             card_wrapper = ft.Container(
                 content=card,
                 col={"xs": 4, "sm": 3, "md": 2, "lg": 2},
@@ -258,12 +314,61 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
     def handle_expansion(e, channels):
         if str(e.data).lower() == "true":
             if not e.control.controls:
-                grid = build_grid(channels)
-                e.control.controls = [grid]
-                e.control.update()
-                cards_data = _collect_cards_data(grid)
-                if cards_data:
-                    page_obj.run_task(_fire_liveliness_batch, cards_data)
+                page_obj.run_task(_progressive_expand, e.control, channels)
+
+    async def _progressive_expand(tile, channels):
+        """Build channel grid progressively in chunks to prevent UI freeze."""
+        # 1. Show loading indicator immediately
+        loading = ft.Container(
+            content=ft.Row(
+                [
+                    ft.ProgressRing(width=24, height=24, stroke_width=3, color=AppColors.PRIMARY),
+                    ft.Text(f"Loading {len(channels)} channels...", color=AppColors.GREY_DIM, size=12),
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                spacing=10,
+            ),
+            padding=20,
+            alignment=ft.Alignment.CENTER,
+        )
+        tile.controls = [loading]
+        tile.update()
+
+        # 2. Build grid progressively in chunks
+        grid = ft.ResponsiveRow(spacing=12, run_spacing=12)
+        CHUNK_SIZE = 25
+
+        for chunk_start in range(0, len(channels), CHUNK_SIZE):
+            chunk = channels[chunk_start : chunk_start + CHUNK_SIZE]
+            for i_in_chunk, c in enumerate(chunk):
+                global_idx = chunk_start + i_in_chunk
+                card = create_channel_card(c, card_index=global_idx)
+                card_wrapper = ft.Container(
+                    content=card,
+                    col={"xs": 4, "sm": 3, "md": 2, "lg": 2},
+                )
+                grid.controls.append(card_wrapper)
+
+                # Insert ad every 12 cards
+                if (global_idx + 1) % 12 == 0 and (global_idx + 1) < len(channels):
+                    grid.controls.append(
+                        ft.Container(
+                            content=ad_service.get_standard_banner_ad(),
+                            col=12,
+                            alignment=ft.Alignment.CENTER,
+                            padding=ft.Padding(0, 5, 0, 5),
+                        )
+                    )
+
+            # Replace loading with grid-so-far and yield to UI
+            tile.controls = [grid]
+            tile.update()
+            await asyncio.sleep(0)  # Yield to UI thread
+
+        # 3. Fire liveliness checks after all cards are rendered
+        cards_data = _collect_cards_data(grid)
+        if cards_data:
+            page_obj.run_task(_fire_liveliness_batch, cards_data, tile)
 
     def update_tab_content(tab_index: int):
         target = [countries_content, categories_content, custom_content, preferences_content][
@@ -325,14 +430,6 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
                 page_obj.snack_bar.open = True
                 page_obj.update()
 
-            async def handle_country_change(e):
-                val = e.control.value
-                await db_manager.set_setting("user_country", val)
-                state.user_country = val
-                page_obj.snack_bar = ft.SnackBar(ft.Text(f"Primary country updated to {val}"))
-                page_obj.snack_bar.open = True
-                page_obj.update()
-
             unique_countries = sorted(
                 list(
                     set(
@@ -351,11 +448,68 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
             ):
                 unique_countries = ["Global", "Nigeria", "USA", "UK", "Other"]
 
-            country_dropdown = ft.Dropdown(
-                label="Primary Content Region",
-                value=state.user_country if state.user_country in unique_countries else None,
-                options=[ft.dropdown.Option(c) for c in unique_countries],
-                on_select=handle_country_change,
+            # TV-ready country picker: ListView of focusable ListTiles
+            settings_country_list = ft.ListView(height=180, spacing=2, padding=5, auto_scroll=False)
+            settings_country_tiles = []
+
+            def _settings_select_country(name):
+                async def _do_select():
+                    await db_manager.set_setting("user_country", name)
+                    state.user_country = name
+                    for ti in settings_country_tiles:
+                        is_sel = ti["name"] == name
+                        ti["tile"].bgcolor = AppColors.PRIMARY if is_sel else None
+                        ti["tile"].leading = ft.Icon(
+                            ft.Icons.CHECK_CIRCLE if is_sel else ft.Icons.RADIO_BUTTON_UNCHECKED,
+                            color=ft.Colors.WHITE if is_sel else AppColors.GREY_DIM,
+                        )
+                        ti["tile"].title = ft.Text(
+                            ti["name"],
+                            color=ft.Colors.WHITE if is_sel else None,
+                            weight=ft.FontWeight.W_500 if is_sel else ft.FontWeight.NORMAL,
+                        )
+                    settings_country_list.update()
+                    page_obj.snack_bar = ft.SnackBar(ft.Text(f"Primary country updated to {name}"))
+                    page_obj.snack_bar.open = True
+                    page_obj.update()
+                page_obj.run_task(_do_select)
+
+            def _settings_tile_focus(e):
+                ck = getattr(e.control, "key", None)
+                if ck:
+                    try:
+                        settings_country_list.scroll_to(key=ck, duration=200)
+                    except Exception:
+                        pass
+
+            for cname in unique_countries:
+                is_current = cname == state.user_country
+                stile = ft.ListTile(
+                    title=ft.Text(
+                        cname,
+                        color=ft.Colors.WHITE if is_current else None,
+                        weight=ft.FontWeight.W_500 if is_current else ft.FontWeight.NORMAL,
+                    ),
+                    leading=ft.Icon(
+                        ft.Icons.CHECK_CIRCLE if is_current else ft.Icons.RADIO_BUTTON_UNCHECKED,
+                        color=ft.Colors.WHITE if is_current else AppColors.GREY_DIM,
+                    ),
+                    key=cname,
+                    bgcolor=AppColors.PRIMARY if is_current else None,
+                    on_click=lambda e, n=cname: _settings_select_country(n),
+                    dense=True,
+                    shape=ft.RoundedRectangleBorder(radius=8),
+                )
+                # on_focus is not in ListTile.__init__ signature, assign after
+                stile.on_focus = _settings_tile_focus
+
+                settings_country_tiles.append({"name": cname, "tile": stile})
+                settings_country_list.controls.append(stile)
+
+            country_picker = ft.Container(
+                content=settings_country_list,
+                border=ft.Border.all(1, AppColors.GREY_DIM),
+                border_radius=10,
             )
 
             target.controls.append(
@@ -374,7 +528,7 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
                             size=12,
                             color=AppColors.GREY_DIM,
                         ),
-                        country_dropdown,
+                        country_picker,
                         ft.Container(height=20),
                         ft.Text(
                             "Data Management",
@@ -487,14 +641,13 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
                     if cards_data:
                         page_obj.run_task(_fire_liveliness_batch, cards_data)
 
-                target.controls.append(
-                    ft.ExpansionTile(
-                        title=ft.Text(f"{name} ({len(channels)})", weight=ft.FontWeight.BOLD),
-                        expanded=should_expand,
-                        on_change=lambda e, ch=channels: handle_expansion(e, ch),
-                        controls=tile_controls,
-                    )
+                exp_tile = ft.ExpansionTile(
+                    title=ft.Text(f"{name} ({len(channels)})", weight=ft.FontWeight.BOLD),
+                    expanded=should_expand,
+                    on_change=lambda e, ch=channels: handle_expansion(e, ch),
+                    controls=tile_controls,
                 )
+                target.controls.append(exp_tile)
 
     tab_view_container = ft.TabBarView(
         controls=[countries_content, categories_content, custom_content, preferences_content],

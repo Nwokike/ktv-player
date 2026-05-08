@@ -25,3 +25,5 @@ htmlcov/
 /data/
 /temp/
 scratch/
+
+release_notes.md

@@ -7,7 +7,8 @@ from database.manager import db_manager
 
 
 def build_onboarding_view(page_obj: ft.Page, on_complete: callable) -> ft.View:
-    selected_country = ft.Ref[ft.Dropdown]()
+    selected_state = {"country": ""}
+
     terms_checked = ft.Ref[ft.Checkbox]()
 
     def _palette() -> dict:
@@ -27,6 +28,66 @@ def build_onboarding_view(page_obj: ft.Page, on_complete: callable) -> ft.View:
         countries_from_playlist = [{"name": "Global"}]
     countries_from_playlist.append({"name": "Other"})
 
+    # --- TV-Ready Country Picker: ListView of focusable ListTiles ---
+    country_list = ft.ListView(
+        height=220,
+        spacing=2,
+        padding=ft.Padding(5, 5, 5, 5),
+        auto_scroll=False,
+    )
+
+    # Track all tiles for selection styling
+    all_country_tiles = []
+
+    def select_country(name: str):
+        """Handle country selection — update visual state and store value."""
+        selected_state["country"] = name
+        for tile_info in all_country_tiles:
+            is_selected = tile_info["name"] == name
+            tile_info["tile"].bgcolor = AppColors.PRIMARY if is_selected else None
+            tile_info["tile"].leading = ft.Icon(
+                ft.Icons.CHECK_CIRCLE if is_selected else ft.Icons.RADIO_BUTTON_UNCHECKED,
+                color=ft.Colors.WHITE if is_selected else palette["text_dim"],
+            )
+            tile_info["tile"].title = ft.Text(
+                tile_info["name"],
+                color=ft.Colors.WHITE if is_selected else palette["text"],
+                weight=ft.FontWeight.W_500 if is_selected else ft.FontWeight.NORMAL,
+            )
+        country_list.update()
+
+    def _on_tile_focus(e):
+        """Scroll the country list to keep the focused tile visible."""
+        control_key = getattr(e.control, "key", None)
+        if control_key:
+            try:
+                country_list.scroll_to(key=control_key, duration=200)
+            except Exception:
+                pass
+
+    for c in countries_from_playlist:
+        cname = c["name"]
+        tile = ft.ListTile(
+            title=ft.Text(cname, color=palette["text"]),
+            leading=ft.Icon(ft.Icons.RADIO_BUTTON_UNCHECKED, color=palette["text_dim"]),
+            key=cname,
+            on_click=lambda e, name=cname: select_country(name),
+            dense=True,
+            shape=ft.RoundedRectangleBorder(radius=10),
+        )
+        # on_focus is not in ListTile.__init__ signature, assign after
+        tile.on_focus = _on_tile_focus
+        
+        all_country_tiles.append({"name": cname, "tile": tile})
+        country_list.controls.append(tile)
+
+    country_picker_container = ft.Container(
+        content=country_list,
+        border=ft.Border.all(1, palette["border"]),
+        border_radius=12,
+        clip_behavior=ft.ClipBehavior.ANTI_ALIAS,
+    )
+
     async def handle_submit(e):
         if not terms_checked.current.value:
             e.page.snack_bar = ft.SnackBar(
@@ -37,7 +98,7 @@ def build_onboarding_view(page_obj: ft.Page, on_complete: callable) -> ft.View:
             e.page.update()
             return
 
-        country_name = selected_country.current.value
+        country_name = selected_state["country"]
         if not country_name:
             e.page.snack_bar = ft.SnackBar(
                 ft.Text("Please select your country."),
@@ -98,24 +159,14 @@ def build_onboarding_view(page_obj: ft.Page, on_complete: callable) -> ft.View:
                 text_align=ft.TextAlign.CENTER,
                 width=float("inf"),
             ),
-            ft.Dropdown(
-                ref=selected_country,
-                options=[ft.dropdown.Option(c["name"]) for c in countries_from_playlist],
-                border_radius=15,
-                filled=True,
-                fill_color=palette["surface_variant"],
-                bgcolor=palette["surface_variant"],
-                color=palette["text"],
-                text_style=ft.TextStyle(color=palette["text"]),
-                hint_style=ft.TextStyle(color=palette["text_dim"]),
-                border=ft.InputBorder.OUTLINE,
-                border_color=palette["border"],
-                focused_border_color=AppColors.PRIMARY,
-                content_padding=ft.Padding.symmetric(horizontal=16, vertical=14),
-                menu_style=ft.MenuStyle(bgcolor=palette["surface_variant"]),
+            ft.Text(
+                "Use ▲ ▼ to browse, press OK to select",
+                size=12,
+                color=palette["text_dim"],
                 text_align=ft.TextAlign.CENTER,
-                menu_height=300,
+                width=float("inf"),
             ),
+            country_picker_container,
             ft.Divider(height=20, color=AppColors.TRANSPARENT),
             ft.Container(
                 content=ft.Text(

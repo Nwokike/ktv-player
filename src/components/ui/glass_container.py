@@ -10,6 +10,7 @@ class GlassContainer(ft.Container):
         expand: bool = False,
         on_click: callable = None,
         focusable: bool = False,
+        key: str = None,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -17,12 +18,16 @@ class GlassContainer(ft.Container):
         self.content = content
         self.padding = padding
         self.border_radius = border_radius
+        self.key = key
 
         self._default_border = ft.Border.all(0.5, ft.Colors.with_opacity(0.1, ft.Colors.ON_SURFACE))
         self._focus_border = ft.Border.all(2.5, ft.Colors.PRIMARY)
 
         self.bgcolor = ft.Colors.with_opacity(0.06, ft.Colors.ON_SURFACE)
         self.border = self._default_border
+
+        # Smooth scale animation for focus transitions
+        self.animate_scale = ft.Animation(duration=150, curve=ft.AnimationCurve.EASE_OUT)
 
         self.expand = expand
         self.on_click = on_click

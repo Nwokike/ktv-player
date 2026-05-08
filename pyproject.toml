@@ -1,6 +1,6 @@
 [project]
 name = "ktv"
-version = "1.0.0"
+version = "0.1.1"
 description = "A lightning-fast TV player built for seamless network streaming and custom channel addition."
 readme = "README.md"
 requires-python = ">=3.13"
@@ -15,7 +15,7 @@ dependencies = [
 [tool.flet]
 org = "ng.kiri"
 product = "KTV Player"
-build_number = 1
+build_number = 2
 
 [tool.flet.app]
 path = "src"

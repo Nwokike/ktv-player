@@ -5,6 +5,7 @@ import asyncio
 
 from core.theme import AppTheme, AppColors
 from core.state import state
+from core.focus_manager import FocusManager
 from services.iptv_service import iptv_service
 from services.lifecycle import LifecycleManager
 from services.ad_service import AdService
@@ -49,6 +50,34 @@ async def main(page: ft.Page):
     state.user_country = await db_manager.get_setting("user_country", "")
     state.has_accepted_terms = await db_manager.get_setting("has_accepted_terms", "false") == "true"
     state.is_first_launch = not state.has_accepted_terms
+
+    # --- TV Navigation: Global Back/Escape handler ---
+    def handle_global_back():
+        """Handle Back/Escape key from any screen."""
+        if len(page.views) > 1:
+            top_view = page.views[-1]
+            route = getattr(top_view, "route", "")
+
+            if route.startswith("/play"):
+                # Pause video before leaving player
+                for control in top_view.controls:
+                    if hasattr(control, "pause"):
+                        try:
+                            control.pause()
+                        except Exception:
+                            pass
+                page.run_task(navigate, "/dashboard")
+            elif route == "/dashboard":
+                # On dashboard, do nothing (or could minimize app)
+                pass
+            elif route == "/onboarding":
+                # On onboarding, do nothing
+                pass
+            else:
+                page.run_task(navigate, "/dashboard")
+
+    focus_manager = FocusManager(page)
+    focus_manager.set_back_handler(handle_global_back)
 
     async def navigate(route: str):
         await page.push_route(route)
