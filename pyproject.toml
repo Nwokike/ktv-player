@@ -1,6 +1,6 @@
 [project]
 name = "ktv"
-version = "1.0.1"
+version = "1.0.2"
 description = "A lightning-fast TV player built for seamless network streaming and custom channel addition."
 readme = "README.md"
 requires-python = ">=3.13"

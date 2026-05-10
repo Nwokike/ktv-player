@@ -20,6 +20,10 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
         "search_task": None,
     }
 
+    # Track all expansion tiles for accordion behavior
+    _active_tiles = []  # list of all ExpansionTile refs in current tab
+    PAGE_SIZE = 24  # channels per page (fits 2 ad slots at every-12)
+
     new_name = ft.Ref[ft.TextField]()
     new_url = ft.Ref[ft.TextField]()
     countries_content = ft.ListView(expand=True, spacing=15)
@@ -271,6 +275,7 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
             content=card_visual,
             border_radius=25,
             ink=True,
+            height=130,
             on_click=lambda e, play_url=url: page_obj.run_task(on_play, play_url),
         )
 
@@ -311,64 +316,144 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
                     cards_data.append({"url": url, "indicator": indicator})
         return cards_data
 
-    def handle_expansion(e, channels):
-        if str(e.data).lower() == "true":
-            if not e.control.controls:
-                page_obj.run_task(_progressive_expand, e.control, channels)
+    def _build_page_grid(channels, offset=0, limit=24):
+        """Build a grid for a slice of channels (offset to offset+limit)."""
+        page_channels = channels[offset : offset + limit]
+        grid = ft.ResponsiveRow(spacing=12, run_spacing=12)
 
-    async def _progressive_expand(tile, channels):
-        """Build channel grid progressively in chunks to prevent UI freeze."""
-        # 1. Show loading indicator immediately
-        loading = ft.Container(
+        for i, c in enumerate(page_channels):
+            global_idx = offset + i
+            card = create_channel_card(c, card_index=global_idx)
+            card_wrapper = ft.Container(
+                content=card,
+                col={"xs": 4, "sm": 3, "md": 2, "lg": 2},
+            )
+            grid.controls.append(card_wrapper)
+
+            # Insert ad every 12 cards
+            if (global_idx + 1) % 12 == 0 and (global_idx + 1) < len(channels):
+                grid.controls.append(
+                    ft.Container(
+                        content=ad_service.get_standard_banner_ad(),
+                        col=12,
+                        alignment=ft.Alignment.CENTER,
+                        padding=ft.Padding(0, 5, 0, 5),
+                    )
+                )
+
+        return grid
+
+    def _build_nav_btn(icon, label, tile, channels, offset, is_next=True):
+        """Create a focusable 'Show Previous/Next' navigation button."""
+        btn = ft.Container(
             content=ft.Row(
                 [
-                    ft.ProgressRing(width=24, height=24, stroke_width=3, color=AppColors.PRIMARY),
-                    ft.Text(f"Loading {len(channels)} channels...", color=AppColors.GREY_DIM, size=12),
+                    ft.Icon(icon, color=AppColors.PRIMARY),
+                    ft.Text(label, color=AppColors.PRIMARY, weight=ft.FontWeight.W_500),
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
-                spacing=10,
+                spacing=8,
             ),
-            padding=20,
-            alignment=ft.Alignment.CENTER,
+            padding=15,
+            border_radius=10,
+            border=ft.Border.all(1, AppColors.PRIMARY),
+            ink=True,
+            on_click=lambda e, t=tile, ch=channels, off=offset: _show_page(t, ch, off),
         )
-        tile.controls = [loading]
+        btn.tab_index = 0
+        btn._is_nav_btn = True
+        btn.on_focus = lambda e: _style_focusable(e.control, True)
+        btn.on_blur = lambda e: _style_focusable(e.control, False)
+        return btn
+
+    def _style_focusable(control, focused):
+        """Apply/remove focus highlight for any focusable container."""
+        if focused:
+            control.bgcolor = ft.Colors.with_opacity(0.1, AppColors.PRIMARY)
+            control.border = ft.Border.all(2, AppColors.PRIMARY)
+        else:
+            control.bgcolor = None
+            control.border = ft.Border.all(1, AppColors.PRIMARY)
+        try:
+            control.update()
+        except Exception:
+            pass
+
+    def _show_page(tile, channels, offset):
+        """Show exactly one page of channels, replacing whatever was there before."""
+        total = len(channels)
+        end = min(offset + PAGE_SIZE, total)
+
+        # Clear everything and rebuild with just this page
+        tile.controls.clear()
+
+        # "Show Previous" button if not on first page
+        if offset > 0:
+            prev_offset = max(0, offset - PAGE_SIZE)
+            prev_label = f"◀ Show previous {offset - prev_offset} (channels {prev_offset + 1}–{offset})"
+            tile.controls.append(_build_nav_btn(
+                ft.Icons.EXPAND_LESS, prev_label, tile, channels, prev_offset, is_next=False
+            ))
+
+        # Page info header
+        tile.controls.append(
+            ft.Container(
+                content=ft.Text(
+                    f"Showing {offset + 1}–{end} of {total}",
+                    size=11, color=AppColors.GREY_DIM, italic=True,
+                    text_align=ft.TextAlign.CENTER, width=float("inf"),
+                ),
+                padding=ft.Padding(0, 5, 0, 5),
+            )
+        )
+
+        # The actual channel grid for this page
+        grid = _build_page_grid(channels, offset, PAGE_SIZE)
+        tile.controls.append(grid)
+
+        # "Show Next" button if there are more
+        if end < total:
+            remaining = total - end
+            show_count = min(PAGE_SIZE, remaining)
+            next_label = f"Show next {show_count} of {remaining} remaining ▶"
+            tile.controls.append(_build_nav_btn(
+                ft.Icons.EXPAND_MORE, next_label, tile, channels, end, is_next=True
+            ))
+
         tile.update()
 
-        # 2. Build grid progressively in chunks
-        grid = ft.ResponsiveRow(spacing=12, run_spacing=12)
-        CHUNK_SIZE = 25
-
-        for chunk_start in range(0, len(channels), CHUNK_SIZE):
-            chunk = channels[chunk_start : chunk_start + CHUNK_SIZE]
-            for i_in_chunk, c in enumerate(chunk):
-                global_idx = chunk_start + i_in_chunk
-                card = create_channel_card(c, card_index=global_idx)
-                card_wrapper = ft.Container(
-                    content=card,
-                    col={"xs": 4, "sm": 3, "md": 2, "lg": 2},
-                )
-                grid.controls.append(card_wrapper)
-
-                # Insert ad every 12 cards
-                if (global_idx + 1) % 12 == 0 and (global_idx + 1) < len(channels):
-                    grid.controls.append(
-                        ft.Container(
-                            content=ad_service.get_standard_banner_ad(),
-                            col=12,
-                            alignment=ft.Alignment.CENTER,
-                            padding=ft.Padding(0, 5, 0, 5),
-                        )
-                    )
-
-            # Replace loading with grid-so-far and yield to UI
-            tile.controls = [grid]
-            tile.update()
-            await asyncio.sleep(0)  # Yield to UI thread
-
-        # 3. Fire liveliness checks after all cards are rendered
+        # Fire liveliness for just this page
         cards_data = _collect_cards_data(grid)
         if cards_data:
             page_obj.run_task(_fire_liveliness_batch, cards_data, tile)
+
+    def _collapse_other_tiles(current_tile):
+        """Accordion: collapse all other expansion tiles."""
+        for t in _active_tiles:
+            if t is not current_tile and t.expanded:
+                t.expanded = False
+                # Clear children to free memory
+                t.controls.clear()
+                try:
+                    t.update()
+                except Exception:
+                    pass
+
+    def handle_expansion(e, channels):
+        if str(e.data).lower() == "true":
+            # Accordion: collapse others first
+            _collapse_other_tiles(e.control)
+
+            if not e.control.controls:
+                # Show first page (the _show_page function handles everything)
+                _show_page(e.control, channels, 0)
+        else:
+            # Collapsing — clear children to free memory
+            e.control.controls.clear()
+            try:
+                e.control.update()
+            except Exception:
+                pass
 
     def update_tab_content(tab_index: int):
         target = [countries_content, categories_content, custom_content, preferences_content][
@@ -627,6 +712,8 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
                 group_names.remove(state.user_country)
                 group_names.insert(0, state.user_country)
 
+            _active_tiles.clear()
+
             for name in group_names:
                 channels = groups[name]
                 should_expand = (tab_index == 0 and name == state.user_country) or (
@@ -635,8 +722,34 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
 
                 tile_controls = []
                 if should_expand:
-                    grid = build_grid(channels)
-                    tile_controls = [grid]
+                    # Build first page using _show_page pattern
+                    # (we build it inline here since the tile doesn't exist yet)
+                    grid = _build_page_grid(channels, 0, PAGE_SIZE)
+                    total = len(channels)
+                    end = min(PAGE_SIZE, total)
+
+                    # Page info
+                    tile_controls.append(
+                        ft.Container(
+                            content=ft.Text(
+                                f"Showing 1–{end} of {total}",
+                                size=11, color=AppColors.GREY_DIM, italic=True,
+                                text_align=ft.TextAlign.CENTER, width=float("inf"),
+                            ),
+                            padding=ft.Padding(0, 5, 0, 5),
+                        )
+                    )
+                    tile_controls.append(grid)
+
+                    # "Show Next" nav button — tile ref fixed below after exp_tile creation
+                    if total > PAGE_SIZE:
+                        remaining = total - end
+                        show_count = min(PAGE_SIZE, remaining)
+                        next_label = f"Show next {show_count} of {remaining} remaining ▶"
+                        nav_btn = _build_nav_btn(ft.Icons.EXPAND_MORE, next_label, None, channels, end)
+                        nav_btn._needs_tile_ref = True
+                        tile_controls.append(nav_btn)
+
                     cards_data = _collect_cards_data(grid)
                     if cards_data:
                         page_obj.run_task(_fire_liveliness_batch, cards_data)
@@ -646,8 +759,35 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
                     expanded=should_expand,
                     on_change=lambda e, ch=channels: handle_expansion(e, ch),
                     controls=tile_controls,
+                    collapsed_bgcolor=ft.Colors.TRANSPARENT,
+                    bgcolor=ft.Colors.with_opacity(0.03, ft.Colors.ON_SURFACE),
                 )
+
+                # Focus styling directly on the ExpansionTile for TV remote
+                exp_tile.on_focus = lambda e: _on_tile_focus(e.control, True)
+                exp_tile.on_blur = lambda e: _on_tile_focus(e.control, False)
+
+                # Fix nav button tile references for pre-expanded tiles
+                if should_expand:
+                    for ctrl in tile_controls:
+                        if hasattr(ctrl, '_needs_tile_ref'):
+                            ctrl.on_click = lambda e, t=exp_tile, ch=channels, off=min(PAGE_SIZE, len(channels)): _show_page(t, ch, off)
+
+                _active_tiles.append(exp_tile)
                 target.controls.append(exp_tile)
+
+    def _on_tile_focus(control, focused):
+        """Highlight ExpansionTile when focused via remote."""
+        if focused:
+            control.collapsed_bgcolor = ft.Colors.with_opacity(0.12, AppColors.PRIMARY)
+            control.bgcolor = ft.Colors.with_opacity(0.12, AppColors.PRIMARY)
+        else:
+            control.collapsed_bgcolor = ft.Colors.TRANSPARENT
+            control.bgcolor = ft.Colors.with_opacity(0.03, ft.Colors.ON_SURFACE)
+        try:
+            control.update()
+        except Exception:
+            pass
 
     tab_view_container = ft.TabBarView(
         controls=[countries_content, categories_content, custom_content, preferences_content],
