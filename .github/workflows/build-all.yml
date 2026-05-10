@@ -17,7 +17,7 @@ on:
 env:
   PYTHONUTF8: "1"
   FLET_CLI_NO_RICH_OUTPUT: "1"
-  UV_PYTHON: "3.12"
+  UV_PYTHON: "3.13"
   BUILD_VERSION: ${{ inputs.build_version || '1.0.2' }}
   BUILD_NUMBER: ${{ inputs.build_number || '3' }}
 
@@ -149,7 +149,7 @@ jobs:
         run: echo "$KEYSTORE_BASE64" | base64 --decode > upload-key.jks
       - name: Build APK (universal)
         env:
-          FLET_ANDROID_SIGNING_KEY_STORE: upload-key.jks
+          FLET_ANDROID_SIGNING_KEY_STORE: ${{ github.workspace }}/upload-key.jks
           FLET_ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
@@ -175,7 +175,7 @@ jobs:
         run: echo "$KEYSTORE_BASE64" | base64 --decode > upload-key.jks
       - name: Build APK (split per ABI)
         env:
-          FLET_ANDROID_SIGNING_KEY_STORE: upload-key.jks
+          FLET_ANDROID_SIGNING_KEY_STORE: ${{ github.workspace }}/upload-key.jks
           FLET_ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
@@ -201,7 +201,7 @@ jobs:
         run: echo "$KEYSTORE_BASE64" | base64 --decode > upload-key.jks
       - name: Build AAB
         env:
-          FLET_ANDROID_SIGNING_KEY_STORE: upload-key.jks
+          FLET_ANDROID_SIGNING_KEY_STORE: ${{ github.workspace }}/upload-key.jks
           FLET_ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
