@@ -161,7 +161,7 @@ def collapse_other_tiles(current_tile, active_tiles):
     for t in active_tiles:
         if t is not current_tile and t.expanded:
             t.expanded = False
-            t.controls.clear()
+            t.visible = False
             with contextlib.suppress(Exception):
                 t.update()
 
@@ -171,19 +171,26 @@ def handle_expansion(e, channels, active_tiles, page_obj, on_play, ad_service, l
         collapse_other_tiles(e.control, active_tiles)
         if not e.control.controls:
             show_page(e.control, channels, 0, page_obj, on_play, ad_service, liveliness)
+        e.control.visible = True
+        with contextlib.suppress(Exception):
+            e.control.update()
     else:
-        e.control.controls.clear()
+        e.control.visible = False
         with contextlib.suppress(Exception):
             e.control.update()
 
 
 def on_tile_focus(control, focused):
     if focused:
-        control.collapsed_bgcolor = ft.Colors.with_opacity(0.15, AppColors.PRIMARY)
-        control.bgcolor = ft.Colors.with_opacity(0.15, AppColors.PRIMARY)
+        control.collapsed_bgcolor = ft.Colors.with_opacity(0.12, AppColors.PRIMARY)
+        control.bgcolor = ft.Colors.with_opacity(0.12, AppColors.PRIMARY)
+        control.border = ft.Border.all(2, AppColors.PRIMARY)
+        control.border_radius = 12
     else:
         control.collapsed_bgcolor = ft.Colors.TRANSPARENT
         control.bgcolor = ft.Colors.with_opacity(0.03, ft.Colors.ON_SURFACE)
+        control.border = ft.Border.all(0, ft.Colors.TRANSPARENT)
+        control.border_radius = 0
     with contextlib.suppress(Exception):
         control.update()
 

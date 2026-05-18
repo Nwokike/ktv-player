@@ -6,7 +6,7 @@ from components.ui.glass_container import GlassContainer
 from core.theme import AppColors
 from database.manager import db_manager
 from services.liveliness import liveliness_cache
-from services.logo_cache import resolve_logo
+from services.logo_cache import get_cached_logo, download_logo
 
 
 def create_channel_card(c, card_index=0, on_play=None, page_obj=None, on_fav_change=None):
@@ -28,24 +28,25 @@ def create_channel_card(c, card_index=0, on_play=None, page_obj=None, on_fav_cha
     card_key = f"ch_{card_index}_{hash(url) % 10000}"
     logo_src = c.get("logo", "/icon.png")
 
-    async def _resolve_logo():
-        resolved = await resolve_logo(logo_src)
-        if logo_img and resolved:
-            logo_img.src = resolved
-            with contextlib.suppress(Exception):
-                logo_img.update()
+    if logo_src.startswith("/"):
+        initial_src = logo_src
+    else:
+        disk_cached = get_cached_logo(logo_src)
+        if disk_cached:
+            initial_src = disk_cached
+        else:
+            initial_src = logo_src
+            if page_obj:
+                page_obj.run_task(download_logo, logo_src)
 
     logo_img = ft.Image(
-        src=logo_src if logo_src.startswith("/") else None,
+        src=initial_src,
         width=60,
         height=60,
         fit=ft.BoxFit.CONTAIN,
         border_radius=20,
         error_content=ft.Icon(ft.Icons.TV, size=30),
     )
-
-    if page_obj and not logo_src.startswith("/"):
-        page_obj.run_task(_resolve_logo)
 
     card_visual = GlassContainer(
         content=ft.Column(
@@ -54,7 +55,7 @@ def create_channel_card(c, card_index=0, on_play=None, page_obj=None, on_fav_cha
                     [
                         ft.Container(
                             content=fav_icon,
-                            on_click=lambda e, u=url, n=c.get("name", ""), logo=c.get("logo", ""): _toggle_fav(
+                            on_click=lambda e, u=url, n=c.get("name", ""), logo=logo_src: _toggle_fav(
                                 e, u, n, logo, fav_state, fav_icon, on_fav_change, page_obj,
                             ),
                             tooltip="Add to favorites",

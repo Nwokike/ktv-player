@@ -195,7 +195,7 @@ def build_local_tab_content(page_obj: ft.Page, on_play: callable, ad_service):
         for t in _active_tiles:
             if t is not current_tile and t.expanded:
                 t.expanded = False
-                t.controls.clear()
+                t.visible = False
                 with contextlib.suppress(Exception):
                     t.update()
 
@@ -204,22 +204,29 @@ def build_local_tab_content(page_obj: ft.Page, on_play: callable, ad_service):
             _collapse_other_tiles(e.control)
             if not e.control.controls:
                 _show_page(e.control, folder, 0)
+            e.control.visible = True
+            with contextlib.suppress(Exception):
+                e.control.update()
         else:
-            e.control.controls.clear()
+            e.control.visible = False
             with contextlib.suppress(Exception):
                 e.control.update()
 
     def _on_tile_focus(control, focused):
         if focused:
             control.collapsed_bgcolor = ft.Colors.with_opacity(
-                0.15, AppColors.PRIMARY
+                0.12, AppColors.PRIMARY
             )
-            control.bgcolor = ft.Colors.with_opacity(0.15, AppColors.PRIMARY)
+            control.bgcolor = ft.Colors.with_opacity(0.12, AppColors.PRIMARY)
+            control.border = ft.Border.all(2, AppColors.PRIMARY)
+            control.border_radius = 12
         else:
             control.collapsed_bgcolor = ft.Colors.TRANSPARENT
             control.bgcolor = ft.Colors.with_opacity(
                 0.03, ft.Colors.ON_SURFACE
             )
+            control.border = ft.Border.all(0, ft.Colors.TRANSPARENT)
+            control.border_radius = 0
         with contextlib.suppress(Exception):
             control.update()
 
