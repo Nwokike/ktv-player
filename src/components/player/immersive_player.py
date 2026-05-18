@@ -1,47 +1,526 @@
+import asyncio
+import contextlib
+import re
+
 import flet as ft
 import flet_video as fv
 
+from core.theme import AppColors
+
 
 class ImmersivePlayer(ft.Stack):
-    def __init__(self, resource: str, on_close: callable = None):
+    """Full-featured video player exposing every flet-video capability.
+
+    Use as a self-contained player or control programmatically via the
+    exposed async methods (play, pause, seek, screenshot, etc.).
+
+    All flet-video events are wired; pass callbacks to the constructor
+    or override the ``_on_*`` methods.
+    """
+
+    def __init__(
+        self,
+        resource: str,
+        on_close: callable = None,
+        title: str = "",
+        autoplay: bool = True,
+        volume: float = 100.0,
+        playback_rate: float = 1.0,
+        pitch: float = 1.0,
+        muted: bool = False,
+        playlist_mode: fv.PlaylistMode | None = None,
+        subtitle_track: fv.VideoSubtitleTrack | None = None,
+        subtitle_configuration: fv.VideoSubtitleConfiguration | None = None,
+        configuration: fv.VideoConfiguration | None = None,
+        playlist: list[fv.VideoMedia] | None = None,
+        shuffle_playlist: bool = False,
+        fill_color: ft.ColorValue = ft.Colors.BLACK,
+        fit: ft.BoxFit = ft.BoxFit.CONTAIN,
+        alignment: ft.Alignment = ft.Alignment.CENTER,
+        wakelock: bool = True,
+        pause_upon_entering_background_mode: bool = True,
+        resume_upon_entering_foreground_mode: bool = True,
+        on_load: callable = None,
+        on_position_change: callable = None,
+        on_duration_change: callable = None,
+        on_track_change: callable = None,
+        on_enter_fullscreen: callable = None,
+        on_exit_fullscreen: callable = None,
+        on_error: callable = None,
+        on_complete: callable = None,
+        http_headers: dict | None = None,
+    ):
         super().__init__()
         self.resource = resource
         self.on_close = on_close
+        self.title = title
+        self.http_headers = http_headers or {}
         self.expand = True
 
+        self._retry_count = 0
+        self._max_retries = 3
+        self._is_final_error = False
+        self._reconnect_count = 0
+        self._max_reconnects = 5
+
+        self._callbacks = {
+            "on_load": on_load,
+            "on_position_change": on_position_change,
+            "on_duration_change": on_duration_change,
+            "on_track_change": on_track_change,
+            "on_enter_fullscreen": on_enter_fullscreen,
+            "on_exit_fullscreen": on_exit_fullscreen,
+            "on_error": on_error,
+            "on_complete": on_complete,
+        }
+
+        self.status_text = ft.Text(
+            "Loading stream...",
+            size=16,
+            color=ft.Colors.WHITE,
+            weight=ft.FontWeight.W_500,
+            text_align=ft.TextAlign.CENTER,
+        )
+        self.loading_ring = ft.ProgressRing(
+            width=48, height=48, stroke_width=4, color=AppColors.PRIMARY
+        )
+
+        self.overlay = ft.Container(
+            expand=True,
+            bgcolor=ft.Colors.with_opacity(0.85, ft.Colors.BLACK),
+            alignment=ft.Alignment.CENTER,
+            content=ft.Column(
+                [
+                    self.loading_ring,
+                    ft.Container(height=20),
+                    self.status_text,
+                ],
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                alignment=ft.MainAxisAlignment.CENTER,
+            ),
+        )
+
+        self._overlay_hidden = False
+
+        self._speed_idx = 1
+        self.speed_text = ft.Text("1.0x", size=11, color=ft.Colors.WHITE, weight=ft.FontWeight.W_600)
+
+        self._initial_playlist = playlist if playlist else [
+            fv.VideoMedia(self.resource, http_headers=self.http_headers)
+        ]
+        self._initial_autoplay = autoplay
+
         self.video = fv.Video(
-            playlist=[fv.VideoMedia(self.resource)],
             autoplay=True,
             expand=True,
-            show_controls=True,
-            volume=100,
-            wakelock=True,
-            filter_quality=ft.FilterQuality.MEDIUM,
-            pause_upon_entering_background_mode=True,
-            resume_upon_entering_foreground_mode=True,
+            volume=volume,
+            playback_rate=playback_rate,
+            pitch=pitch,
+            muted=muted,
+            wakelock=wakelock,
+            filter_quality=ft.FilterQuality.LOW,
+            pause_upon_entering_background_mode=pause_upon_entering_background_mode,
+            resume_upon_entering_foreground_mode=resume_upon_entering_foreground_mode,
+            playlist_mode=playlist_mode,
+            shuffle_playlist=shuffle_playlist,
+            subtitle_track=subtitle_track,
+            subtitle_configuration=subtitle_configuration or fv.VideoSubtitleConfiguration(),
+            configuration=configuration or fv.VideoConfiguration(
+                hardware_decoding_api="mediacodec",
+                mpv_properties={
+                    "cache": "yes",
+                    "cache-secs": "5",
+                    "demuxer-max-bytes": "50M",
+                    "demuxer-max-back-bytes": "10M",
+                },
+            ),
+            fill_color=fill_color,
+            fit=fit,
+            alignment=alignment,
+            title=self.title or "KTV Player",
+            controls=self._build_controls(),
+            on_load=self._on_load,
+            on_error=self._on_error,
+            on_complete=self._on_complete,
+            on_position_change=self._on_position_change,
+            on_duration_change=self._on_duration_change,
+            on_track_change=self._on_track_change,
+            on_enter_fullscreen=self._on_enter_fullscreen,
+            on_exit_fullscreen=self._on_exit_fullscreen,
         )
 
         self.back_btn = ft.Container(
             content=ft.IconButton(
                 icon=ft.Icons.ARROW_BACK_IOS_NEW_ROUNDED,
                 icon_color=ft.Colors.WHITE,
-                icon_size=22,
-                bgcolor=ft.Colors.BLACK_45,
-                on_click=self.handle_close,
+                icon_size=24,
+                bgcolor=ft.Colors.with_opacity(0.4, ft.Colors.BLACK),
+                on_click=lambda e: self.page.run_task(self._on_back, e),
+                tooltip="Back",
             ),
-            left=15,
+            left=20,
             top=40,
+        )
+        self.back_btn.tab_index = 0
+        self.back_btn.on_focus = lambda e: self._style_back_btn(True)
+        self.back_btn.on_blur = lambda e: self._style_back_btn(False)
+
+        title_bar = ft.Container(
+            content=ft.Text(
+                self.title or "Now Playing",
+                size=14,
+                color=ft.Colors.WHITE,
+                weight=ft.FontWeight.W_500,
+                max_lines=1,
+                overflow=ft.TextOverflow.ELLIPSIS,
+            ),
+            right=20,
+            top=44,
+            visible=bool(self.title),
         )
 
         self.controls = [
             ft.Container(expand=True, bgcolor=ft.Colors.BLACK),
             self.video,
+            self.overlay,
             self.back_btn,
+            title_bar,
         ]
 
-    def handle_close(self, e):
+    def _build_controls(self):
+        return fv.MaterialDesktopVideoControls(
+            visible_on_mount=True,
+            display_seek_bar=True,
+            modify_volume_on_scroll=True,
+            toggle_fullscreen_on_double_press=True,
+            play_and_pause_on_tap=True,
+            hide_mouse_on_controls_removal=True,
+            primary_button_bar=[
+                fv.VideoSkipPreviousButton(icon_color=ft.Colors.WHITE),
+                fv.VideoPlayOrPauseButton(icon_size=36, icon_color=ft.Colors.WHITE),
+                fv.VideoSkipNextButton(icon_color=ft.Colors.WHITE),
+            ],
+            top_button_bar=[
+                fv.VideoSpacer(),
+                self._build_screenshot_btn(),
+                fv.VideoFullscreenButton(icon_color=ft.Colors.WHITE),
+            ],
+            bottom_button_bar=[
+                fv.VideoVolumeButton(slider_width=80, icon_color=ft.Colors.WHITE),
+                fv.VideoSpacer(),
+                fv.VideoPositionIndicator(
+                    text_style=ft.TextStyle(size=12, color=ft.Colors.WHITE),
+                ),
+                fv.VideoSpacer(),
+                self._build_speed_btn(),
+            ],
+            seek_bar_position_color=AppColors.PRIMARY,
+            seek_bar_buffer_color=ft.Colors.with_opacity(0.3, ft.Colors.WHITE),
+            seek_bar_hover_height=8,
+            volume_bar_active_color=AppColors.PRIMARY,
+            controls_hover_duration=ft.Duration(seconds=3),
+        )
+
+    def _build_screenshot_btn(self):
+        btn = ft.Container(
+            content=ft.IconButton(
+                icon=ft.Icons.CAMERA_ALT,
+                icon_color=ft.Colors.WHITE,
+                icon_size=20,
+                tooltip="Screenshot",
+            ),
+            on_click=lambda e: self.page.run_task(self._handle_screenshot),
+        )
+        btn.tab_index = 0
+        return btn
+
+    def _build_speed_btn(self):
+        btn = ft.Container(
+            content=self.speed_text,
+            padding=ft.Padding(8, 4, 8, 4),
+            border_radius=4,
+            ink=True,
+            on_click=lambda e: self.page.run_task(self._cycle_speed),
+        )
+        btn.tab_index = 0
+        return btn
+
+    async def _handle_screenshot(self):
+        try:
+            image = await self.take_screenshot("image/jpeg")
+            if image:
+                snack = ft.SnackBar(
+                    ft.Text(f"Screenshot captured ({len(image)} bytes)"),
+                    bgcolor=AppColors.SUCCESS,
+                )
+                self.page.show_snack_bar(snack)
+            else:
+                snack = ft.SnackBar(
+                    ft.Text("No video frame available yet"),
+                    bgcolor=AppColors.WARNING,
+                )
+                self.page.show_snack_bar(snack)
+        except Exception as ex:
+            snack = ft.SnackBar(
+                ft.Text(f"Screenshot failed: {ex}"),
+                bgcolor=AppColors.ERROR,
+            )
+            self.page.show_snack_bar(snack)
+
+    async def start_playback(self):
+        print(f"[ImmersivePlayer] start_playback resource={self.resource[:60]}")
+        self._reconnect_count = 0
+        try:
+            print(f"[ImmersivePlayer] setting playlist: {len(self._initial_playlist)} item(s)")
+            self.video.playlist = self._initial_playlist
+            self.video.update()
+            print("[ImmersivePlayer] playlist synced to Flutter, calling play()...")
+            await self.video.play()
+            print("[ImmersivePlayer] play() returned, checking state...")
+            playing = await self.video.is_playing()
+            print(f"[ImmersivePlayer] is_playing={playing}")
+            duration = await self.video.get_duration()
+            print(f"[ImmersivePlayer] duration={duration.in_seconds}s")
+            if playing:
+                self._hide_overlay()
+            print("[ImmersivePlayer] start_playback OK")
+        except Exception as ex:
+            print(f"[ImmersivePlayer] start_playback error: {type(ex).__name__}: {ex}")
+            import traceback
+            traceback.print_exc()
+            self._show_final_error()
+
+    async def _cycle_speed(self):
+        speeds = [0.25, 0.5, 1.0, 1.25, 1.5, 2.0]
+        self._speed_idx = (self._speed_idx + 1) % len(speeds)
+        new_speed = speeds[self._speed_idx]
+        await self.set_playback_rate(new_speed)
+
+    def _style_back_btn(self, focused: bool):
+        if focused:
+            self.back_btn.content.bgcolor = ft.Colors.with_opacity(0.7, AppColors.PRIMARY)
+            self.back_btn.content.scale = 1.15
+        else:
+            self.back_btn.content.bgcolor = ft.Colors.with_opacity(0.4, ft.Colors.BLACK)
+            self.back_btn.content.scale = 1.0
+        with contextlib.suppress(Exception):
+            self.back_btn.update()
+
+    def _on_load(self, e):
+        print(f"[ImmersivePlayer] on_load fired, data={e.data}")
+        cb = self._callbacks.get("on_load")
+        if cb:
+            cb(e)
+
+    def _hide_overlay(self):
+        if not self._overlay_hidden:
+            self._overlay_hidden = True
+            self.overlay.visible = False
+            print("[ImmersivePlayer] hiding overlay")
+            with contextlib.suppress(Exception):
+                self.update()
+
+    def _on_position_change(self, e):
+        self._hide_overlay()
+        cb = self._callbacks.get("on_position_change")
+        if cb:
+            cb(e)
+
+    def _on_error(self, e):
+        err_msg = str(e.data) if hasattr(e, "data") and e.data else str(e)
+        print(f"[ImmersivePlayer] on_error fired: {err_msg}")
+        if "Cannot seek" in err_msg or "force-seekable" in err_msg:
+            print("[ImmersivePlayer] ignoring seek-related error")
+            return
+        if self._is_final_error:
+            print("[ImmersivePlayer] already in final error state, skipping")
+            return
+        self._retry_count += 1
+        if self._retry_count <= self._max_retries and self.resource.startswith("http"):
+            print(f"[ImmersivePlayer] retry {self._retry_count}/{self._max_retries}")
+            self.status_text.value = f"Stream error, retrying ({self._retry_count}/{self._max_retries})..."
+            self.loading_ring.visible = True
+            self.overlay.visible = True
+            self.update()
+            self.page.run_task(self._retry_playback)
+        else:
+            print(f"[ImmersivePlayer] showing final error after {self._retry_count} retries")
+            self._show_final_error()
+        cb = self._callbacks.get("on_error")
+        if cb:
+            cb(e)
+
+    def _show_final_error(self):
+        self._is_final_error = True
+        self.status_text.value = "Failed to load. Tap to go back."
+        self.loading_ring.visible = False
+        self.overlay.visible = True
+        self.overlay.on_click = lambda _: self.page.run_task(self.handle_close)
+        self.update()
+
+    async def _reconnect_stream(self):
+        try:
+            if self.video:
+                self.video.playlist = [
+                    fv.VideoMedia(self.resource, http_headers=self.http_headers)
+                ]
+                self.overlay.visible = False
+                self.update()
+        except Exception:
+            pass
+
+    async def _retry_playback(self):
+        try:
+            await asyncio.sleep(2)
+            if self.video and not self._is_final_error:
+                self.video.playlist = [
+                    fv.VideoMedia(self.resource, http_headers=self.http_headers)
+                ]
+                await self.play()
+                self.overlay.visible = False
+                self._retry_count = 0
+                self.update()
+        except Exception:
+            self._show_final_error()
+
+    def _on_complete(self, e):
+        if re.match(r"https?://", self.resource):
+            if self._reconnect_count < self._max_reconnects:
+                self._reconnect_count += 1
+                self.page.run_task(self._reconnect_stream)
+            else:
+                self.status_text.value = "Stream ended. Tap to go back."
+                self.loading_ring.visible = False
+                self.overlay.visible = True
+                self.overlay.on_click = lambda _: self.page.run_task(self.handle_close)
+                self.update()
+        else:
+            self.overlay.visible = False
+            self.update()
+            cb = self._callbacks.get("on_complete")
+            if cb:
+                cb(e)
+
+    def _on_duration_change(self, e):
+        cb = self._callbacks.get("on_duration_change")
+        if cb:
+            cb(e)
+
+    def _on_track_change(self, e):
+        cb = self._callbacks.get("on_track_change")
+        if cb:
+            cb(e)
+
+    def _on_enter_fullscreen(self, e):
+        cb = self._callbacks.get("on_enter_fullscreen")
+        if cb:
+            cb(e)
+
+    def _on_exit_fullscreen(self, e):
+        cb = self._callbacks.get("on_exit_fullscreen")
+        if cb:
+            cb(e)
+
+    async def handle_close(self, e=None):
+        try:
+            if self.video:
+                self.video.playlist = []
+                await self.video.stop()
+        except Exception:
+            pass
+        self._is_final_error = True
+
+    async def _on_back(self, e=None):
+        await self.handle_close()
         if self.on_close:
             try:
-                self.on_close(e)
-            except TypeError:
-                self.on_close()
+                result = self.on_close()
+                if hasattr(result, "__await__"):
+                    await result
+            except Exception:
+                pass
+
+    async def play(self):
+        if self.video and hasattr(self.video, "play"):
+            await self.video.play()
+
+    async def pause(self):
+        if self.video and hasattr(self.video, "pause"):
+            await self.video.pause()
+
+    async def stop(self):
+        if self.video and hasattr(self.video, "stop"):
+            await self.video.stop()
+
+    async def play_or_pause(self):
+        if self.video and hasattr(self.video, "play_or_pause"):
+            await self.video.play_or_pause()
+
+    async def seek(self, position: ft.DurationValue):
+        if self.video and hasattr(self.video, "seek"):
+            await self.video.seek(position)
+
+    async def next(self):
+        if self.video and hasattr(self.video, "next"):
+            await self.video.next()
+
+    async def previous(self):
+        if self.video and hasattr(self.video, "previous"):
+            await self.video.previous()
+
+    async def jump_to(self, media_index: int):
+        if self.video and hasattr(self.video, "jump_to"):
+            await self.video.jump_to(media_index)
+
+    async def is_playing(self) -> bool:
+        if self.video and hasattr(self.video, "is_playing"):
+            return await self.video.is_playing()
+        return False
+
+    async def is_completed(self) -> bool:
+        if self.video and hasattr(self.video, "is_completed"):
+            return await self.video.is_completed()
+        return False
+
+    async def get_current_position(self) -> ft.Duration:
+        if self.video and hasattr(self.video, "get_current_position"):
+            return await self.video.get_current_position()
+        return ft.Duration()
+
+    async def get_duration(self) -> ft.Duration:
+        if self.video and hasattr(self.video, "get_duration"):
+            return await self.video.get_duration()
+        return ft.Duration()
+
+    async def take_screenshot(self, fmt: str = "image/jpeg", include_libass_subtitles: bool = False) -> bytes | None:
+        if self.video and hasattr(self.video, "take_screenshot"):
+            return await self.video.take_screenshot(format=fmt, include_libass_subtitles=include_libass_subtitles)
+        return None
+
+    async def set_volume(self, volume: float):
+        if self.video:
+            self.video.volume = max(0.0, min(100.0, volume))
+            with contextlib.suppress(Exception):
+                self.video.update()
+
+    async def set_playback_rate(self, rate: float):
+        if self.video:
+            self.video.playback_rate = rate
+            self.speed_text.value = f"{rate}x"
+            try:
+                self.video.update()
+                self.speed_text.update()
+            except Exception:
+                pass
+
+    async def set_muted(self, muted: bool):
+        if self.video:
+            self.video.muted = muted
+            with contextlib.suppress(Exception):
+                self.video.update()
+
+    async def set_pitch(self, pitch: float):
+        if self.video:
+            self.video.pitch = pitch
+            with contextlib.suppress(Exception):
+                self.video.update()

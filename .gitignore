@@ -2,28 +2,32 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
+
+# Virtual environments
 .venv/
-dist/
-*.egg-info/
+venv/
+
+# Ruff
+.ruff_cache/
+
+# Storage (user data, SQLite DB)
+storage/
+
+# Build outputs
 build/
+dist/
 
-# Databases
-*.db
-*.db-wal
-*.db-shm
-
-# Flet
-.flet/
-
-# Coverage & Testing
-.coverage
-htmlcov/
-
-# IDEs
+# IDE
 .vscode/
 .idea/
-/data/
-/temp/
-scratch/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp files
+*.tmp
+*.log
 
 release_notes.md

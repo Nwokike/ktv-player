@@ -1,3 +1,4 @@
+
 import flet as ft
 
 
@@ -13,17 +14,15 @@ class AppState:
     is_first_launch: bool = True
     theme_mode: ft.ThemeMode = ft.ThemeMode.SYSTEM
 
-    def __init__(self):
-        self.history = []
-        self.channels = []
-        self.favorites = []
-
     def add_to_history(self, url: str):
         if url in self.history:
             self.history.remove(url)
         self.history.insert(0, url)
         if len(self.history) > 20:
             self.history = self.history[:20]
+
+    def get_recent_history(self, limit: int = 10) -> list[str]:
+        return list(self.history[:limit])
 
 
 state = AppState()

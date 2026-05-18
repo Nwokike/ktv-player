@@ -1,11 +1,26 @@
 import flet as ft
 
+from core.theme import AppColors
+
+_ANIM_SCALE = ft.Animation(duration=180, curve=ft.AnimationCurve.EASE_OUT)
+_ANIM_BG = ft.Animation(duration=180, curve=ft.AnimationCurve.EASE_OUT)
+_DEFAULT_BORDER = ft.Border.all(0.5, ft.Colors.with_opacity(0.08, ft.Colors.ON_SURFACE))
+_FOCUS_BORDER = ft.Border.all(2.5, AppColors.PRIMARY)
+_DEFAULT_BG = ft.Colors.with_opacity(0.04, ft.Colors.ON_SURFACE)
+_FOCUS_BG = ft.Colors.with_opacity(0.1, AppColors.PRIMARY)
+_FOCUS_SHADOW = ft.BoxShadow(
+    spread_radius=4,
+    blur_radius=20,
+    color=ft.Colors.with_opacity(0.3, AppColors.PRIMARY),
+    offset=ft.Offset(0, 6),
+)
+
 
 class GlassContainer(ft.Container):
     def __init__(
         self,
-        content: ft.Control,
-        padding: float = 20,
+        content: ft.Control = None,
+        padding: float = 16,
         border_radius: float = 20,
         expand: bool = False,
         on_click: callable = None,
@@ -20,14 +35,11 @@ class GlassContainer(ft.Container):
         self.border_radius = border_radius
         self.key = key
 
-        self._default_border = ft.Border.all(0.5, ft.Colors.with_opacity(0.1, ft.Colors.ON_SURFACE))
-        self._focus_border = ft.Border.all(2.5, ft.Colors.PRIMARY)
+        self.bgcolor = _DEFAULT_BG
+        self.border = _DEFAULT_BORDER
 
-        self.bgcolor = ft.Colors.with_opacity(0.06, ft.Colors.ON_SURFACE)
-        self.border = self._default_border
-
-        # Smooth scale animation for focus transitions
-        self.animate_scale = ft.Animation(duration=150, curve=ft.AnimationCurve.EASE_OUT)
+        self.animate_scale = _ANIM_SCALE
+        self.animate = _ANIM_BG
 
         self.expand = expand
         self.on_click = on_click
@@ -38,11 +50,15 @@ class GlassContainer(ft.Container):
             self.on_blur = self._handle_blur
 
     def _handle_focus(self, e):
-        self.border = self._focus_border
-        self.scale = 1.05
+        self.border = _FOCUS_BORDER
+        self.scale = 1.06
+        self.bgcolor = _FOCUS_BG
+        self.shadow = _FOCUS_SHADOW
         self.update()
 
     def _handle_blur(self, e):
-        self.border = self._default_border
+        self.border = _DEFAULT_BORDER
         self.scale = 1.0
+        self.bgcolor = _DEFAULT_BG
+        self.shadow = None
         self.update()

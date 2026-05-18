@@ -1,7 +1,14 @@
-import flet as ft
-import flet_ads as fta
 import asyncio
-from typing import Optional, Callable
+from collections.abc import Callable
+from typing import Optional
+
+import flet as ft
+
+try:
+    import flet_ads as fta
+    _HAS_FLET_ADS = True
+except ImportError:
+    _HAS_FLET_ADS = False
 
 
 class AdService:
@@ -10,8 +17,8 @@ class AdService:
 
     def __init__(self, page: ft.Page):
         self.page = page
-        self.interstitial: Optional[fta.InterstitialAd] = None
-        self._on_interstitial_close: Optional[Callable] = None
+        self.interstitial: fta.InterstitialAd | None = None
+        self._on_interstitial_close: Callable | None = None
 
     def get_banner_unit_id(self) -> str:
         return self.BANNER_ID
@@ -39,9 +46,9 @@ class AdService:
             padding=ft.Padding(0, 10, 0, 10),
         )
 
-    def get_native_style_ad(self) -> ft.Control:
-        if not self.page.platform.is_mobile():
-            return ft.Container(width=0, height=0)
+    def get_native_style_ad(self) -> ft.Control | None:
+        if not _HAS_FLET_ADS or not self.page.platform.is_mobile():
+            return None
         try:
             ad = fta.BannerAd(
                 unit_id=self.get_banner_unit_id(),
@@ -51,11 +58,11 @@ class AdService:
             )
             return self._create_ad_container(ad, width=300)
         except Exception:
-            return ft.Container(width=0, height=0)
+            return None
 
-    def get_standard_banner_ad(self) -> ft.Control:
-        if not self.page.platform.is_mobile():
-            return ft.Container(width=0, height=0)
+    def get_standard_banner_ad(self) -> ft.Control | None:
+        if not _HAS_FLET_ADS or not self.page.platform.is_mobile():
+            return None
         try:
             ad = fta.BannerAd(
                 unit_id=self.get_banner_unit_id(),
@@ -65,11 +72,11 @@ class AdService:
             )
             return self._create_ad_container(ad, width=320)
         except Exception:
-            return ft.Container(width=0, height=0)
+            return None
 
-    def get_anchor_banner_ad(self) -> ft.Control:
-        if not self.page.platform.is_mobile():
-            return ft.Container(width=0, height=0)
+    def get_anchor_banner_ad(self) -> ft.Control | None:
+        if not _HAS_FLET_ADS or not self.page.platform.is_mobile():
+            return None
         try:
             ad = fta.BannerAd(
                 unit_id=self.get_banner_unit_id(),
@@ -77,7 +84,6 @@ class AdService:
                 height=50,
                 on_error=lambda e: None,
             )
-            # Anchor banners don't need padding/text, just the ad itself centered
             return ft.Container(
                 content=ad,
                 width=320,
@@ -85,31 +91,40 @@ class AdService:
                 alignment=ft.Alignment.CENTER,
             )
         except Exception:
-            return ft.Container(width=0, height=0)
+            return None
 
-    async def preload_interstitial(self, on_close: Optional[Callable] = None):
+    async def preload_interstitial(self, on_close: Callable | None = None):
         self._on_interstitial_close = on_close
         try:
-            if not self.page.platform.is_mobile():
+            if not _HAS_FLET_ADS or not self.page.platform.is_mobile():
                 return
 
             self.interstitial = fta.InterstitialAd(
                 unit_id=self.get_interstitial_unit_id(),
                 on_load=lambda e: None,
-                on_error=lambda e: None,
+                on_error=lambda e: self._handle_preload_error(on_close),
                 on_close=self._handle_close,
             )
         except Exception:
-            self.interstitial = None
+            self._handle_preload_error(on_close)
+
+    def _handle_preload_error(self, on_close: Callable | None = None):
+        self.interstitial = None
+        self.page.run_task(self._retry_preload, on_close)
+
+    async def _retry_preload(self, on_close: Callable | None = None):
+        await asyncio.sleep(30)
+        if self.interstitial is None:
+            await self.preload_interstitial(on_close)
 
     async def _handle_close(self, e):
         if self._on_interstitial_close:
             if asyncio.iscoroutinefunction(self._on_interstitial_close):
-                await self._on_interstitial_close()
+                self.page.run_task(self._on_interstitial_close)
             else:
                 self._on_interstitial_close()
 
-        await self.preload_interstitial(on_close=self._on_interstitial_close)
+        self.page.run_task(self.preload_interstitial, on_close=self._on_interstitial_close)
 
     async def show_interstitial(self) -> bool:
         if self.interstitial:

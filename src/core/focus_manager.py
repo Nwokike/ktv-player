@@ -1,56 +1,77 @@
-"""
-Centralized focus & keyboard management for TV remote (D-pad) navigation.
-
-Handles:
-- Global Back/Escape key to navigate back from any view
-- Scroll-into-view helper when focusable items receive focus
-- Focus ring styling utilities
-"""
+import contextlib
 
 import flet as ft
 
+from core.theme import AppColors
+
+
+def apply_focus_scale(control: ft.Container, focused: bool):
+    if focused:
+        control.scale = 1.08
+        control.border = ft.Border.all(3.5, AppColors.PRIMARY)
+        control.shadow = ft.BoxShadow(
+            spread_radius=5,
+            blur_radius=25,
+            color=ft.Colors.with_opacity(0.5, AppColors.PRIMARY),
+            offset=ft.Offset(0, 10),
+        )
+    else:
+        control.scale = 1.0
+        control.border = ft.Border.all(0, ft.Colors.TRANSPARENT)
+        control.shadow = None
+    with contextlib.suppress(Exception):
+        control.update()
+
+
+def apply_focus_border(control: ft.Container, focused: bool):
+    if focused:
+        control.bgcolor = ft.Colors.with_opacity(0.12, AppColors.PRIMARY)
+        control.border = ft.Border.all(2.5, AppColors.PRIMARY)
+    else:
+        control.bgcolor = None
+        control.border = ft.Border.all(1.5, AppColors.PRIMARY)
+    with contextlib.suppress(Exception):
+        control.update()
+
+
+def apply_focus_btn(control: ft.Container, focused: bool):
+    if focused:
+        control.bgcolor = ft.Colors.with_opacity(0.15, AppColors.PRIMARY)
+        control.scale = 1.05
+    else:
+        control.bgcolor = None
+        control.scale = 1.0
+    with contextlib.suppress(Exception):
+        control.update()
+
+
+def make_focusable_card(control: ft.Container):
+    control.on_focus = lambda e: apply_focus_scale(e.control, True)
+    control.on_blur = lambda e: apply_focus_scale(e.control, False)
+    control.animate_scale = ft.Animation(200, ft.AnimationCurve.EASE_OUT)
+    control.animate = ft.Animation(200, ft.AnimationCurve.EASE_OUT)
+
+
+def make_focusable_button(control: ft.Container):
+    control.on_focus = lambda e: apply_focus_btn(e.control, True)
+    control.on_blur = lambda e: apply_focus_btn(e.control, False)
+    control.animate_scale = ft.Animation(150, ft.AnimationCurve.EASE_OUT)
+
+
+def make_focusable_border(control: ft.Container):
+    control.on_focus = lambda e: apply_focus_border(e.control, True)
+    control.on_blur = lambda e: apply_focus_border(e.control, False)
+
 
 class FocusManager:
-    """Manages global keyboard events and focus behaviors for TV navigation."""
-
     def __init__(self, page: ft.Page):
-        self.page = page
+        self._page = page
         self._back_handler = None
-        page.on_keyboard_event = self._handle_keyboard
 
     def set_back_handler(self, handler: callable):
-        """Set the callback for Back/Escape key press."""
         self._back_handler = handler
+        self._page.on_keyboard_event = self._on_keyboard
 
-    def _handle_keyboard(self, e: ft.KeyboardEvent):
-        key = e.key
-        if key in ("Escape", "Go Back", "Browser Back", "Backspace"):
-            if self._back_handler:
-                self._back_handler()
-
-    @staticmethod
-    def make_scroll_on_focus(scrollable: ft.ListView | ft.Column):
-        """
-        Returns an on_focus handler that scrolls the given scrollable
-        container to reveal the focused control (by its key).
-        """
-
-        def _on_focus(e):
-            control_key = getattr(e.control, "key", None)
-            if control_key and hasattr(scrollable, "scroll_to"):
-                try:
-                    scrollable.scroll_to(key=control_key, duration=200)
-                except Exception:
-                    pass
-
-        return _on_focus
-
-    @staticmethod
-    def focus_style(control: ft.Container, focused: bool, primary_color: str = "#7C4DFF"):
-        """Apply or remove focus ring styling on a container."""
-        if focused:
-            control.border = ft.Border.all(2.5, primary_color)
-            control.scale = 1.05
-        else:
-            control.border = ft.Border.all(0.5, ft.Colors.with_opacity(0.1, ft.Colors.ON_SURFACE))
-            control.scale = 1.0
+    def _on_keyboard(self, e: ft.KeyboardEvent):
+        if e.key in ("Escape", "Back", "BrowserBack") and self._back_handler:
+            self._back_handler()

@@ -1,5 +1,6 @@
-import aiosqlite
 import os
+
+import aiosqlite
 
 
 class DatabaseManager:
@@ -14,20 +15,35 @@ class DatabaseManager:
                 os.makedirs(db_dir, exist_ok=True)
             self._conn = await aiosqlite.connect(self.db_path)
             await self._conn.execute("PRAGMA journal_mode=WAL;")
+            await self._conn.execute("PRAGMA synchronous=NORMAL;")
+            await self._conn.execute("PRAGMA cache_size=-4000;")
+            try:
+                cursor = await self._conn.execute("PRAGMA integrity_check;")
+                result = await cursor.fetchone()
+                if result and result[0] != "ok":
+                    await self._conn.close()
+                    self._conn = None
+                    backup = self.db_path + ".corrupted"
+                    if os.path.exists(self.db_path):
+                        os.replace(self.db_path, backup)
+                    self._conn = await aiosqlite.connect(self.db_path)
+                    await self._conn.execute("PRAGMA journal_mode=WAL;")
+                    await self._conn.execute("PRAGMA synchronous=NORMAL;")
+                    await self._conn.execute("PRAGMA cache_size=-4000;")
+            except Exception:
+                pass
+            await self._init_tables()
         return self._conn
 
-    async def init_db(self):
-        db = await self._get_conn()
-
-        await db.execute("""
+    async def _init_tables(self):
+        await self._conn.execute("""
             CREATE TABLE IF NOT EXISTS history (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 url TEXT UNIQUE,
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         """)
-
-        await db.execute("""
+        await self._conn.execute("""
             CREATE TABLE IF NOT EXISTS favorites (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 url TEXT UNIQUE,
@@ -35,15 +51,13 @@ class DatabaseManager:
                 logo TEXT
             )
         """)
-
-        await db.execute("""
+        await self._conn.execute("""
             CREATE TABLE IF NOT EXISTS settings (
                 key TEXT PRIMARY KEY,
                 value TEXT
             )
         """)
-
-        await db.execute("""
+        await self._conn.execute("""
             CREATE TABLE IF NOT EXISTS playlists (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT,
@@ -51,8 +65,7 @@ class DatabaseManager:
                 is_active INTEGER DEFAULT 1
             )
         """)
-
-        await db.execute("""
+        await self._conn.execute("""
             CREATE TABLE IF NOT EXISTS custom_channels (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT,
@@ -61,7 +74,10 @@ class DatabaseManager:
                 group_name TEXT DEFAULT 'Custom'
             )
         """)
-        await db.commit()
+        await self._conn.commit()
+
+    async def init_db(self):
+        await self._get_conn()
 
     async def save_history(self, url: str):
         db = await self._get_conn()
@@ -128,6 +144,33 @@ class DatabaseManager:
         ) as cursor:
             rows = await cursor.fetchall()
             return [{"name": r[0], "url": r[1], "logo": r[2], "group": r[3]} for r in rows]
+
+    async def add_favorite(self, url: str, name: str = "", logo: str = ""):
+        db = await self._get_conn()
+        await db.execute(
+            "INSERT OR REPLACE INTO favorites (url, name, logo) VALUES (?, ?, ?)",
+            (url, name, logo),
+        )
+        await db.commit()
+
+    async def remove_favorite(self, url: str):
+        db = await self._get_conn()
+        await db.execute("DELETE FROM favorites WHERE url = ?", (url,))
+        await db.commit()
+
+    async def get_favorites(self):
+        db = await self._get_conn()
+        async with db.execute(
+            "SELECT url, name, logo FROM favorites ORDER BY id DESC"
+        ) as cursor:
+            rows = await cursor.fetchall()
+            return [{"url": r[0], "name": r[1], "logo": r[2]} for r in rows]
+
+    async def is_favorite(self, url: str) -> bool:
+        db = await self._get_conn()
+        async with db.execute("SELECT 1 FROM favorites WHERE url = ?", (url,)) as cursor:
+            row = await cursor.fetchone()
+            return row is not None
 
     async def close(self):
         if self._conn:

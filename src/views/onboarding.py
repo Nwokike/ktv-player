@@ -1,14 +1,26 @@
-import flet as ft
 import asyncio
-from core.theme import AppColors
+import contextlib
+
+import flet as ft
+
+from core.constants import (
+    LBL_PLEASE_ACCEPT_TERMS,
+    LBL_PLEASE_SELECT_COUNTRY,
+    LBL_SELECT_COUNTRY,
+    LBL_START_WATCHING,
+    LBL_TV_NAV_HINT,
+    LBL_USAGE_AGREEMENT,
+    LBL_WELCOME,
+    LBL_WELCOME_SUB,
+    TERMS_TEXT,
+)
 from core.state import state
-from channels.provider import channel_provider
+from core.theme import AppColors
 from database.manager import db_manager
 
 
 def build_onboarding_view(page_obj: ft.Page, on_complete: callable) -> ft.View:
     selected_state = {"country": ""}
-
     terms_checked = ft.Ref[ft.Checkbox]()
 
     def _palette() -> dict:
@@ -23,24 +35,16 @@ def build_onboarding_view(page_obj: ft.Page, on_complete: callable) -> ft.View:
 
     palette = _palette()
 
-    countries_from_playlist = channel_provider.get_countries()
-    if not countries_from_playlist:
-        countries_from_playlist = [{"name": "Global"}]
-    countries_from_playlist.append({"name": "Other"})
-
-    # --- TV-Ready Country Picker: ListView of focusable ListTiles ---
     country_list = ft.ListView(
         height=220,
-        spacing=2,
-        padding=ft.Padding(5, 5, 5, 5),
+        spacing=3,
+        padding=ft.Padding(6, 6, 6, 6),
         auto_scroll=False,
     )
 
-    # Track all tiles for selection styling
     all_country_tiles = []
 
     def select_country(name: str):
-        """Handle country selection — update visual state and store value."""
         selected_state["country"] = name
         for tile_info in all_country_tiles:
             is_selected = tile_info["name"] == name
@@ -52,60 +56,61 @@ def build_onboarding_view(page_obj: ft.Page, on_complete: callable) -> ft.View:
             tile_info["tile"].title = ft.Text(
                 tile_info["name"],
                 color=ft.Colors.WHITE if is_selected else palette["text"],
-                weight=ft.FontWeight.W_500 if is_selected else ft.FontWeight.NORMAL,
+                weight=ft.FontWeight.W_600 if is_selected else ft.FontWeight.NORMAL,
             )
         country_list.update()
 
-    def _on_tile_focus(e):
-        """Scroll the country list to keep the focused tile visible."""
-        control_key = getattr(e.control, "key", None)
-        if control_key:
-            try:
-                country_list.scroll_to(key=control_key, duration=200)
-            except Exception:
-                pass
+    async def _load_countries():
+        from channels.provider import channel_provider
+        countries_from_playlist = await channel_provider.get_all_channels()
+        countries_from_playlist = channel_provider.get_countries()
+        if not countries_from_playlist:
+            countries_from_playlist = [{"name": "Global"}]
+        countries_from_playlist.append({"name": "Other"})
 
-    for c in countries_from_playlist:
-        cname = c["name"]
-        tile = ft.ListTile(
-            title=ft.Text(cname, color=palette["text"]),
-            leading=ft.Icon(ft.Icons.RADIO_BUTTON_UNCHECKED, color=palette["text_dim"]),
-            key=cname,
-            on_click=lambda e, name=cname: select_country(name),
-            dense=True,
-            shape=ft.RoundedRectangleBorder(radius=10),
-        )
-        # on_focus is not in ListTile.__init__ signature, assign after
-        tile.on_focus = _on_tile_focus
-        
-        all_country_tiles.append({"name": cname, "tile": tile})
-        country_list.controls.append(tile)
+        for c in countries_from_playlist:
+            cname = c["name"]
+            tile = ft.ListTile(
+                title=ft.Text(cname, color=palette["text"], size=14),
+                leading=ft.Icon(ft.Icons.RADIO_BUTTON_UNCHECKED, color=palette["text_dim"]),
+                key=cname,
+                on_click=lambda e, name=cname: select_country(name),
+                dense=True,
+                shape=ft.RoundedRectangleBorder(radius=12),
+            )
+            tile.on_focus = lambda e: _tile_focus(e, country_list)
+            all_country_tiles.append({"name": cname, "tile": tile})
+            country_list.controls.append(tile)
+        page_obj.update()
+
+    page_obj.run_task(_load_countries)
 
     country_picker_container = ft.Container(
         content=country_list,
-        border=ft.Border.all(1, palette["border"]),
-        border_radius=12,
+        border=ft.Border.all(1.5, palette["border"]),
+        border_radius=14,
         clip_behavior=ft.ClipBehavior.ANTI_ALIAS,
+        padding=4,
     )
 
     async def handle_submit(e):
         if not terms_checked.current.value:
-            e.page.snack_bar = ft.SnackBar(
-                ft.Text("Please accept the usage agreement to continue."),
+            page_obj.snack_bar = ft.SnackBar(
+                ft.Text(LBL_PLEASE_ACCEPT_TERMS),
                 bgcolor=AppColors.WARNING,
             )
-            e.page.snack_bar.open = True
-            e.page.update()
+            page_obj.snack_bar.open = True
+            page_obj.update()
             return
 
         country_name = selected_state["country"]
         if not country_name:
-            e.page.snack_bar = ft.SnackBar(
-                ft.Text("Please select your country."),
+            page_obj.snack_bar = ft.SnackBar(
+                ft.Text(LBL_PLEASE_SELECT_COUNTRY),
                 bgcolor=AppColors.WARNING,
             )
-            e.page.snack_bar.open = True
-            e.page.update()
+            page_obj.snack_bar.open = True
+            page_obj.update()
             return
 
         await db_manager.set_setting("user_country", country_name)
@@ -120,47 +125,41 @@ def build_onboarding_view(page_obj: ft.Page, on_complete: callable) -> ft.View:
         else:
             on_complete()
 
-    terms_text = (
-        "1. KTV Player is a pure network utility and media rendering engine.\n"
-        "2. This application includes a built-in directory of legal, free-to-air public broadcasts.\n"
-        "3. You are strictly responsible for ensuring you have the legal right to access any third-party "
-        "networks you manually configure within the custom library section of this app."
-    )
-
     content = ft.ListView(
         controls=[
-            ft.Container(height=40),
+            ft.Container(height=30),
             ft.Column(
                 [
-                    ft.Image(src="/icon.png", width=100, height=100),
+                    ft.Image(src="/icon.png", width=90, height=90, border_radius=20),
                     ft.Text(
-                        "Welcome",
-                        size=32,
+                        LBL_WELCOME,
+                        size=34,
                         weight=ft.FontWeight.BOLD,
                         color=palette["text"],
                         text_align=ft.TextAlign.CENTER,
                     ),
                     ft.Text(
-                        "A lightning-fast TV player built for seamless network streaming and custom channel addition.",
-                        size=16,
+                        LBL_WELCOME_SUB,
+                        size=15,
                         text_align=ft.TextAlign.CENTER,
                         color=palette["text_dim"],
+                        width=400,
                     ),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                spacing=10,
+                spacing=12,
             ),
-            ft.Divider(height=20, color=AppColors.TRANSPARENT),
+            ft.Divider(height=24, color=AppColors.TRANSPARENT),
             ft.Text(
-                "Select your Country",
+                LBL_SELECT_COUNTRY,
                 size=18,
-                weight=ft.FontWeight.W_500,
+                weight=ft.FontWeight.W_600,
                 color=palette["text"],
                 text_align=ft.TextAlign.CENTER,
                 width=float("inf"),
             ),
             ft.Text(
-                "Use ▲ ▼ to browse, press OK to select",
+                LBL_TV_NAV_HINT,
                 size=12,
                 color=palette["text_dim"],
                 text_align=ft.TextAlign.CENTER,
@@ -170,20 +169,21 @@ def build_onboarding_view(page_obj: ft.Page, on_complete: callable) -> ft.View:
             ft.Divider(height=20, color=AppColors.TRANSPARENT),
             ft.Container(
                 content=ft.Text(
-                    terms_text,
+                    TERMS_TEXT,
                     size=12,
                     color=palette["text_dim"],
                     text_align=ft.TextAlign.LEFT,
                 ),
-                padding=15,
+                padding=16,
                 bgcolor=palette["surface"],
-                border_radius=10,
+                border_radius=12,
+                border=ft.Border.all(1, palette["border"]),
             ),
             ft.Row(
                 [
                     ft.Checkbox(ref=terms_checked, value=False),
                     ft.Text(
-                        "I agree to the Usage Agreement above",
+                        LBL_USAGE_AGREEMENT,
                         size=14,
                         weight=ft.FontWeight.W_500,
                         color=palette["text"],
@@ -195,17 +195,17 @@ def build_onboarding_view(page_obj: ft.Page, on_complete: callable) -> ft.View:
             ),
             ft.Divider(height=20, color=AppColors.TRANSPARENT),
             ft.FilledButton(
-                content="Start Watching",
+                content=LBL_START_WATCHING,
                 on_click=handle_submit,
                 style=ft.ButtonStyle(
                     color="white",
                     bgcolor=AppColors.PRIMARY,
-                    padding=20,
-                    shape=ft.RoundedRectangleBorder(radius=15),
+                    padding=ft.Padding(32, 16, 32, 16),
+                    shape=ft.RoundedRectangleBorder(radius=16),
                 ),
                 width=float("inf"),
             ),
-            ft.Container(height=40),
+            ft.Container(height=30),
         ],
         expand=True,
         spacing=10,
@@ -225,3 +225,10 @@ def build_onboarding_view(page_obj: ft.Page, on_complete: callable) -> ft.View:
         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         padding=0,
     )
+
+
+def _tile_focus(e, scrollable):
+    ck = getattr(e.control, "key", None)
+    if ck and hasattr(scrollable, "scroll_to"):
+        with contextlib.suppress(Exception):
+            scrollable.scroll_to(key=ck, duration=200)

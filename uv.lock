@@ -60,6 +60,18 @@ wheels = [
 ]
 
 [[package]]
+name = "flet-permission-handler"
+version = "0.85.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "flet" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/52/03/6704d0d7b4d8fad8624e1bb71f6aa0cbe88366660494e958584c7bbf321a/flet_permission_handler-0.85.0.tar.gz", hash = "sha256:112701b49f1c2549c1f6d80afa87e5d15676dc3435f7e45da58f83fe30384084", size = 12219, upload-time = "2026-05-08T22:16:44.608Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/63/ad/2eaab039c351b0412b10eaa8255ba62ddf80779c9f4b9c247cdbc0e9bbc4/flet_permission_handler-0.85.0-py3-none-any.whl", hash = "sha256:07fa1220f808ce832e97a8df2592ba680f22708bb19e5fd82a6661f33b203ebe", size = 13552, upload-time = "2026-05-08T22:16:43.706Z" },
+]
+
+[[package]]
 name = "flet-video"
 version = "0.85.0"
 source = { registry = "https://pypi.org/simple" }
@@ -119,12 +131,13 @@ wheels = [
 
 [[package]]
 name = "ktv"
-version = "1.0.2"
+version = "1.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "aiosqlite" },
     { name = "flet" },
     { name = "flet-ads" },
+    { name = "flet-permission-handler" },
     { name = "flet-video" },
     { name = "httpx" },
 ]
@@ -134,6 +147,7 @@ requires-dist = [
     { name = "aiosqlite", specifier = ">=0.22.1" },
     { name = "flet", specifier = "==0.85.0" },
     { name = "flet-ads", specifier = "==0.85.0" },
+    { name = "flet-permission-handler", specifier = "==0.85.0" },
     { name = "flet-video", specifier = "==0.85.0" },
     { name = "httpx", specifier = ">=0.28.1" },
 ]

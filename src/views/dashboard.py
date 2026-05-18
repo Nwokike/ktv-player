@@ -1,15 +1,36 @@
-import flet as ft
 import asyncio
-import base64
-import httpx
+
+import flet as ft
+
+from core.constants import (
+    LBL_CATEGORIES,
+    LBL_COUNTRIES,
+    LBL_CUSTOM,
+    LBL_LOADING_CHANNELS,
+    LBL_LOADING_CHANNELS_SUB,
+    LBL_LOCAL_VIDEOS,
+    LBL_RECENTLY_WATCHED,
+    LBL_SEARCH_HINT,
+    LBL_SETTINGS,
+)
 from core.state import state
 from core.theme import AppColors
-from components.ui.glass_container import GlassContainer
 from database.manager import db_manager
 from services.ad_service import AdService
-from core.focus_manager import FocusManager
+from views.local_view import build_local_tab_content
+from views.tabs.categories_tab import build_categories_tab_content
+from views.tabs.countries_tab import build_countries_tab_content
+from views.tabs.custom_tab import build_custom_tab_content
+from views.tabs.preferences_tab import build_preferences_tab_content
 
-_liveliness_cache = {}
+
+async def _toggle_theme(page_obj: ft.Page):
+    from database.manager import db_manager
+    new_mode = ft.ThemeMode.LIGHT if page_obj.theme_mode == ft.ThemeMode.DARK else ft.ThemeMode.DARK
+    page_obj.theme_mode = new_mode
+    state.theme_mode = new_mode
+    await db_manager.set_setting("theme_mode", "light" if new_mode == ft.ThemeMode.LIGHT else "dark")
+    page_obj.update()
 
 
 def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdService) -> ft.View:
@@ -18,447 +39,99 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
         "search_query": "",
         "add_type": "playlist",
         "search_task": None,
+        "tab_built": [False, False, False, False, False],
+        "recent_urls": [],
     }
 
-    # Track all expansion tiles for accordion behavior
-    _active_tiles = []  # list of all ExpansionTile refs in current tab
-    PAGE_SIZE = 24  # channels per page (fits 2 ad slots at every-12)
+    _active_tiles = []
 
-    new_name = ft.Ref[ft.TextField]()
-    new_url = ft.Ref[ft.TextField]()
+    recently_watched_row = ft.Row(
+        scroll=ft.ScrollMode.AUTO,
+        spacing=12,
+        visible=False,
+    )
+
+    async def _load_recently_watched():
+        history = await db_manager.get_history()
+        if not history:
+            return
+
+        view_state["recent_urls"] = history[:8]
+        recently_watched_row.controls.clear()
+
+        for url in history[:8]:
+            channel_info = next((c for c in state.channels if c.get("url") == url), None)
+            if not channel_info:
+                continue
+            name = channel_info.get("name", "")
+            if not name:
+                continue
+            logo = channel_info.get("logo", "/icon.png")
+
+            card = ft.Container(
+                content=ft.Column(
+                    [
+                        ft.Image(
+                            src=logo,
+                            width=50,
+                            height=50,
+                            fit=ft.BoxFit.CONTAIN,
+                            border_radius=12,
+                            error_content=ft.Icon(ft.Icons.TV, size=30),
+                        ),
+                        ft.Text(
+                            name,
+                            size=10,
+                            max_lines=1,
+                            overflow=ft.TextOverflow.ELLIPSIS,
+                            text_align=ft.TextAlign.CENTER,
+                        ),
+                    ],
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    spacing=4,
+                ),
+                width=80,
+                padding=8,
+                border_radius=12,
+                ink=True,
+                on_click=lambda e, play_url=url: page_obj.run_task(on_play, play_url),
+            )
+            recently_watched_row.controls.append(card)
+
+        if recently_watched_row.controls:
+            recently_watched_row.visible = True
+            recently_watched_section.visible = True
+        page_obj.update()
+
+    recently_watched_section = ft.Column(
+        [
+            ft.Text(LBL_RECENTLY_WATCHED, size=14, weight=ft.FontWeight.W_600),
+            recently_watched_row,
+        ],
+        visible=False,
+    )
+
+    page_obj.run_task(_load_recently_watched)
+
     countries_content = ft.ListView(expand=True, spacing=15)
     categories_content = ft.ListView(expand=True, spacing=15)
     custom_content = ft.ListView(expand=True, spacing=15)
     preferences_content = ft.ListView(expand=True, spacing=15)
+    local_content = build_local_tab_content(page_obj, on_play, ad_service)
 
-    check_semaphore = asyncio.Semaphore(8)
-    _shared_http_client = None
+    liveliness = getattr(page_obj, "get_liveliness", lambda: None)()
+    if liveliness is None:
+        from services.liveliness_checker import LivelinessChecker
+        liveliness = LivelinessChecker(page_obj)
 
-    def _get_http_client():
-        nonlocal _shared_http_client
-        if _shared_http_client is None or _shared_http_client.is_closed:
-            _shared_http_client = httpx.AsyncClient(
-                timeout=3.0,
-                follow_redirects=True,
-                limits=httpx.Limits(max_connections=20, max_keepalive_connections=10),
-            )
-        return _shared_http_client
+    def update_tab_content(tab_index: int, force: bool = False):
+        if tab_index == 4:
+            return
 
-    async def _check_single(url: str) -> tuple[str, bool]:
-        cached = _liveliness_cache.get(url)
-        if cached is not None:
-            return (url, cached)
+        if not force and view_state["tab_built"][tab_index]:
+            return
 
-        async with check_semaphore:
-            try:
-                client = _get_http_client()
-                resp = await client.head(url, timeout=2.0)
-                is_live = resp.status_code < 400
-                _liveliness_cache[url] = is_live
-                return (url, is_live)
-            except Exception:
-                _liveliness_cache[url] = False
-                return (url, False)
-
-    async def _fire_liveliness_batch(cards_data: list, target_control=None):
-        BATCH_SIZE = 10
-        UPDATE_INTERVAL = 3  # Only call update() every N batches
-        for i in range(0, len(cards_data), BATCH_SIZE):
-            batch = cards_data[i : i + BATCH_SIZE]
-            tasks = [_check_single(cd["url"]) for cd in batch]
-            results = await asyncio.gather(*tasks, return_exceptions=True)
-
-            for cd, result in zip(batch, results):
-                if isinstance(result, tuple):
-                    _, is_live = result
-                    cd["indicator"].bgcolor = AppColors.SUCCESS if is_live else AppColors.ERROR
-                else:
-                    cd["indicator"].bgcolor = AppColors.ERROR
-
-            batch_num = i // BATCH_SIZE
-            is_last = (i + BATCH_SIZE) >= len(cards_data)
-            if is_last or (batch_num % UPDATE_INTERVAL == 0):
-                try:
-                    if target_control:
-                        target_control.update()
-                    else:
-                        page_obj.update()
-                except Exception:
-                    pass
-
-            if not is_last:
-                await asyncio.sleep(0.05)
-
-    def close_dialog(e_page_obj):
-        e_page_obj.pop_dialog()
-
-    def handle_type_change(e):
-        view_state["add_type"] = list(e.control.selected)[0]
-        e.control.update()
-
-    async def handle_add(e):
-        name = new_name.current.value.strip()
-        raw_url = new_url.current.value.strip()
-
-        if name and raw_url:
-            close_dialog(page_obj)
-            new_name.current.value = ""
-            new_url.current.value = ""
-
-            state.is_loading = True
-            update_tab_content(view_state["selected_tab"])
-            page_obj.update()
-
-            stealth_codes = {
-                "#movies": "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9jYXRlZ29yaWVzL21vdmllcy5tM3U=",
-                "#sports": "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9jYXRlZ29yaWVzL3Nwb3J0cy5tM3U=",
-                "#news": "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9jYXRlZ29yaWVzL25ld3MubTN1",
-                "#music": "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9jYXRlZ29yaWVzL211c2ljLm0zdQ==",
-                "#kids": "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9jYXRlZ29yaWVzL2tpZHMubTN1",
-                "#comedy": "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9jYXRlZ29yaWVzL2NvbWVkeS5tM3U=",
-                "#global": "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9pbmRleC5tM3U=",
-            }
-            shortcode_key = raw_url.lower()
-            is_stealth = shortcode_key in stealth_codes
-            final_url = (
-                base64.b64decode(stealth_codes[shortcode_key]).decode("utf-8")
-                if is_stealth
-                else raw_url
-            )
-
-            if is_stealth or view_state["add_type"] == "playlist":
-                await db_manager.add_playlist(name, final_url)
-            else:
-                await db_manager.add_custom_channel(name, final_url)
-
-            if hasattr(page_obj, "load_channels"):
-                await page_obj.load_channels()
-
-            state.is_loading = False
-            update_tab_content(view_state["selected_tab"])
-
-            page_obj.snack_bar = ft.SnackBar(
-                ft.Text(f"{name} added successfully!"), bgcolor=AppColors.SUCCESS
-            )
-            page_obj.snack_bar.open = True
-            page_obj.update()
-
-    async def focus_field(field_ref):
-        if field_ref.current:
-            await field_ref.current.focus()
-
-    def create_tv_field(label, hint, ref, next_ref=None, is_submit=False):
-        # Wrapper container for TV navigation
-        container = ft.Container(
-            content=ft.Column([
-                ft.Text(label, size=12, color=AppColors.GREY_DIM, weight=ft.FontWeight.W_500),
-                ft.TextField(
-                    ref=ref,
-                    hint_text=hint,
-                    border=ft.InputBorder.NONE,
-                    height=40,
-                    content_padding=ft.Padding(10, 0, 10, 0),
-                    on_submit=lambda e: page_obj.run_task(focus_field, next_ref) if next_ref else (page_obj.run_task(handle_add, e) if is_submit else None),
-                ),
-            ], spacing=2),
-            padding=10,
-            border=ft.Border.all(1, AppColors.GREY_DIM),
-            border_radius=8,
-            on_click=lambda e: page_obj.run_task(focus_field, ref),
-        )
-        container.on_focus = lambda e: FocusManager.focus_style(e.control, True, AppColors.PRIMARY)
-        container.on_blur = lambda e: FocusManager.focus_style(e.control, False, AppColors.GREY_DIM)
-        container.tab_index = 0
-        return container
-
-    add_dialog = ft.AlertDialog(
-        title=ft.Text("Add Custom Content", weight=ft.FontWeight.BOLD),
-        content=ft.Column(
-            [
-                ft.Text("Type", size=12, color=AppColors.GREY_DIM, weight=ft.FontWeight.W_500),
-                ft.SegmentedButton(
-                    selected=[view_state["add_type"]],
-                    allow_empty_selection=False,
-                    on_change=handle_type_change,
-                    segments=[
-                        ft.Segment(
-                            value="playlist",
-                            label=ft.Text("Playlist"),
-                            icon=ft.Icon(ft.Icons.PLAYLIST_ADD),
-                        ),
-                        ft.Segment(
-                            value="channel",
-                            label=ft.Text("Single Channel"),
-                            icon=ft.Icon(ft.Icons.TV),
-                        ),
-                    ],
-                ),
-                ft.Divider(height=10, color=ft.Colors.TRANSPARENT),
-                create_tv_field("Name", "Enter reference name", new_name, next_ref=new_url),
-                create_tv_field("URL", "Enter M3U8 or Playlist URL", new_url, is_submit=True),
-                ft.Text(
-                    "Tip: Press OK/Enter to start editing, then Enter to move.",
-                    size=11,
-                    color=AppColors.GREY_DIM,
-                    italic=True,
-                ),
-            ],
-            tight=True,
-            spacing=10,
-            width=500,
-        ),
-        actions=[
-            ft.TextButton(
-                content="Cancel", 
-                on_click=lambda e: close_dialog(page_obj),
-                style=ft.ButtonStyle(padding=20)
-            ),
-            ft.FilledButton(
-                content="Add Content",
-                on_click=handle_add,
-                style=ft.ButtonStyle(
-                    bgcolor=AppColors.PRIMARY, 
-                    color=ft.Colors.WHITE,
-                    padding=20,
-                    shape=ft.RoundedRectangleBorder(radius=8)
-                ),
-            ),
-        ],
-        actions_alignment=ft.MainAxisAlignment.END,
-    )
-
-    def create_channel_card(c, card_index=0):
-        url = c.get("url", "")
-        cached = _liveliness_cache.get(url)
-        initial_color = AppColors.GREY_DIM
-        if cached is True:
-            initial_color = AppColors.SUCCESS
-        elif cached is False:
-            initial_color = AppColors.ERROR
-
-        status_indicator = ft.Container(
-            width=10, height=10, border_radius=5, bgcolor=initial_color
-        )
-
-        card_key = f"ch_{card_index}_{hash(url) % 10000}"
-        card_visual = GlassContainer(
-            content=ft.Column(
-                [
-                    ft.Row([status_indicator], alignment=ft.MainAxisAlignment.END),
-                    ft.Image(
-                        src=c.get("logo"),
-                        width=60,
-                        height=60,
-                        fit=ft.BoxFit.CONTAIN,
-                        border_radius=20,
-                        error_content=ft.Icon(ft.Icons.TV, size=30),
-                    ),
-                    ft.Text(
-                        c.get("name", "Unknown"),
-                        size=11,
-                        weight=ft.FontWeight.W_400,
-                        text_align=ft.TextAlign.CENTER,
-                        max_lines=1,
-                        overflow=ft.TextOverflow.ELLIPSIS,
-                    ),
-                ],
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                spacing=2,
-            ),
-            padding=10,
-            border_radius=25,
-            focusable=True,
-            key=card_key,
-        )
-
-        interactive_card = ft.Container(
-            content=card_visual,
-            border_radius=25,
-            ink=True,
-            height=130,
-            on_click=lambda e, play_url=url: page_obj.run_task(on_play, play_url),
-        )
-
-        interactive_card.data = {"url": url, "indicator": status_indicator}
-        return interactive_card
-
-    def build_grid(channels):
-        grid = ft.ResponsiveRow(spacing=12, run_spacing=12)
-
-        for i, c in enumerate(channels):
-            card = create_channel_card(c, card_index=i)
-            card_wrapper = ft.Container(
-                content=card,
-                col={"xs": 4, "sm": 3, "md": 2, "lg": 2},
-            )
-            grid.controls.append(card_wrapper)
-
-            if (i + 1) % 12 == 0 and (i + 1) < len(channels):
-                grid.controls.append(
-                    ft.Container(
-                        content=ad_service.get_standard_banner_ad(),
-                        col=12,
-                        alignment=ft.Alignment.CENTER,
-                        padding=ft.Padding(0, 5, 0, 5),
-                    )
-                )
-
-        return grid
-
-    def _collect_cards_data(grid) -> list:
-        cards_data = []
-        for wrapper in grid.controls:
-            card = getattr(wrapper, "content", None)
-            if card and getattr(card, "data", None):
-                url = card.data.get("url")
-                indicator = card.data.get("indicator")
-                if url and indicator:
-                    cards_data.append({"url": url, "indicator": indicator})
-        return cards_data
-
-    def _build_page_grid(channels, offset=0, limit=24):
-        """Build a grid for a slice of channels (offset to offset+limit)."""
-        page_channels = channels[offset : offset + limit]
-        grid = ft.ResponsiveRow(spacing=12, run_spacing=12)
-
-        for i, c in enumerate(page_channels):
-            global_idx = offset + i
-            card = create_channel_card(c, card_index=global_idx)
-            card_wrapper = ft.Container(
-                content=card,
-                col={"xs": 4, "sm": 3, "md": 2, "lg": 2},
-            )
-            grid.controls.append(card_wrapper)
-
-            # Insert ad every 12 cards
-            if (global_idx + 1) % 12 == 0 and (global_idx + 1) < len(channels):
-                grid.controls.append(
-                    ft.Container(
-                        content=ad_service.get_standard_banner_ad(),
-                        col=12,
-                        alignment=ft.Alignment.CENTER,
-                        padding=ft.Padding(0, 5, 0, 5),
-                    )
-                )
-
-        return grid
-
-    def _build_nav_btn(icon, label, tile, channels, offset, is_next=True):
-        """Create a focusable 'Show Previous/Next' navigation button."""
-        btn = ft.Container(
-            content=ft.Row(
-                [
-                    ft.Icon(icon, color=AppColors.PRIMARY),
-                    ft.Text(label, color=AppColors.PRIMARY, weight=ft.FontWeight.W_500),
-                ],
-                alignment=ft.MainAxisAlignment.CENTER,
-                spacing=8,
-            ),
-            padding=15,
-            border_radius=10,
-            border=ft.Border.all(1, AppColors.PRIMARY),
-            ink=True,
-            on_click=lambda e, t=tile, ch=channels, off=offset: _show_page(t, ch, off),
-        )
-        btn.tab_index = 0
-        btn._is_nav_btn = True
-        btn.on_focus = lambda e: _style_focusable(e.control, True)
-        btn.on_blur = lambda e: _style_focusable(e.control, False)
-        return btn
-
-    def _style_focusable(control, focused):
-        """Apply/remove focus highlight for any focusable container."""
-        if focused:
-            control.bgcolor = ft.Colors.with_opacity(0.1, AppColors.PRIMARY)
-            control.border = ft.Border.all(2, AppColors.PRIMARY)
-        else:
-            control.bgcolor = None
-            control.border = ft.Border.all(1, AppColors.PRIMARY)
-        try:
-            control.update()
-        except Exception:
-            pass
-
-    def _show_page(tile, channels, offset):
-        """Show exactly one page of channels, replacing whatever was there before."""
-        total = len(channels)
-        end = min(offset + PAGE_SIZE, total)
-
-        # Clear everything and rebuild with just this page
-        tile.controls.clear()
-
-        # "Show Previous" button if not on first page
-        if offset > 0:
-            prev_offset = max(0, offset - PAGE_SIZE)
-            prev_label = f"◀ Show previous {offset - prev_offset} (channels {prev_offset + 1}–{offset})"
-            tile.controls.append(_build_nav_btn(
-                ft.Icons.EXPAND_LESS, prev_label, tile, channels, prev_offset, is_next=False
-            ))
-
-        # Page info header
-        tile.controls.append(
-            ft.Container(
-                content=ft.Text(
-                    f"Showing {offset + 1}–{end} of {total}",
-                    size=11, color=AppColors.GREY_DIM, italic=True,
-                    text_align=ft.TextAlign.CENTER, width=float("inf"),
-                ),
-                padding=ft.Padding(0, 5, 0, 5),
-            )
-        )
-
-        # The actual channel grid for this page
-        grid = _build_page_grid(channels, offset, PAGE_SIZE)
-        tile.controls.append(grid)
-
-        # "Show Next" button if there are more
-        if end < total:
-            remaining = total - end
-            show_count = min(PAGE_SIZE, remaining)
-            next_label = f"Show next {show_count} of {remaining} remaining ▶"
-            tile.controls.append(_build_nav_btn(
-                ft.Icons.EXPAND_MORE, next_label, tile, channels, end, is_next=True
-            ))
-
-        tile.update()
-
-        # Fire liveliness for just this page
-        cards_data = _collect_cards_data(grid)
-        if cards_data:
-            page_obj.run_task(_fire_liveliness_batch, cards_data, tile)
-
-    def _collapse_other_tiles(current_tile):
-        """Accordion: collapse all other expansion tiles."""
-        for t in _active_tiles:
-            if t is not current_tile and t.expanded:
-                t.expanded = False
-                # Clear children to free memory
-                t.controls.clear()
-                try:
-                    t.update()
-                except Exception:
-                    pass
-
-    def handle_expansion(e, channels):
-        if str(e.data).lower() == "true":
-            # Accordion: collapse others first
-            _collapse_other_tiles(e.control)
-
-            if not e.control.controls:
-                # Show first page (the _show_page function handles everything)
-                _show_page(e.control, channels, 0)
-        else:
-            # Collapsing — clear children to free memory
-            e.control.controls.clear()
-            try:
-                e.control.update()
-            except Exception:
-                pass
-
-    def update_tab_content(tab_index: int):
-        target = [countries_content, categories_content, custom_content, preferences_content][
-            tab_index
-        ]
+        target = [countries_content, categories_content, custom_content, preferences_content][tab_index]
         target.controls.clear()
 
         if state.is_loading:
@@ -466,21 +139,10 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
                 ft.Column(
                     [
                         ft.Container(height=80),
-                        ft.ProgressRing(
-                            width=60, height=60, stroke_width=6, color=AppColors.PRIMARY
-                        ),
+                        ft.ProgressRing(width=60, height=60, stroke_width=6, color=AppColors.PRIMARY),
                         ft.Container(height=20),
-                        ft.Text(
-                            "Fetching and validating channels...",
-                            color=AppColors.GREY_DIM,
-                            size=18,
-                            weight=ft.FontWeight.BOLD,
-                        ),
-                        ft.Text(
-                            "Please wait, massive playlists may take a moment.",
-                            color=AppColors.GREY_DIM,
-                            size=12,
-                        ),
+                        ft.Text(LBL_LOADING_CHANNELS, color=AppColors.GREY_DIM, size=18, weight=ft.FontWeight.BOLD),
+                        ft.Text(LBL_LOADING_CHANNELS_SUB, color=AppColors.GREY_DIM, size=12),
                     ],
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 )
@@ -488,309 +150,20 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
             return
 
         if tab_index == 3:
-
-            async def handle_clear_history(e):
-                await db_manager.clear_history()
-                page_obj.snack_bar = ft.SnackBar(
-                    ft.Text("Watch history cleared!"), bgcolor=AppColors.SUCCESS
-                )
-                page_obj.snack_bar.open = True
-                page_obj.update()
-
-            async def handle_clear_custom(e):
-                state.is_loading = True
-                update_tab_content(view_state["selected_tab"])
-                page_obj.update()
-
-                await db_manager.clear_custom_content()
-                if hasattr(page_obj, "load_channels"):
-                    await page_obj.load_channels()
-
-                state.is_loading = False
-                update_tab_content(view_state["selected_tab"])
-
-                page_obj.snack_bar = ft.SnackBar(
-                    ft.Text("Custom library reset!"), bgcolor=AppColors.SUCCESS
-                )
-                page_obj.snack_bar.open = True
-                page_obj.update()
-
-            unique_countries = sorted(
-                list(
-                    set(
-                        [
-                            c.get("group", "").split(";")[0].strip()
-                            for c in state.channels
-                            if c.get("country_code")
-                        ]
-                    )
-                )
-            )
-            if "Other" not in unique_countries:
-                unique_countries.append("Other")
-            if not unique_countries or (
-                len(unique_countries) == 1 and unique_countries[0] == "Other"
-            ):
-                unique_countries = ["Global", "Nigeria", "USA", "UK", "Other"]
-
-            # TV-ready country picker: ListView of focusable ListTiles
-            settings_country_list = ft.ListView(height=180, spacing=2, padding=5, auto_scroll=False)
-            settings_country_tiles = []
-
-            def _settings_select_country(name):
-                async def _do_select():
-                    await db_manager.set_setting("user_country", name)
-                    state.user_country = name
-                    for ti in settings_country_tiles:
-                        is_sel = ti["name"] == name
-                        ti["tile"].bgcolor = AppColors.PRIMARY if is_sel else None
-                        ti["tile"].leading = ft.Icon(
-                            ft.Icons.CHECK_CIRCLE if is_sel else ft.Icons.RADIO_BUTTON_UNCHECKED,
-                            color=ft.Colors.WHITE if is_sel else AppColors.GREY_DIM,
-                        )
-                        ti["tile"].title = ft.Text(
-                            ti["name"],
-                            color=ft.Colors.WHITE if is_sel else None,
-                            weight=ft.FontWeight.W_500 if is_sel else ft.FontWeight.NORMAL,
-                        )
-                    settings_country_list.update()
-                    page_obj.snack_bar = ft.SnackBar(ft.Text(f"Primary country updated to {name}"))
-                    page_obj.snack_bar.open = True
-                    page_obj.update()
-                page_obj.run_task(_do_select)
-
-            def _settings_tile_focus(e):
-                ck = getattr(e.control, "key", None)
-                if ck:
-                    try:
-                        settings_country_list.scroll_to(key=ck, duration=200)
-                    except Exception:
-                        pass
-
-            for cname in unique_countries:
-                is_current = cname == state.user_country
-                stile = ft.ListTile(
-                    title=ft.Text(
-                        cname,
-                        color=ft.Colors.WHITE if is_current else None,
-                        weight=ft.FontWeight.W_500 if is_current else ft.FontWeight.NORMAL,
-                    ),
-                    leading=ft.Icon(
-                        ft.Icons.CHECK_CIRCLE if is_current else ft.Icons.RADIO_BUTTON_UNCHECKED,
-                        color=ft.Colors.WHITE if is_current else AppColors.GREY_DIM,
-                    ),
-                    key=cname,
-                    bgcolor=AppColors.PRIMARY if is_current else None,
-                    on_click=lambda e, n=cname: _settings_select_country(n),
-                    dense=True,
-                    shape=ft.RoundedRectangleBorder(radius=8),
-                )
-                # on_focus is not in ListTile.__init__ signature, assign after
-                stile.on_focus = _settings_tile_focus
-
-                settings_country_tiles.append({"name": cname, "tile": stile})
-                settings_country_list.controls.append(stile)
-
-            country_picker = ft.Container(
-                content=settings_country_list,
-                border=ft.Border.all(1, AppColors.GREY_DIM),
-                border_radius=10,
-            )
-
-            target.controls.append(
-                ft.Column(
-                    [
-                        ft.Text("Preferences", size=24, weight=ft.FontWeight.BOLD),
-                        ft.Divider(height=20),
-                        ft.Text(
-                            "Localization",
-                            size=16,
-                            weight=ft.FontWeight.W_500,
-                            color=AppColors.PRIMARY,
-                        ),
-                        ft.Text(
-                            "Select your home region to prioritize its networks at the top of your dashboard.",
-                            size=12,
-                            color=AppColors.GREY_DIM,
-                        ),
-                        country_picker,
-                        ft.Container(height=20),
-                        ft.Text(
-                            "Data Management",
-                            size=16,
-                            weight=ft.FontWeight.W_500,
-                            color=AppColors.PRIMARY,
-                        ),
-                        ft.ListTile(
-                            leading=ft.Icon(ft.Icons.HISTORY, color=AppColors.WARNING),
-                            title=ft.Text("Clear Watch History"),
-                            subtitle=ft.Text("Remove all recently watched streams from memory"),
-                            on_click=handle_clear_history,
-                        ),
-                        ft.ListTile(
-                            leading=ft.Icon(ft.Icons.DELETE_FOREVER, color=AppColors.WARNING),
-                            title=ft.Text("Reset Custom Library"),
-                            subtitle=ft.Text(
-                                "Delete all manually added custom URLs and external playlists"
-                            ),
-                            on_click=handle_clear_custom,
-                        ),
-                    ],
-                    spacing=10,
-                    expand=True,
-                )
-            )
-
+            target._refresh_tab = lambda ti: update_tab_content(ti)
+            build_preferences_tab_content(target, page_obj, on_play, ad_service, liveliness, view_state, _active_tiles)
+        elif tab_index == 2:
+            target._refresh_tab = lambda ti: update_tab_content(ti)
+            build_custom_tab_content(target, page_obj, on_play, ad_service, liveliness, view_state, _active_tiles)
+        elif tab_index == 1:
+            build_categories_tab_content(target, page_obj, on_play, ad_service, liveliness, view_state, _active_tiles)
         else:
-            if tab_index == 2:
-                target.controls.append(
-                    ft.FilledButton(
-                        content="Add Custom Configuration",
-                        icon=ft.Icons.LINK,
-                        on_click=lambda e: page_obj.show_dialog(add_dialog),
-                        style=ft.ButtonStyle(
-                            shape=ft.RoundedRectangleBorder(radius=10),
-                            padding=20,
-                            bgcolor=AppColors.PRIMARY,
-                            color=ft.Colors.WHITE,
-                        ),
-                        width=float("inf"),
-                    )
-                )
-                target.controls.append(ft.Container(height=10))
-                target.controls.append(ad_service.get_standard_banner_ad())
-                target.controls.append(ft.Divider(height=20, color=AppColors.GREY_DIM))
+            build_countries_tab_content(target, page_obj, on_play, ad_service, liveliness, view_state, _active_tiles)
 
-            groups = {}
-            query = view_state["search_query"].lower()
-            MAX_SEARCH_RESULTS = 50
-            results_count = 0
-
-            for c in state.channels:
-                is_custom = c.get("is_custom", False)
-                if tab_index == 2 and not is_custom:
-                    continue
-                if tab_index in (0, 1) and is_custom:
-                    continue
-
-                name_match = query in c.get("name", "").lower()
-                original_group = c.get("group", "General")
-                parts = [p.strip() for p in original_group.split(";")]
-
-                if tab_index == 0:
-                    display_group = parts[0] if c.get("country_code") else "Global"
-                elif tab_index == 1:
-                    display_group = (
-                        parts[-1]
-                        if len(parts) > 1
-                        else (parts[0] if not c.get("country_code") else "General")
-                    )
-                elif tab_index == 2:
-                    display_group = original_group
-
-                if tab_index == 1 and display_group.lower() == "general":
-                    continue
-
-                if query and not name_match and query not in display_group.lower():
-                    continue
-
-                if query:
-                    results_count += 1
-                    if results_count > MAX_SEARCH_RESULTS:
-                        break
-
-                if display_group not in groups:
-                    groups[display_group] = []
-                groups[display_group].append(c)
-
-            group_names = sorted(groups.keys())
-            if (
-                tab_index == 0
-                and state.user_country in group_names
-                and state.user_country != "Other"
-            ):
-                group_names.remove(state.user_country)
-                group_names.insert(0, state.user_country)
-
-            _active_tiles.clear()
-
-            for name in group_names:
-                channels = groups[name]
-                should_expand = (tab_index == 0 and name == state.user_country) or (
-                    query != "" and results_count < 10
-                )
-
-                tile_controls = []
-                if should_expand:
-                    # Build first page using _show_page pattern
-                    # (we build it inline here since the tile doesn't exist yet)
-                    grid = _build_page_grid(channels, 0, PAGE_SIZE)
-                    total = len(channels)
-                    end = min(PAGE_SIZE, total)
-
-                    # Page info
-                    tile_controls.append(
-                        ft.Container(
-                            content=ft.Text(
-                                f"Showing 1–{end} of {total}",
-                                size=11, color=AppColors.GREY_DIM, italic=True,
-                                text_align=ft.TextAlign.CENTER, width=float("inf"),
-                            ),
-                            padding=ft.Padding(0, 5, 0, 5),
-                        )
-                    )
-                    tile_controls.append(grid)
-
-                    # "Show Next" nav button — tile ref fixed below after exp_tile creation
-                    if total > PAGE_SIZE:
-                        remaining = total - end
-                        show_count = min(PAGE_SIZE, remaining)
-                        next_label = f"Show next {show_count} of {remaining} remaining ▶"
-                        nav_btn = _build_nav_btn(ft.Icons.EXPAND_MORE, next_label, None, channels, end)
-                        nav_btn._needs_tile_ref = True
-                        tile_controls.append(nav_btn)
-
-                    cards_data = _collect_cards_data(grid)
-                    if cards_data:
-                        page_obj.run_task(_fire_liveliness_batch, cards_data)
-
-                exp_tile = ft.ExpansionTile(
-                    title=ft.Text(f"{name} ({len(channels)})", weight=ft.FontWeight.BOLD),
-                    expanded=should_expand,
-                    on_change=lambda e, ch=channels: handle_expansion(e, ch),
-                    controls=tile_controls,
-                    collapsed_bgcolor=ft.Colors.TRANSPARENT,
-                    bgcolor=ft.Colors.with_opacity(0.03, ft.Colors.ON_SURFACE),
-                )
-
-                # Focus styling directly on the ExpansionTile for TV remote
-                exp_tile.on_focus = lambda e: _on_tile_focus(e.control, True)
-                exp_tile.on_blur = lambda e: _on_tile_focus(e.control, False)
-
-                # Fix nav button tile references for pre-expanded tiles
-                if should_expand:
-                    for ctrl in tile_controls:
-                        if hasattr(ctrl, '_needs_tile_ref'):
-                            ctrl.on_click = lambda e, t=exp_tile, ch=channels, off=min(PAGE_SIZE, len(channels)): _show_page(t, ch, off)
-
-                _active_tiles.append(exp_tile)
-                target.controls.append(exp_tile)
-
-    def _on_tile_focus(control, focused):
-        """Highlight ExpansionTile when focused via remote."""
-        if focused:
-            control.collapsed_bgcolor = ft.Colors.with_opacity(0.12, AppColors.PRIMARY)
-            control.bgcolor = ft.Colors.with_opacity(0.12, AppColors.PRIMARY)
-        else:
-            control.collapsed_bgcolor = ft.Colors.TRANSPARENT
-            control.bgcolor = ft.Colors.with_opacity(0.03, ft.Colors.ON_SURFACE)
-        try:
-            control.update()
-        except Exception:
-            pass
+        view_state["tab_built"][tab_index] = True
 
     tab_view_container = ft.TabBarView(
-        controls=[countries_content, categories_content, custom_content, preferences_content],
+        controls=[countries_content, categories_content, custom_content, preferences_content, local_content],
         expand=True,
     )
 
@@ -801,15 +174,16 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
 
     tab_bar = ft.TabBar(
         tabs=[
-            ft.Tab(label="Countries", icon=ft.Icons.PUBLIC),
-            ft.Tab(label="Categories", icon=ft.Icons.CATEGORY),
-            ft.Tab(label="Custom", icon=ft.Icons.PLAYLIST_ADD),
-            ft.Tab(label="Settings", icon=ft.Icons.SETTINGS),
+            ft.Tab(label=LBL_COUNTRIES, icon=ft.Icons.PUBLIC),
+            ft.Tab(label=LBL_CATEGORIES, icon=ft.Icons.CATEGORY),
+            ft.Tab(label=LBL_CUSTOM, icon=ft.Icons.PLAYLIST_ADD),
+            ft.Tab(label=LBL_SETTINGS, icon=ft.Icons.SETTINGS),
+            ft.Tab(label=LBL_LOCAL_VIDEOS, icon=ft.Icons.VIDEO_LIBRARY),
         ]
     )
 
     tabs_wrapper = ft.Tabs(
-        length=4,
+        length=5,
         selected_index=view_state["selected_tab"],
         content=ft.Column([tab_bar, tab_view_container], expand=True, spacing=0),
         expand=True,
@@ -817,14 +191,19 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
     )
 
     def refresh_dashboard():
-        update_tab_content(view_state["selected_tab"])
+        for i in range(4):
+            view_state["tab_built"][i] = False
+        update_tab_content(view_state["selected_tab"], force=True)
+        page_obj.run_task(_load_recently_watched)
         page_obj.update()
 
     page_obj.refresh_dashboard = refresh_dashboard
 
     async def execute_search(query: str):
         view_state["search_query"] = query
-        update_tab_content(view_state["selected_tab"])
+        for i in range(4):
+            view_state["tab_built"][i] = False
+        update_tab_content(view_state["selected_tab"], force=True)
         page_obj.update()
 
     def on_search_change(e):
@@ -834,16 +213,14 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
         query = e.data
 
         async def delayed_search():
-            await asyncio.sleep(0.4)
+            await asyncio.sleep(0.6)
             await execute_search(query)
 
         view_state["search_task"] = page_obj.run_task(delayed_search)
 
     search_bar = ft.SearchBar(
-        view_elevation=4,
-        divider_color=AppColors.GREY_DIM,
         on_change=on_search_change,
-        bar_hint_text="Search channels...",
+        bar_hint_text=LBL_SEARCH_HINT,
         bar_leading=ft.Icon(ft.Icons.SEARCH_ROUNDED),
         expand=True,
     )
@@ -852,23 +229,18 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
 
     header = ft.Row(
         [
-            ft.Image(src="/icon.png", width=40, height=40, border_radius=12),
+            ft.Container(
+                content=ft.Image(src="/icon.png", width=40, height=40, border_radius=12),
+                border_radius=12,
+            ),
             search_bar,
-            ft.IconButton(
-                icon=ft.Icons.LIGHT_MODE
-                if page_obj.theme_mode == ft.ThemeMode.DARK
-                else ft.Icons.DARK_MODE,
-                on_click=lambda _: (
-                    setattr(
-                        page_obj,
-                        "theme_mode",
-                        ft.ThemeMode.LIGHT
-                        if page_obj.theme_mode == ft.ThemeMode.DARK
-                        else ft.ThemeMode.DARK,
-                    ),
-                    setattr(state, "theme_mode", page_obj.theme_mode),
-                    page_obj.update(),
+            ft.Container(
+                content=ft.IconButton(
+                    icon=ft.Icons.LIGHT_MODE if page_obj.theme_mode == ft.ThemeMode.DARK else ft.Icons.DARK_MODE,
+                    on_click=lambda _: page_obj.run_task(_toggle_theme, page_obj),
                 ),
+                border_radius=12,
+                ink=True,
             ),
         ],
         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
@@ -876,13 +248,19 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
     )
 
     main_col = ft.Column(
-        [
-            header,
-            tabs_wrapper,
-        ],
+        [header, recently_watched_section, tabs_wrapper],
         spacing=15,
         expand=True,
     )
+
+    ad_banner = ad_service.get_anchor_banner_ad()
+    footer_controls = [
+        ft.Container(
+            content=ad_banner,
+            alignment=ft.Alignment.CENTER,
+            padding=ft.Padding(0, 5, 0, 5),
+        )
+    ] if ad_banner else []
 
     return ft.View(
         route="/dashboard",
@@ -896,11 +274,7 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
                 ),
                 expand=True,
             ),
-            ft.Container(
-                content=ad_service.get_anchor_banner_ad(),
-                alignment=ft.Alignment.CENTER,
-                padding=ft.Padding(0, 5, 0, 5),
-            )
+            *footer_controls,
         ],
         padding=0,
     )
