@@ -4,6 +4,7 @@ import contextlib
 import ipaddress
 import logging
 import re
+import time  # <-- Added time for the cache-buster
 import urllib.parse
 
 import flet as ft
@@ -149,6 +150,7 @@ class AppController:
         self._current_player = None
         if len(self.page.views) > 1:
             self.page.views.pop()
+            self.page.route = self.page.views[-1].route  # FIX: Reset internal route
             self.page.update()
 
     def _handle_global_back(self):
@@ -163,9 +165,11 @@ class AppController:
                     self.page.run_task(self._current_player.handle_close)
                     self._current_player = None
                 self.page.views.pop()
+                self.page.route = self.page.views[-1].route  # FIX: Reset internal route
                 self.page.update()
             else:
                 self.page.views.pop()
+                self.page.route = self.page.views[-1].route  # FIX: Reset internal route
                 self.page.update()
 
     def view_pop(self, e: ft.ViewPopEvent):
@@ -178,6 +182,7 @@ class AppController:
                 self.page.run_task(self._current_player.handle_close)
                 self._current_player = None
             self.page.views.pop()
+            self.page.route = self.page.views[-1].route  # FIX: Reset internal route
             self.page.update()
 
     async def navigate(self, route: str):
@@ -196,7 +201,8 @@ class AppController:
 
         await self.ad_service.show_interstitial()
 
-        await self.navigate(f"/play?url={encoded_url}")
+        # THE CACHE BUSTER: Appending &t=timestamp forces Flet to treat this as a 100% new navigation
+        await self.navigate(f"/play?url={encoded_url}&t={time.time()}")
 
     async def load_channels(self, force: bool = False):
         logger.debug("load_channels called, force=%s, _channels_loaded=%s", force, self._channels_loaded)

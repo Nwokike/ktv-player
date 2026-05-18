@@ -126,63 +126,32 @@ class ImmersivePlayer(ft.Stack):
             on_exit_fullscreen=self._on_exit_fullscreen,
         )
 
-        self.back_btn = ft.Container(
-            content=ft.IconButton(
-                icon=ft.Icons.ARROW_BACK_IOS_NEW_ROUNDED,
-                icon_color=ft.Colors.WHITE,
-                icon_size=24,
-                bgcolor=ft.Colors.with_opacity(0.4, ft.Colors.BLACK),
-                on_click=lambda e: self.page.run_task(self._on_back, e),
-                tooltip="Back",
-            ),
-            left=20,
-            top=40,
-        )
-        self.back_btn.tab_index = 0
-        self.back_btn.on_focus = lambda e: self._style_back_btn(True)
-        self.back_btn.on_blur = lambda e: self._style_back_btn(False)
-
-        title_bar = ft.Container(
-            content=ft.Text(
-                self.title or "Now Playing",
-                size=14,
-                color=ft.Colors.WHITE,
-                weight=ft.FontWeight.W_500,
-                max_lines=1,
-                overflow=ft.TextOverflow.ELLIPSIS,
-            ),
-            right=20,
-            top=44,
-            visible=bool(self.title),
-        )
-
+        # Removed the buggy Stack elements (back_btn and title_bar)
+        # because they are now rendered safely inside the video controls!
         self.controls = [
             ft.Container(expand=True, bgcolor=ft.Colors.BLACK),
             self.video,
             self.overlay,
-            self.back_btn,
-            title_bar,
         ]
 
     def did_mount(self):
-        """Hijacks the keyboard events when the player is mounted to guarantee the back button works."""
         self._previous_keyboard_handler = self.page.on_keyboard_event
         self.page.on_keyboard_event = self._handle_player_keyboard
 
     def will_unmount(self):
-        """Restores the standard app keyboard handler when the player is destroyed."""
         if self._previous_keyboard_handler is not None:
             self.page.on_keyboard_event = self._previous_keyboard_handler
 
     def _handle_player_keyboard(self, e: ft.KeyboardEvent):
-        """Forces Escape/Back to trigger the player close sequence."""
         if e.key in ("Escape", "Back", "BrowserBack"):
             self.page.run_task(self._on_back)
         elif self._previous_keyboard_handler:
             self._previous_keyboard_handler(e)
 
     def _build_controls(self):
-        desktop_controls = fv.MaterialDesktopVideoControls(
+        # We exclusively use MaterialDesktopVideoControls because it perfectly handles 
+        # injecting custom top_button_bar items so they respond reliably to touch.
+        return fv.MaterialDesktopVideoControls(
             visible_on_mount=True,
             display_seek_bar=True,
             modify_volume_on_scroll=True,
@@ -195,6 +164,20 @@ class ImmersivePlayer(ft.Stack):
                 fv.VideoSkipNextButton(icon_color=ft.Colors.WHITE),
             ],
             top_button_bar=[
+                # Inject Back Button and Title NATIVELY into the player UI
+                ft.IconButton(
+                    icon=ft.Icons.ARROW_BACK_IOS_NEW_ROUNDED,
+                    icon_color=ft.Colors.WHITE,
+                    tooltip="Back",
+                    on_click=lambda e: self.page.run_task(self._on_back, e),
+                ),
+                ft.Text(
+                    self.title or "Now Playing", 
+                    color=ft.Colors.WHITE, 
+                    weight=ft.FontWeight.W_500,
+                    max_lines=1,
+                    overflow=ft.TextOverflow.ELLIPSIS,
+                ),
                 fv.VideoSpacer(),
                 self._build_screenshot_btn(),
                 fv.VideoFullscreenButton(icon_color=ft.Colors.WHITE),
@@ -213,22 +196,6 @@ class ImmersivePlayer(ft.Stack):
             seek_bar_hover_height=8,
             volume_bar_active_color=AppColors.PRIMARY,
             controls_hover_duration=ft.Duration(seconds=3),
-        )
-
-        mobile_controls = fv.MaterialVideoControls(
-            visible_on_mount=True,
-            display_seek_bar=True,
-            volume_gesture=True,
-            brightness_gesture=True,
-            seek_gesture=True,
-            seek_on_double_tap=True,
-            speed_up_on_long_press=True,
-            seek_bar_position_color=AppColors.PRIMARY,
-        )
-
-        return fv.AdaptiveVideoControls(
-            material_desktop=desktop_controls,
-            material=mobile_controls
         )
 
     def _build_screenshot_btn(self):
@@ -297,16 +264,6 @@ class ImmersivePlayer(ft.Stack):
         self._speed_idx = (self._speed_idx + 1) % len(speeds)
         new_speed = speeds[self._speed_idx]
         await self.set_playback_rate(new_speed)
-
-    def _style_back_btn(self, focused: bool):
-        if focused:
-            self.back_btn.content.bgcolor = ft.Colors.with_opacity(0.7, AppColors.PRIMARY)
-            self.back_btn.content.scale = 1.15
-        else:
-            self.back_btn.content.bgcolor = ft.Colors.with_opacity(0.4, ft.Colors.BLACK)
-            self.back_btn.content.scale = 1.0
-        with contextlib.suppress(Exception):
-            self.back_btn.update()
 
     def _on_load(self, e):
         logger.debug("on_load fired, data=%s", e.data)
