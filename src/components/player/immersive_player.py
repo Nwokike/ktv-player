@@ -30,6 +30,7 @@ class ImmersivePlayer(ft.Stack):
         pause_upon_entering_background_mode: bool = True,
         resume_upon_entering_foreground_mode: bool = True,
         http_headers: dict | None = None,
+        subtitle_track: fv.VideoSubtitleTrack | None = None,
     ):
         super().__init__()
         self.resource = resource
@@ -44,6 +45,7 @@ class ImmersivePlayer(ft.Stack):
         self._reconnect_count = 0
         self._max_reconnects = STREAM_RECONNECT_MAX
         self._is_closing = False
+        self._previous_keyboard_handler = None
 
         self.status_text = ft.Text(
             "Loading stream...",
@@ -90,6 +92,16 @@ class ImmersivePlayer(ft.Stack):
             filter_quality=ft.FilterQuality.LOW,
             pause_upon_entering_background_mode=pause_upon_entering_background_mode,
             resume_upon_entering_foreground_mode=resume_upon_entering_foreground_mode,
+            subtitle_track=subtitle_track,
+            subtitle_configuration=fv.VideoSubtitleConfiguration(
+                text_align=ft.TextAlign.CENTER,
+                text_style=ft.TextStyle(
+                    size=20,
+                    color=ft.Colors.WHITE,
+                    weight=ft.FontWeight.W_600,
+                    bgcolor=ft.Colors.with_opacity(0.5, ft.Colors.BLACK),
+                ),
+            ),
             configuration=fv.VideoConfiguration(
                 hardware_decoding_api="mediacodec",
                 mpv_properties={
@@ -152,13 +164,30 @@ class ImmersivePlayer(ft.Stack):
             title_bar,
         ]
 
+    def did_mount(self):
+        """Hijacks the keyboard events when the player is mounted to guarantee the back button works."""
+        self._previous_keyboard_handler = self.page.on_keyboard_event
+        self.page.on_keyboard_event = self._handle_player_keyboard
+
+    def will_unmount(self):
+        """Restores the standard app keyboard handler when the player is destroyed."""
+        if self._previous_keyboard_handler is not None:
+            self.page.on_keyboard_event = self._previous_keyboard_handler
+
+    def _handle_player_keyboard(self, e: ft.KeyboardEvent):
+        """Forces Escape/Back to trigger the player close sequence."""
+        if e.key in ("Escape", "Back", "BrowserBack"):
+            self.page.run_task(self._on_back)
+        elif self._previous_keyboard_handler:
+            self._previous_keyboard_handler(e)
+
     def _build_controls(self):
-        return fv.MaterialDesktopVideoControls(
+        desktop_controls = fv.MaterialDesktopVideoControls(
             visible_on_mount=True,
             display_seek_bar=True,
             modify_volume_on_scroll=True,
             toggle_fullscreen_on_double_press=True,
-            play_and_pause_on_tap=True,
+            play_and_pause_on_tap=False,
             hide_mouse_on_controls_removal=True,
             primary_button_bar=[
                 fv.VideoSkipPreviousButton(icon_color=ft.Colors.WHITE),
@@ -184,6 +213,22 @@ class ImmersivePlayer(ft.Stack):
             seek_bar_hover_height=8,
             volume_bar_active_color=AppColors.PRIMARY,
             controls_hover_duration=ft.Duration(seconds=3),
+        )
+
+        mobile_controls = fv.MaterialVideoControls(
+            visible_on_mount=True,
+            display_seek_bar=True,
+            volume_gesture=True,
+            brightness_gesture=True,
+            seek_gesture=True,
+            seek_on_double_tap=True,
+            speed_up_on_long_press=True,
+            seek_bar_position_color=AppColors.PRIMARY,
+        )
+
+        return fv.AdaptiveVideoControls(
+            material_desktop=desktop_controls,
+            material=mobile_controls
         )
 
     def _build_screenshot_btn(self):

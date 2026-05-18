@@ -13,7 +13,6 @@ from core.constants import (
     LBL_RECENTLY_WATCHED,
     LBL_SEARCH_HINT,
     LBL_SETTINGS,
-    SEARCH_DEBOUNCE,
 )
 from core.state import state
 from core.theme import AppColors
@@ -43,7 +42,6 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
         "selected_tab": 0,
         "search_query": "",
         "add_type": "playlist",
-        "search_task": None,
         "tab_built": [False, False, False, False, False],
         "recent_urls": [],
     }
@@ -119,11 +117,12 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
 
     page_obj.run_task(_load_recently_watched)
 
-    categories_content = ft.ListView(expand=True, spacing=15)
-    countries_content = ft.ListView(expand=True, spacing=15)
-    custom_content = ft.ListView(expand=True, spacing=15)
-    local_content = ft.ListView(expand=True, spacing=15)
-    preferences_content = ft.ListView(expand=True, spacing=15)
+    # ADDED: padding=ft.Padding(...) to fix the "Last Item" D-pad focus trap
+    categories_content = ft.ListView(expand=True, spacing=15, padding=ft.Padding(0, 0, 0, 150))
+    countries_content = ft.ListView(expand=True, spacing=15, padding=ft.Padding(0, 0, 0, 150))
+    custom_content = ft.ListView(expand=True, spacing=15, padding=ft.Padding(0, 0, 0, 150))
+    local_content = ft.ListView(expand=True, spacing=15, padding=ft.Padding(0, 0, 0, 150))
+    preferences_content = ft.ListView(expand=True, spacing=15, padding=ft.Padding(0, 0, 0, 150))
 
     all_targets = [categories_content, countries_content, custom_content, local_content, preferences_content]
 
@@ -217,20 +216,13 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
         update_tab_content(view_state["selected_tab"], force=True)
         page_obj.update()
 
-    def on_search_change(e):
-        if view_state["search_task"] and not view_state["search_task"].done():
-            view_state["search_task"].cancel()
-
-        query = e.data
-
-        async def delayed_search():
-            await asyncio.sleep(SEARCH_DEBOUNCE)
-            await execute_search(query)
-
-        view_state["search_task"] = page_obj.run_task(delayed_search)
+    # ADDED: Changed from `on_change` to `on_submit` so D-pad isn't disrupted by typing.
+    def on_search_submit(e):
+        query = e.control.value
+        page_obj.run_task(execute_search, query)
 
     search_field = ft.TextField(
-        on_change=on_search_change,
+        on_submit=on_search_submit, # Triggers when user presses "Enter/Done" on keyboard
         hint_text=LBL_SEARCH_HINT,
         prefix_icon=ft.Icons.SEARCH_ROUNDED,
         expand=True,

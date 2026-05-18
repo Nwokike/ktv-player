@@ -43,66 +43,30 @@ usesCleartextTraffic = "true"
 "android.software.leanback" = false
 "android.hardware.touchscreen" = false
 
+# --- Android TV Home Screen Launcher ---
+[[tool.flet.android.manifest_intent_filters]]
+action = "android.intent.action.MAIN"
+category = ["android.intent.category.LEANBACK_LAUNCHER"]
+
+# --- Custom App Links (ktv://play) ---
 [[tool.flet.android.manifest_intent_filters]]
 action = "android.intent.action.VIEW"
 category = ["android.intent.category.DEFAULT", "android.intent.category.BROWSABLE"]
 data_scheme = "ktv"
 data_host = "play"
 
+# --- Handle ALL Local Video Files (content:// and file://) ---
 [[tool.flet.android.manifest_intent_filters]]
 action = "android.intent.action.VIEW"
-category = ["android.intent.category.DEFAULT"]
+category = ["android.intent.category.DEFAULT", "android.intent.category.BROWSABLE"]
+data_scheme = "content"
 data_mime_type = "video/*"
 
 [[tool.flet.android.manifest_intent_filters]]
 action = "android.intent.action.VIEW"
-category = ["android.intent.category.DEFAULT"]
-data_mime_type = "video/mp4"
-
-[[tool.flet.android.manifest_intent_filters]]
-action = "android.intent.action.VIEW"
-category = ["android.intent.category.DEFAULT"]
-data_mime_type = "video/x-matroska"
-
-[[tool.flet.android.manifest_intent_filters]]
-action = "android.intent.action.VIEW"
-category = ["android.intent.category.DEFAULT"]
-data_mime_type = "video/avi"
-
-[[tool.flet.android.manifest_intent_filters]]
-action = "android.intent.action.VIEW"
-category = ["android.intent.category.DEFAULT"]
-data_mime_type = "video/webm"
-
-[[tool.flet.android.manifest_intent_filters]]
-action = "android.intent.action.VIEW"
-category = ["android.intent.category.DEFAULT"]
-data_mime_type = "video/quicktime"
-
-[[tool.flet.android.manifest_intent_filters]]
-action = "android.intent.action.VIEW"
-category = ["android.intent.category.DEFAULT"]
-data_mime_type = "video/x-msvideo"
-
-[[tool.flet.android.manifest_intent_filters]]
-action = "android.intent.action.VIEW"
-category = ["android.intent.category.DEFAULT"]
-data_mime_type = "video/x-flv"
-
-[[tool.flet.android.manifest_intent_filters]]
-action = "android.intent.action.VIEW"
-category = ["android.intent.category.DEFAULT"]
-data_mime_type = "video/x-ms-wmv"
-
-[[tool.flet.android.manifest_intent_filters]]
-action = "android.intent.action.VIEW"
-category = ["android.intent.category.DEFAULT"]
-data_mime_type = "video/3gpp"
-
-[[tool.flet.android.manifest_intent_filters]]
-action = "android.intent.action.VIEW"
-category = ["android.intent.category.DEFAULT"]
-data_mime_type = "video/mpeg"
+category = ["android.intent.category.DEFAULT", "android.intent.category.BROWSABLE"]
+data_scheme = "file"
+data_mime_type = "video/*"
 
 [dependency-groups]
 dev = [

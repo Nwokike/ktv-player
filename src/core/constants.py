@@ -14,7 +14,10 @@ ERR_SCAN_FAILED = "Failed to scan device storage."
 LBL_WELCOME = "Welcome"
 LBL_WELCOME_SUB = "A lightning-fast TV player built for seamless network streaming and custom channel addition."
 LBL_SELECT_COUNTRY = "Select your Country"
-LBL_TV_NAV_HINT = "Use arrows to browse, press OK to select"
+LBL_TV_NAV_HINT = (
+    "Use arrows to browse, press OK to select.\n"
+    "If your country isn’t listed, select “Other” (no free‑to‑air channels were found in your country yet)."
+)
 LBL_USAGE_AGREEMENT = "I agree to the Usage Agreement above"
 LBL_START_WATCHING = "Start Watching"
 LBL_PLEASE_ACCEPT_TERMS = "Please accept the usage agreement to continue."
