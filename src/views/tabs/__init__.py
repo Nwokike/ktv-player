@@ -75,7 +75,7 @@ def style_focusable(control, focused):
 
 
 def build_nav_btn(icon, label, tile, channels, offset, page_obj, on_play, ad_service, liveliness, is_next=True):
-    btn = ft.Container(
+    btn = ft.TextButton(
         content=ft.Row(
             [
                 ft.Icon(icon, color=AppColors.PRIMARY),
@@ -84,18 +84,22 @@ def build_nav_btn(icon, label, tile, channels, offset, page_obj, on_play, ad_ser
             alignment=ft.MainAxisAlignment.CENTER,
             spacing=8,
         ),
-        padding=15,
-        border_radius=10,
-        border=ft.Border.all(1.5, AppColors.PRIMARY),
-        ink=True,
+        style=ft.ButtonStyle(
+            bgcolor={
+                ft.ControlState.FOCUSED: ft.Colors.with_opacity(0.12, AppColors.PRIMARY),
+            },
+            padding=15,
+            shape=ft.RoundedRectangleBorder(radius=10),
+            side={
+                ft.ControlState.DEFAULT: ft.Border.all(1.5, AppColors.PRIMARY),
+                ft.ControlState.FOCUSED: ft.Border.all(2, AppColors.PRIMARY),
+            },
+        ),
         on_click=lambda e, t=tile, ch=channels, off=offset: show_page(
             t, ch, off, page_obj, on_play, ad_service, liveliness
         ),
     )
-    btn.tab_index = 0
     btn.animate = ft.Animation(150, ft.AnimationCurve.EASE_OUT)
-    btn.on_focus = lambda e: style_focusable(e.control, True)
-    btn.on_blur = lambda e: style_focusable(e.control, False)
     return btn
 
 
@@ -171,11 +175,9 @@ def handle_expansion(e, channels, active_tiles, page_obj, on_play, ad_service, l
         collapse_other_tiles(e.control, active_tiles)
         if not e.control.controls:
             show_page(e.control, channels, 0, page_obj, on_play, ad_service, liveliness)
-        e.control.visible = True
         with contextlib.suppress(Exception):
             e.control.update()
     else:
-        e.control.visible = False
         with contextlib.suppress(Exception):
             e.control.update()
 
@@ -336,8 +338,15 @@ def build_channel_groups(target, tab_index, page_obj, on_play, ad_service, livel
             bgcolor=ft.Colors.with_opacity(0.03, ft.Colors.ON_SURFACE),
         )
 
-        exp_tile.on_focus = lambda e: on_tile_focus(e.control, True)
-        exp_tile.on_blur = lambda e: on_tile_focus(e.control, False)
+        tile_wrapper = ft.Container(
+            content=exp_tile,
+            border_radius=12,
+            ink=True,
+            on_click=lambda e, t=exp_tile: setattr(t, 'expanded', not t.expanded) or t.update(),
+        )
+        tile_wrapper.tab_index = 0
+        tile_wrapper.on_focus = lambda e: on_tile_focus(exp_tile, True)
+        tile_wrapper.on_blur = lambda e: on_tile_focus(exp_tile, False)
 
         if should_expand:
             for ctrl in tile_controls:
@@ -347,4 +356,4 @@ def build_channel_groups(target, tab_index, page_obj, on_play, ad_service, livel
                     )
 
         active_tiles.append(exp_tile)
-        target.controls.append(exp_tile)
+        target.controls.append(tile_wrapper)

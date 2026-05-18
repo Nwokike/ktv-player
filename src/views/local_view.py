@@ -111,7 +111,7 @@ def build_local_tab_content(page_obj: ft.Page, on_play: callable, ad_service):
         if offset > 0:
             prev_offset = max(0, offset - PAGE_SIZE)
             prev_label = f"Show previous {offset - prev_offset} ▶"
-            btn = ft.Container(
+            btn = ft.TextButton(
                 content=ft.Row(
                     [
                         ft.Icon(ft.Icons.EXPAND_LESS, color=AppColors.PRIMARY),
@@ -124,16 +124,21 @@ def build_local_tab_content(page_obj: ft.Page, on_play: callable, ad_service):
                     alignment=ft.MainAxisAlignment.CENTER,
                     spacing=8,
                 ),
-                padding=15,
-                border_radius=10,
-                border=ft.Border.all(1.5, AppColors.PRIMARY),
-                ink=True,
+                style=ft.ButtonStyle(
+                    bgcolor={
+                        ft.ControlState.FOCUSED: ft.Colors.with_opacity(0.12, AppColors.PRIMARY),
+                    },
+                    padding=15,
+                    shape=ft.RoundedRectangleBorder(radius=10),
+                    side={
+                        ft.ControlState.DEFAULT: ft.Border.all(1.5, AppColors.PRIMARY),
+                        ft.ControlState.FOCUSED: ft.Border.all(2, AppColors.PRIMARY),
+                    },
+                ),
                 on_click=lambda e, t=tile, f=folder, o=prev_offset: _show_page(
                     t, f, o
                 ),
             )
-            btn.on_focus = lambda e: _style_nav(e.control, True)
-            btn.on_blur = lambda e: _style_nav(e.control, False)
             tile.controls.append(btn)
 
         tile.controls.append(
@@ -156,7 +161,7 @@ def build_local_tab_content(page_obj: ft.Page, on_play: callable, ad_service):
         if end < total:
             remaining = total - end
             next_label = f"Show next {min(PAGE_SIZE, remaining)} of {remaining} remaining ▶"
-            btn = ft.Container(
+            btn = ft.TextButton(
                 content=ft.Row(
                     [
                         ft.Icon(ft.Icons.EXPAND_MORE, color=AppColors.PRIMARY),
@@ -169,14 +174,19 @@ def build_local_tab_content(page_obj: ft.Page, on_play: callable, ad_service):
                     alignment=ft.MainAxisAlignment.CENTER,
                     spacing=8,
                 ),
-                padding=15,
-                border_radius=10,
-                border=ft.Border.all(1.5, AppColors.PRIMARY),
-                ink=True,
+                style=ft.ButtonStyle(
+                    bgcolor={
+                        ft.ControlState.FOCUSED: ft.Colors.with_opacity(0.12, AppColors.PRIMARY),
+                    },
+                    padding=15,
+                    shape=ft.RoundedRectangleBorder(radius=10),
+                    side={
+                        ft.ControlState.DEFAULT: ft.Border.all(1.5, AppColors.PRIMARY),
+                        ft.ControlState.FOCUSED: ft.Border.all(2, AppColors.PRIMARY),
+                    },
+                ),
                 on_click=lambda e, t=tile, f=folder, o=end: _show_page(t, f, o),
             )
-            btn.on_focus = lambda e: _style_nav(e.control, True)
-            btn.on_blur = lambda e: _style_nav(e.control, False)
             tile.controls.append(btn)
 
         tile.update()
@@ -204,11 +214,9 @@ def build_local_tab_content(page_obj: ft.Page, on_play: callable, ad_service):
             _collapse_other_tiles(e.control)
             if not e.control.controls:
                 _show_page(e.control, folder, 0)
-            e.control.visible = True
             with contextlib.suppress(Exception):
                 e.control.update()
         else:
-            e.control.visible = False
             with contextlib.suppress(Exception):
                 e.control.update()
 
@@ -343,7 +351,7 @@ def build_local_tab_content(page_obj: ft.Page, on_play: callable, ad_service):
                     tile_controls.append(grid)
 
                     if total > PAGE_SIZE:
-                        btn = ft.Container(
+                        btn = ft.TextButton(
                             content=ft.Row(
                                 [
                                     ft.Icon(
@@ -359,10 +367,17 @@ def build_local_tab_content(page_obj: ft.Page, on_play: callable, ad_service):
                                 alignment=ft.MainAxisAlignment.CENTER,
                                 spacing=8,
                             ),
-                            padding=15,
-                            border_radius=10,
-                            border=ft.Border.all(1.5, AppColors.PRIMARY),
-                            ink=True,
+                            style=ft.ButtonStyle(
+                                bgcolor={
+                                    ft.ControlState.FOCUSED: ft.Colors.with_opacity(0.12, AppColors.PRIMARY),
+                                },
+                                padding=15,
+                                shape=ft.RoundedRectangleBorder(radius=10),
+                                side={
+                                    ft.ControlState.DEFAULT: ft.Border.all(1.5, AppColors.PRIMARY),
+                                    ft.ControlState.FOCUSED: ft.Border.all(2, AppColors.PRIMARY),
+                                },
+                            ),
                         )
                         btn._needs_tile_ref = True
                         tile_controls.append(btn)
@@ -388,8 +403,15 @@ def build_local_tab_content(page_obj: ft.Page, on_play: callable, ad_service):
                     ),
                 )
 
-                exp_tile.on_focus = lambda e: _on_tile_focus(e.control, True)
-                exp_tile.on_blur = lambda e: _on_tile_focus(e.control, False)
+                tile_wrapper = ft.Container(
+                    content=exp_tile,
+                    border_radius=12,
+                    ink=True,
+                    on_click=lambda e, t=exp_tile: setattr(t, 'expanded', not t.expanded) or t.update(),
+                )
+                tile_wrapper.tab_index = 0
+                tile_wrapper.on_focus = lambda e: _on_tile_focus(exp_tile, True)
+                tile_wrapper.on_blur = lambda e: _on_tile_focus(exp_tile, False)
 
                 if should_expand and total > PAGE_SIZE:
                     next_offset = min(PAGE_SIZE, total)
@@ -398,7 +420,7 @@ def build_local_tab_content(page_obj: ft.Page, on_play: callable, ad_service):
                             ctrl.on_click = lambda e, t=exp_tile, f=folder, o=next_offset: _show_page(t, f, o)
 
                 _active_tiles.append(exp_tile)
-                local_content.controls.append(exp_tile)
+                local_content.controls.append(tile_wrapper)
 
         page_obj.update()
 
