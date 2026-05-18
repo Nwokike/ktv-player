@@ -1,4 +1,4 @@
-import contextlib
+import logging
 
 import flet as ft
 
@@ -6,7 +6,9 @@ from components.ui.glass_container import GlassContainer
 from core.theme import AppColors
 from database.manager import db_manager
 from services.liveliness import liveliness_cache
-from services.logo_cache import get_cached_logo, download_logo
+from services.logo_cache import download_logo, get_cached_logo
+
+logger = logging.getLogger(__name__)
 
 
 def create_channel_card(c, card_index=0, on_play=None, page_obj=None, on_fav_change=None):
@@ -55,7 +57,7 @@ def create_channel_card(c, card_index=0, on_play=None, page_obj=None, on_fav_cha
                     [
                         ft.Container(
                             content=fav_icon,
-                            on_click=lambda e, u=url, n=c.get("name", ""), logo=logo_src: _toggle_fav(
+                            on_click=lambda e, u=url, n=c["name"], logo=logo_src: _toggle_fav(
                                 e, u, n, logo, fav_state, fav_icon, on_fav_change, page_obj,
                             ),
                             tooltip="Add to favorites",
@@ -115,7 +117,7 @@ def _toggle_fav(e, url, name, logo, fav_state, fav_icon, on_fav_change, page_obj
     page_obj.run_task(_do)
 
 
-def build_channel_grid(channels, offset=0, limit=24, on_play=None, page_obj=None, ad_service=None, on_fav_change=None):
+def build_channel_grid(channels, offset=0, limit=24, on_play=None, page_obj=None, ad_service=None, on_fav_change=None, ad_indices=None):
     page_channels = channels[offset : offset + limit]
     grid = ft.ResponsiveRow(spacing=12, run_spacing=12)
 
@@ -131,7 +133,7 @@ def build_channel_grid(channels, offset=0, limit=24, on_play=None, page_obj=None
         )
         grid.controls.append(card_wrapper)
 
-        if ad_service and (global_idx + 1) % 12 == 0 and (global_idx + 1) < len(channels):
+        if ad_service and ad_indices and global_idx in ad_indices:
             ad_container = ad_service.get_standard_banner_ad()
             if ad_container:
                 grid.controls.append(

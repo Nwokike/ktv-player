@@ -1,12 +1,19 @@
 import contextlib
+import logging
 
 import flet as ft
 
+from core.constants import (
+    LBL_SHOW_NEXT,
+    LBL_SHOW_PREVIOUS,
+    LBL_SHOWING_RANGE,
+    PAGE_SIZE,
+)
 from core.theme import AppColors
 
-PAGE_SIZE = 24
+logger = logging.getLogger(__name__)
 
-_groups_cache = {"tab_0": {}, "tab_1": {}, "tab_2": {}, "channels_hash": None}
+_groups_cache: dict = {"tab_0": {}, "tab_1": {}, "tab_2": {}, "channels_hash": None}
 
 
 def _compute_channels_hash(channels):
@@ -74,7 +81,7 @@ def style_focusable(control, focused):
         control.update()
 
 
-def build_nav_btn(icon, label, tile, channels, offset, page_obj, on_play, ad_service, liveliness, is_next=True):
+def build_nav_btn(icon, label, tile, channels, offset, page_obj, on_play, ad_service, liveliness, ad_indices, is_next=True):
     btn = ft.TextButton(
         content=ft.Row(
             [
@@ -96,16 +103,15 @@ def build_nav_btn(icon, label, tile, channels, offset, page_obj, on_play, ad_ser
             },
         ),
         on_click=lambda e, t=tile, ch=channels, off=offset: show_page(
-            t, ch, off, page_obj, on_play, ad_service, liveliness
+            t, ch, off, page_obj, on_play, ad_service, liveliness, ad_indices
         ),
     )
     btn.animate = ft.Animation(150, ft.AnimationCurve.EASE_OUT)
     return btn
 
 
-def show_page(tile, channels, offset, page_obj, on_play, ad_service, liveliness):
+def show_page(tile, channels, offset, page_obj, on_play, ad_service, liveliness, ad_indices):
     from components.ui.channel_grid import build_channel_grid
-    from core.constants import LBL_SHOW_NEXT, LBL_SHOW_PREVIOUS, LBL_SHOWING_RANGE
 
     total = len(channels)
     end = min(offset + PAGE_SIZE, total)
@@ -122,7 +128,7 @@ def show_page(tile, channels, offset, page_obj, on_play, ad_service, liveliness)
         tile.controls.append(
             build_nav_btn(
                 ft.Icons.EXPAND_LESS, prev_label, tile, channels, prev_offset,
-                page_obj, on_play, ad_service, liveliness, is_next=False,
+                page_obj, on_play, ad_service, liveliness, ad_indices, is_next=False,
             )
         )
 
@@ -140,6 +146,7 @@ def show_page(tile, channels, offset, page_obj, on_play, ad_service, liveliness)
     grid = build_channel_grid(
         channels, offset, PAGE_SIZE,
         on_play=on_play, page_obj=page_obj, ad_service=ad_service,
+        ad_indices=ad_indices,
     )
     tile.controls.append(grid)
 
@@ -150,7 +157,7 @@ def show_page(tile, channels, offset, page_obj, on_play, ad_service, liveliness)
         tile.controls.append(
             build_nav_btn(
                 ft.Icons.EXPAND_MORE, next_label, tile, channels, end,
-                page_obj, on_play, ad_service, liveliness, is_next=True,
+                page_obj, on_play, ad_service, liveliness, ad_indices, is_next=True,
             )
         )
 
@@ -165,16 +172,15 @@ def collapse_other_tiles(current_tile, active_tiles):
     for t in active_tiles:
         if t is not current_tile and t.expanded:
             t.expanded = False
-            t.visible = False
             with contextlib.suppress(Exception):
                 t.update()
 
 
-def handle_expansion(e, channels, active_tiles, page_obj, on_play, ad_service, liveliness):
+def handle_expansion(e, channels, active_tiles, page_obj, on_play, ad_service, liveliness, ad_indices):
     if str(e.data).lower() == "true":
         collapse_other_tiles(e.control, active_tiles)
         if not e.control.controls:
-            show_page(e.control, channels, 0, page_obj, on_play, ad_service, liveliness)
+            show_page(e.control, channels, 0, page_obj, on_play, ad_service, liveliness, ad_indices)
         with contextlib.suppress(Exception):
             e.control.update()
     else:
@@ -199,11 +205,10 @@ def on_tile_focus(control, focused):
 
 def build_channel_groups(target, tab_index, page_obj, on_play, ad_service, liveliness, view_state, active_tiles):
     from components.ui.channel_grid import build_channel_grid
-    from core.constants import LBL_SHOW_NEXT, LBL_SHOWING_RANGE
+    from core.constants import LBL_SHOW_NEXT, LBL_SHOWING_RANGE, MAX_SEARCH_RESULTS, PAGE_SIZE
     from core.state import state
 
     query = view_state["search_query"].lower()
-    MAX_SEARCH_RESULTS = 50
 
     if query:
         groups = {}
@@ -293,9 +298,15 @@ def build_channel_groups(target, tab_index, page_obj, on_play, ad_service, livel
 
         tile_controls = []
         if should_expand:
+            total = len(channels)
+            ad_indices = {
+                idx for idx in range(0, min(PAGE_SIZE, total))
+                if (idx + 1) % 12 == 0 and (idx + 1) < total
+            }
             grid = build_channel_grid(
                 channels, 0, PAGE_SIZE,
                 on_play=on_play, page_obj=page_obj, ad_service=ad_service,
+                ad_indices=ad_indices,
             )
             total = len(channels)
             end = min(PAGE_SIZE, total)
@@ -318,7 +329,7 @@ def build_channel_groups(target, tab_index, page_obj, on_play, ad_service, livel
                 next_label = LBL_SHOW_NEXT.format(count=show_count, remaining=remaining)
                 nav_btn = build_nav_btn(
                     ft.Icons.EXPAND_MORE, next_label, None, channels, end,
-                    page_obj, on_play, ad_service, liveliness,
+                    page_obj, on_play, ad_service, liveliness, ad_indices,
                 )
                 nav_btn._needs_tile_ref = True
                 tile_controls.append(nav_btn)
@@ -331,7 +342,7 @@ def build_channel_groups(target, tab_index, page_obj, on_play, ad_service, livel
             title=ft.Text(f"{name} ({len(channels)})", weight=ft.FontWeight.BOLD),
             expanded=should_expand,
             on_change=lambda e, ch=channels: handle_expansion(
-                e, ch, active_tiles, page_obj, on_play, ad_service, liveliness,
+                e, ch, active_tiles, page_obj, on_play, ad_service, liveliness, set(),
             ),
             controls=tile_controls,
             collapsed_bgcolor=ft.Colors.TRANSPARENT,
@@ -345,14 +356,15 @@ def build_channel_groups(target, tab_index, page_obj, on_play, ad_service, livel
             on_click=lambda e, t=exp_tile: setattr(t, 'expanded', not t.expanded) or t.update(),
         )
         tile_wrapper.tab_index = 0
-        tile_wrapper.on_focus = lambda e: on_tile_focus(exp_tile, True)
-        tile_wrapper.on_blur = lambda e: on_tile_focus(exp_tile, False)
+        tile_wrapper.on_focus = lambda e, t=exp_tile: on_tile_focus(t, True)
+        tile_wrapper.on_blur = lambda e, t=exp_tile: on_tile_focus(t, False)
 
         if should_expand:
+            next_offset = min(PAGE_SIZE, len(channels))
             for ctrl in tile_controls:
                 if hasattr(ctrl, '_needs_tile_ref'):
-                    ctrl.on_click = lambda e, t=exp_tile, ch=channels, off=min(PAGE_SIZE, len(channels)): show_page(
-                        t, ch, off, page_obj, on_play, ad_service, liveliness,
+                    ctrl.on_click = lambda e, t=exp_tile, ch=channels, off=next_offset: show_page(
+                        t, ch, off, page_obj, on_play, ad_service, liveliness, set(),
                     )
 
         active_tiles.append(exp_tile)

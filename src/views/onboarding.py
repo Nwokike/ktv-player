@@ -62,7 +62,7 @@ def build_onboarding_view(page_obj: ft.Page, on_complete: callable) -> ft.View:
 
     async def _load_countries():
         from channels.provider import channel_provider
-        countries_from_playlist = await channel_provider.get_all_channels()
+        await channel_provider.get_all_channels()
         countries_from_playlist = channel_provider.get_countries()
         if not countries_from_playlist:
             countries_from_playlist = [{"name": "Global"}]

@@ -5,6 +5,7 @@ import flet as ft
 from core.constants import (
     LBL_CLEAR_HISTORY,
     LBL_CLEAR_HISTORY_DESC,
+    LBL_COUNTRY_UPDATED,
     LBL_DATA_MANAGEMENT,
     LBL_HISTORY_CLEARED,
     LBL_LIBRARY_RESET,
@@ -22,6 +23,7 @@ from database.manager import db_manager
 def build_preferences_tab_content(target, page_obj, on_play, ad_service, liveliness, view_state, active_tiles):
     async def handle_clear_history(e):
         await db_manager.clear_history()
+        state.history = []
         page_obj.snack_bar = ft.SnackBar(
             ft.Text(LBL_HISTORY_CLEARED), bgcolor=AppColors.SUCCESS
         )
@@ -88,7 +90,7 @@ def build_preferences_tab_content(target, page_obj, on_play, ad_service, livelin
                 )
             settings_country_list.update()
             page_obj.snack_bar = ft.SnackBar(
-                ft.Text(f"Primary country updated to {name}")
+                ft.Text(LBL_COUNTRY_UPDATED.format(country=name))
             )
             page_obj.snack_bar.open = True
             page_obj.update()

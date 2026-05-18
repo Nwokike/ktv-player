@@ -1,28 +1,32 @@
 import asyncio
+import logging
 
 import httpx
 
+from core.constants import LIVELINESS_BATCH_SIZE, LIVELINESS_SEMAPHORE, LIVELINESS_UPDATE_INTERVAL
 from core.theme import AppColors
 from services.liveliness import liveliness_cache
 
+logger = logging.getLogger(__name__)
+
 
 class LivelinessChecker:
-    def __init__(self, page_obj, iptv_service=None):
+    def __init__(self, page_obj, http_client: httpx.AsyncClient | None = None):
         self.page_obj = page_obj
-        self._shared_http_client = None
-        self._iptv_service = iptv_service
-        self._semaphore = asyncio.Semaphore(8)
+        self._shared_http_client = http_client
+        self._internal_http_client: httpx.AsyncClient | None = None
+        self._semaphore = asyncio.Semaphore(LIVELINESS_SEMAPHORE)
 
-    def _get_http_client(self):
-        if self._iptv_service:
-            return self._iptv_service._get_client()
-        if self._shared_http_client is None or self._shared_http_client.is_closed:
-            self._shared_http_client = httpx.AsyncClient(
+    def _get_http_client(self) -> httpx.AsyncClient:
+        if self._shared_http_client and not self._shared_http_client.is_closed:
+            return self._shared_http_client
+        if self._internal_http_client is None or self._internal_http_client.is_closed:
+            self._internal_http_client = httpx.AsyncClient(
                 timeout=3.0,
                 follow_redirects=True,
                 limits=httpx.Limits(max_connections=20, max_keepalive_connections=10),
             )
-        return self._shared_http_client
+        return self._internal_http_client
 
     async def check_single(self, url: str) -> tuple[str, bool]:
         cached = liveliness_cache.get(url)
@@ -49,23 +53,21 @@ class LivelinessChecker:
                 return (url, False)
 
     async def fire_batch(self, cards_data: list, target_control=None):
-        BATCH_SIZE = 10
-        UPDATE_INTERVAL = 3
-        for i in range(0, len(cards_data), BATCH_SIZE):
-            batch = cards_data[i : i + BATCH_SIZE]
+        for i in range(0, len(cards_data), LIVELINESS_BATCH_SIZE):
+            batch = cards_data[i : i + LIVELINESS_BATCH_SIZE]
             tasks = [self.check_single(cd["url"]) for cd in batch]
             results = await asyncio.gather(*tasks, return_exceptions=True)
 
-            for cd, result in zip(batch, results):
+            for cd, result in zip(batch, results, strict=True):
                 if isinstance(result, tuple):
                     _, is_live = result
                     cd["indicator"].bgcolor = AppColors.SUCCESS if is_live else AppColors.ERROR
                 else:
                     cd["indicator"].bgcolor = AppColors.ERROR
 
-            batch_num = i // BATCH_SIZE
-            is_last = (i + BATCH_SIZE) >= len(cards_data)
-            if is_last or (batch_num % UPDATE_INTERVAL == 0):
+            batch_num = i // LIVELINESS_BATCH_SIZE
+            is_last = (i + LIVELINESS_BATCH_SIZE) >= len(cards_data)
+            if is_last or (batch_num % LIVELINESS_UPDATE_INTERVAL == 0):
                 try:
                     if target_control:
                         target_control.update()
@@ -89,5 +91,5 @@ class LivelinessChecker:
         return cards_data
 
     async def close(self):
-        if self._shared_http_client and not self._shared_http_client.is_closed:
-            await self._shared_http_client.aclose()
+        if self._internal_http_client and not self._internal_http_client.is_closed:
+            await self._internal_http_client.aclose()

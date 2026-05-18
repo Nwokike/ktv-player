@@ -1,6 +1,10 @@
+import logging
 import os
+import shutil
 
 import aiosqlite
+
+logger = logging.getLogger(__name__)
 
 
 class DatabaseManager:
@@ -18,14 +22,16 @@ class DatabaseManager:
             await self._conn.execute("PRAGMA synchronous=NORMAL;")
             await self._conn.execute("PRAGMA cache_size=-4000;")
             try:
-                cursor = await self._conn.execute("PRAGMA integrity_check;")
+                cursor = await self._conn.execute("PRAGMA quick_check;")
                 result = await cursor.fetchone()
                 if result and result[0] != "ok":
+                    logger.warning("Database corruption detected, attempting recovery")
                     await self._conn.close()
                     self._conn = None
                     backup = self.db_path + ".corrupted"
                     if os.path.exists(self.db_path):
-                        os.replace(self.db_path, backup)
+                        shutil.copy2(self.db_path, backup)
+                        logger.info("Corrupted database backed up to %s", backup)
                     self._conn = await aiosqlite.connect(self.db_path)
                     await self._conn.execute("PRAGMA journal_mode=WAL;")
                     await self._conn.execute("PRAGMA synchronous=NORMAL;")
@@ -84,10 +90,10 @@ class DatabaseManager:
         await db.execute("INSERT OR REPLACE INTO history (url) VALUES (?)", (url,))
         await db.commit()
 
-    async def get_history(self):
+    async def get_history(self, limit: int = 20):
         db = await self._get_conn()
         async with db.execute(
-            "SELECT url FROM history ORDER BY timestamp DESC LIMIT 20"
+            "SELECT url FROM history ORDER BY timestamp DESC LIMIT ?", (limit,)
         ) as cursor:
             rows = await cursor.fetchall()
             return [row[0] for row in rows]

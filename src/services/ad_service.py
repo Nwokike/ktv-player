@@ -1,14 +1,18 @@
 import asyncio
+import logging
 from collections.abc import Callable
-from typing import Optional
 
 import flet as ft
+
+from core.constants import AD_PRELOAD_MAX_RETRIES, AD_PRELOAD_RETRY_DELAY
 
 try:
     import flet_ads as fta
     _HAS_FLET_ADS = True
 except ImportError:
     _HAS_FLET_ADS = False
+
+logger = logging.getLogger(__name__)
 
 
 class AdService:
@@ -19,6 +23,7 @@ class AdService:
         self.page = page
         self.interstitial: fta.InterstitialAd | None = None
         self._on_interstitial_close: Callable | None = None
+        self._preload_retry_count = 0
 
     def get_banner_unit_id(self) -> str:
         return self.BANNER_ID
@@ -105,15 +110,18 @@ class AdService:
                 on_error=lambda e: self._handle_preload_error(on_close),
                 on_close=self._handle_close,
             )
+            self._preload_retry_count = 0
         except Exception:
             self._handle_preload_error(on_close)
 
     def _handle_preload_error(self, on_close: Callable | None = None):
         self.interstitial = None
-        self.page.run_task(self._retry_preload, on_close)
+        if self._preload_retry_count < AD_PRELOAD_MAX_RETRIES:
+            self.page.run_task(self._retry_preload, on_close)
 
     async def _retry_preload(self, on_close: Callable | None = None):
-        await asyncio.sleep(30)
+        self._preload_retry_count += 1
+        await asyncio.sleep(AD_PRELOAD_RETRY_DELAY)
         if self.interstitial is None:
             await self.preload_interstitial(on_close)
 

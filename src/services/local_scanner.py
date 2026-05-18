@@ -1,6 +1,9 @@
 import os
 from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
+
+from core.constants import LOCAL_SCAN_MAX_DEPTH
 
 VIDEO_EXTENSIONS = {
     ".mp4", ".mkv", ".webm", ".mov", ".m4v",
@@ -8,7 +11,8 @@ VIDEO_EXTENSIONS = {
     ".wmv", ".ts", ".ogv", ".m2ts",
 }
 
-_SKIP_ATTR = 0x0004  # FILE_ATTRIBUTE_SYSTEM on Windows
+_SKIP_ATTR = 0x0004
+
 
 def _is_system_dir(dir_path: Path) -> bool:
     if os.name != "nt":
@@ -62,14 +66,13 @@ def _format_size(size_bytes: int) -> str:
 
 def _format_modified(mtime: float) -> str:
     try:
-        from datetime import datetime
         dt = datetime.fromtimestamp(mtime)
         return dt.strftime("%b %d, %Y")
     except Exception:
         return ""
 
 
-def scan_videos(root_paths: list[str], max_depth: int = 6) -> list[VideoFolder]:
+def scan_videos(root_paths: list[str], max_depth: int = LOCAL_SCAN_MAX_DEPTH) -> list[VideoFolder]:
     folder_map: dict[str, VideoFolder] = {}
 
     for root_str in root_paths:

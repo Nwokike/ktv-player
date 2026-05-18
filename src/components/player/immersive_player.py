@@ -1,53 +1,34 @@
 import asyncio
 import contextlib
+import logging
 import re
+from collections.abc import Callable
 
 import flet as ft
 import flet_video as fv
 
+from core.constants import STREAM_RECONNECT_MAX, STREAM_RETRY_DELAY, STREAM_RETRY_MAX
 from core.theme import AppColors
+
+logger = logging.getLogger(__name__)
 
 
 class ImmersivePlayer(ft.Stack):
-    """Full-featured video player exposing every flet-video capability.
-
-    Use as a self-contained player or control programmatically via the
-    exposed async methods (play, pause, seek, screenshot, etc.).
-
-    All flet-video events are wired; pass callbacks to the constructor
-    or override the ``_on_*`` methods.
-    """
-
     def __init__(
         self,
         resource: str,
-        on_close: callable = None,
+        on_close: Callable | None = None,
         title: str = "",
         autoplay: bool = True,
         volume: float = 100.0,
         playback_rate: float = 1.0,
-        pitch: float = 1.0,
         muted: bool = False,
-        playlist_mode: fv.PlaylistMode | None = None,
-        subtitle_track: fv.VideoSubtitleTrack | None = None,
-        subtitle_configuration: fv.VideoSubtitleConfiguration | None = None,
-        configuration: fv.VideoConfiguration | None = None,
-        playlist: list[fv.VideoMedia] | None = None,
-        shuffle_playlist: bool = False,
         fill_color: ft.ColorValue = ft.Colors.BLACK,
         fit: ft.BoxFit = ft.BoxFit.CONTAIN,
         alignment: ft.Alignment = ft.Alignment.CENTER,
         wakelock: bool = True,
         pause_upon_entering_background_mode: bool = True,
         resume_upon_entering_foreground_mode: bool = True,
-        on_load: callable = None,
-        on_position_change: callable = None,
-        on_duration_change: callable = None,
-        on_track_change: callable = None,
-        on_enter_fullscreen: callable = None,
-        on_exit_fullscreen: callable = None,
-        on_error: callable = None,
-        on_complete: callable = None,
         http_headers: dict | None = None,
     ):
         super().__init__()
@@ -58,21 +39,11 @@ class ImmersivePlayer(ft.Stack):
         self.expand = True
 
         self._retry_count = 0
-        self._max_retries = 3
+        self._max_retries = STREAM_RETRY_MAX
         self._is_final_error = False
         self._reconnect_count = 0
-        self._max_reconnects = 5
-
-        self._callbacks = {
-            "on_load": on_load,
-            "on_position_change": on_position_change,
-            "on_duration_change": on_duration_change,
-            "on_track_change": on_track_change,
-            "on_enter_fullscreen": on_enter_fullscreen,
-            "on_exit_fullscreen": on_exit_fullscreen,
-            "on_error": on_error,
-            "on_complete": on_complete,
-        }
+        self._max_reconnects = STREAM_RECONNECT_MAX
+        self._is_closing = False
 
         self.status_text = ft.Text(
             "Loading stream...",
@@ -105,27 +76,21 @@ class ImmersivePlayer(ft.Stack):
         self._speed_idx = 1
         self.speed_text = ft.Text("1.0x", size=11, color=ft.Colors.WHITE, weight=ft.FontWeight.W_600)
 
-        self._initial_playlist = playlist if playlist else [
+        self._initial_playlist = [
             fv.VideoMedia(self.resource, http_headers=self.http_headers)
         ]
-        self._initial_autoplay = autoplay
 
         self.video = fv.Video(
-            autoplay=True,
+            autoplay=autoplay,
             expand=True,
             volume=volume,
             playback_rate=playback_rate,
-            pitch=pitch,
             muted=muted,
             wakelock=wakelock,
             filter_quality=ft.FilterQuality.LOW,
             pause_upon_entering_background_mode=pause_upon_entering_background_mode,
             resume_upon_entering_foreground_mode=resume_upon_entering_foreground_mode,
-            playlist_mode=playlist_mode,
-            shuffle_playlist=shuffle_playlist,
-            subtitle_track=subtitle_track,
-            subtitle_configuration=subtitle_configuration or fv.VideoSubtitleConfiguration(),
-            configuration=configuration or fv.VideoConfiguration(
+            configuration=fv.VideoConfiguration(
                 hardware_decoding_api="mediacodec",
                 mpv_properties={
                     "cache": "yes",
@@ -268,26 +233,18 @@ class ImmersivePlayer(ft.Stack):
             self.page.show_snack_bar(snack)
 
     async def start_playback(self):
-        print(f"[ImmersivePlayer] start_playback resource={self.resource[:60]}")
+        logger.debug("start_playback resource=%s", self.resource[:60])
         self._reconnect_count = 0
         try:
-            print(f"[ImmersivePlayer] setting playlist: {len(self._initial_playlist)} item(s)")
             self.video.playlist = self._initial_playlist
             self.video.update()
-            print("[ImmersivePlayer] playlist synced to Flutter, calling play()...")
             await self.video.play()
-            print("[ImmersivePlayer] play() returned, checking state...")
             playing = await self.video.is_playing()
-            print(f"[ImmersivePlayer] is_playing={playing}")
-            duration = await self.video.get_duration()
-            print(f"[ImmersivePlayer] duration={duration.in_seconds}s")
             if playing:
                 self._hide_overlay()
-            print("[ImmersivePlayer] start_playback OK")
+            logger.debug("start_playback OK is_playing=%s", playing)
         except Exception as ex:
-            print(f"[ImmersivePlayer] start_playback error: {type(ex).__name__}: {ex}")
-            import traceback
-            traceback.print_exc()
+            logger.exception("start_playback error: %s", ex)
             self._show_final_error()
 
     async def _cycle_speed(self):
@@ -307,48 +264,36 @@ class ImmersivePlayer(ft.Stack):
             self.back_btn.update()
 
     def _on_load(self, e):
-        print(f"[ImmersivePlayer] on_load fired, data={e.data}")
-        cb = self._callbacks.get("on_load")
-        if cb:
-            cb(e)
+        logger.debug("on_load fired, data=%s", e.data)
 
     def _hide_overlay(self):
         if not self._overlay_hidden:
             self._overlay_hidden = True
             self.overlay.visible = False
-            print("[ImmersivePlayer] hiding overlay")
             with contextlib.suppress(Exception):
                 self.update()
 
     def _on_position_change(self, e):
         self._hide_overlay()
-        cb = self._callbacks.get("on_position_change")
-        if cb:
-            cb(e)
 
     def _on_error(self, e):
         err_msg = str(e.data) if hasattr(e, "data") and e.data else str(e)
-        print(f"[ImmersivePlayer] on_error fired: {err_msg}")
+        logger.debug("on_error fired: %s", err_msg)
         if "Cannot seek" in err_msg or "force-seekable" in err_msg:
-            print("[ImmersivePlayer] ignoring seek-related error")
             return
         if self._is_final_error:
-            print("[ImmersivePlayer] already in final error state, skipping")
             return
         self._retry_count += 1
         if self._retry_count <= self._max_retries and self.resource.startswith("http"):
-            print(f"[ImmersivePlayer] retry {self._retry_count}/{self._max_retries}")
+            logger.debug("retry %d/%d", self._retry_count, self._max_retries)
             self.status_text.value = f"Stream error, retrying ({self._retry_count}/{self._max_retries})..."
             self.loading_ring.visible = True
             self.overlay.visible = True
             self.update()
             self.page.run_task(self._retry_playback)
         else:
-            print(f"[ImmersivePlayer] showing final error after {self._retry_count} retries")
+            logger.debug("showing final error after %d retries", self._retry_count)
             self._show_final_error()
-        cb = self._callbacks.get("on_error")
-        if cb:
-            cb(e)
 
     def _show_final_error(self):
         self._is_final_error = True
@@ -371,7 +316,7 @@ class ImmersivePlayer(ft.Stack):
 
     async def _retry_playback(self):
         try:
-            await asyncio.sleep(2)
+            await asyncio.sleep(STREAM_RETRY_DELAY)
             if self.video and not self._is_final_error:
                 self.video.playlist = [
                     fv.VideoMedia(self.resource, http_headers=self.http_headers)
@@ -394,34 +339,23 @@ class ImmersivePlayer(ft.Stack):
                 self.overlay.visible = True
                 self.overlay.on_click = lambda _: self.page.run_task(self.handle_close)
                 self.update()
-        else:
-            self.overlay.visible = False
-            self.update()
-            cb = self._callbacks.get("on_complete")
-            if cb:
-                cb(e)
 
     def _on_duration_change(self, e):
-        cb = self._callbacks.get("on_duration_change")
-        if cb:
-            cb(e)
+        pass
 
     def _on_track_change(self, e):
-        cb = self._callbacks.get("on_track_change")
-        if cb:
-            cb(e)
+        pass
 
     def _on_enter_fullscreen(self, e):
-        cb = self._callbacks.get("on_enter_fullscreen")
-        if cb:
-            cb(e)
+        pass
 
     def _on_exit_fullscreen(self, e):
-        cb = self._callbacks.get("on_exit_fullscreen")
-        if cb:
-            cb(e)
+        pass
 
     async def handle_close(self, e=None):
+        if self._is_closing:
+            return
+        self._is_closing = True
         try:
             if self.video:
                 self.video.playlist = []
@@ -429,6 +363,7 @@ class ImmersivePlayer(ft.Stack):
         except Exception:
             pass
         self._is_final_error = True
+        self._is_closing = False
 
     async def _on_back(self, e=None):
         await self.handle_close()

@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 import flet as ft
 
 from core.theme import AppColors
@@ -23,9 +25,9 @@ class GlassContainer(ft.Container):
         padding: float = 16,
         border_radius: float = 20,
         expand: bool = False,
-        on_click: callable = None,
+        on_click: Callable | None = None,
         focusable: bool = False,
-        key: str = None,
+        key: str | None = None,
         **kwargs,
     ):
         super().__init__(**kwargs)

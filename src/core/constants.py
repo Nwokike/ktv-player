@@ -56,9 +56,9 @@ LBL_RESET_LIBRARY = "Reset Custom Library"
 LBL_RESET_LIBRARY_DESC = "Delete all manually added custom URLs and external playlists"
 LBL_LIBRARY_RESET = "Custom library reset!"
 
-LBL_SHOW_PREVIOUS = "Show previous {count} (channels {start}–{end})"
+LBL_SHOW_PREVIOUS = "Show previous {count} (channels {start}\u2013{end})"
 LBL_SHOW_NEXT = "Show next {count} of {remaining} remaining"
-LBL_SHOWING_RANGE = "Showing {start}–{end} of {total}"
+LBL_SHOWING_RANGE = "Showing {start}\u2013{end} of {total}"
 
 LBL_AD_SUPPORT = "This app is 100% free. Ads help support the developer."
 
@@ -89,3 +89,24 @@ TERMS_TEXT = (
 
 DEEP_LINK_SCHEME = "ktv://"
 DEEP_LINK_PLAY_PREFIX = "ktv://play?url="
+
+PAGE_SIZE = 24
+LIVELINESS_BATCH_SIZE = 10
+LIVELINESS_UPDATE_INTERVAL = 3
+LIVELINESS_SEMAPHORE = 8
+LOGO_CACHE_MAX_FILES = 200
+LOGO_DOWNLOAD_TIMEOUT = 5.0
+ADD_CONTENT_COOLDOWN = 5.0
+MAX_HISTORY_ITEMS = 20
+MAX_SEARCH_RESULTS = 50
+CHANNEL_CARD_AD_INTERVAL = 12
+AD_PRELOAD_RETRY_DELAY = 30
+AD_PRELOAD_MAX_RETRIES = 5
+SPLASH_DURATION = 1.5
+STREAM_RETRY_MAX = 3
+STREAM_RECONNECT_MAX = 5
+STREAM_RETRY_DELAY = 2
+SEARCH_DEBOUNCE = 0.6
+LOCAL_SCAN_CACHE_TTL = 60.0
+LOCAL_SCAN_MAX_DEPTH = 6
+MAX_NAME_LENGTH = 200

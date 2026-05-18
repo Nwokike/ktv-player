@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 import flet as ft
 
@@ -12,20 +13,24 @@ from core.constants import (
     LBL_RECENTLY_WATCHED,
     LBL_SEARCH_HINT,
     LBL_SETTINGS,
+    SEARCH_DEBOUNCE,
 )
 from core.state import state
 from core.theme import AppColors
 from database.manager import db_manager
 from services.ad_service import AdService
-from views.local_view import build_local_tab_content
 from views.tabs.categories_tab import build_categories_tab_content
 from views.tabs.countries_tab import build_countries_tab_content
 from views.tabs.custom_tab import build_custom_tab_content
+from views.tabs.local_tab import build_local_tab_content
 from views.tabs.preferences_tab import build_preferences_tab_content
+
+logger = logging.getLogger(__name__)
 
 
 async def _toggle_theme(page_obj: ft.Page):
-    from database.manager import db_manager
+    from core.theme import AppColors
+    AppColors.invalidate_brightness_cache()
     new_mode = ft.ThemeMode.LIGHT if page_obj.theme_mode == ft.ThemeMode.DARK else ft.ThemeMode.DARK
     page_obj.theme_mode = new_mode
     state.theme_mode = new_mode
@@ -56,11 +61,12 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
         if not history:
             return
 
+        url_to_channel = {c.get("url"): c for c in state.channels}
         view_state["recent_urls"] = history[:8]
         recently_watched_row.controls.clear()
 
         for url in history[:8]:
-            channel_info = next((c for c in state.channels if c.get("url") == url), None)
+            channel_info = url_to_channel.get(url)
             if not channel_info:
                 continue
             name = channel_info.get("name", "")
@@ -113,11 +119,13 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
 
     page_obj.run_task(_load_recently_watched)
 
-    countries_content = ft.ListView(expand=True, spacing=15)
     categories_content = ft.ListView(expand=True, spacing=15)
+    countries_content = ft.ListView(expand=True, spacing=15)
     custom_content = ft.ListView(expand=True, spacing=15)
+    local_content = ft.ListView(expand=True, spacing=15)
     preferences_content = ft.ListView(expand=True, spacing=15)
-    local_content = build_local_tab_content(page_obj, on_play, ad_service)
+
+    all_targets = [categories_content, countries_content, custom_content, local_content, preferences_content]
 
     liveliness = getattr(page_obj, "get_liveliness", lambda: None)()
     if liveliness is None:
@@ -125,13 +133,10 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
         liveliness = LivelinessChecker(page_obj)
 
     def update_tab_content(tab_index: int, force: bool = False):
-        if tab_index == 4:
-            return
-
         if not force and view_state["tab_built"][tab_index]:
             return
 
-        target = [countries_content, categories_content, custom_content, preferences_content][tab_index]
+        target = all_targets[tab_index]
         target.controls.clear()
 
         if state.is_loading:
@@ -149,21 +154,23 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
             )
             return
 
-        if tab_index == 3:
-            target._refresh_tab = lambda ti: update_tab_content(ti)
-            build_preferences_tab_content(target, page_obj, on_play, ad_service, liveliness, view_state, _active_tiles)
-        elif tab_index == 2:
-            target._refresh_tab = lambda ti: update_tab_content(ti)
-            build_custom_tab_content(target, page_obj, on_play, ad_service, liveliness, view_state, _active_tiles)
-        elif tab_index == 1:
+        target._refresh_tab = lambda ti: update_tab_content(ti)
+
+        if tab_index == 0:
             build_categories_tab_content(target, page_obj, on_play, ad_service, liveliness, view_state, _active_tiles)
-        else:
+        elif tab_index == 1:
             build_countries_tab_content(target, page_obj, on_play, ad_service, liveliness, view_state, _active_tiles)
+        elif tab_index == 2:
+            build_custom_tab_content(target, page_obj, on_play, ad_service, liveliness, view_state, _active_tiles)
+        elif tab_index == 3:
+            build_local_tab_content(target, page_obj, on_play, ad_service, liveliness, view_state, _active_tiles)
+        elif tab_index == 4:
+            build_preferences_tab_content(target, page_obj, on_play, ad_service, liveliness, view_state, _active_tiles)
 
         view_state["tab_built"][tab_index] = True
 
     tab_view_container = ft.TabBarView(
-        controls=[countries_content, categories_content, custom_content, preferences_content, local_content],
+        controls=all_targets,
         expand=True,
     )
 
@@ -174,11 +181,11 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
 
     tab_bar = ft.TabBar(
         tabs=[
-            ft.Tab(label=LBL_COUNTRIES, icon=ft.Icons.PUBLIC),
             ft.Tab(label=LBL_CATEGORIES, icon=ft.Icons.CATEGORY),
+            ft.Tab(label=LBL_COUNTRIES, icon=ft.Icons.PUBLIC),
             ft.Tab(label=LBL_CUSTOM, icon=ft.Icons.PLAYLIST_ADD),
-            ft.Tab(label=LBL_SETTINGS, icon=ft.Icons.SETTINGS),
             ft.Tab(label=LBL_LOCAL_VIDEOS, icon=ft.Icons.VIDEO_LIBRARY),
+            ft.Tab(label=LBL_SETTINGS, icon=ft.Icons.SETTINGS),
         ]
     )
 
@@ -190,10 +197,14 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
         on_change=handle_tab_change,
     )
 
-    def refresh_dashboard():
-        for i in range(4):
-            view_state["tab_built"][i] = False
-        update_tab_content(view_state["selected_tab"], force=True)
+    def refresh_dashboard(tab_index: int | None = None):
+        if tab_index is not None:
+            view_state["tab_built"][tab_index] = False
+            update_tab_content(tab_index, force=True)
+        else:
+            for i in range(5):
+                view_state["tab_built"][i] = False
+            update_tab_content(view_state["selected_tab"], force=True)
         page_obj.run_task(_load_recently_watched)
         page_obj.update()
 
@@ -201,7 +212,7 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
 
     async def execute_search(query: str):
         view_state["search_query"] = query
-        for i in range(4):
+        for i in range(5):
             view_state["tab_built"][i] = False
         update_tab_content(view_state["selected_tab"], force=True)
         page_obj.update()
@@ -213,16 +224,18 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
         query = e.data
 
         async def delayed_search():
-            await asyncio.sleep(0.6)
+            await asyncio.sleep(SEARCH_DEBOUNCE)
             await execute_search(query)
 
         view_state["search_task"] = page_obj.run_task(delayed_search)
 
-    search_bar = ft.SearchBar(
+    search_field = ft.TextField(
         on_change=on_search_change,
-        bar_hint_text=LBL_SEARCH_HINT,
-        bar_leading=ft.Icon(ft.Icons.SEARCH_ROUNDED),
+        hint_text=LBL_SEARCH_HINT,
+        prefix_icon=ft.Icons.SEARCH_ROUNDED,
         expand=True,
+        border=ft.InputBorder.OUTLINE,
+        border_radius=12,
     )
 
     update_tab_content(0)
@@ -233,7 +246,7 @@ def build_dashboard_view(page_obj: ft.Page, on_play: callable, ad_service: AdSer
                 content=ft.Image(src="/icon.png", width=40, height=40, border_radius=12),
                 border_radius=12,
             ),
-            search_bar,
+            search_field,
             ft.Container(
                 content=ft.IconButton(
                     icon=ft.Icons.LIGHT_MODE if page_obj.theme_mode == ft.ThemeMode.DARK else ft.Icons.DARK_MODE,

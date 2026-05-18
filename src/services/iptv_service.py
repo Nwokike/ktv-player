@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 import httpx
 
@@ -6,12 +7,14 @@ from channels.provider import channel_provider
 from database.manager import db_manager
 from services.m3u_parser import parse_m3u_text
 
+logger = logging.getLogger(__name__)
+
 
 class IPTVService:
     def __init__(self):
-        self._http_client = None
+        self._http_client: httpx.AsyncClient | None = None
 
-    def _get_client(self) -> httpx.AsyncClient:
+    def get_client(self) -> httpx.AsyncClient:
         if self._http_client is None or self._http_client.is_closed:
             self._http_client = httpx.AsyncClient(
                 timeout=15.0,
@@ -25,7 +28,7 @@ class IPTVService:
 
     async def _parse_m3u_from_url(self, url: str) -> list[dict]:
         try:
-            client = self._get_client()
+            client = self.get_client()
             headers = {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             }
@@ -54,7 +57,7 @@ class IPTVService:
                 )
             except TimeoutError:
                 results = [Exception("Playlist load timeout")] * len(active_playlists)
-            for p, ext_channels in zip(active_playlists, results):
+            for p, ext_channels in zip(active_playlists, results, strict=True):
                 if isinstance(ext_channels, list):
                     for c in ext_channels:
                         c["group"] = p["name"]

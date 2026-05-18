@@ -1,6 +1,8 @@
 import re
 
 _VALID_URL = re.compile(r"^(https?|file|rtsp|rtmp|udp|rtp)://")
+_TVG_LOGO_RE = re.compile(r'tvg-logo="([^"]*)"')
+_GROUP_TITLE_RE = re.compile(r'group-title="([^"]*)"')
 
 
 def parse_m3u_text(text: str, default_group: str = "Custom") -> list[dict]:
@@ -17,11 +19,11 @@ def parse_m3u_text(text: str, default_group: str = "Custom") -> list[dict]:
             logo = ""
             group = default_group
 
-            logo_match = re.search(r'tvg-logo="([^"]*)"', meta)
+            logo_match = _TVG_LOGO_RE.search(meta)
             if logo_match:
                 logo = logo_match.group(1)
 
-            group_match = re.search(r'group-title="([^"]*)"', meta)
+            group_match = _GROUP_TITLE_RE.search(meta)
             if group_match:
                 group = group_match.group(1) or default_group
 

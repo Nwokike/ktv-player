@@ -2,13 +2,14 @@ import asyncio
 import base64
 import contextlib
 import ipaddress
+import logging
 import re
 import urllib.parse
 
 import flet as ft
 
 from components.player.immersive_player import ImmersivePlayer
-from core.constants import DEEP_LINK_PLAY_PREFIX
+from core.constants import DEEP_LINK_PLAY_PREFIX, SPLASH_DURATION
 from core.crash_reporter import install_crash_handler
 from core.focus_manager import FocusManager
 from core.state import state
@@ -22,6 +23,8 @@ from views.onboarding import build_onboarding_view
 from views.player_view import build_player_view
 from views.splash import build_splash_view
 
+logger = logging.getLogger(__name__)
+
 _IS_WINDOWS_PATH = re.compile(r"^[A-Za-z]:[\\/]", re.IGNORECASE)
 
 _BLOCKED_NETWORKS = [
@@ -32,6 +35,11 @@ _BLOCKED_NETWORKS = [
     ipaddress.ip_network("169.254.0.0/16"),
     ipaddress.ip_network("0.0.0.0/8"),
 ]
+
+_SENSITIVE_PATHS = re.compile(
+    r"(?:/etc/|/proc/|/sys/|/dev/|Windows/|Program\sFiles|Users/.*\.ssh|\.env)",
+    re.IGNORECASE,
+)
 
 
 def _is_blocked_ip(host: str) -> bool:
@@ -51,14 +59,17 @@ def _is_valid_play_url(url: str) -> bool:
                 return False
             if host.lower() in ("localhost", "metadata.google.internal"):
                 return False
+            if parsed.username or parsed.password:
+                return False
         except Exception:
             return False
         return True
     if url.startswith("file://"):
-        return True
+        path = url[7:]
+        return not _SENSITIVE_PATHS.search(path)
     if url.startswith("/"):
-        return True
-    return bool(_IS_WINDOWS_PATH.match(url))
+        return not _SENSITIVE_PATHS.search(url)
+    return bool(_IS_WINDOWS_PATH.match(url)) and not _SENSITIVE_PATHS.search(url)
 
 
 class AppController:
@@ -83,7 +94,9 @@ class AppController:
     def _get_liveliness(self):
         if self.liveliness_checker is None:
             from services.liveliness_checker import LivelinessChecker
-            self.liveliness_checker = LivelinessChecker(self.page, iptv_service)
+            self.liveliness_checker = LivelinessChecker(
+                self.page, iptv_service.get_client()
+            )
         return self.liveliness_checker
 
     async def init(self):
@@ -139,11 +152,11 @@ class AppController:
             self.page.update()
 
     def _handle_global_back(self):
-        print(f"[main] _handle_global_back, views={len(self.page.views)}")
+        logger.debug("_handle_global_back, views=%d", len(self.page.views))
         if len(self.page.views) > 1:
             top_view = self.page.views[-1]
             route = getattr(top_view, "route", "")
-            print(f"[main] back from route={route}")
+            logger.debug("back from route=%s", route)
 
             if route.startswith("/play"):
                 if self._current_player:
@@ -153,34 +166,29 @@ class AppController:
                 self.page.update()
             else:
                 self.page.views.pop()
-                previous_view = self.page.views[-1]
-                self.page.run_task(self.navigate, previous_view.route)
+                self.page.update()
 
     def view_pop(self, e: ft.ViewPopEvent):
-        print(f"[main] view_pop, views={len(self.page.views)}")
+        logger.debug("view_pop, views=%d", len(self.page.views))
         if len(self.page.views) > 1:
             top_view = self.page.views[-1]
             route = getattr(top_view, "route", "")
-            print(f"[main] view_pop from route={route}")
+            logger.debug("view_pop from route=%s", route)
             if route.startswith("/play") and self._current_player:
                 self.page.run_task(self._current_player.handle_close)
                 self._current_player = None
             self.page.views.pop()
-            previous_view = self.page.views[-1]
-            print(f"[main] view_pop navigating to {previous_view.route}")
-            self.page.run_task(self.navigate, previous_view.route)
             self.page.update()
 
     async def navigate(self, route: str):
         await self.page.push_route(route)
 
     async def play_stream(self, url: str):
-        print(f"[main] play_stream called, url={url[:60]}")
+        logger.debug("play_stream called, url=%s", url[:60])
         if self._current_player:
             with contextlib.suppress(Exception):
                 await self._current_player.handle_close()
             self._current_player = None
-            await asyncio.sleep(0.3)
 
         await db_manager.save_history(url)
         state.add_to_history(url)
@@ -191,15 +199,15 @@ class AppController:
         await self.navigate(f"/play?url={encoded_url}")
 
     async def load_channels(self, force: bool = False):
-        print(f"[main] load_channels called, force={force}, _channels_loaded={self._channels_loaded}")
+        logger.debug("load_channels called, force=%s, _channels_loaded=%s", force, self._channels_loaded)
         async with self._loading_lock:
             if self._channels_loaded and not force:
-                print("[main] load_channels skipped (already loaded)")
+                logger.debug("load_channels skipped (already loaded)")
                 return
 
             self._channels_loaded = False
             state.is_loading = True
-            print("[main] load_channels: refreshing dashboard (loading state)")
+            logger.debug("load_channels: refreshing dashboard (loading state)")
             if hasattr(self.page, "refresh_dashboard"):
                 self.page.refresh_dashboard()
             else:
@@ -207,14 +215,14 @@ class AppController:
 
             try:
                 all_channels = await iptv_service.load_all_sources()
-                print(f"[main] load_channels: got {len(all_channels)} channels")
+                logger.debug("load_channels: got %d channels", len(all_channels))
                 state.channels = all_channels
                 from views.tabs import _invalidate_groups_cache
                 _invalidate_groups_cache()
                 self._channels_loaded = True
             finally:
                 state.is_loading = False
-                print("[main] load_channels: refreshing dashboard (done)")
+                logger.debug("load_channels: refreshing dashboard (done)")
                 if hasattr(self.page, "refresh_dashboard"):
                     self.page.refresh_dashboard()
                 else:
@@ -229,7 +237,7 @@ class AppController:
         return self._resource_locks[key]
 
     async def start_splash_timer(self):
-        await asyncio.sleep(1.5)
+        await asyncio.sleep(SPLASH_DURATION)
         dest = "/dashboard" if not state.is_first_launch else "/onboarding"
         await self.navigate(dest)
 
@@ -262,7 +270,7 @@ class AppController:
                     self.page.run_task(self.load_channels)
 
             elif parsed_url.path == "/dashboard":
-                print(f"[main] route_change: /dashboard, state.channels={len(state.channels)}")
+                logger.debug("route_change: /dashboard, state.channels=%d", len(state.channels))
                 self.page.views.append(
                     build_dashboard_view(
                         page_obj=self.page,
@@ -271,28 +279,28 @@ class AppController:
                     )
                 )
                 if not state.channels:
-                    print("[main] route_change: /dashboard triggering load_channels")
+                    logger.debug("route_change: /dashboard triggering load_channels")
                     self.page.run_task(self.load_channels)
                 else:
-                    print("[main] route_change: /dashboard skipping load_channels (already loaded)")
+                    logger.debug("route_change: /dashboard skipping load_channels (already loaded)")
 
             elif parsed_url.path == "/play":
                 params = urllib.parse.parse_qs(parsed_url.query)
                 encoded_url = params.get("url", [None])[0]
-                print(f"[main] /play encoded_url={encoded_url[:40] if encoded_url else None}")
+                logger.debug("/play encoded_url=%s", encoded_url[:40] if encoded_url else None)
                 if encoded_url:
                     try:
                         padding = "=" * (-len(encoded_url) % 4)
                         padded_url = encoded_url + padding
                         url = base64.urlsafe_b64decode(padded_url).decode()
                         if not _is_valid_play_url(url):
-                            print(f"[main] /play rejected invalid url scheme: {url[:60]}")
+                            logger.debug("/play rejected invalid url scheme: %s", url[:60])
                             self.page.run_task(self.navigate, "/dashboard")
                             return
-                        print(f"[main] /play route, url={url[:60]}")
+                        logger.debug("/play route, url=%s", url[:60])
                         player = ImmersivePlayer(resource=url, on_close=lambda: self._pop_play_view())
                         self._current_player = player
-                        print("[main] ImmersivePlayer created, building view...")
+                        logger.debug("ImmersivePlayer created, building view...")
                         self.page.views.append(
                             build_player_view(
                                 page_obj=self.page,
@@ -301,17 +309,15 @@ class AppController:
                                 player=player,
                             )
                         )
-                        print("[main] player view appended")
-                    except Exception as ex:
-                        print(f"[main] /play error: {ex}")
-                        import traceback
-                        traceback.print_exc()
+                        logger.debug("player view appended")
+                    except Exception:
+                        logger.exception("/play error")
                         self.page.run_task(self.navigate, "/dashboard")
                 else:
-                    print("[main] /play no url param")
+                    logger.debug("/play no url param")
                     self.page.run_task(self.navigate, "/dashboard")
-        except Exception as ex:
-            print(f"[main] route_change error: {ex}")
+        except Exception:
+            logger.exception("route_change error")
             self.page.snack_bar = ft.SnackBar(
                 ft.Text("An error occurred. Please restart the app."),
                 bgcolor=AppColors.ERROR,
