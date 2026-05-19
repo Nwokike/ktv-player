@@ -129,49 +129,82 @@ class ImmersivePlayer(ft.Stack):
         )
         speed_container.tab_index = 0
 
-        return fv.MaterialDesktopVideoControls(
-            visible_on_mount=True,
-            display_seek_bar=True,
-            modify_volume_on_scroll=True,
-            toggle_fullscreen_on_double_press=True,
-            play_and_pause_on_tap=False,
-            hide_mouse_on_controls_removal=True,
-            primary_button_bar=[
-                fv.VideoSkipPreviousButton(icon_color=ft.Colors.WHITE),
-                fv.VideoPlayOrPauseButton(icon_size=36, icon_color=ft.Colors.WHITE),
-                fv.VideoSkipNextButton(icon_color=ft.Colors.WHITE),
-            ],
-            top_button_bar=[
-                ft.IconButton(
-                    icon=ft.Icons.ARROW_BACK_IOS_NEW_ROUNDED,
-                    icon_color=ft.Colors.WHITE,
-                    tooltip="Back",
-                    on_click=lambda e: self.page.run_task(self._on_back, e),
-                ),
-                ft.Text(
-                    self.title or "Now Playing",
-                    color=ft.Colors.WHITE,
-                    weight=ft.FontWeight.W_500,
-                    max_lines=1,
-                    overflow=ft.TextOverflow.ELLIPSIS,
-                ),
-                fv.VideoSpacer(),
-                fv.VideoFullscreenButton(icon_color=ft.Colors.WHITE),
-            ],
-            bottom_button_bar=[
-                fv.VideoVolumeButton(slider_width=80, icon_color=ft.Colors.WHITE),
-                fv.VideoSpacer(),
-                fv.VideoPositionIndicator(
-                    text_style=ft.TextStyle(size=12, color=ft.Colors.WHITE),
-                ),
-                fv.VideoSpacer(),
-                speed_container,
-            ],
-            seek_bar_position_color=AppColors.PRIMARY,
-            seek_bar_buffer_color=ft.Colors.with_opacity(0.3, ft.Colors.WHITE),
-            seek_bar_hover_height=8,
-            volume_bar_active_color=AppColors.PRIMARY,
-            controls_hover_duration=ft.Duration(seconds=3),
+        back_btn = ft.IconButton(
+            icon=ft.Icons.ARROW_BACK_IOS_NEW_ROUNDED,
+            icon_color=ft.Colors.WHITE,
+            tooltip="Back",
+            on_click=lambda e: self.page.run_task(self._on_back, e),
+        )
+        title_text = ft.Text(
+            self.title or "Now Playing",
+            color=ft.Colors.WHITE,
+            weight=ft.FontWeight.W_500,
+            max_lines=1,
+            overflow=ft.TextOverflow.ELLIPSIS,
+        )
+
+        return fv.AdaptiveVideoControls(
+            # --- Mobile (touch) ---
+            material=fv.MaterialVideoControls(
+                visible_on_mount=True,
+                display_seek_bar=True,
+                seek_on_double_tap=True,
+                seek_gesture=True,
+                volume_gesture=True,
+                brightness_gesture=True,
+                speed_up_on_long_press=True,
+                speed_up_factor=2.0,
+                controls_transition_duration=ft.Duration(milliseconds=300),
+                seek_bar_position_color=AppColors.PRIMARY,
+                button_bar_button_color=ft.Colors.WHITE,
+                top_button_bar=[
+                    back_btn,
+                    title_text,
+                    fv.VideoSpacer(),
+                    fv.VideoFullscreenButton(icon_color=ft.Colors.WHITE),
+                ],
+                bottom_button_bar=[
+                    fv.VideoPositionIndicator(
+                        text_style=ft.TextStyle(size=12, color=ft.Colors.WHITE),
+                    ),
+                    fv.VideoSpacer(),
+                    speed_container,
+                ],
+            ),
+            # --- Desktop / TV (keyboard + D-pad) ---
+            material_desktop=fv.MaterialDesktopVideoControls(
+                visible_on_mount=True,
+                display_seek_bar=True,
+                modify_volume_on_scroll=True,
+                toggle_fullscreen_on_double_press=True,
+                play_and_pause_on_tap=False,
+                hide_mouse_on_controls_removal=True,
+                primary_button_bar=[
+                    fv.VideoSkipPreviousButton(icon_color=ft.Colors.WHITE),
+                    fv.VideoPlayOrPauseButton(icon_size=36, icon_color=ft.Colors.WHITE),
+                    fv.VideoSkipNextButton(icon_color=ft.Colors.WHITE),
+                ],
+                top_button_bar=[
+                    back_btn,
+                    title_text,
+                    fv.VideoSpacer(),
+                    fv.VideoFullscreenButton(icon_color=ft.Colors.WHITE),
+                ],
+                bottom_button_bar=[
+                    fv.VideoVolumeButton(slider_width=80, icon_color=ft.Colors.WHITE),
+                    fv.VideoSpacer(),
+                    fv.VideoPositionIndicator(
+                        text_style=ft.TextStyle(size=12, color=ft.Colors.WHITE),
+                    ),
+                    fv.VideoSpacer(),
+                    speed_container,
+                ],
+                seek_bar_position_color=AppColors.PRIMARY,
+                seek_bar_buffer_color=ft.Colors.with_opacity(0.3, ft.Colors.WHITE),
+                seek_bar_hover_height=8,
+                volume_bar_active_color=AppColors.PRIMARY,
+                controls_hover_duration=ft.Duration(seconds=3),
+            ),
         )
 
     # --- Playback ---
