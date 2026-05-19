@@ -118,7 +118,7 @@ jobs:
           FLET_ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ needs.detect-versions.outputs.build_version }} --build-number ${{ needs.detect-versions.outputs.build_number }} --android-permissions android.permission.READ_MEDIA_AUDIO=true --android-permissions android.permission.READ_MEDIA_VIDEO=true --android-permissions android.permission.READ_EXTERNAL_STORAGE=true --android-permissions android.permission.WRITE_EXTERNAL_STORAGE=true -v
+        run: uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ needs.detect-versions.outputs.build_version }} --build-number ${{ needs.detect-versions.outputs.build_number }} -v
       - uses: actions/upload-artifact@v5.0.0
         with:
           name: apk-universal
@@ -145,7 +145,7 @@ jobs:
           FLET_ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ needs.detect-versions.outputs.build_version }} --build-number ${{ needs.detect-versions.outputs.build_number }} --split-per-abi --android-permissions android.permission.READ_MEDIA_AUDIO=true --android-permissions android.permission.READ_MEDIA_VIDEO=true --android-permissions android.permission.READ_EXTERNAL_STORAGE=true --android-permissions android.permission.WRITE_EXTERNAL_STORAGE=true -v
+        run: uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ needs.detect-versions.outputs.build_version }} --build-number ${{ needs.detect-versions.outputs.build_number }} --split-per-abi -v
       - uses: actions/upload-artifact@v5.0.0
         with:
           name: apk-split-abi
@@ -172,7 +172,7 @@ jobs:
           FLET_ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: uv run flet build aab --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ needs.detect-versions.outputs.build_version }} --build-number ${{ needs.detect-versions.outputs.build_number }} --android-permissions android.permission.READ_MEDIA_AUDIO=true --android-permissions android.permission.READ_MEDIA_VIDEO=true --android-permissions android.permission.READ_EXTERNAL_STORAGE=true --android-permissions android.permission.WRITE_EXTERNAL_STORAGE=true -v
+        run: uv run flet build aab --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ needs.detect-versions.outputs.build_version }} --build-number ${{ needs.detect-versions.outputs.build_number }} -v
       - uses: actions/upload-artifact@v5.0.0
         with:
           name: aab-playstore
