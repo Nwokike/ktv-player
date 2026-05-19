@@ -46,21 +46,28 @@ def _is_mobile() -> bool:
 
 
 async def _ensure_services(page_obj):
-    """Register PermissionHandler and StoragePaths services once."""
+    """Register PermissionHandler and StoragePaths services once (mobile only)."""
     global _ph, _sp
 
-    if _sp is None:
-        _sp = ft.StoragePaths()
-        page_obj.overlay.append(_sp)
+    if not _is_mobile():
+        return
 
-    if _ph is None and _is_mobile():
+    if _sp is None:
+        try:
+            _sp = ft.StoragePaths()
+            page_obj.overlay.append(_sp)
+        except Exception:
+            logger.warning("StoragePaths not available")
+
+    if _ph is None:
         try:
             from flet_permission_handler import PermissionHandler
             _ph = PermissionHandler()
             page_obj.overlay.append(_ph)
-            page_obj.update()
-        except ImportError:
+        except (ImportError, Exception):
             logger.warning("flet-permission-handler not available")
+
+    page_obj.update()
 
 
 async def _request_storage_permission() -> bool:
