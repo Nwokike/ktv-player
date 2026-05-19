@@ -55,7 +55,6 @@ async def _ensure_services(page_obj):
     if _sp is None:
         try:
             _sp = ft.StoragePaths()
-            page_obj.overlay.append(_sp)
         except Exception:
             logger.warning("StoragePaths not available")
 
@@ -63,7 +62,6 @@ async def _ensure_services(page_obj):
         try:
             from flet_permission_handler import PermissionHandler
             _ph = PermissionHandler()
-            page_obj.overlay.append(_ph)
         except (ImportError, Exception):
             logger.warning("flet-permission-handler not available")
 

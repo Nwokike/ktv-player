@@ -1,7 +1,6 @@
 name: Build All Platforms
 
 on:
-  push:
   pull_request:
   workflow_dispatch:
     inputs:

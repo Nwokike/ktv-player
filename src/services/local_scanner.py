@@ -95,6 +95,11 @@ def scan_videos(root_paths: list[str], max_depth: int = LOCAL_SCAN_MAX_DEPTH) ->
                 dirnames.clear()
                 continue
 
+            # Specifically skip the Android root folder to avoid Scoped Storage PermissionErrors
+            if current.name == "Android" and depth == 1:
+                dirnames.clear()
+                continue
+
             dirnames[:] = [d for d in dirnames if not d.startswith(".")]
 
             video_files = []
