@@ -12,7 +12,6 @@ from core.constants import (
     LBL_LIBRARY_RESET,
     LBL_LOCALIZATION,
     LBL_LOCALIZATION_DESC,
-    LBL_PREFERENCES,
     LBL_RESET_LIBRARY,
     LBL_RESET_LIBRARY_DESC,
 )
@@ -105,8 +104,6 @@ def build_preferences_tab_content(target, page_obj, on_play, ad_service, livelin
     target.controls.append(
         ft.Column(
             [
-                ft.Text(LBL_PREFERENCES, size=24, weight=ft.FontWeight.BOLD),
-                ft.Divider(height=20),
                 ft.Text(LBL_LOCALIZATION, size=16, weight=ft.FontWeight.W_600, color=AppColors.PRIMARY),
                 ft.Text(LBL_LOCALIZATION_DESC, size=12, color=AppColors.GREY_DIM),
                 ft.Container(content=country_list, border=ft.Border.all(1, AppColors.GREY_DIM), border_radius=10),

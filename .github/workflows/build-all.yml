@@ -1,51 +1,36 @@
 name: Build All Platforms
 
 on:
+  push:
+  pull_request:
   workflow_dispatch:
     inputs:
       build_version:
-        description: "Build version (leave empty to use pyproject.toml)"
-        required: false
-        default: ""
+        description: "Build version"
+        required: true
+        default: "1.1.0"
       build_number:
-        description: "Build number (leave empty to use pyproject.toml)"
-        required: false
-        default: ""
+        description: "Build number"
+        required: true
+        default: "4"
 
 env:
   PYTHONUTF8: "1"
   FLET_CLI_NO_RICH_OUTPUT: "1"
   UV_PYTHON: "3.13"
+  BUILD_VERSION: ${{ inputs.build_version || '1.1.0' }}
+  BUILD_NUMBER: ${{ inputs.build_number || '4' }}
 
 jobs:
-  detect-versions:
-    runs-on: ubuntu-latest
-    outputs:
-      build_version: ${{ steps.detect.outputs.build_version }}
-      build_number: ${{ steps.detect.outputs.build_number }}
-    steps:
-      - uses: actions/checkout@v4
-      - id: detect
-        run: |
-          VERSION=$(grep '^version = ' pyproject.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
-          BUILD_NUM=$(grep '^build_number = ' pyproject.toml | head -1 | sed 's/build_number = \(.*\)/\1/')
-          FINAL_VERSION="${{ inputs.build_version }}"
-          if [ -z "$FINAL_VERSION" ]; then FINAL_VERSION="$VERSION"; fi
-          FINAL_BUILD="${{ inputs.build_number }}"
-          if [ -z "$FINAL_BUILD" ]; then FINAL_BUILD="$BUILD_NUM"; fi
-          echo "build_version=$FINAL_VERSION" >> $GITHUB_OUTPUT
-          echo "build_number=$FINAL_BUILD" >> $GITHUB_OUTPUT
-
   # ─── Windows (Automated .exe Installer) ────────────────────
   build-windows:
-    needs: detect-versions
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
 
       - name: Build Windows Portable
-        run: uv run flet build windows --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ needs.detect-versions.outputs.build_version }} --build-number ${{ needs.detect-versions.outputs.build_number }} -v
+        run: uv run flet build windows --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
 
       - name: Generate Icon for Installer
         run: |
@@ -58,7 +43,7 @@ jobs:
           [Setup]
           AppId={{7B132174-8745-4B95-8F9B-983C66986F12}}
           AppName=KTV Player
-          AppVersion=${{ needs.detect-versions.outputs.build_version }}
+          AppVersion=${{ env.BUILD_VERSION }}
           AppPublisher=Kiri
           AppPublisherURL=https://kiri.ng
           AppSupportURL=https://kiri.ng/support
@@ -99,7 +84,6 @@ jobs:
 
   # ─── Android APK (universal) ───────────────────────────
   build-apk:
-    needs: detect-versions
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -118,7 +102,7 @@ jobs:
           FLET_ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ needs.detect-versions.outputs.build_version }} --build-number ${{ needs.detect-versions.outputs.build_number }} -v
+        run: uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
       - uses: actions/upload-artifact@v5.0.0
         with:
           name: apk-universal
@@ -126,7 +110,6 @@ jobs:
 
   # ─── Android APK (split per ABI) ───────────────────────
   build-apk-split:
-    needs: detect-versions
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -145,7 +128,7 @@ jobs:
           FLET_ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ needs.detect-versions.outputs.build_version }} --build-number ${{ needs.detect-versions.outputs.build_number }} --split-per-abi -v
+        run: uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} --split-per-abi -v
       - uses: actions/upload-artifact@v5.0.0
         with:
           name: apk-split-abi
@@ -153,7 +136,6 @@ jobs:
 
   # ─── Android AAB (Play Store) ──────────────────────────
   build-aab:
-    needs: detect-versions
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -172,7 +154,7 @@ jobs:
           FLET_ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: uv run flet build aab --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ needs.detect-versions.outputs.build_version }} --build-number ${{ needs.detect-versions.outputs.build_number }} -v
+        run: uv run flet build aab --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
       - uses: actions/upload-artifact@v5.0.0
         with:
           name: aab-playstore

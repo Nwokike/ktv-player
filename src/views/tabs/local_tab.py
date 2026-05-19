@@ -2,6 +2,7 @@
 import asyncio
 import contextlib
 import logging
+import os
 import time
 
 import flet as ft
@@ -26,11 +27,102 @@ logger = logging.getLogger(__name__)
 
 _scan_cache = {"folders": [], "timestamp": 0.0}
 
+# PermissionHandler + StoragePaths are Services — imported at runtime to avoid crash on desktop
+_ph = None  # PermissionHandler instance (added to page.overlay once)
+_sp = None  # StoragePaths instance
+
 
 def _hint_focus_local(control, focused):
     control.bgcolor = ft.Colors.with_opacity(0.08, AppColors.PRIMARY) if focused else None
     with contextlib.suppress(Exception):
         control.update()
+
+
+# --- Permission helpers ---
+
+def _is_mobile() -> bool:
+    """Detect if running on Android/iOS (not desktop/web)."""
+    return os.name != "nt" and not os.environ.get("FLET_WEB")
+
+
+async def _ensure_services(page_obj):
+    """Register PermissionHandler and StoragePaths services once."""
+    global _ph, _sp
+
+    if _sp is None:
+        _sp = ft.StoragePaths()
+        page_obj.overlay.append(_sp)
+
+    if _ph is None and _is_mobile():
+        try:
+            from flet_permission_handler import PermissionHandler
+            _ph = PermissionHandler()
+            page_obj.overlay.append(_ph)
+            page_obj.update()
+        except ImportError:
+            logger.warning("flet-permission-handler not available")
+
+
+async def _request_storage_permission() -> bool:
+    """Request storage permission on Android. Returns True if granted."""
+    if not _is_mobile() or _ph is None:
+        return True  # Desktop — always granted
+
+    try:
+        from flet_permission_handler import Permission, PermissionStatus
+
+        # Android 13+ uses Permission.VIDEOS, older uses Permission.STORAGE
+        status = await _ph.request(Permission.VIDEOS)
+        if status == PermissionStatus.GRANTED:
+            return True
+
+        # Fallback for older Android
+        status = await _ph.request(Permission.STORAGE)
+        if status == PermissionStatus.GRANTED:
+            return True
+
+        # If permanently denied, open app settings
+        if status == PermissionStatus.PERMANENTLY_DENIED:
+            await _ph.open_app_settings()
+
+        return False
+    except Exception:
+        logger.exception("Permission request failed")
+        return True  # Fail open on error — try scanning anyway
+
+
+async def _get_scan_paths() -> list[str]:
+    """Get scan paths using StoragePaths on Android, fallback to defaults."""
+    paths = []
+
+    if _is_mobile() and _sp is not None:
+        try:
+            ext_dir = await _sp.get_external_storage_directory()
+            if ext_dir:
+                paths.append(ext_dir)
+        except Exception:
+            pass
+
+        try:
+            ext_dirs = await _sp.get_external_storage_directories()
+            if ext_dirs:
+                paths.extend(ext_dirs)
+        except Exception:
+            pass
+
+        try:
+            dl_dir = await _sp.get_downloads_directory()
+            if dl_dir:
+                paths.append(dl_dir)
+        except Exception:
+            pass
+
+    # Deduplicate and add defaults if nothing found
+    paths = list(dict.fromkeys(paths))  # preserve order, remove dupes
+    if not paths:
+        paths = get_default_scan_paths()
+
+    return paths
 
 
 # --- UI Builders ---
@@ -69,12 +161,6 @@ def _build_video_card(video, idx, on_play, page_obj):
     make_focusable_card(card)
 
     return card
-
-
-def _build_video_grid(folder, offset, limit):
-    page_videos = folder.videos[offset: offset + limit]
-    grid = ft.ResponsiveRow(spacing=12, run_spacing=12)
-    return grid, page_videos
 
 
 def _show_local_page(tile, folder, offset, page_obj, on_play):
@@ -297,7 +383,7 @@ def _handle_local_expansion(e, folder, active_tiles, page_obj, on_play):
 # --- Scanning ---
 
 async def _scan_device():
-    paths = get_default_scan_paths()
+    paths = await _get_scan_paths()
     return await asyncio.to_thread(scan_videos, paths)
 
 
@@ -334,12 +420,20 @@ def build_local_tab_content(target, page_obj, on_play, ad_service, liveliness, v
             render()
             return
 
+        # Register services
+        await _ensure_services(page_obj)
+
+        # Request permission on Android
+        granted = await _request_storage_permission()
+        view_state["local_permission_granted"] = granted
+
+        if not granted:
+            render()
+            return
+
         view_state["local_is_scanning"] = True
         render()
 
-        # Android auto-prompts for storage permissions when we access media files.
-        # No runtime permission request needed — declared in pyproject.toml.
-        view_state["local_permission_granted"] = True
         try:
             await asyncio.sleep(0.1)
             folders = await _scan_device()
