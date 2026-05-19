@@ -1,9 +1,10 @@
 import time
+from collections import OrderedDict
 
 
 class LivelinessCache:
     def __init__(self, max_size: int = 500, ttl: int = 300):
-        self._cache: dict[str, tuple[bool, float]] = {}
+        self._cache: OrderedDict[str, tuple[bool, float]] = OrderedDict()
         self._max_size = max_size
         self._ttl = ttl
 
@@ -18,9 +19,10 @@ class LivelinessCache:
         return is_live
 
     def set(self, url: str, is_live: bool):
-        if len(self._cache) >= self._max_size:
-            oldest_key = min(self._cache, key=lambda k: self._cache[k][1])
-            del self._cache[oldest_key]
+        if url in self._cache:
+            self._cache.move_to_end(url)
+        elif len(self._cache) >= self._max_size:
+            self._cache.popitem(last=False)
         self._cache[url] = (is_live, time.time())
 
     def clear(self):

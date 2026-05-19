@@ -10,6 +10,8 @@ from core.constants import LOGO_CACHE_MAX_FILES, LOGO_DOWNLOAD_TIMEOUT
 LOGO_CACHE_DIR = os.path.join("storage", "logos")
 LOGO_CACHE_TTL = 7 * 24 * 60 * 60
 
+_in_flight: set[str] = set()
+
 
 def _get_cached_path(logo_url: str) -> str:
     safe_name = hashlib.md5(logo_url.encode()).hexdigest()[:12]
@@ -51,26 +53,36 @@ def get_cached_logo(logo_url: str) -> str | None:
     return None
 
 
-async def download_logo(logo_url: str) -> str | None:
+async def download_logo(logo_url: str, http_client: httpx.AsyncClient | None = None) -> str | None:
     if not logo_url or logo_url == "/icon.png":
         return None
+
+    # Deduplication: skip if already downloading this URL
+    if logo_url in _in_flight:
+        return None
+    _in_flight.add(logo_url)
 
     os.makedirs(LOGO_CACHE_DIR, exist_ok=True)
     _evict_oldest_if_needed()
     cached_path = _get_cached_path(logo_url)
 
     try:
-        async with httpx.AsyncClient(
-            timeout=httpx.Timeout(LOGO_DOWNLOAD_TIMEOUT, connect=2.0),
-            follow_redirects=True,
-        ) as client:
-            resp = await client.get(logo_url)
-            resp.raise_for_status()
-            with open(cached_path, "wb") as f:
-                f.write(resp.content)
-            return cached_path
+        if http_client and not http_client.is_closed:
+            resp = await http_client.get(logo_url, timeout=LOGO_DOWNLOAD_TIMEOUT)
+        else:
+            async with httpx.AsyncClient(
+                timeout=httpx.Timeout(LOGO_DOWNLOAD_TIMEOUT, connect=2.0),
+                follow_redirects=True,
+            ) as client:
+                resp = await client.get(logo_url)
+        resp.raise_for_status()
+        with open(cached_path, "wb") as f:
+            f.write(resp.content)
+        return cached_path
     except Exception:
         return None
+    finally:
+        _in_flight.discard(logo_url)
 
 
 async def resolve_logo(logo_url: str) -> str:

@@ -13,7 +13,6 @@ class AppColors:
     DARK_BG = "#0D0F1A"
     DARK_SURFACE = "#151828"
     DARK_SURFACE_VARIANT = "#1E2235"
-    DARK_SURFACE_ELEVATED = "#252A3D"
     DARK_TEXT = "#F0F2FF"
     DARK_TEXT_DIM = "#8E94A5"
     DARK_TEXT_MUTED = "#5A6078"
@@ -21,7 +20,6 @@ class AppColors:
     LIGHT_BG = "#F5F7FB"
     LIGHT_SURFACE = "#FFFFFF"
     LIGHT_SURFACE_VARIANT = "#F0F2F8"
-    LIGHT_SURFACE_ELEVATED = "#FFFFFF"
     LIGHT_TEXT = "#1A1D2D"
     LIGHT_TEXT_DIM = "#64748B"
     LIGHT_TEXT_MUTED = "#94A3B8"
@@ -33,47 +31,21 @@ class AppColors:
     BLACK = ft.Colors.BLACK
     TRANSPARENT = ft.Colors.TRANSPARENT
 
-    TEXT_PRIMARY = ft.Colors.WHITE
-    TEXT_SECONDARY = ft.Colors.ON_SURFACE_VARIANT
-
-    _cached_is_dark: bool | None = None
-    _cached_page_id: int | None = None
-
     @staticmethod
     def _is_dark(page: ft.Page) -> bool:
-        page_id = id(page)
-        if AppColors._cached_page_id == page_id and AppColors._cached_is_dark is not None:
-            return AppColors._cached_is_dark
-
         if page.theme_mode == ft.ThemeMode.LIGHT:
-            is_dark = False
-        elif page.theme_mode == ft.ThemeMode.DARK:
-            is_dark = True
-        else:
-            try:
-                is_dark = page.platform_brightness == ft.Brightness.DARK
-            except Exception:
-                is_dark = True
-
-        AppColors._cached_is_dark = is_dark
-        AppColors._cached_page_id = page_id
-        return is_dark
-
-    @staticmethod
-    def invalidate_brightness_cache():
-        AppColors._cached_is_dark = None
-        AppColors._cached_page_id = None
+            return False
+        if page.theme_mode == ft.ThemeMode.DARK:
+            return True
+        try:
+            return page.platform_brightness == ft.Brightness.DARK
+        except Exception:
+            return True
 
     @staticmethod
     def get_glass_bg(page: ft.Page):
         return ft.Colors.with_opacity(
             0.08, ft.Colors.WHITE if AppColors._is_dark(page) else ft.Colors.BLACK
-        )
-
-    @staticmethod
-    def get_hover_bg(page: ft.Page):
-        return ft.Colors.with_opacity(
-            0.12, ft.Colors.WHITE if AppColors._is_dark(page) else ft.Colors.BLACK
         )
 
     @staticmethod
@@ -87,26 +59,6 @@ class AppColors:
             return AppColors.DARK_SURFACE_VARIANT if is_dark else AppColors.LIGHT_SURFACE_VARIANT
         except Exception:
             return AppColors.DARK_SURFACE_VARIANT
-
-    @staticmethod
-    def focus_gradient(is_dark: bool = True):
-        if is_dark:
-            return ft.LinearGradient(
-                begin=ft.Alignment.TOP_LEFT,
-                end=ft.Alignment.BOTTOM_RIGHT,
-                colors=[
-                    ft.Colors.with_opacity(0.15, AppColors.PRIMARY),
-                    ft.Colors.with_opacity(0.05, AppColors.SECONDARY),
-                ],
-            )
-        return ft.LinearGradient(
-            begin=ft.Alignment.TOP_LEFT,
-            end=ft.Alignment.BOTTOM_RIGHT,
-            colors=[
-                ft.Colors.with_opacity(0.1, AppColors.PRIMARY),
-                ft.Colors.with_opacity(0.03, AppColors.SECONDARY),
-            ],
-        )
 
 
 class AppTheme:

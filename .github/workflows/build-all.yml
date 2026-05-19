@@ -29,8 +29,10 @@ jobs:
         run: |
           VERSION=$(grep '^version = ' pyproject.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
           BUILD_NUM=$(grep '^build_number = ' pyproject.toml | head -1 | sed 's/build_number = \(.*\)/\1/')
-          FINAL_VERSION="${{ inputs.build_version || '$VERSION' }}"
-          FINAL_BUILD="${{ inputs.build_number || '$BUILD_NUM' }}"
+          FINAL_VERSION="${{ inputs.build_version }}"
+          if [ -z "$FINAL_VERSION" ]; then FINAL_VERSION="$VERSION"; fi
+          FINAL_BUILD="${{ inputs.build_number }}"
+          if [ -z "$FINAL_BUILD" ]; then FINAL_BUILD="$BUILD_NUM"; fi
           echo "build_version=$FINAL_VERSION" >> $GITHUB_OUTPUT
           echo "build_number=$FINAL_BUILD" >> $GITHUB_OUTPUT
 

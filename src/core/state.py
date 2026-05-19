@@ -6,14 +6,21 @@ from core.constants import MAX_HISTORY_ITEMS
 @ft.observable
 class AppState:
     is_loading: bool = False
-    history: list[str] = []  # noqa: RUF012
     channels: list[dict] = []  # noqa: RUF012
-    favorites: list[str] = []  # noqa: RUF012
+    history: list[str] = []  # noqa: RUF012
+    favorites: set[str] = set()  # noqa: RUF012
 
     user_country: str = ""
     has_accepted_terms: bool = False
     is_first_launch: bool = True
     theme_mode: ft.ThemeMode = ft.ThemeMode.SYSTEM
+
+    channels_hash: int = 0
+
+    def __init__(self):
+        self.channels = []
+        self.history = []
+        self.favorites = set()
 
     def add_to_history(self, url: str):
         if url in self.history:
@@ -22,8 +29,12 @@ class AppState:
         if len(self.history) > MAX_HISTORY_ITEMS:
             self.history = self.history[:MAX_HISTORY_ITEMS]
 
-    def get_recent_history(self, limit: int = 10) -> list[str]:
-        return list(self.history[:limit])
+    def set_channels(self, channels: list[dict]):
+        self.channels = channels
+        self.channels_hash = sum(hash(c.get("url", "")) for c in channels) % 10_000_000
+
+    def is_favorite(self, url: str) -> bool:
+        return url in self.favorites
 
 
 state = AppState()

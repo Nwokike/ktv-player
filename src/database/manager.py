@@ -21,17 +21,21 @@ class DatabaseManager:
             await self._conn.execute("PRAGMA journal_mode=WAL;")
             await self._conn.execute("PRAGMA synchronous=NORMAL;")
             await self._conn.execute("PRAGMA cache_size=-4000;")
+
+            # Check for corruption and recover properly
             try:
                 cursor = await self._conn.execute("PRAGMA quick_check;")
                 result = await cursor.fetchone()
                 if result and result[0] != "ok":
-                    logger.warning("Database corruption detected, attempting recovery")
+                    logger.warning("Database corruption detected, recovering...")
                     await self._conn.close()
                     self._conn = None
+                    # Back up corrupted file, then delete it so we start fresh
                     backup = self.db_path + ".corrupted"
                     if os.path.exists(self.db_path):
                         shutil.copy2(self.db_path, backup)
-                        logger.info("Corrupted database backed up to %s", backup)
+                        os.remove(self.db_path)
+                        logger.info("Corrupted DB backed up to %s, creating fresh DB", backup)
                     self._conn = await aiosqlite.connect(self.db_path)
                     await self._conn.execute("PRAGMA journal_mode=WAL;")
                     await self._conn.execute("PRAGMA synchronous=NORMAL;")
@@ -85,6 +89,8 @@ class DatabaseManager:
     async def init_db(self):
         await self._get_conn()
 
+    # --- History ---
+
     async def save_history(self, url: str):
         db = await self._get_conn()
         await db.execute("INSERT OR REPLACE INTO history (url) VALUES (?)", (url,))
@@ -103,11 +109,7 @@ class DatabaseManager:
         await db.execute("DELETE FROM history")
         await db.commit()
 
-    async def clear_custom_content(self):
-        db = await self._get_conn()
-        await db.execute("DELETE FROM playlists")
-        await db.execute("DELETE FROM custom_channels")
-        await db.commit()
+    # --- Settings ---
 
     async def set_setting(self, key: str, value: str):
         db = await self._get_conn()
@@ -122,6 +124,8 @@ class DatabaseManager:
             row = await cursor.fetchone()
             return row[0] if row else default
 
+    # --- Playlists ---
+
     async def add_playlist(self, name: str, url: str):
         db = await self._get_conn()
         await db.execute(
@@ -134,6 +138,8 @@ class DatabaseManager:
         async with db.execute("SELECT name, url, is_active FROM playlists") as cursor:
             rows = await cursor.fetchall()
             return [{"name": r[0], "url": r[1], "is_active": r[2]} for r in rows]
+
+    # --- Custom Channels ---
 
     async def add_custom_channel(self, name: str, url: str, group: str = "Custom"):
         db = await self._get_conn()
@@ -150,6 +156,14 @@ class DatabaseManager:
         ) as cursor:
             rows = await cursor.fetchall()
             return [{"name": r[0], "url": r[1], "logo": r[2], "group": r[3]} for r in rows]
+
+    async def clear_custom_content(self):
+        db = await self._get_conn()
+        await db.execute("DELETE FROM playlists")
+        await db.execute("DELETE FROM custom_channels")
+        await db.commit()
+
+    # --- Favorites ---
 
     async def add_favorite(self, url: str, name: str = "", logo: str = ""):
         db = await self._get_conn()
@@ -172,11 +186,11 @@ class DatabaseManager:
             rows = await cursor.fetchall()
             return [{"url": r[0], "name": r[1], "logo": r[2]} for r in rows]
 
-    async def is_favorite(self, url: str) -> bool:
+    async def get_favorite_urls(self) -> set[str]:
         db = await self._get_conn()
-        async with db.execute("SELECT 1 FROM favorites WHERE url = ?", (url,)) as cursor:
-            row = await cursor.fetchone()
-            return row is not None
+        async with db.execute("SELECT url FROM favorites") as cursor:
+            rows = await cursor.fetchall()
+            return {row[0] for row in rows}
 
     async def close(self):
         if self._conn:

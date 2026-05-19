@@ -1,4 +1,5 @@
 import base64
+import contextlib
 import logging
 import time
 
@@ -24,7 +25,7 @@ from core.constants import (
 from core.state import state
 from core.theme import AppColors
 from database.manager import db_manager
-from views.tabs import build_channel_groups, style_focusable
+from views.tabs.channel_groups import build_channel_groups
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +40,17 @@ _STEALTH_CODES = {
 }
 
 _last_add_time = 0.0
+
+
+def _style_focusable(control, focused):
+    if focused:
+        control.bgcolor = ft.Colors.with_opacity(0.1, AppColors.PRIMARY)
+        control.border = ft.Border.all(2, AppColors.PRIMARY)
+    else:
+        control.bgcolor = None
+        control.border = ft.Border.all(1, AppColors.GREY_DIM)
+    with contextlib.suppress(Exception):
+        control.update()
 
 
 def build_custom_tab_content(target, page_obj, on_play, ad_service, liveliness, view_state, active_tiles):
@@ -71,13 +83,11 @@ def build_custom_tab_content(target, page_obj, on_play, ad_service, liveliness, 
 
         name = name_ref.current.value.strip()
         raw_url = url_ref.current.value.strip()
-
         if not name or not raw_url:
             return
 
         if len(name) > MAX_NAME_LENGTH:
             name = name[:MAX_NAME_LENGTH]
-
         name = name.replace("<", "&lt;").replace(">", "&gt;").replace("&", "&amp;")
 
         shortcode_key = raw_url.lower()
@@ -99,14 +109,12 @@ def build_custom_tab_content(target, page_obj, on_play, ad_service, liveliness, 
             return
 
         close_dialog()
-        refresh_tab = getattr(target, "_refresh_tab", None)
-
         name_ref.current.value = ""
         url_ref.current.value = ""
 
         state.is_loading = True
-        if refresh_tab:
-            refresh_tab(view_state["selected_tab"])
+        if hasattr(page_obj, "refresh_dashboard"):
+            page_obj.refresh_dashboard()
         page_obj.update()
 
         try:
@@ -121,8 +129,8 @@ def build_custom_tab_content(target, page_obj, on_play, ad_service, liveliness, 
                 await page_obj.load_channels(force=True)
 
             state.is_loading = False
-            if refresh_tab:
-                refresh_tab(view_state["selected_tab"])
+            if hasattr(page_obj, "refresh_dashboard"):
+                page_obj.refresh_dashboard()
 
             page_obj.snack_bar = ft.SnackBar(
                 ft.Text(LBL_ADDED_SUCCESS.format(name=name)), bgcolor=AppColors.SUCCESS
@@ -158,9 +166,9 @@ def build_custom_tab_content(target, page_obj, on_play, ad_service, liveliness, 
             border_radius=8,
             on_click=lambda e: page_obj.run_task(focus_field, ref),
         )
-        container.on_focus = lambda e: style_focusable(e.control, True)
-        container.on_blur = lambda e: style_focusable(e.control, False)
         container.tab_index = 0
+        container.on_focus = lambda e: _style_focusable(e.control, True)
+        container.on_blur = lambda e: _style_focusable(e.control, False)
         return container
 
     dialog = ft.AlertDialog(
@@ -173,47 +181,25 @@ def build_custom_tab_content(target, page_obj, on_play, ad_service, liveliness, 
                     allow_empty_selection=False,
                     on_change=handle_type_change,
                     segments=[
-                        ft.Segment(
-                            value="playlist",
-                            label=ft.Text(LBL_PLAYLIST),
-                            icon=ft.Icon(ft.Icons.PLAYLIST_ADD),
-                        ),
-                        ft.Segment(
-                            value="channel",
-                            label=ft.Text(LBL_SINGLE_CHANNEL),
-                            icon=ft.Icon(ft.Icons.TV),
-                        ),
+                        ft.Segment(value="playlist", label=ft.Text(LBL_PLAYLIST), icon=ft.Icon(ft.Icons.PLAYLIST_ADD)),
+                        ft.Segment(value="channel", label=ft.Text(LBL_SINGLE_CHANNEL), icon=ft.Icon(ft.Icons.TV)),
                     ],
                 ),
                 ft.Divider(height=10, color=ft.Colors.TRANSPARENT),
                 create_tv_field(LBL_NAME, LBL_NAME_HINT, name_ref, next_ref=url_ref),
                 create_tv_field(LBL_URL, LBL_URL_HINT, url_ref, is_submit=True),
-                ft.Text(
-                    LBL_TV_FIELD_HINT,
-                    size=11,
-                    color=AppColors.GREY_DIM,
-                    italic=True,
-                ),
+                ft.Text(LBL_TV_FIELD_HINT, size=11, color=AppColors.GREY_DIM, italic=True),
             ],
             tight=True,
             spacing=10,
             width=500,
         ),
         actions=[
-            ft.TextButton(
-                content=LBL_CANCEL,
-                on_click=lambda e: close_dialog(),
-                style=ft.ButtonStyle(padding=20)
-            ),
+            ft.TextButton(content=LBL_CANCEL, on_click=lambda e: close_dialog(), style=ft.ButtonStyle(padding=20)),
             ft.FilledButton(
                 content=LBL_ADD,
                 on_click=handle_add,
-                style=ft.ButtonStyle(
-                    bgcolor=AppColors.PRIMARY,
-                    color=ft.Colors.WHITE,
-                    padding=20,
-                    shape=ft.RoundedRectangleBorder(radius=8)
-                ),
+                style=ft.ButtonStyle(bgcolor=AppColors.PRIMARY, color=ft.Colors.WHITE, padding=20, shape=ft.RoundedRectangleBorder(radius=8)),
             ),
         ],
         actions_alignment=ft.MainAxisAlignment.END,
@@ -234,6 +220,7 @@ def build_custom_tab_content(target, page_obj, on_play, ad_service, liveliness, 
         )
     )
     target.controls.append(ft.Container(height=10))
+
     ad_banner = ad_service.get_standard_banner_ad()
     if ad_banner:
         target.controls.append(ad_banner)

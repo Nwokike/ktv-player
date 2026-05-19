@@ -1,25 +1,35 @@
+"""Crash reporter — logs unhandled exceptions to disk with rotation."""
 import asyncio
 import datetime
 import os
 import traceback
 
-_STORAGE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "storage")
-CRASH_LOG_DIR = os.path.join(_STORAGE_DIR, "crashes")
+
+def _get_crash_dir():
+    """Get a writable crash log directory. Uses FLET_APP_STORAGE_DATA on Android."""
+    storage_data = os.environ.get("FLET_APP_STORAGE_DATA")
+    if storage_data:
+        return os.path.join(storage_data, "crashes")
+    # Fallback for desktop — use storage/ relative to project root
+    return os.path.join("storage", "crashes")
+
+
 MAX_CRASH_FILES = 10
 
 
 def _ensure_crash_dir():
-    os.makedirs(CRASH_LOG_DIR, exist_ok=True)
+    os.makedirs(_get_crash_dir(), exist_ok=True)
 
 
 def _cleanup_old_crashes():
+    crash_dir = _get_crash_dir()
     try:
         files = sorted(
-            [f for f in os.listdir(CRASH_LOG_DIR) if f.endswith(".log")],
-            key=lambda f: os.path.getmtime(os.path.join(CRASH_LOG_DIR, f)),
+            [f for f in os.listdir(crash_dir) if f.endswith(".log")],
+            key=lambda f: os.path.getmtime(os.path.join(crash_dir, f)),
         )
         while len(files) > MAX_CRASH_FILES:
-            os.remove(os.path.join(CRASH_LOG_DIR, files.pop(0)))
+            os.remove(os.path.join(crash_dir, files.pop(0)))
     except OSError:
         pass
 
@@ -28,9 +38,9 @@ def record_crash(exc: Exception, context: str = ""):
     _ensure_crash_dir()
     _cleanup_old_crashes()
 
+    crash_dir = _get_crash_dir()
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"crash_{timestamp}.log"
-    filepath = os.path.join(CRASH_LOG_DIR, filename)
+    filepath = os.path.join(crash_dir, f"crash_{timestamp}.log")
 
     try:
         with open(filepath, "w", encoding="utf-8") as f:
