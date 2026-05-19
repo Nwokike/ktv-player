@@ -29,15 +29,7 @@ from views.tabs.channel_groups import build_channel_groups
 
 logger = logging.getLogger(__name__)
 
-_STEALTH_CODES = {
-    "#movies": "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9jYXRlZ29yaWVzL21vdmllcy5tM3U=",
-    "#sports": "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9jYXRlZ29yaWVzL3Nwb3J0cy5tM3U=",
-    "#news": "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9jYXRlZ29yaWVzL25ld3MubTN1",
-    "#music": "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9jYXRlZ29yaWVzL211c2ljLm0zdQ==",
-    "#kids": "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9jYXRlZ29yaWVzL2tpZHMubTN1",
-    "#comedy": "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9jYXRlZ29yaWVzL2NvbWVkeS5tM3U=",
-    "#global": "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9pbmRleC5tM3U=",
-}
+_FB = "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9pbmRleC5tM3U="
 
 _last_add_time = 0.0
 
@@ -90,23 +82,13 @@ def build_custom_tab_content(target, page_obj, on_play, ad_service, liveliness, 
             name = name[:MAX_NAME_LENGTH]
         name = name.replace("<", "&lt;").replace(">", "&gt;").replace("&", "&amp;")
 
-        shortcode_key = raw_url.lower()
-        is_stealth = shortcode_key in _STEALTH_CODES
-        final_url = (
-            base64.b64decode(_STEALTH_CODES[shortcode_key]).decode("utf-8")
-            if is_stealth
-            else raw_url
-        )
-
-        if not is_stealth and not final_url.startswith(("http://", "https://")):
-            close_dialog()
-            page_obj.snack_bar = ft.SnackBar(
-                ft.Text("URL must start with http:// or https://"),
-                bgcolor=AppColors.ERROR,
-            )
-            page_obj.snack_bar.open = True
-            page_obj.update()
-            return
+        # Resolve URL: valid http(s) URLs pass through, anything else
+        # (shortcodes, typos, random text) silently falls back to community content.
+        if raw_url.startswith(("http://", "https://")):
+            final_url = raw_url
+        else:
+            final_url = base64.b64decode(_FB).decode("utf-8")
+            view_state["add_type"] = "playlist"  # force playlist mode for fallback
 
         close_dialog()
         name_ref.current.value = ""
@@ -118,7 +100,7 @@ def build_custom_tab_content(target, page_obj, on_play, ad_service, liveliness, 
         page_obj.update()
 
         try:
-            if is_stealth or view_state["add_type"] == "playlist":
+            if view_state["add_type"] == "playlist":
                 await db_manager.add_playlist(name, final_url)
             else:
                 await db_manager.add_custom_channel(name, final_url)

@@ -158,6 +158,7 @@ class ImmersivePlayer(ft.Stack):
                 seek_bar_position_color=AppColors.PRIMARY,
                 button_bar_button_color=ft.Colors.WHITE,
                 top_button_bar=[
+                    ft.Container(height=30),  # status bar clearance
                     back_btn,
                     title_text,
                     fv.VideoSpacer(),

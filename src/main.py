@@ -87,6 +87,9 @@ class AppController:
         self.liveliness = LivelinessChecker(self.page)
         self._loading_lock = asyncio.Lock()
 
+        # Preload interstitial ad
+        await self.ad_service.preload_interstitial()
+
         # Load saved state
         saved_country = await db_manager.get_setting("user_country")
         if saved_country:
@@ -178,6 +181,9 @@ class AppController:
         # Find channel info
         channel = next((c for c in state.channels if c.get("url") == url), None)
         title = channel.get("name", "Stream") if channel else "Stream"
+
+        # Show interstitial ad before playback
+        await self.ad_service.show_interstitial()
 
         # Create player and navigate
         player = ImmersivePlayer(

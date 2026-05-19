@@ -2,7 +2,6 @@
 import asyncio
 import contextlib
 import logging
-import os
 import time
 
 import flet as ft
@@ -295,46 +294,7 @@ def _handle_local_expansion(e, folder, active_tiles, page_obj, on_play):
             e.control.update()
 
 
-# --- Permission & Scanning ---
-
-async def _request_android_permission(page_obj):
-    """Request storage permission on Android. Must pass page_obj so handler registers with Flutter."""
-    if os.name == "nt":
-        return True
-    try:
-        import flet_permission_handler as fph
-        ph = fph.PermissionHandler()
-        # Service must be added to page overlay to connect to Flutter engine
-        page_obj.overlay.append(ph)
-        page_obj.update()
-
-        permission_types = [
-            fph.Permission.READ_MEDIA_VIDEO,
-            fph.Permission.VIDEOS,
-            fph.Permission.READ_EXTERNAL_STORAGE,
-        ]
-
-        # Check if already granted
-        for perm in permission_types:
-            with contextlib.suppress(Exception):
-                status = await ph.get_status(perm)
-                if status == fph.PermissionStatus.GRANTED:
-                    return True
-
-        # Request each permission
-        for perm in permission_types:
-            with contextlib.suppress(Exception):
-                status = await ph.request(perm)
-                if status == fph.PermissionStatus.GRANTED:
-                    return True
-
-    except ImportError:
-        logger.warning("flet_permission_handler not installed")
-    except Exception:
-        logger.exception("Permission handling failed")
-
-    return True  # Attempt scan anyway (scoped storage may allow it)
-
+# --- Scanning ---
 
 async def _scan_device():
     paths = get_default_scan_paths()
@@ -375,22 +335,20 @@ def build_local_tab_content(target, page_obj, on_play, ad_service, liveliness, v
             return
 
         view_state["local_is_scanning"] = True
-        view_state["local_permission_granted"] = False
         render()
 
-        granted = await _request_android_permission(page_obj)
-        view_state["local_permission_granted"] = granted
-
-        if granted:
-            try:
-                await asyncio.sleep(0.1)
-                folders = await _scan_device()
-                view_state["local_folders"] = folders
-                _scan_cache["folders"] = folders
-                _scan_cache["timestamp"] = time.time()
-            except Exception:
-                logger.exception("Local scan failed")
-                view_state["local_folders"] = []
+        # Android auto-prompts for storage permissions when we access media files.
+        # No runtime permission request needed — declared in pyproject.toml.
+        view_state["local_permission_granted"] = True
+        try:
+            await asyncio.sleep(0.1)
+            folders = await _scan_device()
+            view_state["local_folders"] = folders
+            _scan_cache["folders"] = folders
+            _scan_cache["timestamp"] = time.time()
+        except Exception:
+            logger.exception("Local scan failed")
+            view_state["local_folders"] = []
 
         view_state["local_is_scanning"] = False
         render()

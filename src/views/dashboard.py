@@ -237,6 +237,15 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
 
     # --- Assemble View ---
 
+    ad_banner = ad_service.get_anchor_banner_ad()
+    footer_controls = [
+        ft.Container(
+            content=ad_banner,
+            alignment=ft.Alignment.CENTER,
+            padding=ft.Padding(0, 5, 0, 5),
+        )
+    ] if ad_banner else []
+
     view = ft.View(
         route="/dashboard",
         controls=[
@@ -256,6 +265,7 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
                 ),
                 expand=True,
             ),
+            *footer_controls,
         ],
         padding=0,
     )
@@ -269,3 +279,4 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
     build_tab(0)
 
     return view
+
