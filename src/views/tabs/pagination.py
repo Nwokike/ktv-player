@@ -71,8 +71,10 @@ def show_page(tile, channels, offset, page_obj, on_play, ad_service, liveliness)
         )
     )
 
-    # Channel grid
-    grid = build_channel_grid(channels, offset, PAGE_SIZE, on_play=on_play, page_obj=page_obj, ad_service=ad_service)
+    # Channel grid — ads every 12 items in every group/tab/page
+    page_end = min(offset + PAGE_SIZE, total)
+    ad_indices = {idx for idx in range(offset, page_end) if (idx + 1) % 12 == 0 and (idx + 1) < total}
+    grid = build_channel_grid(channels, offset, PAGE_SIZE, on_play=on_play, page_obj=page_obj, ad_service=ad_service, ad_indices=ad_indices)
     tile.controls.append(grid)
 
     # D-pad focus anchor (sibling of grid)

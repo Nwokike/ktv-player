@@ -205,7 +205,13 @@ def build_custom_tab_content(target, page_obj, on_play, ad_service, liveliness, 
 
     ad_banner = ad_service.get_standard_banner_ad()
     if ad_banner:
-        target.controls.append(ad_banner)
+        target.controls.append(
+            ft.Container(
+                content=ad_banner,
+                alignment=ft.Alignment.CENTER,
+                padding=ft.Padding(0, 5, 0, 5),
+            )
+        )
         target.controls.append(ft.Divider(height=20, color=AppColors.GREY_DIM))
 
     build_channel_groups(target, 2, page_obj, on_play, ad_service, liveliness, view_state, active_tiles)
