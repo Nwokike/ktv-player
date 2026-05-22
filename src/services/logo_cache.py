@@ -24,6 +24,8 @@ _in_flight: set[str] = set()
 _logo_queue: asyncio.Queue[str] | None = None
 _logo_workers_started = False
 
+os.makedirs(LOGO_CACHE_DIR, exist_ok=True)
+
 
 def _detect_image_type(data: bytes) -> str | None:
     for sig, fmt in _IMAGE_SIGNATURES.items():
@@ -131,7 +133,6 @@ def enqueue_logo_download(logo_url: str):
     if logo_url in _in_flight:
         return
 
-    os.makedirs(LOGO_CACHE_DIR, exist_ok=True)
     _evict_oldest_if_needed()
     _ensure_queue()
     asyncio.create_task(_logo_queue.put(logo_url))
@@ -143,7 +144,6 @@ async def download_logo(
     if not logo_url or logo_url == "/icon.png":
         return None
 
-    os.makedirs(LOGO_CACHE_DIR, exist_ok=True)
     _evict_oldest_if_needed()
     return await _download_one(logo_url)
 

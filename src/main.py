@@ -3,10 +3,8 @@
 import asyncio
 import base64
 import contextlib
-import ipaddress
 import logging
 import re
-import socket
 import urllib.parse
 
 import flet as ft
@@ -41,38 +39,8 @@ _SENSITIVE_PATHS = (
     "/data/user/",
 )
 
-_PRIVATE_NETWORKS = [
-    ipaddress.ip_network("10.0.0.0/8"),
-    ipaddress.ip_network("172.16.0.0/12"),
-    ipaddress.ip_network("192.168.0.0/16"),
-    ipaddress.ip_network("127.0.0.0/8"),
-    ipaddress.ip_network("0.0.0.0/8"),
-    ipaddress.ip_network("169.254.0.0/16"),
-    ipaddress.ip_network("::1/128"),
-    ipaddress.ip_network("fe80::/10"),
-    ipaddress.ip_network("fc00::/7"),
-    ipaddress.ip_network("fc00::/7"),
-]
 
-
-def _is_private_host(host: str) -> bool:
-    """Resolve hostname to IP and check against private networks (SSRF protection)."""
-    try:
-        addrs = socket.getaddrinfo(host, None)
-        for family, _, _, _, sockaddr in addrs:
-            ip = sockaddr[0]
-            try:
-                addr = ipaddress.ip_address(ip)
-                if any(addr in net for net in _PRIVATE_NETWORKS):
-                    return True
-            except ValueError:
-                continue
-        return False
-    except (socket.gaierror, OSError):
-        return True
-
-
-async def _is_valid_play_url(raw: str) -> bool:
+def _is_valid_play_url(raw: str) -> bool:
     if not raw or len(raw) > 4096:
         return False
 
@@ -83,9 +51,8 @@ async def _is_valid_play_url(raw: str) -> bool:
     for scheme in ("http://", "https://", "rtsp://", "rtmp://", "rtp://", "mms://"):
         if raw.startswith(scheme):
             try:
-                parsed = urllib.parse.urlparse(raw)
-                host = parsed.hostname or ""
-                return not await asyncio.to_thread(_is_private_host, host)
+                urllib.parse.urlparse(raw)
+                return True
             except Exception:
                 return False
 
@@ -230,7 +197,7 @@ class AppController:
     # --- Playback ---
 
     async def play_stream(self, url: str):
-        if not await _is_valid_play_url(url):
+        if not _is_valid_play_url(url):
             self.page.snack_bar = ft.SnackBar(
                 ft.Text("Invalid or blocked URL."),
                 bgcolor=AppColors.ERROR,
@@ -275,13 +242,13 @@ class AppController:
 
     # --- Deep Link ---
 
-    async def _handle_deep_link(self, url_str: str):
+    def _handle_deep_link(self, url_str: str):
         if not url_str.startswith(DEEP_LINK_PLAY_PREFIX):
             return
         encoded = url_str[len(DEEP_LINK_PLAY_PREFIX) :]
         try:
             decoded = base64.urlsafe_b64decode(encoded).decode("utf-8")
-            if await _is_valid_play_url(decoded):
+            if _is_valid_play_url(decoded):
                 self.page.run_task(self.play_stream, decoded)
         except Exception:
             logger.exception("Failed to decode deep link")
@@ -292,10 +259,18 @@ class AppController:
         route = self.page.route
         parsed = urllib.parse.urlparse(route)
 
+        # 1. Deep Link from other apps (e.g., AnimePahe TV ktv://)
         if parsed.scheme == "ktv":
-            await self._handle_deep_link(route)
+            self._handle_deep_link(route)
             return
 
+        # 2. "Open With" local video files (Android Intent)
+        if parsed.scheme in ("file", "content"):
+            if _is_valid_play_url(route):
+                self.page.run_task(self.play_stream, route)
+            return
+
+        # 3. Standard Routing
         if parsed.path in ("/", ""):
             self.page.views.clear()
             from views.splash import build_splash_view
@@ -358,15 +333,18 @@ class AppController:
         self.page.update()
 
     def view_pop(self, e):
-        if len(self.page.views) > 1:
+        # Always clean up the player if it is currently visible, even if it's the last view
+        if self.page.views:
             top = self.page.views[-1]
-            # Cleanup player if it's a player view
             for control in top.controls:
                 if isinstance(control, ImmersivePlayer):
                     self.page.run_task(control.handle_close)
                     break
+
+        if len(self.page.views) > 1:
             self.page.views.pop()
             self.page.update()
+        # If len == 1, Flet inherently processes the Android app exit
 
 
 async def main(page: ft.Page):

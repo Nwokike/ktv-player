@@ -20,6 +20,10 @@ from core.state import state
 from core.theme import AppColors
 from database.manager import db_manager
 from services.logo_cache import get_cached_logo
+from views.tabs.channel_groups import build_channel_groups
+from views.tabs.custom_tab import build_custom_tab_content
+from views.tabs.local_tab import build_local_tab_content
+from views.tabs.preferences_tab import build_preferences_tab_content
 
 logger = logging.getLogger(__name__)
 
@@ -66,11 +70,6 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
         return _loading_spinner
 
     def build_tab(index):
-        from views.tabs.channel_groups import build_channel_groups
-        from views.tabs.custom_tab import build_custom_tab_content
-        from views.tabs.local_tab import build_local_tab_content
-        from views.tabs.preferences_tab import build_preferences_tab_content
-
         if state.is_loading:
             tab_content.controls.clear()
             tab_content.controls.append(_get_loading_spinner())

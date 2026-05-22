@@ -95,6 +95,28 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: echo "$KEYSTORE_BASE64" | base64 --decode > upload-key.jks
+      - name: Inject Local Video Intent Filter
+        run: |
+          uv run python -c "
+          from pathlib import Path
+          import flet
+          for m in Path(flet.__file__).parent.rglob('AndroidManifest.xml'):
+              if 'src/main' in m.as_posix():
+                  txt = m.read_text()
+                  if 'video/*' not in txt:
+                      txt = txt.replace('</activity>', '''
+                  <intent-filter>
+                      <action android:name=\"android.intent.action.VIEW\" />
+                      <category android:name=\"android.intent.category.DEFAULT\" />
+                      <category android:name=\"android.intent.category.BROWSABLE\" />
+                      <data android:scheme=\"file\" />
+                      <data android:scheme=\"content\" />
+                      <data android:mimeType=\"video/*\" />
+                  </intent-filter>
+              </activity>''')
+                      m.write_text(txt)
+                      print('Successfully Patched Flet AndroidManifest:', m)
+          "
       - name: Build APK (universal)
         env:
           FLET_ANDROID_SIGNING_KEY_STORE: ${{ github.workspace }}/upload-key.jks
@@ -121,6 +143,28 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: echo "$KEYSTORE_BASE64" | base64 --decode > upload-key.jks
+      - name: Inject Local Video Intent Filter
+        run: |
+          uv run python -c "
+          from pathlib import Path
+          import flet
+          for m in Path(flet.__file__).parent.rglob('AndroidManifest.xml'):
+              if 'src/main' in m.as_posix():
+                  txt = m.read_text()
+                  if 'video/*' not in txt:
+                      txt = txt.replace('</activity>', '''
+                  <intent-filter>
+                      <action android:name=\"android.intent.action.VIEW\" />
+                      <category android:name=\"android.intent.category.DEFAULT\" />
+                      <category android:name=\"android.intent.category.BROWSABLE\" />
+                      <data android:scheme=\"file\" />
+                      <data android:scheme=\"content\" />
+                      <data android:mimeType=\"video/*\" />
+                  </intent-filter>
+              </activity>''')
+                      m.write_text(txt)
+                      print('Successfully Patched Flet AndroidManifest:', m)
+          "
       - name: Build APK (split per ABI)
         env:
           FLET_ANDROID_SIGNING_KEY_STORE: ${{ github.workspace }}/upload-key.jks
@@ -147,6 +191,28 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: echo "$KEYSTORE_BASE64" | base64 --decode > upload-key.jks
+      - name: Inject Local Video Intent Filter
+        run: |
+          uv run python -c "
+          from pathlib import Path
+          import flet
+          for m in Path(flet.__file__).parent.rglob('AndroidManifest.xml'):
+              if 'src/main' in m.as_posix():
+                  txt = m.read_text()
+                  if 'video/*' not in txt:
+                      txt = txt.replace('</activity>', '''
+                  <intent-filter>
+                      <action android:name=\"android.intent.action.VIEW\" />
+                      <category android:name=\"android.intent.category.DEFAULT\" />
+                      <category android:name=\"android.intent.category.BROWSABLE\" />
+                      <data android:scheme=\"file\" />
+                      <data android:scheme=\"content\" />
+                      <data android:mimeType=\"video/*\" />
+                  </intent-filter>
+              </activity>''')
+                      m.write_text(txt)
+                      print('Successfully Patched Flet AndroidManifest:', m)
+          "
       - name: Build AAB
         env:
           FLET_ANDROID_SIGNING_KEY_STORE: ${{ github.workspace }}/upload-key.jks
