@@ -1,14 +1,21 @@
 """Pagination controls for channel grids."""
+
 import contextlib
 
 import flet as ft
 
-from core.constants import LBL_SHOW_NEXT, LBL_SHOW_PREVIOUS, LBL_SHOWING_RANGE, PAGE_SIZE
+from core.constants import (
+    LBL_SHOW_NEXT,
+    LBL_SHOW_PREVIOUS,
+    LBL_SHOWING_RANGE,
+    PAGE_SIZE,
+)
 from core.theme import AppColors
 
 
 def build_nav_btn(icon, label, **kwargs):
     """Build a styled pagination button using Container (D-pad focusable)."""
+
     def _on_focus(e):
         e.control.bgcolor = ft.Colors.with_opacity(0.12, AppColors.PRIMARY)
         e.control.border = ft.Border.all(2, AppColors.PRIMARY)
@@ -49,47 +56,76 @@ def show_page(tile, channels, offset, page_obj, on_play, ad_service, liveliness)
     total = len(channels)
     end = min(offset + PAGE_SIZE, total)
 
-    tile.controls.clear()
+    # Build new controls list
+    new_controls = []
 
     # Previous page button
     if offset > 0:
         prev_offset = max(0, offset - PAGE_SIZE)
-        prev_label = LBL_SHOW_PREVIOUS.format(count=offset - prev_offset, start=prev_offset + 1, end=offset)
+        prev_label = LBL_SHOW_PREVIOUS.format(
+            count=offset - prev_offset, start=prev_offset + 1, end=offset
+        )
         prev_btn = build_nav_btn(ft.Icons.EXPAND_LESS, prev_label)
-        prev_btn.on_click = lambda e, off=prev_offset: show_page(tile, channels, off, page_obj, on_play, ad_service, liveliness)
-        tile.controls.append(prev_btn)
+        prev_btn.on_click = lambda e, off=prev_offset: show_page(
+            tile, channels, off, page_obj, on_play, ad_service, liveliness
+        )
+        new_controls.append(prev_btn)
 
     # Range indicator
-    tile.controls.append(
+    new_controls.append(
         ft.Container(
             content=ft.Text(
                 LBL_SHOWING_RANGE.format(start=offset + 1, end=end, total=total),
-                size=11, color=AppColors.GREY_DIM, italic=True,
-                text_align=ft.TextAlign.CENTER, width=float("inf"),
+                size=11,
+                color=AppColors.GREY_DIM,
+                italic=True,
+                text_align=ft.TextAlign.CENTER,
+                width=float("inf"),
             ),
             padding=ft.Padding(0, 5, 0, 5),
         )
     )
 
-    # Channel grid — ads every 12 items in every group/tab/page
+    # Channel grid
     page_end = min(offset + PAGE_SIZE, total)
-    ad_indices = {idx for idx in range(offset, page_end) if (idx + 1) % 12 == 0 and (idx + 1) < total}
-    grid = build_channel_grid(channels, offset, PAGE_SIZE, on_play=on_play, page_obj=page_obj, ad_service=ad_service, ad_indices=ad_indices)
-    tile.controls.append(grid)
+    ad_indices = {
+        idx
+        for idx in range(offset, page_end)
+        if (idx + 1) % 12 == 0 and (idx + 1) < total
+    }
+    grid = build_channel_grid(
+        channels,
+        offset,
+        PAGE_SIZE,
+        on_play=on_play,
+        page_obj=page_obj,
+        ad_service=ad_service,
+        ad_indices=ad_indices,
+    )
+    new_controls.append(grid)
 
-    # D-pad focus anchor (sibling of grid)
+    # D-pad focus anchor
     def _hint_focus(e, focused):
-        e.control.bgcolor = ft.Colors.with_opacity(0.08, AppColors.PRIMARY) if focused else None
+        e.control.bgcolor = (
+            ft.Colors.with_opacity(0.08, AppColors.PRIMARY) if focused else None
+        )
         with contextlib.suppress(Exception):
             e.control.update()
 
     hint_btn = ft.Container(
         content=ft.Row(
             [
-                ft.Container(width=8, height=8, border_radius=4, bgcolor=ft.Colors.GREEN),
+                ft.Container(
+                    width=8, height=8, border_radius=4, bgcolor=ft.Colors.GREEN
+                ),
                 ft.Text("Live", size=10, color=AppColors.GREY_DIM),
                 ft.Container(width=8, height=8, border_radius=4, bgcolor=ft.Colors.RED),
-                ft.Text("Offline — Play green channels", size=10, color=AppColors.GREY_DIM, italic=True),
+                ft.Text(
+                    "Offline — Play green channels",
+                    size=10,
+                    color=AppColors.GREY_DIM,
+                    italic=True,
+                ),
             ],
             spacing=6,
             alignment=ft.MainAxisAlignment.CENTER,
@@ -102,7 +138,7 @@ def show_page(tile, channels, offset, page_obj, on_play, ad_service, liveliness)
     hint_btn.tab_index = 998
     hint_btn.on_focus = lambda e: _hint_focus(e, True)
     hint_btn.on_blur = lambda e: _hint_focus(e, False)
-    tile.controls.append(hint_btn)
+    new_controls.append(hint_btn)
 
     # Next page button
     if end < total:
@@ -110,12 +146,17 @@ def show_page(tile, channels, offset, page_obj, on_play, ad_service, liveliness)
         show_count = min(PAGE_SIZE, remaining)
         next_label = LBL_SHOW_NEXT.format(count=show_count, remaining=remaining)
         next_btn = build_nav_btn(ft.Icons.EXPAND_MORE, next_label)
-        next_btn.on_click = lambda e, off=end: show_page(tile, channels, off, page_obj, on_play, ad_service, liveliness)
-        tile.controls.append(next_btn)
+        next_btn.on_click = lambda e, off=end: show_page(
+            tile, channels, off, page_obj, on_play, ad_service, liveliness
+        )
+        new_controls.append(next_btn)
 
+    # Single atomic swap
+    tile.controls.clear()
+    tile.controls.extend(new_controls)
     tile.update()
 
-    # Fire liveliness checks
+    # Fire liveliness checks after render
     cards_data = liveliness.collect_cards_data(grid)
     if cards_data:
-        page_obj.run_task(liveliness.fire_batch, cards_data, tile)
+        page_obj.run_task(liveliness.fire_batch, cards_data)

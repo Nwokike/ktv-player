@@ -1,9 +1,12 @@
 """KTV Player — main entry point and AppController."""
+
 import asyncio
 import base64
 import contextlib
+import ipaddress
 import logging
 import re
+import socket
 import urllib.parse
 
 import flet as ft
@@ -17,6 +20,7 @@ from core.constants import (
     SPLASH_DURATION,
 )
 from core.focus_manager import FocusManager
+from core.logging_config import setup_logging
 from core.state import state
 from core.theme import AppColors, AppTheme
 from database.manager import db_manager
@@ -26,16 +30,49 @@ from services.liveliness_checker import LivelinessChecker
 
 logger = logging.getLogger(__name__)
 
-# Networks and paths that are never allowed as play URLs
-_BLOCKED_NETWORKS = ("10.", "172.16.", "172.17.", "172.18.", "172.19.", "172.20.",
-                     "172.21.", "172.22.", "172.23.", "172.24.", "172.25.", "172.26.",
-                     "172.27.", "172.28.", "172.29.", "172.30.", "172.31.", "192.168.",
-                     "127.", "0.", "169.254.", "::1", "fe80:", "fc00:", "fd00:")
-_SENSITIVE_PATHS = ("/etc/", "/proc/", "/sys/", "/dev/", "C:\\Windows",
-                    "C:\\System", "/data/data/", "/data/user/")
+_SENSITIVE_PATHS = (
+    "/etc/",
+    "/proc/",
+    "/sys/",
+    "/dev/",
+    "C:\\Windows",
+    "C:\\System",
+    "/data/data/",
+    "/data/user/",
+)
+
+_PRIVATE_NETWORKS = [
+    ipaddress.ip_network("10.0.0.0/8"),
+    ipaddress.ip_network("172.16.0.0/12"),
+    ipaddress.ip_network("192.168.0.0/16"),
+    ipaddress.ip_network("127.0.0.0/8"),
+    ipaddress.ip_network("0.0.0.0/8"),
+    ipaddress.ip_network("169.254.0.0/16"),
+    ipaddress.ip_network("::1/128"),
+    ipaddress.ip_network("fe80::/10"),
+    ipaddress.ip_network("fc00::/7"),
+    ipaddress.ip_network("fc00::/7"),
+]
 
 
-def _is_valid_play_url(raw: str) -> bool:
+def _is_private_host(host: str) -> bool:
+    """Resolve hostname to IP and check against private networks (SSRF protection)."""
+    try:
+        addrs = socket.getaddrinfo(host, None)
+        for family, _, _, _, sockaddr in addrs:
+            ip = sockaddr[0]
+            try:
+                addr = ipaddress.ip_address(ip)
+                if any(addr in net for net in _PRIVATE_NETWORKS):
+                    return True
+            except ValueError:
+                continue
+        return False
+    except (socket.gaierror, OSError):
+        return True
+
+
+async def _is_valid_play_url(raw: str) -> bool:
     if not raw or len(raw) > 4096:
         return False
 
@@ -48,7 +85,7 @@ def _is_valid_play_url(raw: str) -> bool:
             try:
                 parsed = urllib.parse.urlparse(raw)
                 host = parsed.hostname or ""
-                return not any(host.startswith(n) for n in _BLOCKED_NETWORKS)
+                return not await asyncio.to_thread(_is_private_host, host)
             except Exception:
                 return False
 
@@ -98,12 +135,23 @@ class AppController:
         if saved_terms == "true":
             state.has_accepted_terms = True
             state.is_first_launch = False
+        saved_theme = await db_manager.get_setting("theme_mode")
+        if saved_theme:
+            self.page.theme_mode = (
+                ft.ThemeMode.DARK if saved_theme == "dark" else ft.ThemeMode.LIGHT
+            )
 
         # Load favorites into state for O(1) lookups
         state.favorites = await db_manager.get_favorite_urls()
 
         # Load history
         state.history = await db_manager.get_history()
+
+        # Restore liveliness cache from DB
+        from services.liveliness import liveliness_cache
+
+        cached_entries = await db_manager.load_liveliness_cache()
+        liveliness_cache.load_from_db(cached_entries)
 
         # Focus manager
         self.focus_manager = FocusManager(self.page)
@@ -113,7 +161,8 @@ class AppController:
         logger.error("Global error: %s", e.data if hasattr(e, "data") else e)
         try:
             self.page.snack_bar = ft.SnackBar(
-                ft.Text(ERR_NETWORK), bgcolor=AppColors.WARNING,
+                ft.Text(ERR_NETWORK),
+                bgcolor=AppColors.WARNING,
             )
             self.page.snack_bar.open = True
             self.page.update()
@@ -132,6 +181,10 @@ class AppController:
             return
 
         async with self._loading_lock:
+            from views.tabs.channel_groups import _invalidate_groups_cache
+
+            _invalidate_groups_cache()
+
             state.is_loading = True
             self.page.update()
 
@@ -148,16 +201,28 @@ class AppController:
                 for pl in playlists:
                     if pl.get("is_active"):
                         try:
-                            playlist_channels = await iptv_service.fetch_playlist(pl["url"])
+                            playlist_channels = await iptv_service.fetch_playlist(
+                                pl["url"]
+                            )
                             for pc in playlist_channels:
                                 pc["is_custom"] = True
                             channels.extend(playlist_channels)
                         except Exception:
-                            logger.exception("Failed to fetch playlist: %s", pl.get("name"))
+                            logger.exception(
+                                "Failed to fetch playlist: %s", pl.get("name")
+                            )
 
                 state.set_channels(channels)
             except Exception:
                 logger.exception("Failed to load channels")
+                try:
+                    self.page.snack_bar = ft.SnackBar(
+                        ft.Text("Failed to load channels. Check your connection."),
+                        bgcolor=AppColors.ERROR,
+                    )
+                    self.page.snack_bar.open = True
+                except Exception:
+                    pass
             finally:
                 state.is_loading = False
                 self.page.update()
@@ -165,9 +230,10 @@ class AppController:
     # --- Playback ---
 
     async def play_stream(self, url: str):
-        if not _is_valid_play_url(url):
+        if not await _is_valid_play_url(url):
             self.page.snack_bar = ft.SnackBar(
-                ft.Text("Invalid or blocked URL."), bgcolor=AppColors.ERROR,
+                ft.Text("Invalid or blocked URL."),
+                bgcolor=AppColors.ERROR,
             )
             self.page.snack_bar.open = True
             self.page.update()
@@ -209,13 +275,13 @@ class AppController:
 
     # --- Deep Link ---
 
-    def _handle_deep_link(self, url_str: str):
+    async def _handle_deep_link(self, url_str: str):
         if not url_str.startswith(DEEP_LINK_PLAY_PREFIX):
             return
-        encoded = url_str[len(DEEP_LINK_PLAY_PREFIX):]
+        encoded = url_str[len(DEEP_LINK_PLAY_PREFIX) :]
         try:
             decoded = base64.urlsafe_b64decode(encoded).decode("utf-8")
-            if _is_valid_play_url(decoded):
+            if await _is_valid_play_url(decoded):
                 self.page.run_task(self.play_stream, decoded)
         except Exception:
             logger.exception("Failed to decode deep link")
@@ -227,12 +293,13 @@ class AppController:
         parsed = urllib.parse.urlparse(route)
 
         if parsed.scheme == "ktv":
-            self._handle_deep_link(route)
+            await self._handle_deep_link(route)
             return
 
         if parsed.path in ("/", ""):
             self.page.views.clear()
             from views.splash import build_splash_view
+
             self.page.views.append(build_splash_view(self.page))
             self.page.update()
             await self._splash_flow()
@@ -240,6 +307,7 @@ class AppController:
         elif parsed.path == "/dashboard":
             self.page.views.clear()
             from views.dashboard import build_dashboard_view
+
             view = build_dashboard_view(
                 page_obj=self.page,
                 on_play=self.play_stream,
@@ -257,6 +325,7 @@ class AppController:
 
         if state.is_first_launch or not state.has_accepted_terms:
             from views.onboarding import build_onboarding_view
+
             onboarding = build_onboarding_view(
                 page_obj=self.page,
                 countries=channel_provider.get_countries(),
@@ -276,6 +345,7 @@ class AppController:
 
     async def _go_to_dashboard(self):
         from views.dashboard import build_dashboard_view
+
         self.page.views.clear()
         view = build_dashboard_view(
             page_obj=self.page,
@@ -300,6 +370,7 @@ class AppController:
 
 
 async def main(page: ft.Page):
+    setup_logging()
     controller = AppController(page)
     await controller.init()
 

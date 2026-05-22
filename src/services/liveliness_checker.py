@@ -1,37 +1,75 @@
 import asyncio
+import ipaddress
 import logging
+import socket
 
 import httpx
 
-from core.constants import LIVELINESS_BATCH_SIZE, LIVELINESS_SEMAPHORE, LIVELINESS_UPDATE_INTERVAL
+from core.constants import (
+    LIVELINESS_BATCH_SIZE,
+    LIVELINESS_SEMAPHORE,
+    LIVELINESS_UPDATE_INTERVAL,
+)
 from core.theme import AppColors
+from services.http_client import get_http_client
 from services.liveliness import liveliness_cache
+
+_PRIVATE_NETWORKS = [
+    ipaddress.ip_network("10.0.0.0/8"),
+    ipaddress.ip_network("172.16.0.0/12"),
+    ipaddress.ip_network("192.168.0.0/16"),
+    ipaddress.ip_network("127.0.0.0/8"),
+    ipaddress.ip_network("0.0.0.0/8"),
+    ipaddress.ip_network("169.254.0.0/16"),
+    ipaddress.ip_network("::1/128"),
+    ipaddress.ip_network("fe80::/10"),
+    ipaddress.ip_network("fc00::/7"),
+    ipaddress.ip_network("fc00::/7"),
+]
+
+
+def _is_public_url(url: str) -> bool:
+    """Reject URLs pointing to private/internal IPs (SSRF guard)."""
+    import urllib.parse
+
+    parsed = urllib.parse.urlparse(url)
+    host = parsed.hostname
+    if not host:
+        return False
+    try:
+        addrs = socket.getaddrinfo(host, None)
+        for _, _, _, _, sockaddr in addrs:
+            ip = sockaddr[0]
+            try:
+                addr = ipaddress.ip_address(ip)
+                if any(addr in net for net in _PRIVATE_NETWORKS):
+                    return False
+            except ValueError:
+                continue
+        return True
+    except (socket.gaierror, OSError):
+        return False
+
 
 logger = logging.getLogger(__name__)
 
 
 class LivelinessChecker:
-    def __init__(self, page_obj, http_client: httpx.AsyncClient | None = None):
+    def __init__(self, page_obj):
         self.page_obj = page_obj
-        self._shared_http_client = http_client
-        self._internal_http_client: httpx.AsyncClient | None = None
         self._semaphore = asyncio.Semaphore(LIVELINESS_SEMAPHORE)
 
     def _get_http_client(self) -> httpx.AsyncClient:
-        if self._shared_http_client and not self._shared_http_client.is_closed:
-            return self._shared_http_client
-        if self._internal_http_client is None or self._internal_http_client.is_closed:
-            self._internal_http_client = httpx.AsyncClient(
-                timeout=3.0,
-                follow_redirects=True,
-                limits=httpx.Limits(max_connections=20, max_keepalive_connections=10),
-            )
-        return self._internal_http_client
+        return get_http_client()
 
     async def check_single(self, url: str) -> tuple[str, bool]:
         cached = liveliness_cache.get(url)
         if cached is not None:
             return (url, cached)
+
+        if not await asyncio.to_thread(_is_public_url, url):
+            liveliness_cache.set(url, False)
+            return (url, False)
 
         async with self._semaphore:
             try:
@@ -52,7 +90,7 @@ class LivelinessChecker:
                 liveliness_cache.set(url, False)
                 return (url, False)
 
-    async def fire_batch(self, cards_data: list, target_control=None):
+    async def fire_batch(self, cards_data: list):
         for i in range(0, len(cards_data), LIVELINESS_BATCH_SIZE):
             batch = cards_data[i : i + LIVELINESS_BATCH_SIZE]
             tasks = [self.check_single(cd["url"]) for cd in batch]
@@ -61,7 +99,9 @@ class LivelinessChecker:
             for cd, result in zip(batch, results, strict=True):
                 if isinstance(result, tuple):
                     _, is_live = result
-                    cd["indicator"].bgcolor = AppColors.SUCCESS if is_live else AppColors.ERROR
+                    cd["indicator"].bgcolor = (
+                        AppColors.SUCCESS if is_live else AppColors.ERROR
+                    )
                 else:
                     cd["indicator"].bgcolor = AppColors.ERROR
 
@@ -69,15 +109,19 @@ class LivelinessChecker:
             is_last = (i + LIVELINESS_BATCH_SIZE) >= len(cards_data)
             if is_last or (batch_num % LIVELINESS_UPDATE_INTERVAL == 0):
                 try:
-                    if target_control:
-                        target_control.update()
-                    else:
-                        self.page_obj.update()
+                    self.page_obj.update()
                 except Exception:
                     pass
 
             if not is_last:
                 await asyncio.sleep(0.05)
+
+        # Persist dirty cache entries to DB
+        dirty = liveliness_cache.drain_dirty()
+        if dirty:
+            from database.manager import db_manager
+
+            await db_manager.save_liveliness_batch(dirty)
 
     def collect_cards_data(self, grid) -> list:
         cards_data = []
@@ -91,5 +135,4 @@ class LivelinessChecker:
         return cards_data
 
     async def close(self):
-        if self._internal_http_client and not self._internal_http_client.is_closed:
-            await self._internal_http_client.aclose()
+        pass

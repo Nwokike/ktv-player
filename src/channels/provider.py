@@ -3,8 +3,7 @@ import logging
 import os
 import time
 
-import httpx
-
+from services.http_client import get_http_client
 from services.m3u_parser import parse_m3u_text
 
 logger = logging.getLogger(__name__)
@@ -13,9 +12,20 @@ _CACHE_DIR = os.path.join("storage", "data")
 _CACHE_FILE = os.path.join(_CACHE_DIR, "cached_playlist.m3u8")
 
 NON_COUNTRY_GROUPS = {
-    "movies", "news", "sports", "documentaries", "music",
-    "kids", "comedy", "vod", "business", "weather",
-    "lifestyle", "religious", "education", "general",
+    "movies",
+    "news",
+    "sports",
+    "documentaries",
+    "music",
+    "kids",
+    "comedy",
+    "vod",
+    "business",
+    "weather",
+    "lifestyle",
+    "religious",
+    "education",
+    "general",
 }
 
 
@@ -40,7 +50,9 @@ def _read_cache_file() -> str | None:
 
 class ChannelProvider:
     def __init__(self):
-        self.MASTER_PLAYLIST_URL = "https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8"
+        self.MASTER_PLAYLIST_URL = (
+            "https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8"
+        )
         self.CACHE_DURATION = 24 * 60 * 60
         self.STALE_DURATION = 48 * 60 * 60
         self._channels = []
@@ -84,9 +96,9 @@ class ChannelProvider:
                     if self._channels:
                         return self._channels
                     try:
-                        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
-                            response = await client.get(self.MASTER_PLAYLIST_URL)
-                            response.raise_for_status()
+                        client = get_http_client()
+                        response = await client.get(self.MASTER_PLAYLIST_URL)
+                        response.raise_for_status()
                         with open(_CACHE_FILE, "w", encoding="utf-8") as f:
                             f.write(response.text)
                         self._channels = self._parse_cached(response.text)

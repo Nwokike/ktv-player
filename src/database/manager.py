@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 import shutil
@@ -11,9 +12,12 @@ class DatabaseManager:
     def __init__(self, db_path: str = "storage/data/ktv_player.db"):
         self.db_path = os.path.abspath(db_path)
         self._conn = None
+        self._conn_lock = asyncio.Lock()
 
     async def _get_conn(self):
-        if self._conn is None:
+        async with self._conn_lock:
+            if self._conn is not None:
+                return self._conn
             db_dir = os.path.dirname(self.db_path)
             if db_dir:
                 os.makedirs(db_dir, exist_ok=True)
@@ -35,7 +39,9 @@ class DatabaseManager:
                     if os.path.exists(self.db_path):
                         shutil.copy2(self.db_path, backup)
                         os.remove(self.db_path)
-                        logger.info("Corrupted DB backed up to %s, creating fresh DB", backup)
+                        logger.info(
+                            "Corrupted DB backed up to %s, creating fresh DB", backup
+                        )
                     self._conn = await aiosqlite.connect(self.db_path)
                     await self._conn.execute("PRAGMA journal_mode=WAL;")
                     await self._conn.execute("PRAGMA synchronous=NORMAL;")
@@ -73,6 +79,13 @@ class DatabaseManager:
                 name TEXT,
                 url TEXT UNIQUE,
                 is_active INTEGER DEFAULT 1
+            )
+        """)
+        await self._conn.execute("""
+            CREATE TABLE IF NOT EXISTS liveliness_cache (
+                url TEXT PRIMARY KEY,
+                is_live INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL
             )
         """)
         await self._conn.execute("""
@@ -120,7 +133,9 @@ class DatabaseManager:
 
     async def get_setting(self, key: str, default=None):
         db = await self._get_conn()
-        async with db.execute("SELECT value FROM settings WHERE key = ?", (key,)) as cursor:
+        async with db.execute(
+            "SELECT value FROM settings WHERE key = ?", (key,)
+        ) as cursor:
             row = await cursor.fetchone()
             return row[0] if row else default
 
@@ -155,7 +170,9 @@ class DatabaseManager:
             "SELECT name, url, logo, group_name FROM custom_channels"
         ) as cursor:
             rows = await cursor.fetchall()
-            return [{"name": r[0], "url": r[1], "logo": r[2], "group": r[3]} for r in rows]
+            return [
+                {"name": r[0], "url": r[1], "logo": r[2], "group": r[3]} for r in rows
+            ]
 
     async def clear_custom_content(self):
         db = await self._get_conn()
@@ -191,6 +208,29 @@ class DatabaseManager:
         async with db.execute("SELECT url FROM favorites") as cursor:
             rows = await cursor.fetchall()
             return {row[0] for row in rows}
+
+    # --- Liveliness Cache ---
+
+    async def save_liveliness_batch(self, entries: list[tuple[str, bool, int]]):
+        db = await self._get_conn()
+        await db.executemany(
+            "INSERT OR REPLACE INTO liveliness_cache (url, is_live, updated_at) VALUES (?, ?, ?)",
+            entries,
+        )
+        await db.commit()
+
+    async def load_liveliness_cache(self) -> dict[str, tuple[bool, float]]:
+        db = await self._get_conn()
+        async with db.execute(
+            "SELECT url, is_live, updated_at FROM liveliness_cache"
+        ) as cursor:
+            rows = await cursor.fetchall()
+            return {r[0]: (bool(r[1]), float(r[2])) for r in rows}
+
+    async def clear_liveliness_cache(self):
+        db = await self._get_conn()
+        await db.execute("DELETE FROM liveliness_cache")
+        await db.commit()
 
     async def close(self):
         if self._conn:

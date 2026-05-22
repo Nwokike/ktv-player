@@ -1,4 +1,5 @@
 """Preferences tab — country selection and data management."""
+
 import contextlib
 
 import flet as ft
@@ -20,11 +21,15 @@ from core.theme import AppColors
 from database.manager import db_manager
 
 
-def build_preferences_tab_content(target, page_obj, on_play, ad_service, liveliness, view_state, active_tiles):
+def build_preferences_tab_content(
+    target, page_obj, on_play, ad_service, liveliness, view_state, active_tiles
+):
     async def handle_clear_history(e):
         await db_manager.clear_history()
         state.history = []
-        page_obj.snack_bar = ft.SnackBar(ft.Text(LBL_HISTORY_CLEARED), bgcolor=AppColors.SUCCESS)
+        page_obj.snack_bar = ft.SnackBar(
+            ft.Text(LBL_HISTORY_CLEARED), bgcolor=AppColors.SUCCESS
+        )
         page_obj.snack_bar.open = True
         page_obj.update()
 
@@ -41,13 +46,19 @@ def build_preferences_tab_content(target, page_obj, on_play, ad_service, livelin
         state.is_loading = False
         if hasattr(page_obj, "refresh_dashboard"):
             page_obj.refresh_dashboard()
-        page_obj.snack_bar = ft.SnackBar(ft.Text(LBL_LIBRARY_RESET), bgcolor=AppColors.SUCCESS)
+        page_obj.snack_bar = ft.SnackBar(
+            ft.Text(LBL_LIBRARY_RESET), bgcolor=AppColors.SUCCESS
+        )
         page_obj.snack_bar.open = True
         page_obj.update()
 
     # Build country list
     unique_countries = sorted(
-        {c.get("group", "").split(";")[0].strip() for c in state.channels if c.get("country_code")}
+        {
+            c.get("group", "").split(";")[0].strip()
+            for c in state.channels
+            if c.get("country_code")
+        }
     )
     if "Other" not in unique_countries:
         unique_countries.append("Other")
@@ -65,7 +76,9 @@ def build_preferences_tab_content(target, page_obj, on_play, ad_service, livelin
                 is_sel = entry["name"] == name
                 entry["tile"].bgcolor = AppColors.PRIMARY if is_sel else None
                 entry["tile"].leading = ft.Icon(
-                    ft.Icons.CHECK_CIRCLE if is_sel else ft.Icons.RADIO_BUTTON_UNCHECKED,
+                    ft.Icons.CHECK_CIRCLE
+                    if is_sel
+                    else ft.Icons.RADIO_BUTTON_UNCHECKED,
                     color=ft.Colors.WHITE if is_sel else AppColors.GREY_DIM,
                 )
                 entry["tile"].title = ft.Text(
@@ -74,9 +87,12 @@ def build_preferences_tab_content(target, page_obj, on_play, ad_service, livelin
                     weight=ft.FontWeight.W_600 if is_sel else ft.FontWeight.NORMAL,
                 )
             country_list.update()
-            page_obj.snack_bar = ft.SnackBar(ft.Text(LBL_COUNTRY_UPDATED.format(country=name)))
+            page_obj.snack_bar = ft.SnackBar(
+                ft.Text(LBL_COUNTRY_UPDATED.format(country=name))
+            )
             page_obj.snack_bar.open = True
             page_obj.update()
+
         page_obj.run_task(_do_select)
 
     for cname in unique_countries:
@@ -88,7 +104,9 @@ def build_preferences_tab_content(target, page_obj, on_play, ad_service, livelin
                 weight=ft.FontWeight.W_600 if is_current else ft.FontWeight.NORMAL,
             ),
             leading=ft.Icon(
-                ft.Icons.CHECK_CIRCLE if is_current else ft.Icons.RADIO_BUTTON_UNCHECKED,
+                ft.Icons.CHECK_CIRCLE
+                if is_current
+                else ft.Icons.RADIO_BUTTON_UNCHECKED,
                 color=ft.Colors.WHITE if is_current else AppColors.GREY_DIM,
             ),
             key=cname,
@@ -104,11 +122,25 @@ def build_preferences_tab_content(target, page_obj, on_play, ad_service, livelin
     target.controls.append(
         ft.Column(
             [
-                ft.Text(LBL_LOCALIZATION, size=16, weight=ft.FontWeight.W_600, color=AppColors.PRIMARY),
+                ft.Text(
+                    LBL_LOCALIZATION,
+                    size=16,
+                    weight=ft.FontWeight.W_600,
+                    color=AppColors.PRIMARY,
+                ),
                 ft.Text(LBL_LOCALIZATION_DESC, size=12, color=AppColors.GREY_DIM),
-                ft.Container(content=country_list, border=ft.Border.all(1, AppColors.GREY_DIM), border_radius=10),
+                ft.Container(
+                    content=country_list,
+                    border=ft.Border.all(1, AppColors.GREY_DIM),
+                    border_radius=10,
+                ),
                 ft.Container(height=20),
-                ft.Text(LBL_DATA_MANAGEMENT, size=16, weight=ft.FontWeight.W_600, color=AppColors.PRIMARY),
+                ft.Text(
+                    LBL_DATA_MANAGEMENT,
+                    size=16,
+                    weight=ft.FontWeight.W_600,
+                    color=AppColors.PRIMARY,
+                ),
                 ft.ListTile(
                     leading=ft.Icon(ft.Icons.HISTORY, color=AppColors.WARNING),
                     title=ft.Text(LBL_CLEAR_HISTORY),

@@ -8,6 +8,7 @@ from core.constants import AD_PRELOAD_MAX_RETRIES, AD_PRELOAD_RETRY_DELAY
 
 try:
     import flet_ads as fta
+
     _HAS_FLET_ADS = True
 except ImportError:
     _HAS_FLET_ADS = False
@@ -132,7 +133,9 @@ class AdService:
             else:
                 self._on_interstitial_close()
 
-        self.page.run_task(self.preload_interstitial, on_close=self._on_interstitial_close)
+        self.page.run_task(
+            self.preload_interstitial, on_close=self._on_interstitial_close
+        )
 
     async def show_interstitial(self) -> bool:
         if self.interstitial:

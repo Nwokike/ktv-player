@@ -1,4 +1,5 @@
 """Crash reporter — logs unhandled exceptions to disk with rotation."""
+
 import asyncio
 import datetime
 import os
@@ -18,7 +19,10 @@ MAX_CRASH_FILES = 10
 
 
 def _ensure_crash_dir():
-    os.makedirs(_get_crash_dir(), exist_ok=True)
+    try:
+        os.makedirs(_get_crash_dir(), exist_ok=True)
+    except OSError:
+        pass
 
 
 def _cleanup_old_crashes():
@@ -48,7 +52,9 @@ def record_crash(exc: Exception, context: str = ""):
             f.write(f"Context: {context}\n")
             f.write(f"Exception: {type(exc).__name__}: {exc}\n\n")
             f.write("Traceback:\n")
-            f.write("".join(traceback.format_exception(type(exc), exc, exc.__traceback__)))
+            f.write(
+                "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
+            )
     except OSError:
         pass
 

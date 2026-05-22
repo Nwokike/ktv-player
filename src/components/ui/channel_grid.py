@@ -2,22 +2,35 @@ import logging
 
 import flet as ft
 
-from core.focus_manager import make_focusable_card
+from core.constants import (
+    CARD_BORDER_RADIUS,
+    CARD_GLASS_BORDER_OPACITY,
+    CARD_GLASS_OPACITY,
+    CARD_HEIGHT,
+    LOGO_BORDER_RADIUS,
+    LOGO_SIZE,
+    STATUS_DOT_SIZE,
+)
+from core.focus_manager import make_focusable_card, next_tab_index
 from core.state import state
 from core.theme import AppColors
 from database.manager import db_manager
 from services.liveliness import liveliness_cache
-from services.logo_cache import download_logo, get_cached_logo
+from services.logo_cache import enqueue_logo_download, get_cached_logo
 
 logger = logging.getLogger(__name__)
 
 # Glass container styling constants
-_GLASS_BG = ft.Colors.with_opacity(0.04, ft.Colors.ON_SURFACE)
-_GLASS_BORDER = ft.Border.all(0.5, ft.Colors.with_opacity(0.08, ft.Colors.ON_SURFACE))
+_GLASS_BG = ft.Colors.with_opacity(CARD_GLASS_OPACITY, ft.Colors.ON_SURFACE)
+_GLASS_BORDER = ft.Border.all(
+    0.5, ft.Colors.with_opacity(CARD_GLASS_BORDER_OPACITY, ft.Colors.ON_SURFACE)
+)
 _GLASS_ANIM = ft.Animation(duration=180, curve=ft.AnimationCurve.EASE_OUT)
 
 
-def create_channel_card(c, card_index=0, on_play=None, page_obj=None, on_fav_change=None):
+def create_channel_card(
+    c, card_index=0, on_play=None, page_obj=None, on_fav_change=None
+):
     url = c.get("url", "")
 
     # Liveliness indicator
@@ -28,7 +41,12 @@ def create_channel_card(c, card_index=0, on_play=None, page_obj=None, on_fav_cha
     elif cached is False:
         initial_color = AppColors.ERROR
 
-    status_indicator = ft.Container(width=10, height=10, border_radius=5, bgcolor=initial_color)
+    status_indicator = ft.Container(
+        width=STATUS_DOT_SIZE,
+        height=STATUS_DOT_SIZE,
+        border_radius=STATUS_DOT_SIZE // 2,
+        bgcolor=initial_color,
+    )
 
     # Favorite state — loaded from state.favorites (O(1) lookup)
     is_fav = state.is_favorite(url)
@@ -49,15 +67,14 @@ def create_channel_card(c, card_index=0, on_play=None, page_obj=None, on_fav_cha
             initial_src = disk_cached
         else:
             initial_src = logo_src
-            if page_obj:
-                page_obj.run_task(download_logo, logo_src)
+            enqueue_logo_download(logo_src)
 
     logo_img = ft.Image(
         src=initial_src,
-        width=60,
-        height=60,
+        width=LOGO_SIZE,
+        height=LOGO_SIZE,
         fit=ft.BoxFit.CONTAIN,
-        border_radius=20,
+        border_radius=LOGO_BORDER_RADIUS,
         error_content=ft.Icon(ft.Icons.TV, size=30),
     )
 
@@ -70,8 +87,17 @@ def create_channel_card(c, card_index=0, on_play=None, page_obj=None, on_fav_cha
                     [
                         ft.Container(
                             content=fav_icon,
-                            on_click=lambda e, u=url, n=c["name"], logo=logo_src: _toggle_fav(
-                                e, u, n, logo, fav_state, fav_icon, on_fav_change, page_obj,
+                            on_click=lambda e, u=url, n=c["name"], logo=logo_src: (
+                                _toggle_fav(
+                                    e,
+                                    u,
+                                    n,
+                                    logo,
+                                    fav_state,
+                                    fav_icon,
+                                    on_fav_change,
+                                    page_obj,
+                                )
                             ),
                             tooltip="Add to favorites",
                         ),
@@ -93,17 +119,19 @@ def create_channel_card(c, card_index=0, on_play=None, page_obj=None, on_fav_cha
             spacing=2,
         ),
         padding=10,
-        border_radius=25,
+        border_radius=CARD_BORDER_RADIUS,
         bgcolor=_GLASS_BG,
         border=_GLASS_BORDER,
         animate_scale=_GLASS_ANIM,
         animate=_GLASS_ANIM,
         ink=True,
-        height=130,
+        height=CARD_HEIGHT,
         key=card_key,
-        on_click=lambda e, play_url=url: page_obj.run_task(on_play, play_url) if on_play else None,
+        on_click=lambda e, play_url=url: (
+            page_obj.run_task(on_play, play_url) if on_play else None
+        ),
     )
-    card.tab_index = card_index + 10
+    card.tab_index = next_tab_index()
     card.data = {"url": url, "indicator": status_indicator}
     make_focusable_card(card)
 
@@ -129,17 +157,30 @@ def _toggle_fav(e, url, name, logo, fav_state, fav_icon, on_fav_change, page_obj
                 on_fav_change()
         except Exception:
             pass
+
     page_obj.run_task(_do)
 
 
-def build_channel_grid(channels, offset=0, limit=24, on_play=None, page_obj=None, ad_service=None, on_fav_change=None, ad_indices=None):
-    page_channels = channels[offset: offset + limit]
+def build_channel_grid(
+    channels,
+    offset=0,
+    limit=24,
+    on_play=None,
+    page_obj=None,
+    ad_service=None,
+    on_fav_change=None,
+    ad_indices=None,
+):
+    page_channels = channels[offset : offset + limit]
     grid = ft.ResponsiveRow(spacing=12, run_spacing=12)
 
     for i, c in enumerate(page_channels):
         global_idx = offset + i
         card = create_channel_card(
-            c, card_index=global_idx, on_play=on_play, page_obj=page_obj,
+            c,
+            card_index=global_idx,
+            on_play=on_play,
+            page_obj=page_obj,
             on_fav_change=on_fav_change,
         )
         wrapper = ft.Container(

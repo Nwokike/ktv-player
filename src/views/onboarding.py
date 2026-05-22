@@ -1,4 +1,5 @@
 """Onboarding view — first-launch country selection and terms acceptance."""
+
 import asyncio
 import contextlib
 
@@ -20,7 +21,9 @@ from core.theme import AppColors
 from database.manager import db_manager
 
 
-def build_onboarding_view(page_obj: ft.Page, countries: list[dict], on_complete: callable) -> ft.View:
+def build_onboarding_view(
+    page_obj: ft.Page, countries: list[dict], on_complete: callable
+) -> ft.View:
     selected_state = {"country": ""}
     terms_checked = ft.Ref[ft.Checkbox]()
 
@@ -68,7 +71,8 @@ def build_onboarding_view(page_obj: ft.Page, countries: list[dict], on_complete:
     async def handle_submit(e):
         if not terms_checked.current.value:
             page_obj.snack_bar = ft.SnackBar(
-                ft.Text(LBL_PLEASE_ACCEPT_TERMS), bgcolor=AppColors.WARNING,
+                ft.Text(LBL_PLEASE_ACCEPT_TERMS),
+                bgcolor=AppColors.WARNING,
             )
             page_obj.snack_bar.open = True
             page_obj.update()
@@ -76,7 +80,8 @@ def build_onboarding_view(page_obj: ft.Page, countries: list[dict], on_complete:
 
         if not selected_state["country"]:
             page_obj.snack_bar = ft.SnackBar(
-                ft.Text(LBL_PLEASE_SELECT_COUNTRY), bgcolor=AppColors.WARNING,
+                ft.Text(LBL_PLEASE_SELECT_COUNTRY),
+                bgcolor=AppColors.WARNING,
             )
             page_obj.snack_bar.open = True
             page_obj.update()
@@ -100,15 +105,38 @@ def build_onboarding_view(page_obj: ft.Page, countries: list[dict], on_complete:
             ft.Column(
                 [
                     ft.Image(src="/icon.png", width=90, height=90, border_radius=20),
-                    ft.Text(LBL_WELCOME, size=34, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER),
-                    ft.Text(LBL_WELCOME_SUB, size=15, text_align=ft.TextAlign.CENTER, color=AppColors.GREY_DIM, width=400),
+                    ft.Text(
+                        LBL_WELCOME,
+                        size=34,
+                        weight=ft.FontWeight.BOLD,
+                        text_align=ft.TextAlign.CENTER,
+                    ),
+                    ft.Text(
+                        LBL_WELCOME_SUB,
+                        size=15,
+                        text_align=ft.TextAlign.CENTER,
+                        color=AppColors.GREY_DIM,
+                        width=400,
+                    ),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 spacing=12,
             ),
             ft.Divider(height=24, color=ft.Colors.TRANSPARENT),
-            ft.Text(LBL_SELECT_COUNTRY, size=18, weight=ft.FontWeight.W_600, text_align=ft.TextAlign.CENTER, width=float("inf")),
-            ft.Text(LBL_TV_NAV_HINT, size=12, color=AppColors.GREY_DIM, text_align=ft.TextAlign.CENTER, width=float("inf")),
+            ft.Text(
+                LBL_SELECT_COUNTRY,
+                size=18,
+                weight=ft.FontWeight.W_600,
+                text_align=ft.TextAlign.CENTER,
+                width=float("inf"),
+            ),
+            ft.Text(
+                LBL_TV_NAV_HINT,
+                size=12,
+                color=AppColors.GREY_DIM,
+                text_align=ft.TextAlign.CENTER,
+                width=float("inf"),
+            ),
             ft.Container(
                 content=country_list,
                 border=ft.Border.all(1.5, AppColors.GREY_DIM),
@@ -118,7 +146,12 @@ def build_onboarding_view(page_obj: ft.Page, countries: list[dict], on_complete:
             ),
             ft.Divider(height=20, color=ft.Colors.TRANSPARENT),
             ft.Container(
-                content=ft.Text(TERMS_TEXT, size=12, color=AppColors.GREY_DIM, text_align=ft.TextAlign.LEFT),
+                content=ft.Text(
+                    TERMS_TEXT,
+                    size=12,
+                    color=AppColors.GREY_DIM,
+                    text_align=ft.TextAlign.LEFT,
+                ),
                 padding=16,
                 border_radius=12,
                 border=ft.Border.all(1, AppColors.GREY_DIM),

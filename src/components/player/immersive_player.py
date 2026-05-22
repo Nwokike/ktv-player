@@ -63,7 +63,9 @@ class ImmersivePlayer(ft.Stack):
         # Speed control
         self._speed_idx = 2  # index of 1.0 in speeds list
         self._speeds = [0.25, 0.5, 1.0, 1.25, 1.5, 2.0]
-        self.speed_text = ft.Text("1.0x", size=11, color=ft.Colors.WHITE, weight=ft.FontWeight.W_600)
+        self.speed_text = ft.Text(
+            "1.0x", size=11, color=ft.Colors.WHITE, weight=ft.FontWeight.W_600
+        )
 
         # Video player
         self.video = fv.Video(
@@ -256,7 +258,9 @@ class ImmersivePlayer(ft.Stack):
 
         self._retry_count += 1
         if self._retry_count <= STREAM_RETRY_MAX and self.resource.startswith("http"):
-            self.status_text.value = f"Stream error, retrying ({self._retry_count}/{STREAM_RETRY_MAX})..."
+            self.status_text.value = (
+                f"Stream error, retrying ({self._retry_count}/{STREAM_RETRY_MAX})..."
+            )
             self.loading_ring.visible = True
             self.overlay.visible = True
             self.update()

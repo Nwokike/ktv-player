@@ -2,12 +2,18 @@
 
 Single source of truth for how channels map to display groups.
 """
+
 import contextlib
 import logging
 
 import flet as ft
 
-from core.constants import LBL_SHOW_NEXT, LBL_SHOWING_RANGE, MAX_SEARCH_RESULTS, PAGE_SIZE
+from core.constants import (
+    LBL_SHOW_NEXT,
+    LBL_SHOWING_RANGE,
+    MAX_SEARCH_RESULTS,
+    PAGE_SIZE,
+)
 from core.state import state
 from core.theme import AppColors
 from views.tabs.pagination import build_nav_btn, show_page
@@ -43,7 +49,11 @@ def classify_channel(channel: dict, tab_index: int) -> str | None:
     if tab_index == 0:  # Countries
         return parts[0] if channel.get("country_code") else "Global"
     elif tab_index == 1:  # Categories
-        group = parts[-1] if len(parts) > 1 else (parts[0] if not channel.get("country_code") else "General")
+        group = (
+            parts[-1]
+            if len(parts) > 1
+            else (parts[0] if not channel.get("country_code") else "General")
+        )
         return None if group.lower() == "general" else group
     else:  # Custom
         return original_group
@@ -71,7 +81,9 @@ def _build_groups(channels: list[dict], tab_index: int) -> dict[str, list[dict]]
     return groups
 
 
-def _search_channels(channels: list[dict], query: str, tab_index: int) -> dict[str, list[dict]]:
+def _search_channels(
+    channels: list[dict], query: str, tab_index: int
+) -> dict[str, list[dict]]:
     """Filter channels by search query using the same classify_channel logic."""
     groups: dict[str, list[dict]] = {}
     count = 0
@@ -126,22 +138,37 @@ def _collapse_other_tiles(current_tile, active_tiles):
                 t.update()
 
 
-def _handle_expansion(e, channels, active_tiles, page_obj, on_play, ad_service, liveliness):
+def _handle_expansion(
+    e, channels, active_tiles, page_obj, on_play, ad_service, liveliness
+):
     if str(e.data).lower() == "true":
         _collapse_other_tiles(e.control, active_tiles)
-        if not e.control.controls:
-            show_page(e.control, channels, 0, page_obj, on_play, ad_service, liveliness)
-        with contextlib.suppress(Exception):
+        if e.control.controls:
             e.control.update()
+        else:
+            show_page(e.control, channels, 0, page_obj, on_play, ad_service, liveliness)
 
 
-def build_channel_groups(target, tab_index, page_obj, on_play, ad_service, liveliness, view_state, active_tiles):
+def build_channel_groups(
+    target,
+    tab_index,
+    page_obj,
+    on_play,
+    ad_service,
+    liveliness,
+    view_state,
+    active_tiles,
+):
     """Build expansion tiles for channel groups. Used by Countries, Categories, and Custom tabs."""
     from components.ui.channel_grid import build_channel_grid
 
     query = view_state["search_query"].lower()
 
-    groups = _search_channels(state.channels, query, tab_index) if query else _build_groups(state.channels, tab_index)
+    groups = (
+        _search_channels(state.channels, query, tab_index)
+        if query
+        else _build_groups(state.channels, tab_index)
+    )
 
     group_names = sorted(groups.keys())
 
@@ -152,7 +179,6 @@ def build_channel_groups(target, tab_index, page_obj, on_play, ad_service, livel
         group_names.remove(primary_country)
         group_names.insert(0, primary_country)
 
-    active_tiles.clear()
     results_count = sum(len(v) for v in groups.values())
 
     if query and not group_names:
@@ -162,8 +188,18 @@ def build_channel_groups(target, tab_index, page_obj, on_play, ad_service, livel
                     ft.Container(height=60),
                     ft.Icon(ft.Icons.SEARCH_OFF, size=64, color=AppColors.GREY_DIM),
                     ft.Container(height=12),
-                    ft.Text("No results found", size=16, color=AppColors.GREY_DIM, text_align=ft.TextAlign.CENTER),
-                    ft.Text(f'No channels match "{query}"', size=12, color=AppColors.GREY_DIM, text_align=ft.TextAlign.CENTER),
+                    ft.Text(
+                        "No results found",
+                        size=16,
+                        color=AppColors.GREY_DIM,
+                        text_align=ft.TextAlign.CENTER,
+                    ),
+                    ft.Text(
+                        f'No channels match "{query}"',
+                        size=12,
+                        color=AppColors.GREY_DIM,
+                        text_align=ft.TextAlign.CENTER,
+                    ),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             )
@@ -172,21 +208,39 @@ def build_channel_groups(target, tab_index, page_obj, on_play, ad_service, livel
 
     for name in group_names:
         channels = groups[name]
-        should_expand = bool((tab_index == 0 and name == primary_country) or (query and results_count < 10))
+        should_expand = bool(
+            (tab_index == 0 and name == primary_country)
+            or (query and results_count < 10)
+        )
 
         tile_controls = []
         if should_expand:
             total = len(channels)
-            ad_indices = {idx for idx in range(0, min(PAGE_SIZE, total)) if (idx + 1) % 12 == 0 and (idx + 1) < total}
-            grid = build_channel_grid(channels, 0, PAGE_SIZE, on_play=on_play, page_obj=page_obj, ad_service=ad_service, ad_indices=ad_indices)
+            ad_indices = {
+                idx
+                for idx in range(0, min(PAGE_SIZE, total))
+                if (idx + 1) % 12 == 0 and (idx + 1) < total
+            }
+            grid = build_channel_grid(
+                channels,
+                0,
+                PAGE_SIZE,
+                on_play=on_play,
+                page_obj=page_obj,
+                ad_service=ad_service,
+                ad_indices=ad_indices,
+            )
 
             end = min(PAGE_SIZE, total)
             tile_controls.append(
                 ft.Container(
                     content=ft.Text(
                         LBL_SHOWING_RANGE.format(start=1, end=end, total=total),
-                        size=11, color=AppColors.GREY_DIM, italic=True,
-                        text_align=ft.TextAlign.CENTER, width=float("inf"),
+                        size=11,
+                        color=AppColors.GREY_DIM,
+                        italic=True,
+                        text_align=ft.TextAlign.CENTER,
+                        width=float("inf"),
                     ),
                     padding=ft.Padding(0, 5, 0, 5),
                 )
@@ -197,10 +251,19 @@ def build_channel_groups(target, tab_index, page_obj, on_play, ad_service, livel
             hint_btn = ft.Container(
                 content=ft.Row(
                     [
-                        ft.Container(width=8, height=8, border_radius=4, bgcolor=ft.Colors.GREEN),
+                        ft.Container(
+                            width=8, height=8, border_radius=4, bgcolor=ft.Colors.GREEN
+                        ),
                         ft.Text("Live", size=10, color=AppColors.GREY_DIM),
-                        ft.Container(width=8, height=8, border_radius=4, bgcolor=ft.Colors.RED),
-                        ft.Text("Offline — Play green channels", size=10, color=AppColors.GREY_DIM, italic=True),
+                        ft.Container(
+                            width=8, height=8, border_radius=4, bgcolor=ft.Colors.RED
+                        ),
+                        ft.Text(
+                            "Offline — Play green channels",
+                            size=10,
+                            color=AppColors.GREY_DIM,
+                            italic=True,
+                        ),
                     ],
                     spacing=6,
                     alignment=ft.MainAxisAlignment.CENTER,
@@ -231,7 +294,9 @@ def build_channel_groups(target, tab_index, page_obj, on_play, ad_service, livel
         exp_tile = ft.ExpansionTile(
             title=ft.Text(f"{name} ({len(channels)})", weight=ft.FontWeight.BOLD),
             expanded=should_expand,
-            on_change=lambda e, ch=channels: _handle_expansion(e, ch, active_tiles, page_obj, on_play, ad_service, liveliness),
+            on_change=lambda e, ch=channels: _handle_expansion(
+                e, ch, active_tiles, page_obj, on_play, ad_service, liveliness
+            ),
             controls=tile_controls,
             collapsed_bgcolor=ft.Colors.TRANSPARENT,
             bgcolor=ft.Colors.with_opacity(0.03, ft.Colors.ON_SURFACE),
@@ -247,8 +312,16 @@ def build_channel_groups(target, tab_index, page_obj, on_play, ad_service, livel
             next_offset = min(PAGE_SIZE, len(channels))
             for ctrl in tile_controls:
                 if hasattr(ctrl, "_patch_target"):
-                    ctrl.on_click = lambda e, t=exp_tile, ch=channels, off=next_offset: show_page(
-                        t, ch, off, page_obj, on_play, ad_service, liveliness,
+                    ctrl.on_click = lambda e, t=exp_tile, ch=channels, off=next_offset: (
+                        show_page(
+                            t,
+                            ch,
+                            off,
+                            page_obj,
+                            on_play,
+                            ad_service,
+                            liveliness,
+                        )
                     )
 
         active_tiles.append(exp_tile)

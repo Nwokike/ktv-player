@@ -5,23 +5,15 @@ import httpx
 
 from channels.provider import channel_provider
 from database.manager import db_manager
+from services.http_client import get_http_client
 from services.m3u_parser import parse_m3u_text
 
 logger = logging.getLogger(__name__)
 
 
 class IPTVService:
-    def __init__(self):
-        self._http_client: httpx.AsyncClient | None = None
-
-    def get_client(self) -> httpx.AsyncClient:
-        if self._http_client is None or self._http_client.is_closed:
-            self._http_client = httpx.AsyncClient(
-                timeout=15.0,
-                follow_redirects=True,
-                limits=httpx.Limits(max_connections=20, max_keepalive_connections=10),
-            )
-        return self._http_client
+    def get_client(self) -> "httpx.AsyncClient":
+        return get_http_client()
 
     async def fetch_built_in_channels(self):
         return await channel_provider.get_all_channels()
@@ -74,8 +66,9 @@ class IPTVService:
         return all_channels
 
     async def close(self):
-        if self._http_client and not self._http_client.is_closed:
-            await self._http_client.aclose()
+        from services.http_client import close_http_client
+
+        await close_http_client()
 
 
 iptv_service = IPTVService()

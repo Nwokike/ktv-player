@@ -26,6 +26,7 @@ bundle_id = "ng.kiri.ktvplayer"
 
 [tool.flet.android.manifest_application]
 usesCleartextTraffic = "true"
+requestLegacyExternalStorage = "true"
 
 [tool.flet.android.meta_data]
 "com.google.android.gms.ads.APPLICATION_ID" = "ca-app-pub-5679949845754640~8438792639"
@@ -35,6 +36,7 @@ usesCleartextTraffic = "true"
 "android.permission.ACCESS_NETWORK_STATE" = true
 "android.permission.WAKE_LOCK" = true
 "android.permission.READ_MEDIA_VIDEO" = true
+"android.permission.READ_MEDIA_VISUAL_USER_SELECTED" = true
 "android.permission.READ_EXTERNAL_STORAGE" = true
 "android.permission.WRITE_EXTERNAL_STORAGE" = true
 
@@ -46,4 +48,7 @@ usesCleartextTraffic = "true"
 scheme = "ktv"
 host = "play"
 
-
+[dependency-groups]
+dev = [
+    "ruff>=0.15.14",
+]

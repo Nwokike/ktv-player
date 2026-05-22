@@ -36,5 +36,17 @@ class AppState:
     def is_favorite(self, url: str) -> bool:
         return url in self.favorites
 
+    def reset(self):
+        """Reset all state to defaults (for testing)."""
+        self.is_loading = False
+        self.channels = []
+        self.history = []
+        self.favorites = set()
+        self.user_country = ""
+        self.has_accepted_terms = False
+        self.is_first_launch = True
+        self.theme_mode = ft.ThemeMode.SYSTEM
+        self.channels_hash = 0
+
 
 state = AppState()

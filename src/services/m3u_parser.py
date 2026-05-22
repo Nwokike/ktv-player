@@ -34,11 +34,13 @@ def parse_m3u_text(text: str, default_group: str = "Custom") -> list[dict]:
             if i < len(lines):
                 url = lines[i].strip()
                 if url and not url.startswith("#") and _VALID_URL.match(url):
-                    channels.append({
-                        "name": name,
-                        "url": url,
-                        "logo": logo or "/icon.png",
-                        "group": group,
-                    })
+                    channels.append(
+                        {
+                            "name": name,
+                            "url": url,
+                            "logo": logo or "/icon.png",
+                            "group": group,
+                        }
+                    )
         i += 1
     return channels

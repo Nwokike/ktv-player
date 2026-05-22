@@ -7,6 +7,7 @@ class LivelinessCache:
         self._cache: OrderedDict[str, tuple[bool, float]] = OrderedDict()
         self._max_size = max_size
         self._ttl = ttl
+        self._dirty: list[tuple[str, bool, int]] = []
 
     def get(self, url: str) -> bool | None:
         entry = self._cache.get(url)
@@ -19,14 +20,30 @@ class LivelinessCache:
         return is_live
 
     def set(self, url: str, is_live: bool):
+        now = time.time()
         if url in self._cache:
             self._cache.move_to_end(url)
         elif len(self._cache) >= self._max_size:
             self._cache.popitem(last=False)
-        self._cache[url] = (is_live, time.time())
+        self._cache[url] = (is_live, now)
+        self._dirty.append((url, is_live, int(now)))
 
     def clear(self):
         self._cache.clear()
+        self._dirty.clear()
+
+    def drain_dirty(self) -> list[tuple[str, bool, int]]:
+        batch = self._dirty
+        self._dirty = []
+        return batch
+
+    def load_from_db(self, entries: dict[str, tuple[bool, float]]):
+        now = time.time()
+        for url, (is_live, ts) in entries.items():
+            if now - ts < self._ttl:
+                if len(self._cache) >= self._max_size:
+                    break
+                self._cache[url] = (is_live, ts)
 
 
 liveliness_cache = LivelinessCache()

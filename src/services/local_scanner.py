@@ -1,3 +1,4 @@
+import logging
 import os
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -5,10 +6,33 @@ from pathlib import Path
 
 from core.constants import LOCAL_SCAN_MAX_DEPTH
 
+logger = logging.getLogger(__name__)
+
 VIDEO_EXTENSIONS = {
-    ".mp4", ".mkv", ".webm", ".mov", ".m4v",
-    ".3gp", ".mpeg", ".mpg", ".avi", ".flv",
-    ".wmv", ".ts", ".ogv", ".m2ts",
+    ".mp4",
+    ".mkv",
+    ".webm",
+    ".mov",
+    ".m4v",
+    ".3gp",
+    ".mpeg",
+    ".mpg",
+    ".avi",
+    ".flv",
+    ".wmv",
+    ".ts",
+    ".ogv",
+    ".m2ts",
+}
+
+# Directories we should never waste time scanning (Protected Android/System folders)
+_EXCLUDED_DIRS = {
+    "Android",
+    "LOST.DIR",
+    "data",
+    "obb",
+    "System Volume Information",
+    "$RECYCLE.BIN",
 }
 
 _SKIP_ATTR = 0x0004
@@ -72,7 +96,9 @@ def _format_modified(mtime: float) -> str:
         return ""
 
 
-def scan_videos(root_paths: list[str], max_depth: int = LOCAL_SCAN_MAX_DEPTH) -> list[VideoFolder]:
+def scan_videos(
+    root_paths: list[str], max_depth: int = LOCAL_SCAN_MAX_DEPTH
+) -> list[VideoFolder]:
     folder_map: dict[str, VideoFolder] = {}
 
     for root_str in root_paths:
@@ -82,7 +108,13 @@ def scan_videos(root_paths: list[str], max_depth: int = LOCAL_SCAN_MAX_DEPTH) ->
 
         for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
             current = Path(dirpath)
-            depth = len(current.relative_to(root).parts)
+
+            # Depth calculation
+            try:
+                depth = len(current.relative_to(root).parts)
+            except ValueError:
+                depth = 0
+
             if depth > max_depth:
                 dirnames.clear()
                 continue
@@ -95,12 +127,11 @@ def scan_videos(root_paths: list[str], max_depth: int = LOCAL_SCAN_MAX_DEPTH) ->
                 dirnames.clear()
                 continue
 
-            # Specifically skip the Android root folder to avoid Scoped Storage PermissionErrors
-            if current.name == "Android" and depth == 1:
-                dirnames.clear()
-                continue
-
-            dirnames[:] = [d for d in dirnames if not d.startswith(".")]
+            # PHASE 3: Bulletproofing.
+            # Aggressively remove hidden and protected folders from the queue BEFORE walking into them.
+            dirnames[:] = [
+                d for d in dirnames if not d.startswith(".") and d not in _EXCLUDED_DIRS
+            ]
 
             video_files = []
             for fname in filenames:
@@ -108,12 +139,14 @@ def scan_videos(root_paths: list[str], max_depth: int = LOCAL_SCAN_MAX_DEPTH) ->
                 if _is_video_file(fpath):
                     try:
                         stat = fpath.stat()
-                        video_files.append(LocalVideo(
-                            name=fname,
-                            path=str(fpath),
-                            size=stat.st_size,
-                            modified=stat.st_mtime,
-                        ))
+                        video_files.append(
+                            LocalVideo(
+                                name=fname,
+                                path=str(fpath),
+                                size=stat.st_size,
+                                modified=stat.st_mtime,
+                            )
+                        )
                     except (OSError, PermissionError):
                         continue
 
@@ -133,7 +166,16 @@ def scan_videos(root_paths: list[str], max_depth: int = LOCAL_SCAN_MAX_DEPTH) ->
     return result
 
 
+# --- Platform helpers (extracted from local_tab.py) ---
+
+
+def is_mobile() -> bool:
+    """Detect if running on Android/iOS (not desktop/web)."""
+    return os.name != "nt" and not os.environ.get("FLET_WEB")
+
+
 def get_default_scan_paths() -> list[str]:
+    """Fallback paths if Flet StoragePaths service is unavailable."""
     paths = []
 
     home = Path.home()
@@ -144,15 +186,19 @@ def get_default_scan_paths() -> list[str]:
             if p.exists() and p.is_dir():
                 paths.append(str(p))
     else:
-        if home.exists():
+        # Desktop POSIX
+        if home.exists() and home.name != "0":  # Exclude termux root
             paths.append(str(home))
+
+        # Android Scoped-Storage safe fallback paths
         storage_root = Path("/storage")
-        if storage_root.exists():
-            for child in storage_root.iterdir():
-                if child.is_dir() and child.name not in ("emulated", "self"):
-                    paths.append(str(child))
-            emulated = storage_root / "emulated" / "0"
-            if emulated.exists():
-                paths.append(str(emulated))
+        emulated_root = storage_root / "emulated" / "0"
+
+        if emulated_root.exists():
+            # PHASE 2: Scoped Storage Bypass. Target specific public folders instead of the root.
+            for safe_folder in ("Movies", "Download", "DCIM", "Pictures", "Video"):
+                target = emulated_root / safe_folder
+                if target.exists() and target.is_dir():
+                    paths.append(str(target))
 
     return paths

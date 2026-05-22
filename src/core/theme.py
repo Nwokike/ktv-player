@@ -56,7 +56,11 @@ class AppColors:
             return AppColors.DARK_SURFACE_VARIANT
         try:
             is_dark = page.platform_brightness == ft.Brightness.DARK
-            return AppColors.DARK_SURFACE_VARIANT if is_dark else AppColors.LIGHT_SURFACE_VARIANT
+            return (
+                AppColors.DARK_SURFACE_VARIANT
+                if is_dark
+                else AppColors.LIGHT_SURFACE_VARIANT
+            )
         except Exception:
             return AppColors.DARK_SURFACE_VARIANT
 
