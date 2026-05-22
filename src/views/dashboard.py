@@ -94,7 +94,7 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
         if index == 0:
             build_channel_groups(
                 inner,
-                0,
+                1,
                 page_obj,
                 on_play,
                 ad_service,
@@ -105,7 +105,7 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
         elif index == 1:
             build_channel_groups(
                 inner,
-                1,
+                0,
                 page_obj,
                 on_play,
                 ad_service,
@@ -329,8 +329,8 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
 
     tab_bar = ft.TabBar(
         tabs=[
-            ft.Tab(label=LBL_COUNTRIES, icon=ft.Icons.PUBLIC),
             ft.Tab(label=LBL_CATEGORIES, icon=ft.Icons.CATEGORY),
+            ft.Tab(label=LBL_COUNTRIES, icon=ft.Icons.PUBLIC),
             ft.Tab(label=LBL_CUSTOM, icon=ft.Icons.PLAYLIST_ADD),
             ft.Tab(label=LBL_LOCAL, icon=ft.Icons.FOLDER),
             ft.Tab(label=LBL_SETTINGS, icon=ft.Icons.SETTINGS),

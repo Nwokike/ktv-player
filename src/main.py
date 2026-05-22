@@ -5,6 +5,7 @@ import base64
 import contextlib
 import logging
 import re
+import time
 import urllib.parse
 
 import flet as ft
@@ -294,9 +295,11 @@ class AppController:
             self.page.update()
 
     async def _splash_flow(self):
-        # Load channels during splash so countries are ready for onboarding
+        t0 = time.monotonic()
         await self.load_channels()
-        await asyncio.sleep(SPLASH_DURATION)
+        remaining = SPLASH_DURATION - (time.monotonic() - t0)
+        if remaining > 0:
+            await asyncio.sleep(remaining)
 
         if state.is_first_launch or not state.has_accepted_terms:
             from views.onboarding import build_onboarding_view
