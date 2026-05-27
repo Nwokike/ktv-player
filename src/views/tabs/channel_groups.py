@@ -162,6 +162,103 @@ def build_channel_groups(
     """Build expansion tiles for channel groups. Used by Countries, Categories, and Custom tabs."""
     from components.ui.channel_grid import build_channel_grid
 
+    if not state.channels and tab_index in (0, 1):
+        reload_btn = ft.Ref[ft.FilledButton]()
+
+        async def handle_reload(e):
+            if not hasattr(page_obj, "load_channels"):
+                return
+
+            reload_btn.current.disabled = True
+            reload_btn.current.icon = None
+            reload_btn.current.content = "Reloading..."
+            page_obj.update()
+
+            try:
+                await page_obj.load_channels(force=True)
+                if state.channels:
+                    if hasattr(page_obj, "refresh_dashboard"):
+                        page_obj.refresh_dashboard()
+                else:
+                    page_obj.snack_bar = ft.SnackBar(
+                        ft.Text(
+                            "Unable to download playlist. Check your internet connection."
+                        ),
+                        bgcolor=AppColors.ERROR,
+                    )
+                    page_obj.snack_bar.open = True
+                    page_obj.update()
+            except Exception as err:
+                page_obj.snack_bar = ft.SnackBar(
+                    ft.Text(f"Failed to load channels: {str(err)}"),
+                    bgcolor=AppColors.ERROR,
+                )
+                page_obj.snack_bar.open = True
+                page_obj.update()
+            finally:
+                reload_btn.current.disabled = False
+                reload_btn.current.icon = ft.Icons.REFRESH
+                reload_btn.current.content = "Reload Playlist"
+                page_obj.update()
+
+        placeholder_card = ft.Container(
+            content=ft.Column(
+                [
+                    ft.Container(
+                        content=ft.Icon(
+                            ft.Icons.SIGNAL_WIFI_OFF_ROUNDED,
+                            size=40,
+                            color=AppColors.PRIMARY,
+                        ),
+                        bgcolor=ft.Colors.with_opacity(0.1, AppColors.PRIMARY),
+                        padding=15,
+                        border_radius=40,
+                    ),
+                    ft.Container(height=8),
+                    ft.Text(
+                        "Network Playlist Offline",
+                        size=18,
+                        weight=ft.FontWeight.BOLD,
+                        text_align=ft.TextAlign.CENTER,
+                    ),
+                    ft.Text(
+                        "Connect to the internet to load free-to-air international channels, "
+                        "or browse local videos and custom playlists in other tabs.",
+                        size=13,
+                        text_align=ft.TextAlign.CENTER,
+                        color=AppColors.GREY_DIM,
+                        width=320,
+                    ),
+                    ft.Container(height=12),
+                    ft.FilledButton(
+                        ref=reload_btn,
+                        content="Reload Playlist",
+                        icon=ft.Icons.REFRESH,
+                        on_click=lambda e: page_obj.run_task(handle_reload, e),
+                        style=ft.ButtonStyle(
+                            color="white",
+                            bgcolor=AppColors.PRIMARY,
+                            padding=ft.Padding(24, 12, 24, 12),
+                            shape=ft.RoundedRectangleBorder(radius=12),
+                        ),
+                        width=220,
+                    ),
+                ],
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                alignment=ft.MainAxisAlignment.CENTER,
+                spacing=8,
+            ),
+            padding=24,
+            border_radius=16,
+            bgcolor=ft.Colors.with_opacity(0.03, ft.Colors.ON_SURFACE),
+            border=ft.Border.all(1, ft.Colors.with_opacity(0.08, ft.Colors.ON_SURFACE)),
+            alignment=ft.Alignment(0, 0),
+            margin=ft.Margin(0, 40, 0, 40),
+        )
+
+        target.controls.append(placeholder_card)
+        return
+
     query = view_state["search_query"].lower()
 
     groups = (

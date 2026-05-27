@@ -308,6 +308,7 @@ class AppController:
                 page_obj=self.page,
                 countries=channel_provider.get_countries(),
                 on_complete=self._onboarding_complete,
+                load_channels=self.load_channels,
             )
             self.page.views.clear()
             self.page.views.append(onboarding)

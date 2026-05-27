@@ -1,6 +1,6 @@
 APP_NAME = "KTV Player"
 APP_TAGLINE = "High-Speed Streaming Engine"
-APP_VERSION = "1.1.0"
+APP_VERSION = "1.2.0"
 
 # Error messages
 ERR_NETWORK = "Stream unavailable or network timeout."
