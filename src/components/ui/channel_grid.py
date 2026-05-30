@@ -11,7 +11,7 @@ from core.constants import (
     LOGO_SIZE,
     STATUS_DOT_SIZE,
 )
-from core.focus_manager import make_focusable_card, next_tab_index
+from core.focus_manager import next_tab_index
 from core.state import state
 from core.theme import AppColors
 from database.manager import db_manager
@@ -133,7 +133,6 @@ def create_channel_card(
     )
     card.tab_index = next_tab_index()
     card.data = {"url": url, "indicator": status_indicator}
-    make_focusable_card(card)
 
     return card
 

@@ -19,7 +19,6 @@ from core.constants import (
     LOCAL_SCAN_CACHE_TTL,
     PAGE_SIZE,
 )
-from core.focus_manager import make_focusable_card
 from core.theme import AppColors
 from services.local_scanner import (
     _format_size,
@@ -194,7 +193,6 @@ def _build_video_card(video, idx, on_play, page_obj):
         on_click=lambda e, path=video.path: page_obj.run_task(on_play, path),
     )
     card.tab_index = idx + 10
-    make_focusable_card(card)
 
     return card
 

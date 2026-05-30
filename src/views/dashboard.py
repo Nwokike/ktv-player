@@ -15,7 +15,6 @@ from core.constants import (
     LBL_SEARCH_HINT,
     LBL_SETTINGS,
 )
-from core.focus_manager import make_focusable_button
 from core.state import state
 from core.theme import AppColors
 from database.manager import db_manager
@@ -237,7 +236,6 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
                 on_click=lambda e, u=url: page_obj.run_task(on_play, u),
             )
             card.tab_index = 0
-            make_focusable_button(card)
             recently_watched_row.controls.append(card)
 
     recently_watched_section = ft.Container(
@@ -296,7 +294,6 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
         on_click=handle_theme_toggle,
     )
     theme_btn.tab_index = 0
-    make_focusable_button(theme_btn)
 
     # --- Header ---
 
