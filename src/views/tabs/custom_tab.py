@@ -1,5 +1,4 @@
 import base64
-import contextlib
 import logging
 import time
 
@@ -34,15 +33,7 @@ _FB = "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9pbmRleC5tM3U="
 _last_add_time = 0.0
 
 
-def _style_focusable(control, focused):
-    if focused:
-        control.bgcolor = ft.Colors.with_opacity(0.1, AppColors.PRIMARY)
-        control.border = ft.Border.all(2, AppColors.PRIMARY)
-    else:
-        control.bgcolor = None
-        control.border = ft.Border.all(1, AppColors.GREY_DIM)
-    with contextlib.suppress(Exception):
-        control.update()
+
 
 
 def build_custom_tab_content(
@@ -161,8 +152,6 @@ def build_custom_tab_content(
             on_click=lambda e: page_obj.run_task(focus_field, ref),
         )
         container.tab_index = 0
-        container.on_focus = lambda e: _style_focusable(e.control, True)
-        container.on_blur = lambda e: _style_focusable(e.control, False)
         return container
 
     dialog = ft.AlertDialog(

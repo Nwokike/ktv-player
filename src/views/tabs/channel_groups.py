@@ -106,28 +106,7 @@ def _search_channels(
     return groups
 
 
-def _on_tile_focus(control, focused):
-    if focused:
-        control.collapsed_bgcolor = ft.Colors.with_opacity(0.12, AppColors.PRIMARY)
-        control.bgcolor = ft.Colors.with_opacity(0.12, AppColors.PRIMARY)
-        control.border = ft.Border.all(2, AppColors.PRIMARY)
-        control.border_radius = 12
-    else:
-        control.collapsed_bgcolor = ft.Colors.TRANSPARENT
-        control.bgcolor = ft.Colors.with_opacity(0.03, ft.Colors.ON_SURFACE)
-        control.border = ft.Border.all(0, ft.Colors.TRANSPARENT)
-        control.border_radius = 0
-    with contextlib.suppress(Exception):
-        control.update()
 
-
-def _hint_focus(control, focused):
-    if focused:
-        control.bgcolor = ft.Colors.with_opacity(0.08, AppColors.PRIMARY)
-    else:
-        control.bgcolor = None
-    with contextlib.suppress(Exception):
-        control.update()
 
 
 def _collapse_other_tiles(current_tile, active_tiles):
@@ -371,8 +350,6 @@ def build_channel_groups(
                 on_click=lambda e: None,
             )
             hint_btn.tab_index = 998
-            hint_btn.on_focus = lambda e: _hint_focus(e.control, True)
-            hint_btn.on_blur = lambda e: _hint_focus(e.control, False)
             tile_controls.append(hint_btn)
 
             if total > PAGE_SIZE:

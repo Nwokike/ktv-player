@@ -37,12 +37,7 @@ _sp = None  # StoragePaths instance
 _fp = None  # FilePicker instance
 
 
-def _hint_focus_local(control, focused):
-    control.bgcolor = (
-        ft.Colors.with_opacity(0.08, AppColors.PRIMARY) if focused else None
-    )
-    with contextlib.suppress(Exception):
-        control.update()
+
 
 
 # --- Permission & Service Helpers ---
@@ -287,8 +282,6 @@ def _show_local_page(tile, folder, offset, page_obj, on_play):
         on_click=lambda e: None,
     )
     hint.tab_index = 998
-    hint.on_focus = lambda e: _hint_focus_local(e.control, True)
-    hint.on_blur = lambda e: _hint_focus_local(e.control, False)
     tile.controls.append(hint)
 
     if end < total:
@@ -328,19 +321,7 @@ def _show_local_page(tile, folder, offset, page_obj, on_play):
     tile.update()
 
 
-def _on_tile_focus(control, focused):
-    if focused:
-        control.collapsed_bgcolor = ft.Colors.with_opacity(0.12, AppColors.PRIMARY)
-        control.bgcolor = ft.Colors.with_opacity(0.12, AppColors.PRIMARY)
-        control.border = ft.Border.all(2, AppColors.PRIMARY)
-        control.border_radius = 12
-    else:
-        control.collapsed_bgcolor = ft.Colors.TRANSPARENT
-        control.bgcolor = ft.Colors.with_opacity(0.03, ft.Colors.ON_SURFACE)
-        control.border = ft.Border.all(0, ft.Colors.TRANSPARENT)
-        control.border_radius = 0
-    with contextlib.suppress(Exception):
-        control.update()
+
 
 
 def _render_scanning(target):
@@ -492,8 +473,6 @@ def _render_folder_tiles(
             ),
         )
         tile_wrapper.tab_index = 0
-        tile_wrapper.on_focus = lambda e, t=exp_tile: _on_tile_focus(t, True)
-        tile_wrapper.on_blur = lambda e, t=exp_tile: _on_tile_focus(t, False)
 
         if should_expand and len(folder.videos) > PAGE_SIZE:
             next_offset = PAGE_SIZE

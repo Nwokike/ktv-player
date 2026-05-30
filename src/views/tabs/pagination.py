@@ -1,6 +1,5 @@
 """Pagination controls for channel grids."""
 
-import contextlib
 
 import flet as ft
 
@@ -16,17 +15,7 @@ from core.theme import AppColors
 def build_nav_btn(icon, label, **kwargs):
     """Build a styled pagination button using Container (D-pad focusable)."""
 
-    def _on_focus(e):
-        e.control.bgcolor = ft.Colors.with_opacity(0.12, AppColors.PRIMARY)
-        e.control.border = ft.Border.all(2, AppColors.PRIMARY)
-        with contextlib.suppress(Exception):
-            e.control.update()
 
-    def _on_blur(e):
-        e.control.bgcolor = None
-        e.control.border = ft.Border.all(1.5, AppColors.PRIMARY)
-        with contextlib.suppress(Exception):
-            e.control.update()
 
     btn = ft.Container(
         content=ft.Row(
@@ -44,8 +33,6 @@ def build_nav_btn(icon, label, **kwargs):
         animate=ft.Animation(150, ft.AnimationCurve.EASE_OUT),
     )
     btn.tab_index = 900
-    btn.on_focus = _on_focus
-    btn.on_blur = _on_blur
     return btn
 
 
@@ -105,12 +92,6 @@ def show_page(tile, channels, offset, page_obj, on_play, ad_service, liveliness)
     new_controls.append(grid)
 
     # D-pad focus anchor
-    def _hint_focus(e, focused):
-        e.control.bgcolor = (
-            ft.Colors.with_opacity(0.08, AppColors.PRIMARY) if focused else None
-        )
-        with contextlib.suppress(Exception):
-            e.control.update()
 
     hint_btn = ft.Container(
         content=ft.Row(
@@ -136,8 +117,6 @@ def show_page(tile, channels, offset, page_obj, on_play, ad_service, liveliness)
         on_click=lambda e: None,
     )
     hint_btn.tab_index = 998
-    hint_btn.on_focus = lambda e: _hint_focus(e, True)
-    hint_btn.on_blur = lambda e: _hint_focus(e, False)
     new_controls.append(hint_btn)
 
     # Next page button
