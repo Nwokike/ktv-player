@@ -244,13 +244,21 @@ class AppController:
     # --- Deep Link ---
 
     def _handle_deep_link(self, url_str: str):
-        if not url_str.startswith(DEEP_LINK_PLAY_PREFIX):
+        # Parse the query parameters from the ktv:// URL
+        parsed = urllib.parse.urlparse(url_str)
+        if parsed.scheme != "ktv":
             return
-        encoded = url_str[len(DEEP_LINK_PLAY_PREFIX) :]
+        query = urllib.parse.parse_qs(parsed.query)
+        encoded = query.get("url", [None])[0]
+        if not encoded:
+            logger.warning("Deep link missing 'url' parameter: %s", url_str)
+            return
         try:
             decoded = base64.urlsafe_b64decode(encoded).decode("utf-8")
             if _is_valid_play_url(decoded):
                 self.page.run_task(self.play_stream, decoded)
+            else:
+                logger.warning("Deep link decoded invalid URL: %s", decoded[:80])
         except Exception:
             logger.exception("Failed to decode deep link")
 

@@ -48,6 +48,26 @@ requestLegacyExternalStorage = "true"
 scheme = "ktv"
 host = "play"
 
+# IMPORTANT: This APK MUST be built with the following flags to ensure
+# the Android intent filter is generated in AndroidManifest.xml:
+#
+#   flet build apk --deep-linking-scheme "ktv" --deep-linking-host "play"
+#
+# Also include when building AAB for Play Store:
+#
+#   flet build aab --deep-linking-scheme "ktv" --deep-linking-host "play"
+#
+# Without these flags, other apps (Nkiri TV, AnimePahe TV, LiveScore TV)
+# will be unable to launch KTV Player via ktv:// deep links. After building,
+# verify intent-filter exists in the generated AndroidManifest.xml:
+#
+#   <intent-filter>
+#       <action android:name="android.intent.action.VIEW" />
+#       <category android:name="android.intent.category.DEFAULT" />
+#       <category android:name="android.intent.category.BROWSABLE" />
+#       <data android:scheme="ktv" android:host="play" />
+#   </intent-filter>
+
 [dependency-groups]
 dev = [
     "ruff>=0.15.14",
