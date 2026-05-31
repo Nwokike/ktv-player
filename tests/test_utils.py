@@ -1,6 +1,5 @@
 """Tests for core utility functions."""
 
-
 from src.core.utils import escape_html
 
 

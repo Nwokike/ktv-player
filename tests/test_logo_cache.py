@@ -1,7 +1,5 @@
 """Tests for the logo cache service."""
 
-
-
 from src.services.logo_cache import (
     _detect_image_type,
     _get_cached_path,

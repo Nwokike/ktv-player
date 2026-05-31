@@ -1,5 +1,4 @@
 import asyncio
-import contextlib
 import logging
 import re
 from collections.abc import Callable
@@ -278,7 +277,9 @@ class ImmersivePlayer(ft.Stack):
             try:
                 self.update()
             except Exception as ex:
-                logger.debug("Failed to hide overlay (component might be unmounted): %s", ex)
+                logger.debug(
+                    "Failed to hide overlay (component might be unmounted): %s", ex
+                )
 
     def _enable_tap_to_close(self):
         self.overlay.on_click = lambda _: self.page.run_task(self.handle_close)
@@ -316,7 +317,7 @@ class ImmersivePlayer(ft.Stack):
     async def _retry_playback(self):
         try:
             await asyncio.sleep(STREAM_RETRY_DELAY)
-            
+
             # Prevent retrying if player was closed during sleep
             if self._is_closing:
                 return
@@ -348,7 +349,7 @@ class ImmersivePlayer(ft.Stack):
     async def _reconnect_stream(self):
         if self._is_closing:
             return
-            
+
         try:
             if self.video:
                 self.video.playlist = [
@@ -371,7 +372,7 @@ class ImmersivePlayer(ft.Stack):
                 await self.video.stop()
         except Exception as ex:
             logger.debug("Ignored error while stopping video on close: %s", ex)
-            
+
         self._is_final_error = True
 
     async def _on_back(self, e: ft.ControlEvent | None = None):

@@ -1,6 +1,5 @@
 """Tests for the URL validator in main.py."""
 
-
 import pytest
 
 
