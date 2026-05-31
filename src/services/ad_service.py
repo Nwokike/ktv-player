@@ -105,14 +105,16 @@ class AdService:
             if not _HAS_FLET_ADS or not self.page.platform.is_mobile():
                 return
 
+            logger.info("Preloading new InterstitialAd...")
             self.interstitial = fta.InterstitialAd(
                 unit_id=self.get_interstitial_unit_id(),
-                on_load=lambda e: None,
+                on_load=lambda e: logger.info("Interstitial ad preloaded successfully"),
                 on_error=lambda e: self._handle_preload_error(on_close),
                 on_close=self._handle_close,
             )
             self._preload_retry_count = 0
         except Exception:
+            logger.exception("Failed to preload InterstitialAd")
             self._handle_preload_error(on_close)
 
     def _handle_preload_error(self, on_close: Callable | None = None):
@@ -127,21 +129,88 @@ class AdService:
             await self.preload_interstitial(on_close)
 
     async def _handle_close(self, e):
+        logger.info("Interstitial ad closed by user")
+        self.interstitial = None
+
+        # Trigger event to resume video playback
+        if hasattr(self, "_ad_closed_event") and self._ad_closed_event:
+            self._ad_closed_event.set()
+
         if self._on_interstitial_close:
             if asyncio.iscoroutinefunction(self._on_interstitial_close):
                 self.page.run_task(self._on_interstitial_close)
             else:
                 self._on_interstitial_close()
 
+        # Preload the next interstitial ad immediately for the next playback
         self.page.run_task(
             self.preload_interstitial, on_close=self._on_interstitial_close
         )
 
     async def show_interstitial(self) -> bool:
+        if not _HAS_FLET_ADS or not self.page.platform.is_mobile():
+            return False
+
+        # If we have a preloaded ad, show it
         if self.interstitial:
             try:
+                logger.info("Showing preloaded interstitial ad...")
+                self._ad_closed_event = asyncio.Event()
                 await self.interstitial.show()
+                # Wait for user to close it (with 30s timeout safety)
+                try:
+                    await asyncio.wait_for(self._ad_closed_event.wait(), timeout=30.0)
+                except asyncio.TimeoutError:
+                    logger.warning(
+                        "Timed out waiting for preloaded interstitial ad to close"
+                    )
                 return True
             except Exception:
-                return False
-        return False
+                logger.exception("Failed to show preloaded interstitial ad")
+                if hasattr(self, "_ad_closed_event") and self._ad_closed_event:
+                    self._ad_closed_event.set()
+                self.interstitial = None
+                # Fallback: try to load and show a fresh ad on-demand below
+
+        # If no ad is preloaded (or it failed), load and show a fresh ad on-demand
+        logger.info("No preloaded ad ready. Loading fresh ad on-demand...")
+        ad_closed = asyncio.Event()
+        ad_shown = False
+
+        async def show_on_load(e):
+            nonlocal ad_shown
+            try:
+                logger.info("On-demand interstitial ad loaded. Showing now...")
+                ad_shown = True
+                await fresh_ad.show()
+            except Exception:
+                logger.exception("Failed to show on-demand ad")
+                ad_closed.set()
+
+        def handle_error(e):
+            logger.error(f"On-demand ad error: {e.data}")
+            ad_closed.set()
+
+        def handle_close(e):
+            logger.info("On-demand ad closed by user")
+            ad_closed.set()
+            # Start preloading a new background ad for the next playback session
+            self.page.run_task(self.preload_interstitial)
+
+        try:
+            fresh_ad = fta.InterstitialAd(
+                unit_id=self.get_interstitial_unit_id(),
+                on_load=show_on_load,
+                on_error=handle_error,
+                on_close=handle_close,
+            )
+            # Wait up to 10 seconds for the ad to load and show. If it fails or takes
+            # too long, timeout and let the video play so the user isn't stuck.
+            try:
+                await asyncio.wait_for(ad_closed.wait(), timeout=10.0)
+            except asyncio.TimeoutError:
+                logger.warning("Timed out waiting for on-demand interstitial ad")
+            return ad_shown
+        except Exception:
+            logger.exception("Failed to create on-demand interstitial ad")
+            return False

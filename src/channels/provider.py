@@ -97,7 +97,7 @@ class ChannelProvider:
                         return self._channels
                     try:
                         client = get_http_client()
-                        response = await client.get(self.MASTER_PLAYLIST_URL)
+                        response = await client.get(self.MASTER_PLAYLIST_URL, timeout=30.0)
                         response.raise_for_status()
                         with open(_CACHE_FILE, "w", encoding="utf-8") as f:
                             f.write(response.text)
