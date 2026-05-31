@@ -1,6 +1,5 @@
 """Tests for the M3U playlist parser."""
 
-import pytest
 
 from src.services.m3u_parser import parse_m3u_text
 

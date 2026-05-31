@@ -1,12 +1,9 @@
 """Tests for the focus manager and tab index utilities."""
 
-import sys
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 from src.core.focus_manager import (
-    _tab_index_counter,
     next_tab_index,
     reset_tab_counter,
 )

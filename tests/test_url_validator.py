@@ -1,7 +1,5 @@
 """Tests for the URL validator in main.py."""
 
-import sys
-from unittest.mock import Mock, patch
 
 import pytest
 

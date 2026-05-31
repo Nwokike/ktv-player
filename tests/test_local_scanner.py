@@ -1,9 +1,7 @@
 """Tests for the local video scanner."""
 
-import tempfile
 from pathlib import Path
 
-import pytest
 
 from src.services.local_scanner import (
     _format_size,

@@ -1,13 +1,9 @@
 """Tests for the logo cache service."""
 
-import tempfile
-from pathlib import Path
 
-import pytest
 
 from src.services.logo_cache import (
     _detect_image_type,
-    _evict_oldest_if_needed,
     _get_cached_path,
     get_cached_logo,
 )
