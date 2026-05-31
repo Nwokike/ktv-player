@@ -36,8 +36,6 @@ jobs:
           uv add pillow
           uv run python -c "from PIL import Image; Image.open('src/assets/icon.png').save('src/assets/icon.ico', format='ICO', sizes=[(256, 256)])"
 
-      - name: Install Inno Setup
-        run: choco install innosetup --no-progress --confirm
       - name: Build Windows Installer (Inno Setup)
         run: |
           $IssContent = @"
