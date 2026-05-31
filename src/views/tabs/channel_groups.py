@@ -82,7 +82,9 @@ def _build_groups(channels: list[dict], tab_index: int) -> dict[str, list[dict]]
 
 
 def _search_channels(
-    channels: list[dict], query: str, tab_index: int
+    channels: list[dict],
+    query: str,
+    tab_index: int,
 ) -> dict[str, list[dict]]:
     """Filter channels by search query using the same classify_channel logic."""
     groups: dict[str, list[dict]] = {}
@@ -115,7 +117,13 @@ def _collapse_other_tiles(current_tile, active_tiles):
 
 
 def _handle_expansion(
-    e, channels, active_tiles, page_obj, on_play, ad_service, liveliness
+    e,
+    channels,
+    active_tiles,
+    page_obj,
+    on_play,
+    ad_service,
+    liveliness,
 ):
     if str(e.data).lower() == "true":
         _collapse_other_tiles(e.control, active_tiles)
@@ -134,15 +142,17 @@ def build_channel_groups(
     liveliness,
     view_state,
     active_tiles,
+    load_channels=None,
 ):
     """Build expansion tiles for channel groups. Used by Countries, Categories, and Custom tabs."""
     from components.ui.channel_grid import build_channel_grid
 
     if not state.channels and tab_index in (0, 1):
         reload_btn = ft.Ref[ft.FilledButton]()
+        load_channels_func = load_channels or getattr(page_obj, "load_channels", None)
 
         async def handle_reload(e):
-            if not hasattr(page_obj, "load_channels"):
+            if load_channels_func is None:
                 return
 
             reload_btn.current.disabled = True
@@ -151,14 +161,17 @@ def build_channel_groups(
             page_obj.update()
 
             try:
-                await page_obj.load_channels(force=True)
+                await load_channels_func(force=True)
                 if state.channels:
-                    if hasattr(page_obj, "refresh_dashboard"):
-                        page_obj.refresh_dashboard()
+                    refresh_dashboard_func = getattr(
+                        page_obj, "_dashboard_refresh", None
+                    )
+                    if refresh_dashboard_func:
+                        refresh_dashboard_func()
                 else:
                     page_obj.snack_bar = ft.SnackBar(
                         ft.Text(
-                            "Unable to download playlist. Check your internet connection."
+                            "Unable to download playlist. Check your internet connection.",
                         ),
                         bgcolor=AppColors.ERROR,
                     )
@@ -262,7 +275,7 @@ def build_channel_groups(
                     ft.Icon(ft.Icons.SEARCH_OFF, size=64, color=AppColors.GREY_DIM),
                     ft.Container(height=12),
                     ft.Text(
-                        "No results found",
+                        "No results found for your query",
                         size=16,
                         color=AppColors.GREY_DIM,
                         text_align=ft.TextAlign.CENTER,
@@ -275,7 +288,7 @@ def build_channel_groups(
                     ),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-            )
+            ),
         )
         return
 
@@ -283,7 +296,7 @@ def build_channel_groups(
         channels = groups[name]
         should_expand = bool(
             (tab_index == 0 and name == primary_country)
-            or (query and results_count < 10)
+            or (query and results_count < 10),
         )
 
         tile_controls = []
@@ -316,7 +329,7 @@ def build_channel_groups(
                         width=float("inf"),
                     ),
                     padding=ft.Padding(0, 5, 0, 5),
-                )
+                ),
             )
             tile_controls.append(grid)
 
@@ -325,11 +338,17 @@ def build_channel_groups(
                 content=ft.Row(
                     [
                         ft.Container(
-                            width=8, height=8, border_radius=4, bgcolor=ft.Colors.GREEN
+                            width=8,
+                            height=8,
+                            border_radius=4,
+                            bgcolor=ft.Colors.GREEN,
                         ),
                         ft.Text("Live", size=10, color=AppColors.GREY_DIM),
                         ft.Container(
-                            width=8, height=8, border_radius=4, bgcolor=ft.Colors.RED
+                            width=8,
+                            height=8,
+                            border_radius=4,
+                            bgcolor=ft.Colors.RED,
                         ),
                         ft.Text(
                             "Offline — Play green channels",
@@ -366,7 +385,13 @@ def build_channel_groups(
             title=ft.Text(f"{name} ({len(channels)})", weight=ft.FontWeight.BOLD),
             expanded=should_expand,
             on_change=lambda e, ch=channels: _handle_expansion(
-                e, ch, active_tiles, page_obj, on_play, ad_service, liveliness
+                e,
+                ch,
+                active_tiles,
+                page_obj,
+                on_play,
+                ad_service,
+                liveliness,
             ),
             controls=tile_controls,
             collapsed_bgcolor=ft.Colors.TRANSPARENT,

@@ -22,21 +22,29 @@ from database.manager import db_manager
 
 
 def build_preferences_tab_content(
-    target, page_obj, on_play, ad_service, liveliness, view_state, active_tiles
+    target,
+    page_obj,
+    on_play,
+    ad_service,
+    liveliness,
+    view_state,
+    active_tiles,
 ):
     async def handle_clear_history(e):
         await db_manager.clear_history()
         state.history = []
         page_obj.snack_bar = ft.SnackBar(
-            ft.Text(LBL_HISTORY_CLEARED), bgcolor=AppColors.SUCCESS
+            ft.Text(LBL_HISTORY_CLEARED),
+            bgcolor=AppColors.SUCCESS,
         )
         page_obj.snack_bar.open = True
         page_obj.update()
 
     async def handle_clear_custom(e):
         state.is_loading = True
-        if hasattr(page_obj, "refresh_dashboard"):
-            page_obj.refresh_dashboard()
+        refresh = getattr(page_obj, "_dashboard_refresh", None)
+        if refresh:
+            refresh()
         page_obj.update()
 
         await db_manager.clear_custom_content()
@@ -44,10 +52,12 @@ def build_preferences_tab_content(
             await page_obj.load_channels()
 
         state.is_loading = False
-        if hasattr(page_obj, "refresh_dashboard"):
-            page_obj.refresh_dashboard()
+        refresh = getattr(page_obj, "_dashboard_refresh", None)
+        if refresh:
+            refresh()
         page_obj.snack_bar = ft.SnackBar(
-            ft.Text(LBL_LIBRARY_RESET), bgcolor=AppColors.SUCCESS
+            ft.Text(LBL_LIBRARY_RESET),
+            bgcolor=AppColors.SUCCESS,
         )
         page_obj.snack_bar.open = True
         page_obj.update()
@@ -58,7 +68,7 @@ def build_preferences_tab_content(
             c.get("group", "").split(";")[0].strip()
             for c in state.channels
             if c.get("country_code")
-        }
+        },
     )
     if "Other" not in unique_countries:
         unique_countries.append("Other")
@@ -88,7 +98,7 @@ def build_preferences_tab_content(
                 )
             country_list.update()
             page_obj.snack_bar = ft.SnackBar(
-                ft.Text(LBL_COUNTRY_UPDATED.format(country=name))
+                ft.Text(LBL_COUNTRY_UPDATED.format(country=name)),
             )
             page_obj.snack_bar.open = True
             page_obj.update()
@@ -156,7 +166,7 @@ def build_preferences_tab_content(
             ],
             spacing=10,
             expand=True,
-        )
+        ),
     )
 
 

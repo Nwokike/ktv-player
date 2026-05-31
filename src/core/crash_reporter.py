@@ -11,8 +11,7 @@ def _get_crash_dir():
     storage_data = os.environ.get("FLET_APP_STORAGE_DATA")
     if storage_data:
         return os.path.join(storage_data, "crashes")
-    # Fallback for desktop — use storage/ relative to project root
-    return os.path.join("storage", "crashes")
+    return os.path.abspath(os.path.join("storage", "crashes"))
 
 
 MAX_CRASH_FILES = 10
@@ -53,7 +52,7 @@ def record_crash(exc: Exception, context: str = ""):
             f.write(f"Exception: {type(exc).__name__}: {exc}\n\n")
             f.write("Traceback:\n")
             f.write(
-                "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
+                "".join(traceback.format_exception(type(exc), exc, exc.__traceback__)),
             )
     except OSError:
         pass

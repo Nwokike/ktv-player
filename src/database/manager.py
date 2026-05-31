@@ -40,7 +40,8 @@ class DatabaseManager:
                         shutil.copy2(self.db_path, backup)
                         os.remove(self.db_path)
                         logger.info(
-                            "Corrupted DB backed up to %s, creating fresh DB", backup
+                            "Corrupted DB backed up to %s, creating fresh DB",
+                            backup,
                         )
                     self._conn = await aiosqlite.connect(self.db_path)
                     await self._conn.execute("PRAGMA journal_mode=WAL;")
@@ -112,7 +113,8 @@ class DatabaseManager:
     async def get_history(self, limit: int = 20):
         db = await self._get_conn()
         async with db.execute(
-            "SELECT url FROM history ORDER BY timestamp DESC LIMIT ?", (limit,)
+            "SELECT url FROM history ORDER BY timestamp DESC LIMIT ?",
+            (limit,),
         ) as cursor:
             rows = await cursor.fetchall()
             return [row[0] for row in rows]
@@ -127,14 +129,16 @@ class DatabaseManager:
     async def set_setting(self, key: str, value: str):
         db = await self._get_conn()
         await db.execute(
-            "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", (key, value)
+            "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+            (key, value),
         )
         await db.commit()
 
     async def get_setting(self, key: str, default=None):
         db = await self._get_conn()
         async with db.execute(
-            "SELECT value FROM settings WHERE key = ?", (key,)
+            "SELECT value FROM settings WHERE key = ?",
+            (key,),
         ) as cursor:
             row = await cursor.fetchone()
             return row[0] if row else default
@@ -144,7 +148,8 @@ class DatabaseManager:
     async def add_playlist(self, name: str, url: str):
         db = await self._get_conn()
         await db.execute(
-            "INSERT OR IGNORE INTO playlists (name, url) VALUES (?, ?)", (name, url)
+            "INSERT OR IGNORE INTO playlists (name, url) VALUES (?, ?)",
+            (name, url),
         )
         await db.commit()
 
@@ -167,7 +172,7 @@ class DatabaseManager:
     async def get_custom_channels(self):
         db = await self._get_conn()
         async with db.execute(
-            "SELECT name, url, logo, group_name FROM custom_channels"
+            "SELECT name, url, logo, group_name FROM custom_channels",
         ) as cursor:
             rows = await cursor.fetchall()
             return [
@@ -198,7 +203,7 @@ class DatabaseManager:
     async def get_favorites(self):
         db = await self._get_conn()
         async with db.execute(
-            "SELECT url, name, logo FROM favorites ORDER BY id DESC"
+            "SELECT url, name, logo FROM favorites ORDER BY id DESC",
         ) as cursor:
             rows = await cursor.fetchall()
             return [{"url": r[0], "name": r[1], "logo": r[2]} for r in rows]
@@ -222,7 +227,7 @@ class DatabaseManager:
     async def load_liveliness_cache(self) -> dict[str, tuple[bool, float]]:
         db = await self._get_conn()
         async with db.execute(
-            "SELECT url, is_live, updated_at FROM liveliness_cache"
+            "SELECT url, is_live, updated_at FROM liveliness_cache",
         ) as cursor:
             rows = await cursor.fetchall()
             return {r[0]: (bool(r[1]), float(r[2])) for r in rows}

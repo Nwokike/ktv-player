@@ -46,7 +46,10 @@ class ImmersivePlayer(ft.Stack):
             text_align=ft.TextAlign.CENTER,
         )
         self.loading_ring = ft.ProgressRing(
-            width=48, height=48, stroke_width=4, color=AppColors.PRIMARY
+            width=48,
+            height=48,
+            stroke_width=4,
+            color=AppColors.PRIMARY,
         )
         self.overlay = ft.Container(
             expand=True,
@@ -64,7 +67,10 @@ class ImmersivePlayer(ft.Stack):
         self._speed_idx = 2  # index of 1.0 in speeds list
         self._speeds = [0.25, 0.5, 1.0, 1.25, 1.5, 2.0]
         self.speed_text = ft.Text(
-            "1.0x", size=11, color=ft.Colors.WHITE, weight=ft.FontWeight.W_600
+            "1.0x",
+            size=11,
+            color=ft.Colors.WHITE,
+            weight=ft.FontWeight.W_600,
         )
 
         # Video player
@@ -217,7 +223,7 @@ class ImmersivePlayer(ft.Stack):
         self._reconnect_count = 0
         try:
             self.video.playlist = [
-                fv.VideoMedia(self.resource, http_headers=self.http_headers)
+                fv.VideoMedia(self.resource, http_headers=self.http_headers),
             ]
             self.video.update()
             await self.video.play()
@@ -281,7 +287,7 @@ class ImmersivePlayer(ft.Stack):
             await asyncio.sleep(STREAM_RETRY_DELAY)
             if self.video and not self._is_final_error:
                 self.video.playlist = [
-                    fv.VideoMedia(self.resource, http_headers=self.http_headers)
+                    fv.VideoMedia(self.resource, http_headers=self.http_headers),
                 ]
                 await self.video.play()
                 self.overlay.visible = False
@@ -306,7 +312,7 @@ class ImmersivePlayer(ft.Stack):
         try:
             if self.video:
                 self.video.playlist = [
-                    fv.VideoMedia(self.resource, http_headers=self.http_headers)
+                    fv.VideoMedia(self.resource, http_headers=self.http_headers),
                 ]
                 self.overlay.visible = False
                 self.update()

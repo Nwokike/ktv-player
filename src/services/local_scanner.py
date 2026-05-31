@@ -78,6 +78,8 @@ def _is_video_file(filepath: Path) -> bool:
 
 
 def _format_size(size_bytes: int) -> str:
+    if size_bytes < 0:
+        return "0 B"
     if size_bytes < 1024:
         return f"{size_bytes} B"
     elif size_bytes < 1024 * 1024:
@@ -97,7 +99,8 @@ def _format_modified(mtime: float) -> str:
 
 
 def scan_videos(
-    root_paths: list[str], max_depth: int = LOCAL_SCAN_MAX_DEPTH
+    root_paths: list[str],
+    max_depth: int = LOCAL_SCAN_MAX_DEPTH,
 ) -> list[VideoFolder]:
     folder_map: dict[str, VideoFolder] = {}
 
@@ -145,7 +148,7 @@ def scan_videos(
                                 path=str(fpath),
                                 size=stat.st_size,
                                 modified=stat.st_mtime,
-                            )
+                            ),
                         )
                     except (OSError, PermissionError):
                         continue

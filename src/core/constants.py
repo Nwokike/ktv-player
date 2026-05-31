@@ -1,6 +1,5 @@
 APP_NAME = "KTV Player"
-APP_TAGLINE = "High-Speed Streaming Engine"
-APP_VERSION = "1.2.0"
+APP_VERSION = "1.3.0"
 
 # Error messages
 ERR_NETWORK = "Stream unavailable or network timeout."
@@ -21,9 +20,9 @@ LBL_PLEASE_ACCEPT_TERMS = "Please accept the usage agreement to continue."
 LBL_PLEASE_SELECT_COUNTRY = "Please select your country."
 LBL_COUNTRY_UPDATED = "Primary country updated to {country}"
 
+
 # Dashboard
 LBL_SEARCH_HINT = "Search channels..."
-LBL_NO_RESULTS = "No results found"
 LBL_LOADING_CHANNELS = "Fetching and validating channels..."
 LBL_LOADING_CHANNELS_SUB = "Please wait, massive playlists may take a moment."
 
@@ -49,7 +48,6 @@ LBL_ADD = "Add Content"
 LBL_ADDED_SUCCESS = "{name} added successfully!"
 
 # Preferences
-LBL_PREFERENCES = "Preferences"
 LBL_LOCALIZATION = "Localization"
 LBL_LOCALIZATION_DESC = (
     "Select your home region to prioritize its networks at the top of your dashboard."
@@ -87,9 +85,6 @@ TERMS_TEXT = (
     "networks you manually configure within the custom library section of this app."
 )
 
-# Deep link
-DEEP_LINK_SCHEME = "ktv://"
-DEEP_LINK_PLAY_PREFIX = "ktv://play?url="
 
 # Numeric constants
 PAGE_SIZE = 24

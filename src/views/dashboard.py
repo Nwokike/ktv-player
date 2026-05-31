@@ -1,5 +1,6 @@
 """Dashboard view — main screen with tabs, search, and recently watched."""
 
+import asyncio
 import logging
 
 import flet as ft
@@ -51,7 +52,10 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
                 [
                     ft.Container(height=80),
                     ft.ProgressRing(
-                        width=60, height=60, stroke_width=6, color=AppColors.PRIMARY
+                        width=60,
+                        height=60,
+                        stroke_width=6,
+                        color=AppColors.PRIMARY,
                     ),
                     ft.Container(height=20),
                     ft.Text(
@@ -61,7 +65,9 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
                         weight=ft.FontWeight.BOLD,
                     ),
                     ft.Text(
-                        LBL_LOADING_CHANNELS_SUB, color=AppColors.GREY_DIM, size=12
+                        LBL_LOADING_CHANNELS_SUB,
+                        color=AppColors.GREY_DIM,
+                        size=12,
                     ),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
@@ -165,19 +171,34 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
             _tab_cache[i] = None
         build_tab(view_state["selected_tab"])
 
-    # --- Search ---
+    # --- Search with debounce ---
+
+    _search_debounce_task: asyncio.Task | None = None
 
     def execute_search(e=None):
+        nonlocal _search_debounce_task
         view_state["search_query"] = (
             search_field.value.strip() if search_field.value else ""
         )
         build_tab(view_state["selected_tab"])
+
+    def on_search_change(e):
+        nonlocal _search_debounce_task
+        if _search_debounce_task is not None:
+            _search_debounce_task.cancel()
+
+        async def debounce():
+            await asyncio.sleep(0.3)
+            execute_search()
+
+        _search_debounce_task = asyncio.create_task(debounce())
 
     search_field = ft.TextField(
         hint_text=LBL_SEARCH_HINT,
         border=ft.InputBorder.NONE,
         height=40,
         content_padding=ft.Padding(12, 0, 12, 0),
+        on_change=on_search_change,
         on_submit=execute_search,
         expand=True,
     )
@@ -188,8 +209,11 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
         scroll=ft.ScrollMode.AUTO,
         spacing=12,
     )
+    _rw_tab_counter = 0
 
     def build_recently_watched():
+        nonlocal _rw_tab_counter
+        _rw_tab_counter = 0
         recently_watched_row.controls.clear()
         if not state.history:
             return
@@ -207,6 +231,7 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
                 else None
             )
 
+            _rw_tab_counter += 1
             card = ft.Container(
                 content=ft.Column(
                     [
@@ -235,7 +260,7 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
                 ink=True,
                 on_click=lambda e, u=url: page_obj.run_task(on_play, u),
             )
-            card.tab_index = 0
+            card.tab_index = _rw_tab_counter
             recently_watched_row.controls.append(card)
 
     recently_watched_section = ft.Container(
@@ -262,29 +287,43 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
 
     # --- Theme Toggle ---
 
+    def _resolve_effective_mode():
+        if page_obj.theme_mode == ft.ThemeMode.SYSTEM:
+            try:
+                return (
+                    ft.ThemeMode.DARK
+                    if page_obj.platform_brightness == ft.Brightness.DARK
+                    else ft.ThemeMode.LIGHT
+                )
+            except Exception:
+                return ft.ThemeMode.DARK
+        return page_obj.theme_mode
+
     def handle_theme_toggle(e):
-        page_obj.theme_mode = (
-            ft.ThemeMode.LIGHT
-            if page_obj.theme_mode == ft.ThemeMode.DARK
-            else ft.ThemeMode.DARK
+        current = _resolve_effective_mode()
+        new_mode = (
+            ft.ThemeMode.LIGHT if current == ft.ThemeMode.DARK else ft.ThemeMode.DARK
         )
+        page_obj.theme_mode = new_mode
         theme_btn.content = ft.Icon(
             ft.Icons.LIGHT_MODE
-            if page_obj.theme_mode == ft.ThemeMode.DARK
+            if new_mode == ft.ThemeMode.DARK
             else ft.Icons.DARK_MODE,
             color=ft.Colors.ON_SURFACE,
         )
+        theme_btn.update()
         page_obj.run_task(
             db_manager.set_setting,
             "theme_mode",
-            "dark" if page_obj.theme_mode == ft.ThemeMode.DARK else "light",
+            "dark" if new_mode == ft.ThemeMode.DARK else "light",
         )
         page_obj.update()
 
+    initial_mode = _resolve_effective_mode()
     theme_btn = ft.Container(
         content=ft.Icon(
             ft.Icons.LIGHT_MODE
-            if page_obj.theme_mode == ft.ThemeMode.DARK
+            if initial_mode == ft.ThemeMode.DARK
             else ft.Icons.DARK_MODE,
             color=ft.Colors.ON_SURFACE,
         ),
@@ -331,7 +370,7 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
             ft.Tab(label=LBL_CUSTOM, icon=ft.Icons.PLAYLIST_ADD),
             ft.Tab(label=LBL_LOCAL, icon=ft.Icons.FOLDER),
             ft.Tab(label=LBL_SETTINGS, icon=ft.Icons.SETTINGS),
-        ]
+        ],
     )
 
     tabs_wrapper = ft.Tabs(
@@ -351,7 +390,7 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
                 content=ad_banner,
                 alignment=ft.Alignment.CENTER,
                 padding=ft.Padding(0, 5, 0, 5),
-            )
+            ),
         ]
         if ad_banner
         else []
@@ -381,8 +420,8 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
         padding=0,
     )
 
-    # Attach callbacks for child tabs to use
-    page_obj.refresh_dashboard = refresh_dashboard
+    # Store callbacks so child tabs can use them
+    page_obj._dashboard_refresh = refresh_dashboard
     page_obj.load_channels = load_channels
 
     # Build initial tab and recently watched

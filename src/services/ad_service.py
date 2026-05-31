@@ -24,7 +24,8 @@ class AdService:
         self.page = page
         self.interstitial: fta.InterstitialAd | None = None
         self._on_interstitial_close: Callable | None = None
-        self._preload_retry_count = 0
+        self._preload_retry_count: int = 0
+        self._ad_closed_event: asyncio.Event | None = None
 
     def get_banner_unit_id(self) -> str:
         return self.BANNER_ID
@@ -109,13 +110,19 @@ class AdService:
             self.interstitial = fta.InterstitialAd(
                 unit_id=self.get_interstitial_unit_id(),
                 on_load=lambda e: logger.info("Interstitial ad preloaded successfully"),
-                on_error=lambda e: self._handle_preload_error(on_close),
+                on_error=lambda e: self._on_preload_error(e, on_close),
                 on_close=self._handle_close,
             )
             self._preload_retry_count = 0
         except Exception:
             logger.exception("Failed to preload InterstitialAd")
             self._handle_preload_error(on_close)
+
+    def _on_preload_error(self, e, on_close: Callable | None = None):
+        logger.error(
+            "Interstitial preload error: %s", e.data if hasattr(e, "data") else e
+        )
+        self._handle_preload_error(on_close)
 
     def _handle_preload_error(self, on_close: Callable | None = None):
         self.interstitial = None
@@ -132,8 +139,7 @@ class AdService:
         logger.info("Interstitial ad closed by user")
         self.interstitial = None
 
-        # Trigger event to resume video playback
-        if hasattr(self, "_ad_closed_event") and self._ad_closed_event:
+        if self._ad_closed_event is not None:
             self._ad_closed_event.set()
 
         if self._on_interstitial_close:
@@ -144,7 +150,8 @@ class AdService:
 
         # Preload the next interstitial ad immediately for the next playback
         self.page.run_task(
-            self.preload_interstitial, on_close=self._on_interstitial_close
+            self.preload_interstitial,
+            on_close=self._on_interstitial_close,
         )
 
     async def show_interstitial(self) -> bool:
@@ -162,15 +169,14 @@ class AdService:
                     await asyncio.wait_for(self._ad_closed_event.wait(), timeout=30.0)
                 except asyncio.TimeoutError:
                     logger.warning(
-                        "Timed out waiting for preloaded interstitial ad to close"
+                        "Timed out waiting for preloaded interstitial ad to close",
                     )
                 return True
             except Exception:
                 logger.exception("Failed to show preloaded interstitial ad")
-                if hasattr(self, "_ad_closed_event") and self._ad_closed_event:
+                if self._ad_closed_event is not None:
                     self._ad_closed_event.set()
                 self.interstitial = None
-                # Fallback: try to load and show a fresh ad on-demand below
 
         # If no ad is preloaded (or it failed), load and show a fresh ad on-demand
         logger.info("No preloaded ad ready. Loading fresh ad on-demand...")
@@ -188,7 +194,8 @@ class AdService:
                 ad_closed.set()
 
         def handle_error(e):
-            logger.error(f"On-demand ad error: {e.data}")
+            err = e.data if hasattr(e, "data") else str(e)
+            logger.error("On-demand ad error: %s", err)
             ad_closed.set()
 
         def handle_close(e):

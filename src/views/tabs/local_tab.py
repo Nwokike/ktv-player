@@ -118,7 +118,7 @@ async def _get_scan_paths(custom_paths: list[str] = None) -> list[str]:
                         f"{ext_dir}/DCIM",
                         f"{ext_dir}/Pictures",
                         f"{ext_dir}/Video",
-                    ]
+                    ],
                 )
         except Exception:
             pass
@@ -152,7 +152,7 @@ def _build_video_card(video, idx, on_play, page_obj):
                             height=8,
                             border_radius=4,
                             bgcolor=AppColors.SUCCESS,
-                        )
+                        ),
                     ],
                     alignment=ft.MainAxisAlignment.END,
                 ),
@@ -199,7 +199,9 @@ def _show_local_page(tile, folder, offset, page_obj, on_play):
         and isinstance(tile.controls[0], ft.TextButton)
         and "Remove"
         in getattr(
-            tile.controls[0].content, "value", getattr(tile.controls[0], "text", "")
+            tile.controls[0].content,
+            "value",
+            getattr(tile.controls[0], "text", ""),
         )
     )
     preserved_btn = tile.controls[0] if has_remove_btn else None
@@ -226,8 +228,9 @@ def _show_local_page(tile, folder, offset, page_obj, on_play):
             style=ft.ButtonStyle(
                 bgcolor={
                     ft.ControlState.FOCUSED: ft.Colors.with_opacity(
-                        0.12, AppColors.PRIMARY
-                    )
+                        0.12,
+                        AppColors.PRIMARY,
+                    ),
                 },
                 padding=15,
                 shape=ft.RoundedRectangleBorder(radius=10),
@@ -237,7 +240,11 @@ def _show_local_page(tile, folder, offset, page_obj, on_play):
                 },
             ),
             on_click=lambda e, off=prev_offset: _show_local_page(
-                tile, folder, off, page_obj, on_play
+                tile,
+                folder,
+                off,
+                page_obj,
+                on_play,
             ),
         )
         tile.controls.append(prev_btn)
@@ -253,14 +260,16 @@ def _show_local_page(tile, folder, offset, page_obj, on_play):
                 width=float("inf"),
             ),
             padding=ft.Padding(0, 5, 0, 5),
-        )
+        ),
     )
 
     grid = ft.ResponsiveRow(spacing=12, run_spacing=12)
     for i, v in enumerate(folder.videos[offset:end]):
         card = _build_video_card(v, offset + i, on_play, page_obj)
         wrapper = ft.Container(
-            content=card, col={"xs": 4, "sm": 3, "md": 2, "lg": 2}, padding=4
+            content=card,
+            col={"xs": 4, "sm": 3, "md": 2, "lg": 2},
+            padding=4,
         )
         grid.controls.append(wrapper)
     tile.controls.append(grid)
@@ -299,8 +308,9 @@ def _show_local_page(tile, folder, offset, page_obj, on_play):
             style=ft.ButtonStyle(
                 bgcolor={
                     ft.ControlState.FOCUSED: ft.Colors.with_opacity(
-                        0.12, AppColors.PRIMARY
-                    )
+                        0.12,
+                        AppColors.PRIMARY,
+                    ),
                 },
                 padding=15,
                 shape=ft.RoundedRectangleBorder(radius=10),
@@ -310,7 +320,11 @@ def _show_local_page(tile, folder, offset, page_obj, on_play):
                 },
             ),
             on_click=lambda e, off=end: _show_local_page(
-                tile, folder, off, page_obj, on_play
+                tile,
+                folder,
+                off,
+                page_obj,
+                on_play,
             ),
         )
         tile.controls.append(next_btn)
@@ -324,7 +338,10 @@ def _render_scanning(target):
             [
                 ft.Container(height=80),
                 ft.ProgressRing(
-                    width=60, height=60, stroke_width=6, color=AppColors.PRIMARY
+                    width=60,
+                    height=60,
+                    stroke_width=6,
+                    color=AppColors.PRIMARY,
                 ),
                 ft.Container(height=20),
                 ft.Text(
@@ -336,7 +353,7 @@ def _render_scanning(target):
                 ft.Text(LBL_SCANNING_DEVICE_SUB, color=AppColors.GREY_DIM, size=12),
             ],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-        )
+        ),
     )
 
 
@@ -365,7 +382,7 @@ def _render_permission_needed(target, on_grant):
                 ),
             ],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-        )
+        ),
     )
 
 
@@ -391,12 +408,18 @@ def _render_no_videos(target):
                 ),
             ],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-        )
+        ),
     )
 
 
 def _render_folder_tiles(
-    target, folders, active_tiles, page_obj, on_play, custom_paths, on_remove_custom
+    target,
+    folders,
+    active_tiles,
+    page_obj,
+    on_play,
+    custom_paths,
+    on_remove_custom,
 ):
     for folder in folders:
         should_expand = len(folders) == 1
@@ -410,7 +433,8 @@ def _render_folder_tiles(
                 icon_color=ft.Colors.ERROR,
                 style=ft.ButtonStyle(color=ft.Colors.ERROR),
                 on_click=lambda e, p=folder.path: page_obj.run_task(
-                    on_remove_custom, p
+                    on_remove_custom,
+                    p,
                 ),
             )
             tile_controls.append(remove_btn)
@@ -422,7 +446,9 @@ def _render_folder_tiles(
             for i, v in enumerate(folder.videos[:end]):
                 card = _build_video_card(v, i, on_play, page_obj)
                 grid.controls.append(
-                    ft.Container(content=card, col={"xs": 4, "sm": 3, "md": 2, "lg": 2})
+                    ft.Container(
+                        content=card, col={"xs": 4, "sm": 3, "md": 2, "lg": 2}
+                    ),
                 )
 
             tile_controls.append(
@@ -436,7 +462,7 @@ def _render_folder_tiles(
                         width=float("inf"),
                     ),
                     padding=ft.Padding(0, 5, 0, 5),
-                )
+                ),
             )
             tile_controls.append(grid)
 
@@ -451,7 +477,11 @@ def _render_folder_tiles(
             ),
             expanded=should_expand,
             on_change=lambda e, f=folder: _handle_local_expansion(
-                e, f, active_tiles, page_obj, on_play
+                e,
+                f,
+                active_tiles,
+                page_obj,
+                on_play,
             ),
             controls=tile_controls,
             collapsed_bgcolor=ft.Colors.TRANSPARENT,
@@ -488,8 +518,9 @@ def _render_folder_tiles(
                 style=ft.ButtonStyle(
                     bgcolor={
                         ft.ControlState.FOCUSED: ft.Colors.with_opacity(
-                            0.12, AppColors.PRIMARY
-                        )
+                            0.12,
+                            AppColors.PRIMARY,
+                        ),
                     },
                     padding=15,
                     shape=ft.RoundedRectangleBorder(radius=10),
@@ -499,7 +530,11 @@ def _render_folder_tiles(
                     },
                 ),
                 on_click=lambda e, t=exp_tile, f=folder: _show_local_page(
-                    t, f, PAGE_SIZE, page_obj, on_play
+                    t,
+                    f,
+                    PAGE_SIZE,
+                    page_obj,
+                    on_play,
                 ),
             )
             tile_controls.append(next_btn)
@@ -529,7 +564,13 @@ def _handle_local_expansion(e, folder, active_tiles, page_obj, on_play):
 
 
 def build_local_tab_content(
-    target, page_obj, on_play, ad_service, liveliness, view_state, active_tiles
+    target,
+    page_obj,
+    on_play,
+    ad_service,
+    liveliness,
+    view_state,
+    active_tiles,
 ):
     """Build the local videos tab."""
 
@@ -546,8 +587,8 @@ def build_local_tab_content(
             try:
                 # Modern Flet 1.0 architecture uses SharedPreferences service
                 await ft.SharedPreferences().set("ktv_custom_video_paths", custom_paths)
-            except Exception as e:
-                logger.error(f"Failed to remove SharedPreferences: {e}")
+            except Exception:
+                logger.exception("Failed to remove SharedPreferences")
             page_obj.run_task(scan_local)
 
     def render():
@@ -563,7 +604,8 @@ def build_local_tab_content(
             _render_scanning(target)
         elif not permission_granted:
             _render_permission_needed(
-                target, lambda _: page_obj.run_task(request_and_scan)
+                target,
+                lambda _: page_obj.run_task(request_and_scan),
             )
         elif not folders:
             _render_no_videos(target)
@@ -589,8 +631,8 @@ def build_local_tab_content(
                 view_state["custom_local_paths"] = (
                     saved if isinstance(saved, list) else []
                 )
-            except Exception as e:
-                logger.warning(f"Failed to load SharedPreferences: {e}")
+            except Exception:
+                logger.warning("Failed to load SharedPreferences", exc_info=True)
                 view_state["custom_local_paths"] = []
 
         now = time.time()
@@ -660,16 +702,19 @@ def build_local_tab_content(
                     try:
                         # Save securely to Android/Desktop
                         await ft.SharedPreferences().set(
-                            "ktv_custom_video_paths", custom_paths
+                            "ktv_custom_video_paths",
+                            custom_paths,
                         )
-                    except Exception as ex:
-                        logger.error(f"Failed to save SharedPreferences: {ex}")
+                    except Exception:
+                        logger.exception("Failed to save SharedPreferences")
 
                 # Trigger a fresh scan immediately after folder is added
                 page_obj.run_task(scan_local)
 
     refresh_btn = ft.IconButton(
-        icon=ft.Icons.REFRESH, on_click=handle_refresh, tooltip=LBL_REFRESH_LOCAL
+        icon=ft.Icons.REFRESH,
+        on_click=handle_refresh,
+        tooltip=LBL_REFRESH_LOCAL,
     )
     add_folder_btn = ft.IconButton(
         icon=ft.Icons.CREATE_NEW_FOLDER,

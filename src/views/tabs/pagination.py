@@ -47,11 +47,19 @@ def show_page(tile, channels, offset, page_obj, on_play, ad_service, liveliness)
     if offset > 0:
         prev_offset = max(0, offset - PAGE_SIZE)
         prev_label = LBL_SHOW_PREVIOUS.format(
-            count=offset - prev_offset, start=prev_offset + 1, end=offset
+            count=offset - prev_offset,
+            start=prev_offset + 1,
+            end=offset,
         )
         prev_btn = build_nav_btn(ft.Icons.EXPAND_LESS, prev_label)
         prev_btn.on_click = lambda e, off=prev_offset: show_page(
-            tile, channels, off, page_obj, on_play, ad_service, liveliness
+            tile,
+            channels,
+            off,
+            page_obj,
+            on_play,
+            ad_service,
+            liveliness,
         )
         new_controls.append(prev_btn)
 
@@ -67,7 +75,7 @@ def show_page(tile, channels, offset, page_obj, on_play, ad_service, liveliness)
                 width=float("inf"),
             ),
             padding=ft.Padding(0, 5, 0, 5),
-        )
+        ),
     )
 
     # Channel grid
@@ -94,7 +102,10 @@ def show_page(tile, channels, offset, page_obj, on_play, ad_service, liveliness)
         content=ft.Row(
             [
                 ft.Container(
-                    width=8, height=8, border_radius=4, bgcolor=ft.Colors.GREEN
+                    width=8,
+                    height=8,
+                    border_radius=4,
+                    bgcolor=ft.Colors.GREEN,
                 ),
                 ft.Text("Live", size=10, color=AppColors.GREY_DIM),
                 ft.Container(width=8, height=8, border_radius=4, bgcolor=ft.Colors.RED),
@@ -123,7 +134,13 @@ def show_page(tile, channels, offset, page_obj, on_play, ad_service, liveliness)
         next_label = LBL_SHOW_NEXT.format(count=show_count, remaining=remaining)
         next_btn = build_nav_btn(ft.Icons.EXPAND_MORE, next_label)
         next_btn.on_click = lambda e, off=end: show_page(
-            tile, channels, off, page_obj, on_play, ad_service, liveliness
+            tile,
+            channels,
+            off,
+            page_obj,
+            on_play,
+            ad_service,
+            liveliness,
         )
         new_controls.append(next_btn)
 

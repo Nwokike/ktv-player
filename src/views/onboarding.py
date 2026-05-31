@@ -53,7 +53,7 @@ def build_onboarding_view(
             else:
                 page_obj.snack_bar = ft.SnackBar(
                     ft.Text(
-                        "Still unable to connect. Please check your network and try again."
+                        "Still unable to connect. Please check your network and try again.",
                     ),
                     bgcolor=AppColors.ERROR,
                 )
@@ -155,7 +155,8 @@ def build_onboarding_view(
                 border_radius=20,
                 bgcolor=ft.Colors.with_opacity(0.04, ft.Colors.ON_SURFACE),
                 border=ft.Border.all(
-                    1, ft.Colors.with_opacity(0.1, ft.Colors.ON_SURFACE)
+                    1,
+                    ft.Colors.with_opacity(0.1, ft.Colors.ON_SURFACE),
                 ),
                 alignment=ft.Alignment(0, 0),
             )
@@ -166,7 +167,10 @@ def build_onboarding_view(
                     ft.Column(
                         [
                             ft.Image(
-                                src="/icon.png", width=90, height=90, border_radius=20
+                                src="/icon.png",
+                                width=90,
+                                height=90,
+                                border_radius=20,
                             ),
                             ft.Text(
                                 LBL_WELCOME,
@@ -222,7 +226,8 @@ def build_onboarding_view(
             tile = ft.ListTile(
                 title=ft.Text(cname, size=14),
                 leading=ft.Icon(
-                    ft.Icons.RADIO_BUTTON_UNCHECKED, color=AppColors.GREY_DIM
+                    ft.Icons.RADIO_BUTTON_UNCHECKED,
+                    color=AppColors.GREY_DIM,
                 ),
                 key=cname,
                 on_click=lambda e, name=cname: select_country(name),
@@ -270,7 +275,10 @@ def build_onboarding_view(
                 ft.Column(
                     [
                         ft.Image(
-                            src="/icon.png", width=90, height=90, border_radius=20
+                            src="/icon.png",
+                            width=90,
+                            height=90,
+                            border_radius=20,
                         ),
                         ft.Text(
                             LBL_WELCOME,
@@ -327,7 +335,9 @@ def build_onboarding_view(
                     [
                         ft.Checkbox(ref=terms_checked, value=False),
                         ft.Text(
-                            LBL_USAGE_AGREEMENT, size=14, weight=ft.FontWeight.W_500
+                            LBL_USAGE_AGREEMENT,
+                            size=14,
+                            weight=ft.FontWeight.W_500,
                         ),
                     ],
                     alignment=ft.MainAxisAlignment.CENTER,

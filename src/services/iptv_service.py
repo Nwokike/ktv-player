@@ -22,7 +22,7 @@ class IPTVService:
         try:
             client = self.get_client()
             headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             }
             resp = await client.get(url, headers=headers)
             resp.raise_for_status()
@@ -41,14 +41,17 @@ class IPTVService:
         active_playlists = [p for p in playlists if p["is_active"]]
 
         if active_playlists:
-            tasks = [self.fetch_playlist(p["url"]) for p in active_playlists]
-            try:
-                results = await asyncio.wait_for(
-                    asyncio.gather(*tasks, return_exceptions=True),
-                    timeout=60.0,
-                )
-            except TimeoutError:
-                results = [Exception("Playlist load timeout")] * len(active_playlists)
+
+            async def fetch_with_timeout(url: str, timeout: float = 30.0):
+                try:
+                    return await asyncio.wait_for(
+                        self.fetch_playlist(url), timeout=timeout
+                    )
+                except asyncio.TimeoutError:
+                    return Exception(f"Playlist fetch timed out: {url[:60]}")
+
+            tasks = [fetch_with_timeout(p["url"]) for p in active_playlists]
+            results = await asyncio.gather(*tasks, return_exceptions=True)
             for p, ext_channels in zip(active_playlists, results, strict=True):
                 if isinstance(ext_channels, list):
                     for c in ext_channels:

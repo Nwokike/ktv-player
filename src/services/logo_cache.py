@@ -139,7 +139,8 @@ def enqueue_logo_download(logo_url: str):
 
 
 async def download_logo(
-    logo_url: str, http_client: httpx.AsyncClient | None = None
+    logo_url: str,
+    http_client: httpx.AsyncClient | None = None,
 ) -> str | None:
     if not logo_url or logo_url == "/icon.png":
         return None

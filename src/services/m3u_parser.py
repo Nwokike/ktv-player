@@ -40,7 +40,7 @@ def parse_m3u_text(text: str, default_group: str = "Custom") -> list[dict]:
                             "url": url,
                             "logo": logo or "/icon.png",
                             "group": group,
-                        }
+                        },
                     )
         i += 1
     return channels

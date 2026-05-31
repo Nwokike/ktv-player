@@ -1,11 +1,15 @@
 import flet as ft
 
+
 _tab_index_counter = 0
+_MAX_TAB_INDEX = 1_000_000
 
 
 def next_tab_index() -> int:
     """Return a globally unique, sequentially increasing tab_index."""
     global _tab_index_counter
+    if _tab_index_counter >= _MAX_TAB_INDEX:
+        _tab_index_counter = 1
     _tab_index_counter += 1
     return _tab_index_counter
 

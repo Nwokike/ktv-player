@@ -4,6 +4,7 @@ import asyncio
 import base64
 import contextlib
 import logging
+import os
 import re
 import urllib.parse
 
@@ -32,7 +33,9 @@ _SENSITIVE_PATHS = (
     "/sys/",
     "/dev/",
     "C:\\Windows",
+    "C:/Windows",
     "C:\\System",
+    "C:/System",
     "/data/data/",
     "/data/user/",
 )
@@ -167,14 +170,15 @@ class AppController:
                     if pl.get("is_active"):
                         try:
                             playlist_channels = await iptv_service.fetch_playlist(
-                                pl["url"]
+                                pl["url"],
                             )
                             for pc in playlist_channels:
                                 pc["is_custom"] = True
                             channels.extend(playlist_channels)
                         except Exception:
                             logger.exception(
-                                "Failed to fetch playlist: %s", pl.get("name")
+                                "Failed to fetch playlist: %s",
+                                pl.get("name"),
                             )
 
                 state.set_channels(channels)
@@ -190,6 +194,9 @@ class AppController:
                     pass
             finally:
                 state.is_loading = False
+                refresh = getattr(self.page, "_dashboard_refresh", None)
+                if refresh:
+                    refresh()
                 self.page.update()
 
     # --- Playback ---
@@ -211,7 +218,14 @@ class AppController:
 
         # Find channel info
         channel = next((c for c in state.channels if c.get("url") == url), None)
-        title = channel.get("name", "Stream") if channel else "Stream"
+        if channel:
+            title = channel.get("name", "Stream")
+        elif not url.startswith(
+            ("http://", "https://", "rtsp://", "rtmp://", "rtp://", "mms://")
+        ):
+            title = os.path.splitext(os.path.basename(url))[0]
+        else:
+            title = "Stream"
 
         # Show interstitial ad before playback
         await self.ad_service.show_interstitial()
@@ -231,14 +245,11 @@ class AppController:
 
         self.page.views.append(player_view)
         self.page.update()
-        self.page.run_task(player.start_playback)
+        self.page.run_task(self._safe_start_playback, player)
 
     def _close_player(self):
-        if len(self.page.views) > 1:
+        if len(self.page.views) > 1 and self.page.views[-1].route == "/play":
             self.page.views.pop()
-            self.page.update()
-        else:
-            self.page.views.clear()
             self.page.update()
 
     # --- Deep Link ---
@@ -304,15 +315,16 @@ class AppController:
             self.page.update()
 
     async def _startup_flow(self):
-        # Start loading channels in the background (updates dashboard loading spinner)
-        self.page.run_task(self.load_channels)
-
         # Abort if redirected by a deep link launch during load
         if self.page.route != "/" and self.page.route != "":
             logger.info("Startup flow aborted: route is %s", self.page.route)
             return
 
         if state.is_first_launch or not state.has_accepted_terms:
+            # First launch: load channels first, then show onboarding with country picker
+            state.is_loading = True
+            await self.load_channels()
+
             from views.onboarding import build_onboarding_view
 
             onboarding = build_onboarding_view(
@@ -325,6 +337,9 @@ class AppController:
             self.page.views.append(onboarding)
             self.page.update()
         else:
+            # Returning user: show dashboard immediately, load channels in background
+            state.is_loading = True
+            self.page.run_task(self.load_channels)
             await self._go_to_dashboard()
 
     async def _onboarding_complete(self):
@@ -348,18 +363,29 @@ class AppController:
         self.page.update()
 
     def view_pop(self, e):
-        # Always clean up the player if it is currently visible, even if it's the last view
-        if self.page.views:
-            top = self.page.views[-1]
-            for control in top.controls:
-                if isinstance(control, ImmersivePlayer):
-                    self.page.run_task(control.handle_close)
-                    break
+        if not self.page.views:
+            return
+        top = self.page.views[-1]
+        for control in top.controls:
+            if isinstance(control, ImmersivePlayer):
+                self.page.run_task(self._safe_close_player, control)
+                return
 
         if len(self.page.views) > 1:
             self.page.views.pop()
             self.page.update()
-        # If len == 1, Flet inherently processes the Android app exit
+
+    async def _safe_close_player(self, player):
+        try:
+            await player.handle_close()
+        except Exception:
+            logger.exception("Error closing player")
+
+    async def _safe_start_playback(self, player):
+        try:
+            await player.start_playback()
+        except Exception:
+            logger.exception("Failed to start playback")
 
 
 async def main(page: ft.Page):

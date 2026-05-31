@@ -23,13 +23,18 @@ logger = logging.getLogger(__name__)
 # Glass container styling constants
 _GLASS_BG = ft.Colors.with_opacity(CARD_GLASS_OPACITY, ft.Colors.ON_SURFACE)
 _GLASS_BORDER = ft.Border.all(
-    0.5, ft.Colors.with_opacity(CARD_GLASS_BORDER_OPACITY, ft.Colors.ON_SURFACE)
+    0.5,
+    ft.Colors.with_opacity(CARD_GLASS_BORDER_OPACITY, ft.Colors.ON_SURFACE),
 )
 _GLASS_ANIM = ft.Animation(duration=180, curve=ft.AnimationCurve.EASE_OUT)
 
 
 def create_channel_card(
-    c, card_index=0, on_play=None, page_obj=None, on_fav_change=None
+    c,
+    card_index=0,
+    on_play=None,
+    page_obj=None,
+    on_fav_change=None,
 ):
     url = c.get("url", "")
 
@@ -198,7 +203,7 @@ def build_channel_grid(
                         col=12,
                         alignment=ft.Alignment.CENTER,
                         padding=ft.Padding(0, 5, 0, 5),
-                    )
+                    ),
                 )
 
     return grid

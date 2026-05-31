@@ -34,7 +34,13 @@ _last_add_time = 0.0
 
 
 def build_custom_tab_content(
-    target, page_obj, on_play, ad_service, liveliness, view_state, active_tiles
+    target,
+    page_obj,
+    on_play,
+    ad_service,
+    liveliness,
+    view_state,
+    active_tiles,
 ):
     name_ref = ft.Ref[ft.TextField]()
     url_ref = ft.Ref[ft.TextField]()
@@ -84,8 +90,9 @@ def build_custom_tab_content(
         url_ref.current.value = ""
 
         state.is_loading = True
-        if hasattr(page_obj, "refresh_dashboard"):
-            page_obj.refresh_dashboard()
+        refresh = getattr(page_obj, "_dashboard_refresh", None)
+        if refresh:
+            refresh()
         page_obj.update()
 
         try:
@@ -100,18 +107,21 @@ def build_custom_tab_content(
                 await page_obj.load_channels(force=True)
 
             state.is_loading = False
-            if hasattr(page_obj, "refresh_dashboard"):
-                page_obj.refresh_dashboard()
+            refresh = getattr(page_obj, "_dashboard_refresh", None)
+            if refresh:
+                refresh()
 
             page_obj.snack_bar = ft.SnackBar(
-                ft.Text(LBL_ADDED_SUCCESS.format(name=name)), bgcolor=AppColors.SUCCESS
+                ft.Text(LBL_ADDED_SUCCESS.format(name=name)),
+                bgcolor=AppColors.SUCCESS,
             )
             page_obj.snack_bar.open = True
             page_obj.update()
         except Exception:
             logger.exception("Failed to add content")
             page_obj.snack_bar = ft.SnackBar(
-                ft.Text(ERR_ADD_CONTENT), bgcolor=AppColors.ERROR
+                ft.Text(ERR_ADD_CONTENT),
+                bgcolor=AppColors.ERROR,
             )
             page_obj.snack_bar.open = True
             page_obj.update()
@@ -182,7 +192,10 @@ def build_custom_tab_content(
                 create_tv_field(LBL_NAME, LBL_NAME_HINT, name_ref, next_ref=url_ref),
                 create_tv_field(LBL_URL, LBL_URL_HINT, url_ref, is_submit=True),
                 ft.Text(
-                    LBL_TV_FIELD_HINT, size=11, color=AppColors.GREY_DIM, italic=True
+                    LBL_TV_FIELD_HINT,
+                    size=11,
+                    color=AppColors.GREY_DIM,
+                    italic=True,
                 ),
             ],
             tight=True,
@@ -221,7 +234,7 @@ def build_custom_tab_content(
                 color=ft.Colors.WHITE,
             ),
             width=float("inf"),
-        )
+        ),
     )
     target.controls.append(ft.Container(height=10))
 
@@ -232,10 +245,17 @@ def build_custom_tab_content(
                 content=ad_banner,
                 alignment=ft.Alignment.CENTER,
                 padding=ft.Padding(0, 5, 0, 5),
-            )
+            ),
         )
         target.controls.append(ft.Divider(height=20, color=AppColors.GREY_DIM))
 
     build_channel_groups(
-        target, 2, page_obj, on_play, ad_service, liveliness, view_state, active_tiles
+        target,
+        2,
+        page_obj,
+        on_play,
+        ad_service,
+        liveliness,
+        view_state,
+        active_tiles,
     )

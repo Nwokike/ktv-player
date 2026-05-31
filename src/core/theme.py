@@ -25,7 +25,6 @@ class AppColors:
     LIGHT_TEXT_MUTED = "#94A3B8"
 
     GREY_DIM = "#888888"
-    SPLASH_BG = "#0D0F1A"
 
     WHITE = ft.Colors.WHITE
     BLACK = ft.Colors.BLACK
@@ -45,7 +44,8 @@ class AppColors:
     @staticmethod
     def get_glass_bg(page: ft.Page):
         return ft.Colors.with_opacity(
-            0.08, ft.Colors.WHITE if AppColors._is_dark(page) else ft.Colors.BLACK
+            0.08,
+            ft.Colors.WHITE if AppColors._is_dark(page) else ft.Colors.BLACK,
         )
 
     @staticmethod

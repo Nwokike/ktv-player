@@ -30,9 +30,14 @@ NON_COUNTRY_GROUPS = {
 
 
 def _classify_channels(channels: list[dict]) -> list[dict]:
+    import re
+
     for c in channels:
         category = c.get("group", "General")
-        is_country = not any(cat in category.lower() for cat in NON_COUNTRY_GROUPS)
+        lower = category.lower()
+        is_country = not any(
+            bool(re.search(rf"(^|\W){cat}(\W|$)", lower)) for cat in NON_COUNTRY_GROUPS
+        )
         c["country_code"] = "M3U" if is_country else ""
         c["is_custom"] = False
     return channels
@@ -97,7 +102,9 @@ class ChannelProvider:
                         return self._channels
                     try:
                         client = get_http_client()
-                        response = await client.get(self.MASTER_PLAYLIST_URL, timeout=30.0)
+                        response = await client.get(
+                            self.MASTER_PLAYLIST_URL, timeout=30.0
+                        )
                         response.raise_for_status()
                         with open(_CACHE_FILE, "w", encoding="utf-8") as f:
                             f.write(response.text)
