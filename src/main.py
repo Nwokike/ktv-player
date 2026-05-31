@@ -304,6 +304,17 @@ class AppController:
                 self.page.run_task(self.play_stream, route)
             return
 
+        # 2b. Deep Link fallback: Flet strips custom scheme → route is /?url=<base64>
+        if parsed.path in ("/", "") and parsed.query:
+            query_params = urllib.parse.parse_qs(parsed.query)
+            if "url" in query_params:
+                logger.info("Deep link fallback detected via query parameter")
+                state.is_deep_link_launch = True
+                self.page.views.clear()
+                reconstructed = f"ktv://play?url={query_params['url'][0]}"
+                self._handle_deep_link(reconstructed)
+                return
+
         # 3. Standard Routing
         if parsed.path in ("/", ""):
             self.page.views.clear()
