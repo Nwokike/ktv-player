@@ -14,6 +14,7 @@ class AppState:
     has_accepted_terms: bool = False
     is_first_launch: bool = True
     theme_mode: ft.ThemeMode = ft.ThemeMode.SYSTEM
+    is_deep_link_launch: bool = False
 
     channels_hash: int = 0
 

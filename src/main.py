@@ -239,6 +239,9 @@ class AppController:
         if len(self.page.views) > 1:
             self.page.views.pop()
             self.page.update()
+        else:
+            self.page.views.clear()
+            self.page.update()
 
     # --- Deep Link ---
 
@@ -272,6 +275,8 @@ class AppController:
 
         # 1. Deep Link from other apps (e.g., AnimePahe TV ktv://)
         if parsed.scheme == "ktv":
+            state.is_deep_link_launch = True
+            self.page.views.clear()
             self._handle_deep_link(route)
             return
 
@@ -310,6 +315,11 @@ class AppController:
         remaining = SPLASH_DURATION - (time.monotonic() - t0)
         if remaining > 0:
             await asyncio.sleep(remaining)
+
+        # Abort if redirected by a deep link launch during load
+        if self.page.route != "/" and self.page.route != "":
+            logger.info("Splash flow aborted: route is %s", self.page.route)
+            return
 
         if state.is_first_launch or not state.has_accepted_terms:
             from views.onboarding import build_onboarding_view
