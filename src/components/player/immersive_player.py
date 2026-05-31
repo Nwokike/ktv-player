@@ -3,6 +3,7 @@ import contextlib
 import logging
 import re
 from collections.abc import Callable
+from typing import Any
 
 import flet as ft
 import flet_video as fv
@@ -23,7 +24,7 @@ class ImmersivePlayer(ft.Stack):
         volume: float = 100.0,
         muted: bool = False,
         http_headers: dict | None = None,
-        ad_service=None,
+        ad_service: Any | None = None,
     ):
         super().__init__()
         self.resource = resource
@@ -58,6 +59,7 @@ class ImmersivePlayer(ft.Stack):
             expand=True,
             bgcolor=ft.Colors.with_opacity(0.85, ft.Colors.BLACK),
             alignment=ft.Alignment.CENTER,
+            on_click=None,  # Will be bound only when tapping to close is allowed
             content=ft.Column(
                 [self.loading_ring, ft.Container(height=20), self.status_text],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
@@ -103,7 +105,7 @@ class ImmersivePlayer(ft.Stack):
             on_load=lambda e: logger.debug("on_load: %s", e.data),
             on_error=self._on_error,
             on_complete=self._on_complete,
-            on_position_change=lambda e: self._hide_overlay(),
+            on_position_change=self._on_position_change,
         )
 
         self.controls = [
@@ -119,7 +121,8 @@ class ImmersivePlayer(ft.Stack):
         self.page.on_keyboard_event = self._handle_player_keyboard
 
     def will_unmount(self):
-        if self._previous_keyboard_handler is not None:
+        # Only restore if this player still owns the handler
+        if self.page.on_keyboard_event == self._handle_player_keyboard:
             self.page.on_keyboard_event = self._previous_keyboard_handler
 
     def _handle_player_keyboard(self, e: ft.KeyboardEvent):
@@ -130,7 +133,7 @@ class ImmersivePlayer(ft.Stack):
 
     # --- Controls ---
 
-    def _build_controls(self):
+    def _build_controls(self) -> fv.AdaptiveVideoControls:
         speed_container = ft.Container(
             content=self.speed_text,
             padding=ft.Padding(8, 4, 8, 4),
@@ -232,8 +235,10 @@ class ImmersivePlayer(ft.Stack):
                     self.ad_service.show_interstitial(),
                     timeout=20.0,
                 )
-            except (asyncio.TimeoutError, Exception):
-                logger.warning("Ad skipped or timed out during playback start")
+            except asyncio.TimeoutError:
+                logger.warning("Ad timed out during playback start")
+            except Exception as ex:
+                logger.warning("Ad skipped due to error: %s", ex)
 
         if self._is_closing:
             logger.debug("Playback cancelled — player closed during ad")
@@ -260,19 +265,27 @@ class ImmersivePlayer(ft.Stack):
         try:
             self.video.update()
             self.speed_text.update()
-        except Exception:
-            pass
+        except Exception as ex:
+            logger.warning("Failed to update speed UI: %s", ex)
+
+    def _on_position_change(self, e: ft.ControlEvent):
+        self._hide_overlay()
 
     def _hide_overlay(self):
         if not self._overlay_hidden:
             self._overlay_hidden = True
             self.overlay.visible = False
-            with contextlib.suppress(Exception):
+            try:
                 self.update()
+            except Exception as ex:
+                logger.debug("Failed to hide overlay (component might be unmounted): %s", ex)
+
+    def _enable_tap_to_close(self):
+        self.overlay.on_click = lambda _: self.page.run_task(self.handle_close)
 
     # --- Error handling & retry ---
 
-    def _on_error(self, e):
+    def _on_error(self, e: ft.ControlEvent):
         err_msg = str(e.data) if hasattr(e, "data") and e.data else str(e)
         logger.debug("on_error: %s", err_msg)
         if "Cannot seek" in err_msg or "force-seekable" in err_msg:
@@ -297,12 +310,17 @@ class ImmersivePlayer(ft.Stack):
         self.status_text.value = "Failed to load. Tap to go back."
         self.loading_ring.visible = False
         self.overlay.visible = True
-        self.overlay.on_click = lambda _: self.page.run_task(self.handle_close)
+        self._enable_tap_to_close()
         self.update()
 
     async def _retry_playback(self):
         try:
             await asyncio.sleep(STREAM_RETRY_DELAY)
+            
+            # Prevent retrying if player was closed during sleep
+            if self._is_closing:
+                return
+
             if self.video and not self._is_final_error:
                 self.video.playlist = [
                     fv.VideoMedia(self.resource, http_headers=self.http_headers),
@@ -311,10 +329,11 @@ class ImmersivePlayer(ft.Stack):
                 self.overlay.visible = False
                 self._retry_count = 0
                 self.update()
-        except Exception:
+        except Exception as ex:
+            logger.error("Retry playback failed: %s", ex)
             self._show_final_error()
 
-    def _on_complete(self, e):
+    def _on_complete(self, e: ft.ControlEvent):
         if re.match(r"https?://", self.resource):
             if self._reconnect_count < STREAM_RECONNECT_MAX:
                 self._reconnect_count += 1
@@ -323,10 +342,13 @@ class ImmersivePlayer(ft.Stack):
                 self.status_text.value = "Stream ended. Tap to go back."
                 self.loading_ring.visible = False
                 self.overlay.visible = True
-                self.overlay.on_click = lambda _: self.page.run_task(self.handle_close)
+                self._enable_tap_to_close()
                 self.update()
 
     async def _reconnect_stream(self):
+        if self._is_closing:
+            return
+            
         try:
             if self.video:
                 self.video.playlist = [
@@ -334,12 +356,12 @@ class ImmersivePlayer(ft.Stack):
                 ]
                 self.overlay.visible = False
                 self.update()
-        except Exception:
-            pass
+        except Exception as ex:
+            logger.debug("Failed to reconnect stream: %s", ex)
 
     # --- Close ---
 
-    async def handle_close(self, e=None):
+    async def handle_close(self, e: ft.ControlEvent | None = None):
         if self._is_closing:
             return
         self._is_closing = True
@@ -347,16 +369,17 @@ class ImmersivePlayer(ft.Stack):
             if self.video:
                 self.video.playlist = []
                 await self.video.stop()
-        except Exception:
-            pass
+        except Exception as ex:
+            logger.debug("Ignored error while stopping video on close: %s", ex)
+            
         self._is_final_error = True
 
-    async def _on_back(self, e=None):
+    async def _on_back(self, e: ft.ControlEvent | None = None):
         await self.handle_close()
         if self.on_close:
             try:
                 result = self.on_close()
                 if hasattr(result, "__await__"):
                     await result
-            except Exception:
-                pass
+            except Exception as ex:
+                logger.error("Error executing on_close callback: %s", ex)
