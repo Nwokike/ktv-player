@@ -161,8 +161,6 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
     def on_tab_change(e):
         index = e.control.selected_index
         view_state["selected_tab"] = index
-        view_state["search_query"] = ""
-        search_field.value = ""
         build_tab(index)
 
     def refresh_dashboard():
