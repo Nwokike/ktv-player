@@ -88,8 +88,8 @@ TERMS_TEXT = (
 )
 
 # Deep link
-DEEP_LINK_SCHEME = "https://"
-DEEP_LINK_PLAY_PREFIX = "https://play.kiri.ng/play?url="
+DEEP_LINK_SCHEME = "ktv://"
+DEEP_LINK_PLAY_PREFIX = "ktv://play?url="
 
 # Numeric constants
 PAGE_SIZE = 24

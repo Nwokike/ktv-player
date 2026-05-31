@@ -243,9 +243,9 @@ class AppController:
     # --- Deep Link ---
 
     def _handle_deep_link(self, url_str: str):
-        # Parse the query parameters from the deep link
+        # Parse the query parameters from the ktv:// URL
         parsed = urllib.parse.urlparse(url_str)
-        if parsed.scheme not in ("ktv", "https"):
+        if parsed.scheme != "ktv":
             return
         query = urllib.parse.parse_qs(parsed.query)
         encoded = query.get("url", [None])[0]
@@ -270,8 +270,8 @@ class AppController:
         route = self.page.route
         parsed = urllib.parse.urlparse(route)
 
-        # 1. Deep Link from other apps (e.g., AnimePahe TV or https://play.kiri.ng)
-        if parsed.scheme in ("ktv", "https"):
+        # 1. Deep Link from other apps (e.g., AnimePahe TV ktv://)
+        if parsed.scheme == "ktv":
             self._handle_deep_link(route)
             return
 
