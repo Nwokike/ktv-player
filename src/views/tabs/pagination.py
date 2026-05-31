@@ -1,6 +1,5 @@
 """Pagination controls for channel grids."""
 
-
 import flet as ft
 
 from core.constants import (
@@ -14,8 +13,6 @@ from core.theme import AppColors
 
 def build_nav_btn(icon, label, **kwargs):
     """Build a styled pagination button using Container (D-pad focusable)."""
-
-
 
     btn = ft.Container(
         content=ft.Row(

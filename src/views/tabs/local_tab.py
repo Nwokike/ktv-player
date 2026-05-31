@@ -37,9 +37,6 @@ _sp = None  # StoragePaths instance
 _fp = None  # FilePicker instance
 
 
-
-
-
 # --- Permission & Service Helpers ---
 
 
@@ -319,9 +316,6 @@ def _show_local_page(tile, folder, offset, page_obj, on_play):
         tile.controls.append(next_btn)
 
     tile.update()
-
-
-
 
 
 def _render_scanning(target):

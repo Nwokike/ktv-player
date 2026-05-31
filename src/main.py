@@ -14,7 +14,6 @@ from channels.provider import channel_provider
 from components.player.immersive_player import ImmersivePlayer
 from core.constants import (
     APP_NAME,
-    DEEP_LINK_PLAY_PREFIX,
     ERR_NETWORK,
     SPLASH_DURATION,
 )

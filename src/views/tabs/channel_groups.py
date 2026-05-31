@@ -106,9 +106,6 @@ def _search_channels(
     return groups
 
 
-
-
-
 def _collapse_other_tiles(current_tile, active_tiles):
     for t in active_tiles:
         if t is not current_tile and t.expanded:

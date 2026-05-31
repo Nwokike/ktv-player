@@ -33,9 +33,6 @@ _FB = "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9pbmRleC5tM3U="
 _last_add_time = 0.0
 
 
-
-
-
 def build_custom_tab_content(
     target, page_obj, on_play, ad_service, liveliness, view_state, active_tiles
 ):

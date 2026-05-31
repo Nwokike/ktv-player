@@ -27,4 +27,3 @@ class FocusManager:
     def _handle_keyboard(self, e: ft.KeyboardEvent):
         if e.key in ("Escape", "Back", "BrowserBack", "Go Back") and self._back_handler:
             self._back_handler()
-
