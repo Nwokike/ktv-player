@@ -101,7 +101,7 @@ jobs:
           FLET_ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} --deep-linking-scheme "ktv" --deep-linking-host "play" -v
+        run: uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} --deep-linking-scheme "https" --deep-linking-host "play.kiri.ng" -v
       - uses: actions/upload-artifact@v5.0.0
         with:
           name: apk-universal
@@ -127,7 +127,7 @@ jobs:
           FLET_ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} --split-per-abi --deep-linking-scheme "ktv" --deep-linking-host "play" -v
+        run: uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} --split-per-abi --deep-linking-scheme "https" --deep-linking-host "play.kiri.ng" -v
       - uses: actions/upload-artifact@v5.0.0
         with:
           name: apk-split-abi
@@ -153,7 +153,7 @@ jobs:
           FLET_ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: uv run flet build aab --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} --deep-linking-scheme "ktv" --deep-linking-host "play" -v
+        run: uv run flet build aab --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} --deep-linking-scheme "https" --deep-linking-host "play.kiri.ng" -v
       - uses: actions/upload-artifact@v5.0.0
         with:
           name: aab-playstore

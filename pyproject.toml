@@ -45,8 +45,8 @@ requestLegacyExternalStorage = "true"
 "android.hardware.touchscreen" = false
 
 [tool.flet.deep_linking]
-scheme = "ktv"
-host = "play"
+scheme = "https"
+host = "play.kiri.ng"
 
 # IMPORTANT: This APK MUST be built with the following flags to ensure
 # the Android intent filter is generated in AndroidManifest.xml:

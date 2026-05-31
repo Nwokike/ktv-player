@@ -244,9 +244,9 @@ class AppController:
     # --- Deep Link ---
 
     def _handle_deep_link(self, url_str: str):
-        # Parse the query parameters from the ktv:// URL
+        # Parse the query parameters from the deep link
         parsed = urllib.parse.urlparse(url_str)
-        if parsed.scheme != "ktv":
+        if parsed.scheme not in ("ktv", "https"):
             return
         query = urllib.parse.parse_qs(parsed.query)
         encoded = query.get("url", [None])[0]
@@ -254,7 +254,10 @@ class AppController:
             logger.warning("Deep link missing 'url' parameter: %s", url_str)
             return
         try:
-            decoded = base64.urlsafe_b64decode(encoded).decode("utf-8")
+            # Restore missing Base64 padding if it was stripped
+            padding_needed = (4 - len(encoded) % 4) % 4
+            encoded_padded = encoded + ("=" * padding_needed)
+            decoded = base64.urlsafe_b64decode(encoded_padded).decode("utf-8")
             if _is_valid_play_url(decoded):
                 self.page.run_task(self.play_stream, decoded)
             else:
@@ -268,8 +271,8 @@ class AppController:
         route = self.page.route
         parsed = urllib.parse.urlparse(route)
 
-        # 1. Deep Link from other apps (e.g., AnimePahe TV ktv://)
-        if parsed.scheme == "ktv":
+        # 1. Deep Link from other apps (e.g., AnimePahe TV or https://play.kiri.ng)
+        if parsed.scheme in ("ktv", "https"):
             self._handle_deep_link(route)
             return
 
