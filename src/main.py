@@ -201,7 +201,7 @@ class AppController:
 
     # --- Playback ---
 
-    async def play_stream(self, url: str):
+    async def play_stream(self, url: str, title: str | None = None):
         if not _is_valid_play_url(url):
             self.page.snack_bar = ft.SnackBar(
                 ft.Text("Invalid or blocked URL."),
@@ -216,22 +216,24 @@ class AppController:
         with contextlib.suppress(Exception):
             await db_manager.save_history(url)
 
-        # Find channel info
-        channel = next((c for c in state.channels if c.get("url") == url), None)
-        if channel:
-            title = channel.get("name", "Stream")
-        elif not url.startswith(
-            ("http://", "https://", "rtsp://", "rtmp://", "rtp://", "mms://")
-        ):
-            title = os.path.splitext(os.path.basename(url))[0]
-        else:
-            title = "Stream"
+        # Determine title
+        if not title:
+            channel = next((c for c in state.channels if c.get("url") == url), None)
+            if channel:
+                title = channel.get("name", "Stream")
+            elif not url.startswith(
+                ("http://", "https://", "rtsp://", "rtmp://", "rtp://", "mms://")
+            ):
+                title = os.path.splitext(os.path.basename(url))[0]
+            else:
+                title = "Stream"
 
         # Create player view immediately so the screen isn't blank
         player = ImmersivePlayer(
             resource=url,
             title=title,
             on_close=lambda: self._close_player(),
+            ad_service=self.ad_service,
         )
 
         player_view = ft.View(
@@ -243,13 +245,8 @@ class AppController:
         self.page.views.append(player_view)
         self.page.update()
 
-        # Show interstitial ad before playback (with 5s timeout)
-        try:
-            await asyncio.wait_for(self.ad_service.show_interstitial(), timeout=5.0)
-        except (asyncio.TimeoutError, Exception):
-            logger.warning("Ad skipped or timed out during deep link playback")
-
-        self.page.run_task(self._safe_start_playback, player)
+        # Playback (ad is handled inside player.start_playback)
+        await self._safe_start_playback(player)
 
     def _close_player(self):
         if len(self.page.views) > 1 and self.page.views[-1].route == "/play":
@@ -275,13 +272,27 @@ class AppController:
             encoded_padded = encoded + ("=" * padding_needed)
             decoded = base64.urlsafe_b64decode(encoded_padded).decode("utf-8")
             logger.info("Deep link decoded URL: %s", decoded[:80])
-            if _is_valid_play_url(decoded):
-                logger.info("Deep link URL valid, launching play_stream")
-                self.page.run_task(self.play_stream, decoded)
-            else:
+            if not _is_valid_play_url(decoded):
                 logger.warning("Deep link decoded invalid URL: %s", decoded[:80])
+                return
         except Exception as ex:
             logger.exception("Failed to decode deep link: %s", ex)
+            return
+
+        # Decode optional title parameter
+        title = None
+        encoded_title = query.get("title", [None])[0]
+        if encoded_title:
+            try:
+                padding_needed = (4 - len(encoded_title) % 4) % 4
+                encoded_padded = encoded_title + ("=" * padding_needed)
+                title = base64.urlsafe_b64decode(encoded_padded).decode("utf-8")
+                logger.info("Deep link decoded title: %s", title[:60])
+            except Exception:
+                logger.warning("Failed to decode deep link title")
+
+        logger.info("Deep link URL valid, launching play_stream")
+        self.page.run_task(self.play_stream, decoded, title)
 
     # --- Routing ---
 
@@ -312,6 +323,8 @@ class AppController:
                 state.is_deep_link_launch = True
                 self.page.views.clear()
                 reconstructed = f"ktv://play?url={query_params['url'][0]}"
+                if "title" in query_params:
+                    reconstructed += f"&title={query_params['title'][0]}"
                 self._handle_deep_link(reconstructed)
                 return
 

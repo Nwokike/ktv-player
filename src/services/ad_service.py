@@ -26,6 +26,7 @@ class AdService:
         self._on_interstitial_close: Callable | None = None
         self._preload_retry_count: int = 0
         self._ad_closed_event: asyncio.Event | None = None
+        self._ad_loaded_event: asyncio.Event | None = None
 
     def get_banner_unit_id(self) -> str:
         return self.BANNER_ID
@@ -102,20 +103,30 @@ class AdService:
 
     async def preload_interstitial(self, on_close: Callable | None = None):
         self._on_interstitial_close = on_close
+        self._ad_loaded_event = asyncio.Event()
         try:
             if not _HAS_FLET_ADS or not self.page.platform.is_mobile():
+                self._ad_loaded_event.set()
                 return
 
             logger.info("Preloading new InterstitialAd...")
             self.interstitial = fta.InterstitialAd(
                 unit_id=self.get_interstitial_unit_id(),
-                on_load=lambda e: logger.info("Interstitial ad preloaded successfully"),
-                on_error=lambda e: self._on_preload_error(e, on_close),
+                on_load=lambda e: (
+                    logger.info("Interstitial ad preloaded successfully"),
+                    self._ad_loaded_event.set(),
+                ),
+                on_error=lambda e: (
+                    self._on_preload_error(e, on_close),
+                    self._ad_loaded_event.set(),
+                ),
                 on_close=self._handle_close,
             )
             self._preload_retry_count = 0
         except Exception:
             logger.exception("Failed to preload InterstitialAd")
+            if self._ad_loaded_event:
+                self._ad_loaded_event.set()
             self._handle_preload_error(on_close)
 
     def _on_preload_error(self, e, on_close: Callable | None = None):
@@ -158,25 +169,38 @@ class AdService:
         if not _HAS_FLET_ADS or not self.page.platform.is_mobile():
             return False
 
-        # If we have a preloaded ad, show it
+        # If we have a preloaded ad, wait for it to actually finish loading
         if self.interstitial:
-            try:
-                logger.info("Showing preloaded interstitial ad...")
-                self._ad_closed_event = asyncio.Event()
-                await self.interstitial.show()
-                # Wait for user to close it (with 30s timeout safety)
+            if self._ad_loaded_event and not self._ad_loaded_event.is_set():
+                logger.info("Waiting for interstitial ad to finish loading...")
                 try:
-                    await asyncio.wait_for(self._ad_closed_event.wait(), timeout=30.0)
+                    await asyncio.wait_for(self._ad_loaded_event.wait(), timeout=10.0)
                 except asyncio.TimeoutError:
                     logger.warning(
-                        "Timed out waiting for preloaded interstitial ad to close",
+                        "Preloaded ad not ready within 10s, falling back to on-demand",
                     )
-                return True
-            except Exception:
-                logger.exception("Failed to show preloaded interstitial ad")
-                if self._ad_closed_event is not None:
-                    self._ad_closed_event.set()
-                self.interstitial = None
+                    self.interstitial = None
+
+            # Ad finished loading successfully — show it
+            if self.interstitial:
+                try:
+                    logger.info("Showing preloaded interstitial ad...")
+                    self._ad_closed_event = asyncio.Event()
+                    await self.interstitial.show()
+                    try:
+                        await asyncio.wait_for(
+                            self._ad_closed_event.wait(), timeout=30.0
+                        )
+                    except asyncio.TimeoutError:
+                        logger.warning(
+                            "Timed out waiting for preloaded interstitial ad to close",
+                        )
+                    return True
+                except Exception:
+                    logger.exception("Failed to show preloaded interstitial ad")
+                    if self._ad_closed_event is not None:
+                        self._ad_closed_event.set()
+                    self.interstitial = None
 
         # If no ad is preloaded (or it failed), load and show a fresh ad on-demand
         logger.info("No preloaded ad ready. Loading fresh ad on-demand...")

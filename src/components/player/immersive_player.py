@@ -23,18 +23,21 @@ class ImmersivePlayer(ft.Stack):
         volume: float = 100.0,
         muted: bool = False,
         http_headers: dict | None = None,
+        ad_service=None,
     ):
         super().__init__()
         self.resource = resource
         self.on_close = on_close
         self.title = title
         self.http_headers = http_headers or {}
+        self.ad_service = ad_service
         self.expand = True
 
         self._retry_count = 0
         self._reconnect_count = 0
         self._is_final_error = False
         self._is_closing = False
+        self._was_closed_during_ad = False
         self._previous_keyboard_handler = None
 
         # Overlay
@@ -221,6 +224,21 @@ class ImmersivePlayer(ft.Stack):
     async def start_playback(self):
         logger.debug("start_playback resource=%s", self.resource[:60])
         self._reconnect_count = 0
+
+        # Show interstitial ad before playback, unless player was already closed
+        if self.ad_service and not self._is_closing:
+            try:
+                await asyncio.wait_for(
+                    self.ad_service.show_interstitial(),
+                    timeout=20.0,
+                )
+            except (asyncio.TimeoutError, Exception):
+                logger.warning("Ad skipped or timed out during playback start")
+
+        if self._is_closing:
+            logger.debug("Playback cancelled — player closed during ad")
+            return
+
         try:
             self.video.playlist = [
                 fv.VideoMedia(self.resource, http_headers=self.http_headers),
@@ -332,7 +350,6 @@ class ImmersivePlayer(ft.Stack):
         except Exception:
             pass
         self._is_final_error = True
-        self._is_closing = False
 
     async def _on_back(self, e=None):
         await self.handle_close()
