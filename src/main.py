@@ -5,7 +5,6 @@ import base64
 import contextlib
 import logging
 import re
-import time
 import urllib.parse
 
 import flet as ft
@@ -15,7 +14,6 @@ from components.player.immersive_player import ImmersivePlayer
 from core.constants import (
     APP_NAME,
     ERR_NETWORK,
-    SPLASH_DURATION,
 )
 from core.focus_manager import FocusManager
 from core.logging_config import setup_logging
@@ -289,11 +287,7 @@ class AppController:
         # 3. Standard Routing
         if parsed.path in ("/", ""):
             self.page.views.clear()
-            from views.splash import build_splash_view
-
-            self.page.views.append(build_splash_view(self.page))
-            self.page.update()
-            await self._splash_flow()
+            self.page.run_task(self._startup_flow)
 
         elif parsed.path == "/dashboard":
             self.page.views.clear()
@@ -309,16 +303,13 @@ class AppController:
             self.page.views.append(view)
             self.page.update()
 
-    async def _splash_flow(self):
-        t0 = time.monotonic()
-        await self.load_channels()
-        remaining = SPLASH_DURATION - (time.monotonic() - t0)
-        if remaining > 0:
-            await asyncio.sleep(remaining)
+    async def _startup_flow(self):
+        # Start loading channels in the background (updates dashboard loading spinner)
+        self.page.run_task(self.load_channels)
 
         # Abort if redirected by a deep link launch during load
         if self.page.route != "/" and self.page.route != "":
-            logger.info("Splash flow aborted: route is %s", self.page.route)
+            logger.info("Startup flow aborted: route is %s", self.page.route)
             return
 
         if state.is_first_launch or not state.has_accepted_terms:

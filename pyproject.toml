@@ -48,6 +48,10 @@ requestLegacyExternalStorage = "true"
 scheme = "ktv"
 host = "play"
 
+[tool.flet.splash]
+color = "#F5F7FB"
+dark_color = "#0D0F1A"
+
 # IMPORTANT: This APK MUST be built with the following flags to ensure
 # the Android intent filter is generated in AndroidManifest.xml:
 #
