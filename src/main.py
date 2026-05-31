@@ -227,10 +227,7 @@ class AppController:
         else:
             title = "Stream"
 
-        # Show interstitial ad before playback
-        await self.ad_service.show_interstitial()
-
-        # Create player and navigate
+        # Create player view immediately so the screen isn't blank
         player = ImmersivePlayer(
             resource=url,
             title=title,
@@ -245,6 +242,13 @@ class AppController:
 
         self.page.views.append(player_view)
         self.page.update()
+
+        # Show interstitial ad before playback (with 5s timeout)
+        try:
+            await asyncio.wait_for(self.ad_service.show_interstitial(), timeout=5.0)
+        except (asyncio.TimeoutError, Exception):
+            logger.warning("Ad skipped or timed out during deep link playback")
+
         self.page.run_task(self._safe_start_playback, player)
 
     def _close_player(self):
@@ -255,35 +259,40 @@ class AppController:
     # --- Deep Link ---
 
     def _handle_deep_link(self, url_str: str):
-        # Parse the query parameters from the ktv:// URL
+        logger.info("Deep link received: %s", url_str)
         parsed = urllib.parse.urlparse(url_str)
         if parsed.scheme != "ktv":
+            logger.warning("Deep link skipped — wrong scheme: %s", parsed.scheme)
             return
         query = urllib.parse.parse_qs(parsed.query)
         encoded = query.get("url", [None])[0]
         if not encoded:
             logger.warning("Deep link missing 'url' parameter: %s", url_str)
             return
+        logger.info("Deep link encoded param: %s", encoded[:60])
         try:
-            # Restore missing Base64 padding if it was stripped
             padding_needed = (4 - len(encoded) % 4) % 4
             encoded_padded = encoded + ("=" * padding_needed)
             decoded = base64.urlsafe_b64decode(encoded_padded).decode("utf-8")
+            logger.info("Deep link decoded URL: %s", decoded[:80])
             if _is_valid_play_url(decoded):
+                logger.info("Deep link URL valid, launching play_stream")
                 self.page.run_task(self.play_stream, decoded)
             else:
                 logger.warning("Deep link decoded invalid URL: %s", decoded[:80])
-        except Exception:
-            logger.exception("Failed to decode deep link")
+        except Exception as ex:
+            logger.exception("Failed to decode deep link: %s", ex)
 
     # --- Routing ---
 
     async def route_change(self, e=None):
         route = self.page.route
+        logger.info("Route changed: %s", route)
         parsed = urllib.parse.urlparse(route)
 
         # 1. Deep Link from other apps (e.g., AnimePahe TV ktv://)
         if parsed.scheme == "ktv":
+            logger.info("KTV deep link detected, clearing views")
             state.is_deep_link_launch = True
             self.page.views.clear()
             self._handle_deep_link(route)
@@ -368,18 +377,21 @@ class AppController:
         top = self.page.views[-1]
         for control in top.controls:
             if isinstance(control, ImmersivePlayer):
-                self.page.run_task(self._safe_close_player, control)
+                self.page.run_task(self._close_and_pop, control)
                 return
 
         if len(self.page.views) > 1:
             self.page.views.pop()
             self.page.update()
 
-    async def _safe_close_player(self, player):
+    async def _close_and_pop(self, player):
         try:
             await player.handle_close()
         except Exception:
             logger.exception("Error closing player")
+        if len(self.page.views) > 1:
+            self.page.views.pop()
+            self.page.update()
 
     async def _safe_start_playback(self, player):
         try:
