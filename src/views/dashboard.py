@@ -1,6 +1,5 @@
 """Dashboard view — main screen with tabs, search, and recently watched."""
 
-import asyncio
 import logging
 
 import flet as ft
@@ -169,36 +168,27 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
             _tab_cache[i] = None
         build_tab(view_state["selected_tab"])
 
-    # --- Search with debounce ---
-
-    _search_debounce_task: asyncio.Task | None = None
+    # --- Search (Enter to submit) ---
 
     def execute_search(e=None):
-        nonlocal _search_debounce_task
         view_state["search_query"] = (
             search_field.value.strip() if search_field.value else ""
         )
         build_tab(view_state["selected_tab"])
 
-    def on_search_change(e):
-        nonlocal _search_debounce_task
-        if _search_debounce_task is not None:
-            _search_debounce_task.cancel()
-
-        async def debounce():
-            await asyncio.sleep(0.3)
-            execute_search()
-
-        _search_debounce_task = asyncio.create_task(debounce())
-
     search_field = ft.TextField(
         hint_text=LBL_SEARCH_HINT,
-        border=ft.InputBorder.NONE,
-        height=40,
-        content_padding=ft.Padding(12, 0, 12, 0),
-        on_change=on_search_change,
+        color=ft.Colors.ON_SURFACE,
+        bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.ON_SURFACE),
+        border_color=ft.Colors.TRANSPARENT,
+        border_radius=16,
+        prefix_icon=ft.Icons.SEARCH_ROUNDED,
+        content_padding=20,
+        text_size=16,
         on_submit=execute_search,
         expand=True,
+        focused_border_color=AppColors.PRIMARY,
+        focused_bgcolor=ft.Colors.with_opacity(0.1, AppColors.PRIMARY),
     )
 
     # --- Recently Watched ---
@@ -339,19 +329,7 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
         content=ft.Row(
             [
                 ft.Image(src="icon.png", width=36, height=36, fit=ft.BoxFit.CONTAIN),
-                ft.Container(
-                    content=ft.Row(
-                        [
-                            ft.Icon(ft.Icons.SEARCH, color=AppColors.GREY_DIM, size=18),
-                            search_field,
-                        ],
-                        spacing=6,
-                    ),
-                    padding=ft.Padding(10, 0, 4, 0),
-                    border=ft.Border.all(1, AppColors.GREY_DIM),
-                    border_radius=10,
-                    expand=True,
-                ),
+                search_field,
                 theme_btn,
             ],
             spacing=10,

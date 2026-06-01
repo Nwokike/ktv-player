@@ -101,6 +101,7 @@ def show_page(tile, channels, offset, page_obj, on_play, ad_service, liveliness)
     hint_btn = ft.Container(
         content=ft.Row(
             [
+                ft.Text("Wait for ...", size=10, color=AppColors.GREY_DIM),
                 ft.Container(
                     width=8,
                     height=8,
