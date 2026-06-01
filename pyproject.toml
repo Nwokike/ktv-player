@@ -16,7 +16,7 @@ dependencies = [
 [tool.flet]
 org = "ng.kiri"
 product = "KTV Player"
-build_number = 6
+build_number = 7
 
 [tool.flet.app]
 path = "src"
