@@ -36,7 +36,7 @@ def create_channel_card(
     page_obj=None,
     on_fav_change=None,
 ):
-    url = c.get("url", "")
+    url = c.get("url") or ""
 
     # Liveliness indicator
     cached = liveliness_cache.get(url)
@@ -63,7 +63,7 @@ def create_channel_card(
     )
 
     # Logo
-    logo_src = c.get("logo", "/icon.png")
+    logo_src = c.get("logo") or "/icon.png"
     if logo_src.startswith("/"):
         initial_src = logo_src
     else:
@@ -112,7 +112,7 @@ def create_channel_card(
                 ),
                 logo_img,
                 ft.Text(
-                    c.get("name", "Unknown"),
+                    c.get("name") or "Unknown",
                     size=11,
                     weight=ft.FontWeight.W_400,
                     text_align=ft.TextAlign.CENTER,
