@@ -228,10 +228,19 @@ class AppController:
             else:
                 title = "Stream"
 
+        # Automatically inject headers for specific CDNs (e.g. Kwik/AnimePahe)
+        headers = {}
+        if "owocdn.top" in url or "uwucdn.top" in url or "kwik" in url:
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Referer": "https://kwik.cx/",
+            }
+
         # Create player view immediately so the screen isn't blank
         player = ImmersivePlayer(
             resource=url,
             title=title,
+            http_headers=headers,
             on_close=lambda: self._close_player(),
             ad_service=self.ad_service,
         )
