@@ -1,4 +1,3 @@
-import base64
 import logging
 import time
 
@@ -27,8 +26,6 @@ from database.manager import db_manager
 from views.tabs.channel_groups import build_channel_groups
 
 logger = logging.getLogger(__name__)
-
-_FB = "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9pbmRleC5tM3U="
 
 _last_add_time = 0.0
 
@@ -77,13 +74,17 @@ def build_custom_tab_content(
         if len(name) > MAX_NAME_LENGTH:
             name = name[:MAX_NAME_LENGTH]
 
-        # Resolve URL: valid http(s) URLs pass through, anything else
-        # (shortcodes, typos, random text) silently falls back to community content.
-        if raw_url.startswith(("http://", "https://")):
-            final_url = raw_url
-        else:
-            final_url = base64.b64decode(_FB).decode("utf-8")
-            view_state["add_type"] = "playlist"  # force playlist mode for fallback
+        if not raw_url.startswith(("http://", "https://")):
+            close_dialog()
+            page_obj.snack_bar = ft.SnackBar(
+                ft.Text("Enter a valid http:// or https:// URL"),
+                bgcolor=AppColors.WARNING,
+            )
+            page_obj.snack_bar.open = True
+            page_obj.update()
+            return
+
+        final_url = raw_url
 
         close_dialog()
         name_ref.current.value = ""
