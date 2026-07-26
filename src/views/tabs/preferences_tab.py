@@ -5,6 +5,7 @@ import contextlib
 import flet as ft
 
 from core.constants import (
+    APP_VERSION,
     LBL_CLEAR_HISTORY,
     LBL_CLEAR_HISTORY_DESC,
     LBL_COUNTRY_UPDATED,
@@ -139,7 +140,7 @@ def build_preferences_tab_content(
             value=log_text,
             size=11,
             font_family="monospace",
-            color="#4CAF50",
+            color=AppColors.SUCCESS,
             selectable=True,
         )
 
@@ -175,7 +176,7 @@ def build_preferences_tab_content(
                         ft.Container(
                             content=ft.Column([log_control], scroll=ft.ScrollMode.AUTO, expand=True),
                             padding=12,
-                            bgcolor="#0D0F1A",
+                            bgcolor=AppColors.DARK_BG,
                             border=ft.Border.all(1, ft.Colors.with_opacity(0.15, ft.Colors.WHITE)),
                             border_radius=12,
                             expand=True,
@@ -280,7 +281,7 @@ def build_preferences_tab_content(
                             ft.Row(
                                 [
                                     ft.Text("App Version", size=14, weight=ft.FontWeight.W_500),
-                                    ft.Text("v1.3.2", size=14, color=AppColors.GREY_DIM),
+                                    ft.Text(f"v{APP_VERSION}", size=14, color=AppColors.GREY_DIM),
                                 ],
                                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                             ),
