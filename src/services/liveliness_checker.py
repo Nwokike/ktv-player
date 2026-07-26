@@ -28,22 +28,23 @@ class LivelinessChecker:
         if cached is not None:
             return (url, cached)
 
+        check_timeout = httpx.Timeout(2.0, connect=1.2, read=1.0)
         async with self._semaphore:
             try:
                 client = self._get_http_client()
                 try:
-                    resp = await client.head(url, timeout=2.0)
+                    resp = await client.head(url, timeout=check_timeout)
                     is_live = resp.status_code < 400
-                except Exception:
+                except (httpx.HTTPError, httpx.TimeoutException, Exception):
                     resp = await client.get(
                         url,
                         headers={"Range": "bytes=0-0"},
-                        timeout=2.0,
+                        timeout=check_timeout,
                     )
                     is_live = resp.status_code in (200, 206, 301, 302, 304)
                 liveliness_cache.set(url, is_live)
                 return (url, is_live)
-            except Exception:
+            except (httpx.HTTPError, httpx.TimeoutException, Exception):
                 liveliness_cache.set(url, False)
                 return (url, False)
 

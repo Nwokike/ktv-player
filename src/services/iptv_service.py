@@ -24,10 +24,11 @@ class IPTVService:
             headers = {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             }
-            resp = await client.get(url, headers=headers)
+            playlist_timeout = httpx.Timeout(20.0, connect=5.0, read=15.0)
+            resp = await client.get(url, headers=headers, timeout=playlist_timeout)
             resp.raise_for_status()
             return parse_m3u_text(resp.text, default_group="Custom")
-        except Exception:
+        except (httpx.HTTPError, httpx.TimeoutException, Exception):
             return []
 
     async def fetch_playlist(self, url: str) -> list[dict]:

@@ -32,7 +32,6 @@ logger = logging.getLogger(__name__)
 _scan_cache = {"folders": [], "timestamp": 0.0}
 
 # Services — imported at runtime to avoid crash on desktop
-_ph = None  # PermissionHandler instance
 _sp = None  # StoragePaths instance
 _fp = None  # FilePicker instance
 
@@ -42,7 +41,7 @@ _fp = None  # FilePicker instance
 
 async def _ensure_services(page_obj):
     """Register Services once."""
-    global _ph, _sp, _fp
+    global _sp, _fp
 
     # Register FilePicker (Flet 1.0+ Service - Do NOT append to overlay)
     if _fp is None:
@@ -62,44 +61,12 @@ async def _ensure_services(page_obj):
         except Exception:
             logger.warning("StoragePaths not available")
 
-    # Register PermissionHandler (Mobile Only)
-    if _ph is None:
-        try:
-            from flet_permission_handler import PermissionHandler
-
-            _ph = PermissionHandler()
-        except (ImportError, Exception):
-            logger.warning("flet-permission-handler not available")
-
     page_obj.update()
 
 
 async def _request_storage_permission() -> bool:
-    """Request standard, Play Store-compliant storage permission on Android."""
-    if not is_mobile() or _ph is None:
-        return True  # Desktop — always granted
-
-    try:
-        from flet_permission_handler import Permission, PermissionStatus
-
-        # Android 13+ strict Media permission
-        status = await _ph.request(Permission.VIDEOS)
-        if status == PermissionStatus.GRANTED:
-            return True
-
-        # Fallback for older Android (Android 10 and below)
-        status = await _ph.request(Permission.STORAGE)
-        if status == PermissionStatus.GRANTED:
-            return True
-
-        # If permanently denied, open app settings so user can manually allow
-        if status == PermissionStatus.PERMANENTLY_DENIED:
-            await _ph.open_app_settings()
-
-        return False
-    except Exception as e:
-        logger.exception(f"Permission request failed: {e}")
-        return True  # Fail open on error — try scanning anyway
+    """Standard storage permission check (Desktop and standard media folders always accessible)."""
+    return True
 
 
 async def _get_scan_paths(custom_paths: list[str] = None) -> list[str]:

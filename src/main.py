@@ -92,6 +92,9 @@ class AppController:
         self.liveliness = LivelinessChecker(self.page)
         self._loading_lock = asyncio.Lock()
 
+        # Gather UMP consent before loading ads
+        await self.ad_service.gather_consent()
+
         # Preload interstitial ad
         await self.ad_service.preload_interstitial()
 

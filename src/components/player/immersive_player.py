@@ -84,11 +84,25 @@ class ImmersivePlayer(ft.Stack):
             volume=volume,
             muted=muted,
             wakelock=True,
-            filter_quality=ft.FilterQuality.LOW,
+            filter_quality=ft.FilterQuality.MEDIUM,
             pause_upon_entering_background_mode=True,
             resume_upon_entering_foreground_mode=True,
+            playlist_mode=fv.PlaylistMode.NONE,
+            subtitle_track=fv.VideoSubtitleTrack.auto(),
+            subtitle_configuration=fv.VideoSubtitleConfiguration(
+                text_style=ft.TextStyle(
+                    size=22.0,
+                    color=ft.Colors.WHITE,
+                    weight=ft.FontWeight.W_600,
+                    bgcolor=ft.Colors.BLACK_54,
+                ),
+                text_align=ft.TextAlign.CENTER,
+                visible=True,
+            ),
             configuration=fv.VideoConfiguration(
-                hardware_decoding_api="mediacodec",
+                output_driver="gpu",
+                hardware_decoding_api="auto-safe",
+                enable_hardware_acceleration=True,
                 mpv_properties={
                     "cache": "yes",
                     "cache-secs": "5",
@@ -105,6 +119,8 @@ class ImmersivePlayer(ft.Stack):
             on_error=self._on_error,
             on_complete=self._on_complete,
             on_position_change=self._on_position_change,
+            on_enter_fullscreen=lambda e: logger.debug("Entered fullscreen"),
+            on_exit_fullscreen=lambda e: logger.debug("Exited fullscreen"),
         )
 
         self.controls = [
@@ -112,6 +128,14 @@ class ImmersivePlayer(ft.Stack):
             self.video,
             self.overlay,
         ]
+
+    async def capture_screenshot(self) -> bytes | None:
+        """Capture a PNG screenshot of the current video frame."""
+        try:
+            return await self.video.take_screenshot(format="image/png")
+        except Exception as ex:
+            logger.warning("Failed to capture screenshot: %s", ex)
+            return None
 
     # --- Lifecycle ---
 
@@ -156,6 +180,13 @@ class ImmersivePlayer(ft.Stack):
             overflow=ft.TextOverflow.ELLIPSIS,
         )
 
+        sub_btn = ft.IconButton(
+            icon=ft.Icons.SUBTITLES_ROUNDED,
+            icon_color=ft.Colors.WHITE,
+            tooltip="Subtitles",
+            on_click=lambda e: self.page.run_task(self._pick_subtitles),
+        )
+
         return fv.AdaptiveVideoControls(
             # --- Mobile (touch) ---
             material=fv.MaterialVideoControls(
@@ -175,6 +206,7 @@ class ImmersivePlayer(ft.Stack):
                     back_btn,
                     title_text,
                     fv.VideoSpacer(),
+                    sub_btn,
                     fv.VideoFullscreenButton(icon_color=ft.Colors.WHITE),
                 ],
                 bottom_button_bar=[
@@ -202,6 +234,7 @@ class ImmersivePlayer(ft.Stack):
                     back_btn,
                     title_text,
                     fv.VideoSpacer(),
+                    sub_btn,
                     fv.VideoFullscreenButton(icon_color=ft.Colors.WHITE),
                 ],
                 bottom_button_bar=[
@@ -220,6 +253,35 @@ class ImmersivePlayer(ft.Stack):
                 controls_hover_duration=ft.Duration(seconds=3),
             ),
         )
+
+    async def _pick_subtitles(self):
+        if not hasattr(self.page, "_sub_file_picker"):
+            picker = ft.FilePicker()
+            self.page._sub_file_picker = picker
+
+        try:
+            files = await self.page._sub_file_picker.pick_files(
+                dialog_title="Select Subtitle File",
+                file_type=ft.FilePickerFileType.CUSTOM,
+                allowed_extensions=["srt", "vtt"],
+                allow_multiple=False,
+            )
+            if files and files[0].path:
+                sub_path = files[0].path
+                sub_name = files[0].name
+                self.video.subtitle_track = fv.VideoSubtitleTrack(
+                    src=sub_path,
+                    title=sub_name,
+                )
+                self.video.update()
+                self.page.snack_bar = ft.SnackBar(
+                    ft.Text(f"Subtitles loaded: {sub_name}"),
+                    bgcolor=AppColors.SUCCESS,
+                )
+                self.page.snack_bar.open = True
+                self.page.update()
+        except Exception as ex:
+            logger.warning("Subtitle pick canceled or failed: %s", ex)
 
     # --- Playback ---
 

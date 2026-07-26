@@ -8,7 +8,15 @@ from core.constants import AD_PRELOAD_MAX_RETRIES, AD_PRELOAD_RETRY_DELAY
 
 try:
     import flet_ads as fta
+    import flet_ads.base_ad as base_ad
 
+    def _patched_init(self):
+        try:
+            super(base_ad.BaseAd, self).init()
+        except Exception:
+            pass
+
+    base_ad.BaseAd.init = _patched_init
     _HAS_FLET_ADS = True
 except ImportError:
     _HAS_FLET_ADS = False
@@ -27,12 +35,52 @@ class AdService:
         self._preload_retry_count: int = 0
         self._ad_closed_event: asyncio.Event | None = None
         self._ad_loaded_event: asyncio.Event | None = None
+        self._can_request_ads: bool = True
+        self._consent_manager = None
 
     def get_banner_unit_id(self) -> str:
         return self.BANNER_ID
 
     def get_interstitial_unit_id(self) -> str:
         return self.INTERSTITIAL_ID
+
+    # ── Consent Management (UMP) ──────────────────────────────────────────────
+
+    async def gather_consent(self):
+        """Run UMP consent flow. Only shows UI in regulated regions (EEA/UK)."""
+        if not _HAS_FLET_ADS:
+            self._can_request_ads = True
+            return
+        try:
+            if not self.page.platform.is_mobile():
+                self._can_request_ads = True
+                return
+        except Exception:
+            self._can_request_ads = True
+            return
+        try:
+            self._consent_manager = fta.ConsentManager()
+            self.page.services.append(self._consent_manager)
+            await self._consent_manager.request_consent_info_update()
+            await self._consent_manager.load_and_show_consent_form_if_required()
+            self._can_request_ads = await self._consent_manager.can_request_ads()
+        except Exception as e:
+            logger.warning("UMP consent flow failed, defaulting to allow ads: %s", e)
+            self._can_request_ads = True
+
+    async def show_privacy_options(self):
+        """Show privacy options form if required by regulation (GDPR)."""
+        if not self._consent_manager:
+            return
+        try:
+            status = await self._consent_manager.get_privacy_options_requirement_status()
+            if status == fta.PrivacyOptionsRequirementStatus.REQUIRED:
+                await self._consent_manager.show_privacy_options_form()
+                self._can_request_ads = await self._consent_manager.can_request_ads()
+        except Exception:
+            pass
+
+    # ── Ad Controls ───────────────────────────────────────────────────────────
 
     def _create_ad_container(self, ad_control: ft.Control, width: int) -> ft.Control:
         return ft.Container(
@@ -55,7 +103,7 @@ class AdService:
         )
 
     def get_native_style_ad(self) -> ft.Control | None:
-        if not _HAS_FLET_ADS or not self.page.platform.is_mobile():
+        if not _HAS_FLET_ADS or not self.page.platform.is_mobile() or not self._can_request_ads:
             return None
         try:
             ad = fta.BannerAd(
@@ -69,7 +117,7 @@ class AdService:
             return None
 
     def get_standard_banner_ad(self) -> ft.Control | None:
-        if not _HAS_FLET_ADS or not self.page.platform.is_mobile():
+        if not _HAS_FLET_ADS or not self.page.platform.is_mobile() or not self._can_request_ads:
             return None
         try:
             ad = fta.BannerAd(
@@ -83,7 +131,7 @@ class AdService:
             return None
 
     def get_anchor_banner_ad(self) -> ft.Control | None:
-        if not _HAS_FLET_ADS or not self.page.platform.is_mobile():
+        if not _HAS_FLET_ADS or not self.page.platform.is_mobile() or not self._can_request_ads:
             return None
         try:
             ad = fta.BannerAd(
@@ -105,7 +153,7 @@ class AdService:
         self._on_interstitial_close = on_close
         self._ad_loaded_event = asyncio.Event()
         try:
-            if not _HAS_FLET_ADS or not self.page.platform.is_mobile():
+            if not _HAS_FLET_ADS or not self.page.platform.is_mobile() or not self._can_request_ads:
                 self._ad_loaded_event.set()
                 return
 

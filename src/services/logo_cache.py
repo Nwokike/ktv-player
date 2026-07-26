@@ -87,7 +87,8 @@ async def _download_one(logo_url: str) -> str | None:
         from services.http_client import get_http_client
 
         client = get_http_client()
-        resp = await client.get(logo_url, timeout=LOGO_DOWNLOAD_TIMEOUT)
+        logo_timeout = httpx.Timeout(LOGO_DOWNLOAD_TIMEOUT, connect=3.0, read=4.0)
+        resp = await client.get(logo_url, timeout=logo_timeout)
         resp.raise_for_status()
 
         detected = _detect_image_type(resp.content)
@@ -97,10 +98,13 @@ async def _download_one(logo_url: str) -> str | None:
         safe_name = hashlib.sha256(logo_url.encode()).hexdigest()[:16]
         cached_path = os.path.join(LOGO_CACHE_DIR, f"{safe_name}.{detected}")
 
-        with open(cached_path, "wb") as f:
-            f.write(resp.content)
+        def _write_file(path: str, data: bytes):
+            with open(path, "wb") as f:
+                f.write(data)
+
+        await asyncio.to_thread(_write_file, cached_path, resp.content)
         return cached_path
-    except Exception:
+    except (httpx.HTTPError, httpx.TimeoutException, Exception):
         return None
     finally:
         _in_flight.discard(logo_url)
