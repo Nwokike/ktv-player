@@ -129,6 +129,75 @@ def build_preferences_tab_content(
         country_tiles.append({"name": cname, "tile": tile})
         country_list.controls.append(tile)
 
+    def open_logs_terminal():
+        from core.logger_handler import MemoryLogHandler
+
+        logs_list = MemoryLogHandler.get_logs()
+        log_text = "\n".join(logs_list) if logs_list else "No activity logs recorded yet."
+
+        log_control = ft.Text(
+            value=log_text,
+            size=11,
+            font_family="monospace",
+            color="#4CAF50",
+            selectable=True,
+        )
+
+        async def _copy_logs(e):
+            try:
+                await ft.Clipboard().set(log_control.value)
+                page_obj.snack_bar = ft.SnackBar(
+                    ft.Text("Activity logs copied to clipboard!"),
+                    bgcolor=AppColors.SUCCESS,
+                )
+                page_obj.snack_bar.open = True
+                page_obj.update()
+            except Exception as ex:
+                pass
+
+        dlg = ft.AlertDialog(
+            modal=True,
+            title=ft.Row(
+                [
+                    ft.Icon(ft.Icons.TERMINAL_ROUNDED, size=24, color=AppColors.PRIMARY),
+                    ft.Text("Activity Terminal", size=18, weight=ft.FontWeight.BOLD),
+                ],
+                spacing=8,
+            ),
+            content=ft.Container(
+                content=ft.Column(
+                    [
+                        ft.Text(
+                            "Real-time stream connection events, player errors, and network logs.",
+                            size=12,
+                            color=ft.Colors.ON_SURFACE_VARIANT,
+                        ),
+                        ft.Container(
+                            content=ft.Column([log_control], scroll=ft.ScrollMode.AUTO, expand=True),
+                            padding=12,
+                            bgcolor="#0D0F1A",
+                            border=ft.Border.all(1, ft.Colors.with_opacity(0.15, ft.Colors.WHITE)),
+                            border_radius=12,
+                            expand=True,
+                        ),
+                    ],
+                    spacing=8,
+                ),
+                width=450,
+                height=480,
+            ),
+            actions=[
+                ft.IconButton(
+                    icon=ft.Icons.COPY_ROUNDED,
+                    tooltip="Copy Logs to Clipboard",
+                    on_click=lambda e: page_obj.run_task(_copy_logs),
+                ),
+                ft.TextButton("Close", on_click=lambda e: page_obj.pop_dialog()),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+        page_obj.open(dlg)
+
     target.controls.append(
         ft.Column(
             [
@@ -145,6 +214,28 @@ def build_preferences_tab_content(
                     border_radius=14,
                     bgcolor=AppColors.get_surface_variant(page_obj),
                     padding=4,
+                ),
+                ft.Container(height=20),
+                ft.Text(
+                    "TROUBLESHOOTING & LOGS",
+                    size=16,
+                    weight=ft.FontWeight.W_600,
+                    color=AppColors.PRIMARY,
+                ),
+                ft.Container(
+                    content=ft.Column(
+                        [
+                            ft.ListTile(
+                                leading=ft.Icon(ft.Icons.TERMINAL_ROUNDED, color=AppColors.PRIMARY),
+                                title=ft.Text("Live Activity Terminal", weight=ft.FontWeight.W_500),
+                                subtitle=ft.Text("View real-time connection activity, stream logs, and errors for debugging.", size=12),
+                                on_click=lambda e: open_logs_terminal(),
+                            ),
+                        ],
+                    ),
+                    bgcolor=AppColors.get_surface(page_obj),
+                    border_radius=14,
+                    border=ft.Border.all(0.5, AppColors.get_border_color(page_obj)),
                 ),
                 ft.Container(height=20),
                 ft.Text(
@@ -172,6 +263,39 @@ def build_preferences_tab_content(
                         ],
                         spacing=0,
                     ),
+                    bgcolor=AppColors.get_surface(page_obj),
+                    border_radius=14,
+                    border=ft.Border.all(0.5, AppColors.get_border_color(page_obj)),
+                ),
+                ft.Container(height=20),
+                ft.Text(
+                    "ABOUT INFO",
+                    size=16,
+                    weight=ft.FontWeight.W_600,
+                    color=AppColors.PRIMARY,
+                ),
+                ft.Container(
+                    content=ft.Column(
+                        [
+                            ft.Row(
+                                [
+                                    ft.Text("App Version", size=14, weight=ft.FontWeight.W_500),
+                                    ft.Text("v1.3.2", size=14, color=AppColors.GREY_DIM),
+                                ],
+                                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                            ),
+                            ft.Divider(height=1),
+                            ft.Row(
+                                [
+                                    ft.Text("Framework Engine", size=14, weight=ft.FontWeight.W_500),
+                                    ft.Text("Flet 0.86.2 + mpv", size=14, color=AppColors.GREY_DIM),
+                                ],
+                                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                            ),
+                        ],
+                        spacing=12,
+                    ),
+                    padding=16,
                     bgcolor=AppColors.get_surface(page_obj),
                     border_radius=14,
                     border=ft.Border.all(0.5, AppColors.get_border_color(page_obj)),

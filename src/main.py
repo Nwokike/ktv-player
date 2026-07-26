@@ -17,6 +17,7 @@ from core.constants import (
     ERR_NETWORK,
 )
 from core.focus_manager import FocusManager
+import core.logger_handler  # noqa: F401
 from core.logging_config import setup_logging
 from core.state import state
 from core.theme import AppColors, AppTheme
