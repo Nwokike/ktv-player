@@ -49,26 +49,42 @@ class AppColors:
         )
 
     @staticmethod
-    def get_surface_variant(page: ft.Page):
-        if page.theme_mode == ft.ThemeMode.LIGHT:
-            return AppColors.LIGHT_SURFACE_VARIANT
-        if page.theme_mode == ft.ThemeMode.DARK:
-            return AppColors.DARK_SURFACE_VARIANT
-        try:
-            is_dark = page.platform_brightness == ft.Brightness.DARK
-            return (
-                AppColors.DARK_SURFACE_VARIANT
-                if is_dark
-                else AppColors.LIGHT_SURFACE_VARIANT
-            )
-        except Exception:
-            return AppColors.DARK_SURFACE_VARIANT
+    def get_bg(page: ft.Page) -> str:
+        return AppColors.DARK_BG if AppColors._is_dark(page) else AppColors.LIGHT_BG
+
+    @staticmethod
+    def get_surface(page: ft.Page) -> str:
+        return AppColors.DARK_SURFACE if AppColors._is_dark(page) else AppColors.LIGHT_SURFACE
+
+    @staticmethod
+    def get_surface_variant(page: ft.Page) -> str:
+        return AppColors.DARK_SURFACE_VARIANT if AppColors._is_dark(page) else AppColors.LIGHT_SURFACE_VARIANT
+
+    @staticmethod
+    def get_card_bg(page: ft.Page) -> str:
+        return AppColors.DARK_SURFACE if AppColors._is_dark(page) else AppColors.LIGHT_SURFACE
+
+    @staticmethod
+    def get_border_color(page: ft.Page) -> str:
+        return ft.Colors.with_opacity(
+            0.12,
+            ft.Colors.WHITE if AppColors._is_dark(page) else ft.Colors.BLACK,
+        )
+
+    @staticmethod
+    def get_text(page: ft.Page) -> str:
+        return AppColors.DARK_TEXT if AppColors._is_dark(page) else AppColors.LIGHT_TEXT
+
+    @staticmethod
+    def get_text_dim(page: ft.Page) -> str:
+        return AppColors.DARK_TEXT_DIM if AppColors._is_dark(page) else AppColors.LIGHT_TEXT_DIM
 
 
 class AppTheme:
     @staticmethod
     def get_dark_theme() -> ft.Theme:
         return ft.Theme(
+            color_scheme_seed=AppColors.PRIMARY,
             color_scheme=ft.ColorScheme(
                 primary=AppColors.PRIMARY,
                 secondary=AppColors.SECONDARY,
@@ -81,13 +97,33 @@ class AppTheme:
                 outline=AppColors.DARK_TEXT_MUTED,
                 surface_tint=AppColors.TRANSPARENT,
             ),
+            card_theme=ft.CardTheme(
+                color=AppColors.DARK_SURFACE,
+                elevation=2.0,
+                shape=ft.RoundedRectangleBorder(radius=16),
+            ),
+            navigation_bar_theme=ft.NavigationBarTheme(
+                bgcolor=AppColors.DARK_SURFACE,
+                indicator_color=AppColors.PRIMARY,
+                elevation=4.0,
+            ),
+            search_bar_theme=ft.SearchBarTheme(
+                bgcolor=AppColors.DARK_SURFACE_VARIANT,
+                elevation=1.0,
+            ),
+            page_transitions=ft.PageTransitionsTheme(
+                android=ft.PageTransitionTheme.FADE_UPWARDS,
+                ios=ft.PageTransitionTheme.CUPERTINO,
+            ),
             focus_color=AppColors.PRIMARY,
             visual_density=ft.VisualDensity.COMFORTABLE,
+            use_material3=True,
         )
 
     @staticmethod
     def get_light_theme() -> ft.Theme:
         return ft.Theme(
+            color_scheme_seed=AppColors.PRIMARY,
             color_scheme=ft.ColorScheme(
                 primary=AppColors.PRIMARY,
                 secondary=AppColors.SECONDARY,
@@ -100,6 +136,25 @@ class AppTheme:
                 outline=AppColors.LIGHT_TEXT_MUTED,
                 surface_tint=AppColors.TRANSPARENT,
             ),
+            card_theme=ft.CardTheme(
+                color=AppColors.LIGHT_SURFACE,
+                elevation=2.0,
+                shape=ft.RoundedRectangleBorder(radius=16),
+            ),
+            navigation_bar_theme=ft.NavigationBarTheme(
+                bgcolor=AppColors.LIGHT_SURFACE,
+                indicator_color=AppColors.PRIMARY_LIGHT,
+                elevation=4.0,
+            ),
+            search_bar_theme=ft.SearchBarTheme(
+                bgcolor=AppColors.LIGHT_SURFACE_VARIANT,
+                elevation=1.0,
+            ),
+            page_transitions=ft.PageTransitionsTheme(
+                android=ft.PageTransitionTheme.FADE_UPWARDS,
+                ios=ft.PageTransitionTheme.CUPERTINO,
+            ),
             focus_color=AppColors.PRIMARY,
             visual_density=ft.VisualDensity.COMFORTABLE,
+            use_material3=True,
         )

@@ -83,7 +83,7 @@ def create_channel_card(
         error_content=ft.Icon(ft.Icons.TV, size=30),
     )
 
-    # Card visual (glass container inlined)
+    # Card visual (Material 3 container with animated scale)
     card_key = f"ch_{card_index}_{hash(url) % 10000}"
     card = ft.Container(
         content=ft.Column(
@@ -104,7 +104,7 @@ def create_channel_card(
                                     page_obj,
                                 )
                             ),
-                            tooltip="Add to favorites",
+                            tooltip="Favorite",
                         ),
                         status_indicator,
                     ],
@@ -113,20 +113,23 @@ def create_channel_card(
                 logo_img,
                 ft.Text(
                     c.get("name") or "Unknown",
-                    size=11,
-                    weight=ft.FontWeight.W_400,
+                    size=12,
+                    weight=ft.FontWeight.W_500,
                     text_align=ft.TextAlign.CENTER,
                     max_lines=1,
                     overflow=ft.TextOverflow.ELLIPSIS,
                 ),
             ],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-            spacing=2,
+            spacing=4,
         ),
-        padding=10,
+        padding=12,
         border_radius=CARD_BORDER_RADIUS,
-        bgcolor=_GLASS_BG,
-        border=_GLASS_BORDER,
+        bgcolor=AppColors.get_surface(page_obj) if page_obj else _GLASS_BG,
+        border=ft.Border.all(
+            0.5,
+            AppColors.get_border_color(page_obj) if page_obj else _GLASS_BORDER,
+        ),
         animate_scale=_GLASS_ANIM,
         animate=_GLASS_ANIM,
         ink=True,

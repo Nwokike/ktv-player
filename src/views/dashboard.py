@@ -170,25 +170,22 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
 
     # --- Search (Enter to submit) ---
 
+    # --- Search (Instant as user types) ---
+
     def execute_search(e=None):
         view_state["search_query"] = (
             search_field.value.strip() if search_field.value else ""
         )
         build_tab(view_state["selected_tab"])
 
-    search_field = ft.TextField(
-        hint_text=LBL_SEARCH_HINT,
-        color=ft.Colors.ON_SURFACE,
-        bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.ON_SURFACE),
-        border_color=ft.Colors.TRANSPARENT,
-        border_radius=16,
-        prefix_icon=ft.Icons.SEARCH_ROUNDED,
-        content_padding=20,
-        text_size=16,
+    search_field = ft.SearchBar(
+        bar_hint_text=LBL_SEARCH_HINT,
+        bar_leading=ft.Icon(ft.Icons.SEARCH_ROUNDED, color=ft.Colors.PRIMARY),
+        bar_elevation=0,
+        bar_padding=ft.Padding(12, 0, 12, 0),
+        on_change=execute_search,
         on_submit=execute_search,
         expand=True,
-        focused_border_color=AppColors.PRIMARY,
-        focused_bgcolor=ft.Colors.with_opacity(0.1, AppColors.PRIMARY),
     )
 
     # --- Recently Watched ---
@@ -225,26 +222,28 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
                     [
                         ft.Image(
                             src=cached or logo_src,
-                            width=50,
-                            height=50,
+                            width=52,
+                            height=52,
                             fit=ft.BoxFit.CONTAIN,
-                            border_radius=15,
+                            border_radius=14,
                             error_content=ft.Icon(ft.Icons.TV, size=24),
                         ),
                         ft.Text(
                             ch.get("name", "Unknown"),
-                            size=10,
+                            size=11,
+                            weight=ft.FontWeight.W_500,
                             max_lines=1,
                             overflow=ft.TextOverflow.ELLIPSIS,
                             text_align=ft.TextAlign.CENTER,
-                            width=70,
+                            width=72,
                         ),
                     ],
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                     spacing=4,
                 ),
                 padding=8,
-                border_radius=12,
+                border_radius=16,
+                bgcolor=AppColors.get_surface_variant(page_obj),
                 ink=True,
                 on_click=lambda e, u=url: page_obj.run_task(on_play, u),
             )

@@ -314,10 +314,11 @@ def build_onboarding_view(
                 ),
                 ft.Container(
                     content=country_list,
-                    border=ft.Border.all(1.5, AppColors.GREY_DIM),
-                    border_radius=14,
+                    border=ft.Border.all(1.5, AppColors.PRIMARY),
+                    border_radius=16,
+                    bgcolor=AppColors.get_surface_variant(page_obj),
                     clip_behavior=ft.ClipBehavior.ANTI_ALIAS,
-                    padding=4,
+                    padding=6,
                 ),
                 ft.Divider(height=20, color=ft.Colors.TRANSPARENT),
                 ft.Container(
@@ -328,8 +329,9 @@ def build_onboarding_view(
                         text_align=ft.TextAlign.LEFT,
                     ),
                     padding=16,
-                    border_radius=12,
-                    border=ft.Border.all(1, AppColors.GREY_DIM),
+                    border_radius=14,
+                    bgcolor=AppColors.get_surface(page_obj),
+                    border=ft.Border.all(1, AppColors.get_border_color(page_obj)),
                 ),
                 ft.Row(
                     [
@@ -346,7 +348,7 @@ def build_onboarding_view(
                 ),
                 ft.Divider(height=20, color=ft.Colors.TRANSPARENT),
                 ft.FilledButton(
-                    content=LBL_START_WATCHING,
+                    content=ft.Text(LBL_START_WATCHING, size=16, weight=ft.FontWeight.W_600),
                     on_click=handle_submit,
                     style=ft.ButtonStyle(
                         color="white",

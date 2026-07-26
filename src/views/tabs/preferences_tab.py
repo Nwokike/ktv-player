@@ -141,8 +141,10 @@ def build_preferences_tab_content(
                 ft.Text(LBL_LOCALIZATION_DESC, size=12, color=AppColors.GREY_DIM),
                 ft.Container(
                     content=country_list,
-                    border=ft.Border.all(1, AppColors.GREY_DIM),
-                    border_radius=10,
+                    border=ft.Border.all(1, AppColors.PRIMARY),
+                    border_radius=14,
+                    bgcolor=AppColors.get_surface_variant(page_obj),
+                    padding=4,
                 ),
                 ft.Container(height=20),
                 ft.Text(
@@ -151,17 +153,28 @@ def build_preferences_tab_content(
                     weight=ft.FontWeight.W_600,
                     color=AppColors.PRIMARY,
                 ),
-                ft.ListTile(
-                    leading=ft.Icon(ft.Icons.HISTORY, color=AppColors.WARNING),
-                    title=ft.Text(LBL_CLEAR_HISTORY),
-                    subtitle=ft.Text(LBL_CLEAR_HISTORY_DESC),
-                    on_click=handle_clear_history,
-                ),
-                ft.ListTile(
-                    leading=ft.Icon(ft.Icons.DELETE_FOREVER, color=AppColors.WARNING),
-                    title=ft.Text(LBL_RESET_LIBRARY),
-                    subtitle=ft.Text(LBL_RESET_LIBRARY_DESC),
-                    on_click=handle_clear_custom,
+                ft.Container(
+                    content=ft.Column(
+                        [
+                            ft.ListTile(
+                                leading=ft.Icon(ft.Icons.HISTORY, color=AppColors.WARNING),
+                                title=ft.Text(LBL_CLEAR_HISTORY, weight=ft.FontWeight.W_500),
+                                subtitle=ft.Text(LBL_CLEAR_HISTORY_DESC, size=12),
+                                on_click=handle_clear_history,
+                            ),
+                            ft.Divider(height=1),
+                            ft.ListTile(
+                                leading=ft.Icon(ft.Icons.DELETE_FOREVER, color=AppColors.WARNING),
+                                title=ft.Text(LBL_RESET_LIBRARY, weight=ft.FontWeight.W_500),
+                                subtitle=ft.Text(LBL_RESET_LIBRARY_DESC, size=12),
+                                on_click=handle_clear_custom,
+                            ),
+                        ],
+                        spacing=0,
+                    ),
+                    bgcolor=AppColors.get_surface(page_obj),
+                    border_radius=14,
+                    border=ft.Border.all(0.5, AppColors.get_border_color(page_obj)),
                 ),
             ],
             spacing=10,
