@@ -28,41 +28,7 @@ from services.liveliness_checker import LivelinessChecker
 
 logger = logging.getLogger(__name__)
 
-_SENSITIVE_PATHS = (
-    "/etc/",
-    "/proc/",
-    "/sys/",
-    "/dev/",
-    "C:\\Windows",
-    "C:/Windows",
-    "C:\\System",
-    "C:/System",
-    "/data/data/",
-    "/data/user/",
-)
-
-
-def _is_valid_play_url(raw: str) -> bool:
-    if not raw or len(raw) > 4096:
-        return False
-
-    if raw.startswith(("file://", "content://")):
-        lower = raw.lower()
-        return not any(s.lower() in lower for s in _SENSITIVE_PATHS)
-
-    for scheme in ("http://", "https://", "rtsp://", "rtmp://", "rtp://", "mms://"):
-        if raw.startswith(scheme):
-            try:
-                urllib.parse.urlparse(raw)
-                return True
-            except Exception:
-                return False
-
-    if re.match(r"^[A-Za-z]:\\", raw) or raw.startswith("/"):
-        lower = raw.lower()
-        return not any(s.lower() in lower for s in _SENSITIVE_PATHS)
-
-    return False
+from core.url_validator import _is_valid_play_url
 
 
 class AppController:
@@ -149,59 +115,8 @@ class AppController:
     # --- Channel Loading ---
 
     async def load_channels(self, force=False):
-        if self._loading_lock.locked() and not force:
-            return
-
-        async with self._loading_lock:
-            from views.tabs.channel_groups import _invalidate_groups_cache
-
-            _invalidate_groups_cache()
-
-            state.is_loading = True
-            self.page.update()
-
-            try:
-                channels = await channel_provider.get_all_channels()
-
-                # Merge custom content
-                custom_channels = await db_manager.get_custom_channels()
-                for cc in custom_channels:
-                    cc["is_custom"] = True
-                    channels.append(cc)
-
-                playlists = await db_manager.get_playlists()
-                for pl in playlists:
-                    if pl.get("is_active"):
-                        try:
-                            playlist_channels = await iptv_service.fetch_playlist(
-                                pl["url"],
-                            )
-                            for pc in playlist_channels:
-                                pc["is_custom"] = True
-                            channels.extend(playlist_channels)
-                        except Exception:
-                            logger.exception(
-                                "Failed to fetch playlist: %s",
-                                pl.get("name"),
-                            )
-
-                state.set_channels(channels)
-            except Exception:
-                logger.exception("Failed to load channels")
-                try:
-                    self.page.snack_bar = ft.SnackBar(
-                        ft.Text("Failed to load channels. Check your connection."),
-                        bgcolor=AppColors.ERROR,
-                    )
-                    self.page.snack_bar.open = True
-                except Exception:
-                    pass
-            finally:
-                state.is_loading = False
-                refresh = getattr(self.page, "_dashboard_refresh", None)
-                if refresh:
-                    refresh()
-                self.page.update()
+        from core.app_loader import load_all_channels
+        await load_all_channels(self.page, self._loading_lock)
 
     # --- Playback ---
 
@@ -268,44 +183,12 @@ class AppController:
 
     # --- Deep Link ---
 
-    def _handle_deep_link(self, url_str: str):
-        logger.info("Deep link received: %s", url_str)
-        parsed = urllib.parse.urlparse(url_str)
-        if parsed.scheme != "ktv":
-            logger.warning("Deep link skipped — wrong scheme: %s", parsed.scheme)
-            return
-        query = urllib.parse.parse_qs(parsed.query)
-        encoded = query.get("url", [None])[0]
-        if not encoded:
-            logger.warning("Deep link missing 'url' parameter: %s", url_str)
-            return
-        logger.info("Deep link encoded param: %s", encoded[:60])
-        try:
-            padding_needed = (4 - len(encoded) % 4) % 4
-            encoded_padded = encoded + ("=" * padding_needed)
-            decoded = base64.urlsafe_b64decode(encoded_padded).decode("utf-8")
-            logger.info("Deep link decoded URL: %s", decoded[:80])
-            if not _is_valid_play_url(decoded):
-                logger.warning("Deep link decoded invalid URL: %s", decoded[:80])
-                return
-        except Exception as ex:
-            logger.exception("Failed to decode deep link: %s", ex)
-            return
-
-        # Decode optional title parameter
-        title = None
-        encoded_title = query.get("title", [None])[0]
-        if encoded_title:
-            try:
-                padding_needed = (4 - len(encoded_title) % 4) % 4
-                encoded_padded = encoded_title + ("=" * padding_needed)
-                title = base64.urlsafe_b64decode(encoded_padded).decode("utf-8")
-                logger.info("Deep link decoded title: %s", title[:60])
-            except Exception:
-                logger.warning("Failed to decode deep link title")
-
-        logger.info("Deep link URL valid, launching play_stream")
-        self.page.run_task(self.play_stream, decoded, title)
+    def _handle_deep_link(self, route: str):
+        from core.deeplink import parse_deep_link
+        url, title = parse_deep_link(route)
+        if url:
+            logger.info("Deep link URL valid, launching play_stream")
+            self.page.run_task(self.play_stream, url, title)
 
     # --- Routing ---
 
@@ -361,52 +244,16 @@ class AppController:
             self.page.update()
 
     async def _startup_flow(self):
-        # Abort if redirected by a deep link launch during load
-        if self.page.route != "/" and self.page.route != "":
-            logger.info("Startup flow aborted: route is %s", self.page.route)
-            return
-
-        if state.is_first_launch or not state.has_accepted_terms:
-            # First launch: load channels first, then show onboarding with country picker
-            state.is_loading = True
-            await self.load_channels()
-
-            from views.onboarding import build_onboarding_view
-
-            onboarding = build_onboarding_view(
-                page_obj=self.page,
-                countries=channel_provider.get_countries(),
-                on_complete=self._onboarding_complete,
-                load_channels=self.load_channels,
-            )
-            self.page.views.clear()
-            self.page.views.append(onboarding)
-            self.page.update()
-        else:
-            # Returning user: show dashboard immediately, load channels in background
-            state.is_loading = True
-            self.page.run_task(self.load_channels)
-            await self._go_to_dashboard()
+        from core.startup import run_startup_flow
+        await run_startup_flow(self)
 
     async def _onboarding_complete(self):
-        await db_manager.set_setting("accepted_terms", "true")
-        state.has_accepted_terms = True
-        state.is_first_launch = False
-        await self._go_to_dashboard()
+        from core.startup import complete_onboarding
+        await complete_onboarding(self)
 
     async def _go_to_dashboard(self):
-        from views.dashboard import build_dashboard_view
-
-        self.page.views.clear()
-        view = build_dashboard_view(
-            page_obj=self.page,
-            on_play=self.play_stream,
-            ad_service=self.ad_service,
-            liveliness=self.liveliness,
-            load_channels=self.load_channels,
-        )
-        self.page.views.append(view)
-        self.page.update()
+        from core.startup import go_to_dashboard
+        await go_to_dashboard(self)
 
     def view_pop(self, e):
         if not self.page.views:

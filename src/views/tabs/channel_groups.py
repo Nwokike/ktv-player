@@ -1,111 +1,21 @@
-"""Channel group classification and building.
-
-Single source of truth for how channels map to display groups.
-"""
+"""Channel group classification and expansion tile builder."""
 
 import contextlib
 import logging
 
 import flet as ft
 
-from core.constants import (
-    LBL_SHOW_NEXT,
-    LBL_SHOWING_RANGE,
-    MAX_SEARCH_RESULTS,
-    PAGE_SIZE,
-)
+from core.constants import LBL_SHOW_NEXT, LBL_SHOWING_RANGE, PAGE_SIZE
 from core.state import state
 from core.theme import AppColors
+from views.tabs.channel_classification import (
+    _build_groups,
+    _invalidate_groups_cache,
+    _search_channels,
+)
 from views.tabs.pagination import build_nav_btn, show_page
 
 logger = logging.getLogger(__name__)
-
-# Module-level groups cache
-_groups_cache: dict = {"countries": {}, "categories": {}, "custom": {}, "hash": None}
-
-
-def _invalidate_groups_cache():
-    _groups_cache["countries"] = {}
-    _groups_cache["categories"] = {}
-    _groups_cache["custom"] = {}
-    _groups_cache["hash"] = None
-
-
-def classify_channel(channel: dict, tab_index: int) -> str | None:
-    """Classify a single channel into its display group for the given tab.
-
-    tab_index: 0=Countries, 1=Categories, 2=Custom
-    Returns the display group name, or None if the channel should be excluded.
-    """
-    is_custom = channel.get("is_custom", False)
-    if tab_index == 2 and not is_custom:
-        return None
-    if tab_index in (0, 1) and is_custom:
-        return None
-
-    original_group = channel.get("group", "General")
-    parts = [p.strip() for p in original_group.split(";")]
-
-    if tab_index == 0:  # Countries
-        return parts[0] if channel.get("country_code") else "Global"
-    elif tab_index == 1:  # Categories
-        group = (
-            parts[-1]
-            if len(parts) > 1
-            else (parts[0] if not channel.get("country_code") else "General")
-        )
-        return None if group.lower() == "general" else group
-    else:  # Custom
-        return original_group
-
-
-def _build_groups(channels: list[dict], tab_index: int) -> dict[str, list[dict]]:
-    """Build groups dict, using cache when channels haven't changed."""
-    cache_keys = {0: "countries", 1: "categories", 2: "custom"}
-    cache_key = cache_keys.get(tab_index, "custom")
-
-    if _groups_cache["hash"] == state.channels_hash and _groups_cache[cache_key]:
-        return _groups_cache[cache_key]
-
-    groups: dict[str, list[dict]] = {}
-    for c in channels:
-        display_group = classify_channel(c, tab_index)
-        if display_group is None:
-            continue
-        if display_group not in groups:
-            groups[display_group] = []
-        groups[display_group].append(c)
-
-    _groups_cache[cache_key] = groups
-    _groups_cache["hash"] = state.channels_hash
-    return groups
-
-
-def _search_channels(
-    channels: list[dict],
-    query: str,
-    tab_index: int,
-) -> dict[str, list[dict]]:
-    """Filter channels by search query using the same classify_channel logic."""
-    groups: dict[str, list[dict]] = {}
-    count = 0
-    for c in channels:
-        display_group = classify_channel(c, tab_index)
-        if display_group is None:
-            continue
-
-        name_match = query in c.get("name", "").lower()
-        if not name_match and query not in display_group.lower():
-            continue
-
-        count += 1
-        if count > MAX_SEARCH_RESULTS:
-            break
-
-        if display_group not in groups:
-            groups[display_group] = []
-        groups[display_group].append(c)
-    return groups
 
 
 def _collapse_other_tiles(current_tile, active_tiles):
@@ -148,251 +58,124 @@ def build_channel_groups(
     from components.ui.channel_grid import build_channel_grid
 
     if not state.channels and tab_index in (0, 1):
-        reload_btn = ft.Ref[ft.FilledButton]()
-        load_channels_func = load_channels or getattr(page_obj, "load_channels", None)
-
-        async def handle_reload(e):
-            if load_channels_func is None:
-                return
-
-            reload_btn.current.disabled = True
-            reload_btn.current.icon = None
-            reload_btn.current.content = "Reloading..."
-            page_obj.update()
-
-            try:
-                await load_channels_func(force=True)
-                if state.channels:
-                    refresh_dashboard_func = getattr(
-                        page_obj, "_dashboard_refresh", None
-                    )
-                    if refresh_dashboard_func:
-                        refresh_dashboard_func()
-                else:
-                    page_obj.snack_bar = ft.SnackBar(
-                        ft.Text(
-                            "Unable to download playlist. Check your internet connection.",
-                        ),
-                        bgcolor=AppColors.ERROR,
-                    )
-                    page_obj.snack_bar.open = True
-                    page_obj.update()
-            except Exception as err:
-                page_obj.snack_bar = ft.SnackBar(
-                    ft.Text(f"Failed to load channels: {str(err)}"),
-                    bgcolor=AppColors.ERROR,
+        if state.is_loading:
+            target.controls.append(
+                ft.Column(
+                    [
+                        ft.Container(height=80),
+                        ft.ProgressRing(width=60, height=60, stroke_width=6, color=AppColors.PRIMARY),
+                        ft.Container(height=20),
+                        ft.Text("Fetching and validating channels...", color=AppColors.PRIMARY, size=18, weight=ft.FontWeight.BOLD),
+                        ft.Text("Please wait, massive playlists may take a moment.", color=AppColors.GREY_DIM, size=12),
+                    ],
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 )
-                page_obj.snack_bar.open = True
-                page_obj.update()
-            finally:
-                reload_btn.current.disabled = False
-                reload_btn.current.icon = ft.Icons.REFRESH
-                reload_btn.current.content = "Reload Playlist"
-                page_obj.update()
+            )
+            return
 
-        placeholder_card = ft.Container(
-            content=ft.Column(
-                [
-                    ft.Container(
-                        content=ft.Icon(
-                            ft.Icons.SIGNAL_WIFI_OFF_ROUNDED,
-                            size=40,
-                            color=AppColors.PRIMARY,
-                        ),
-                        bgcolor=ft.Colors.with_opacity(0.1, AppColors.PRIMARY),
-                        padding=15,
-                        border_radius=40,
-                    ),
-                    ft.Container(height=8),
-                    ft.Text(
-                        "Network Playlist Offline",
-                        size=18,
-                        weight=ft.FontWeight.BOLD,
-                        text_align=ft.TextAlign.CENTER,
-                    ),
-                    ft.Text(
-                        "Connect to the internet to load free-to-air international channels, "
-                        "or browse local videos and custom playlists in other tabs.",
-                        size=13,
-                        text_align=ft.TextAlign.CENTER,
-                        color=AppColors.GREY_DIM,
-                        width=320,
-                    ),
-                    ft.Container(height=12),
-                    ft.FilledButton(
-                        ref=reload_btn,
-                        content="Reload Playlist",
-                        icon=ft.Icons.REFRESH,
-                        on_click=lambda e: page_obj.run_task(handle_reload, e),
-                        style=ft.ButtonStyle(
-                            color="white",
-                            bgcolor=AppColors.PRIMARY,
-                            padding=ft.Padding(24, 12, 24, 12),
-                            shape=ft.RoundedRectangleBorder(radius=12),
-                        ),
-                        width=220,
-                    ),
-                ],
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                alignment=ft.MainAxisAlignment.CENTER,
-                spacing=8,
-            ),
-            padding=24,
-            border_radius=16,
-            bgcolor=ft.Colors.with_opacity(0.03, ft.Colors.ON_SURFACE),
-            border=ft.Border.all(1, ft.Colors.with_opacity(0.08, ft.Colors.ON_SURFACE)),
-            alignment=ft.Alignment(0, 0),
-            margin=ft.Margin(0, 40, 0, 40),
-        )
+        def _retry(e):
+            if load_channels:
+                page_obj.run_task(load_channels, True)
 
-        target.controls.append(placeholder_card)
-        return
-
-    query = view_state["search_query"].lower()
-
-    groups = (
-        _search_channels(state.channels, query, tab_index)
-        if query
-        else _build_groups(state.channels, tab_index)
-    )
-
-    group_names = sorted(groups.keys())
-
-    # Prioritize user's country in Countries tab
-    # "Other" maps to "Global" — users who pick Other get Global expanded
-    primary_country = "Global" if state.user_country == "Other" else state.user_country
-    if tab_index == 0 and primary_country in group_names:
-        group_names.remove(primary_country)
-        group_names.insert(0, primary_country)
-
-    results_count = sum(len(v) for v in groups.values())
-
-    if query and not group_names:
         target.controls.append(
             ft.Column(
                 [
-                    ft.Container(height=60),
-                    ft.Icon(ft.Icons.SEARCH_OFF, size=64, color=AppColors.GREY_DIM),
-                    ft.Container(height=12),
-                    ft.Text(
-                        "No results found for your query",
-                        size=16,
-                        color=AppColors.GREY_DIM,
-                        text_align=ft.TextAlign.CENTER,
-                    ),
-                    ft.Text(
-                        f'No channels match "{query}"',
-                        size=12,
-                        color=AppColors.GREY_DIM,
-                        text_align=ft.TextAlign.CENTER,
-                    ),
+                    ft.Container(height=80),
+                    ft.Icon(ft.Icons.WIFI_OFF_ROUNDED, size=64, color=AppColors.WARNING),
+                    ft.Container(height=16),
+                    ft.Text("No channels available", color=AppColors.PRIMARY, size=18, weight=ft.FontWeight.BOLD),
+                    ft.Text("Could not load network playlists. Check internet or retry.", color=AppColors.GREY_DIM, size=12, text_align=ft.TextAlign.CENTER),
+                    ft.Container(height=20),
+                    ft.FilledButton("Retry Loading Channels", on_click=_retry, style=ft.ButtonStyle(bgcolor=AppColors.PRIMARY)),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-            ),
+            )
         )
         return
 
-    for name in group_names:
-        channels = groups[name]
-        should_expand = bool(
-            (tab_index == 0 and name == primary_country)
-            or (query and results_count < 10),
+    query = view_state.get("search_query", "").strip().lower()
+    if query:
+        groups = _search_channels(state.channels, query, tab_index)
+    else:
+        groups = _build_groups(state.channels, tab_index)
+
+    if not groups and tab_index == 2:
+        target.controls.append(
+            ft.Column(
+                [
+                    ft.Container(height=40),
+                    ft.Icon(ft.Icons.ADD_TO_QUEUE_ROUNDED, size=48, color=AppColors.PRIMARY),
+                    ft.Container(height=12),
+                    ft.Text("No custom content added yet", color=AppColors.PRIMARY, size=16, weight=ft.FontWeight.BOLD),
+                    ft.Text("Tap the '+' button above to add custom playlists or stream URLs.", color=AppColors.GREY_DIM, size=12, text_align=ft.TextAlign.CENTER),
+                ],
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            )
         )
+        return
+
+    if not groups:
+        target.controls.append(
+            ft.Column(
+                [
+                    ft.Container(height=40),
+                    ft.Icon(ft.Icons.SEARCH_OFF_ROUNDED, size=48, color=AppColors.GREY_DIM),
+                    ft.Container(height=12),
+                    ft.Text(f"No channels matching '{query}'", color=AppColors.GREY_DIM, size=14, text_align=ft.TextAlign.CENTER),
+                ],
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            )
+        )
+        return
+
+    sorted_group_names = sorted(
+        groups.keys(),
+        key=lambda g: (
+            0 if g == state.user_country
+            else 1 if g == "Global"
+            else 2 if g.startswith("Custom")
+            else 3,
+            g,
+        ),
+    )
+
+    is_searching = bool(query)
+
+    for group_name in sorted_group_names:
+        chans = groups[group_name]
+        is_user_country = group_name == state.user_country
+        should_expand = is_user_country or is_searching
 
         tile_controls = []
         if should_expand:
-            total = len(channels)
-            ad_indices = {
-                idx
-                for idx in range(0, min(PAGE_SIZE, total))
-                if (idx + 1) % 12 == 0 and (idx + 1) < total
-            }
-            grid = build_channel_grid(
-                channels,
-                0,
-                PAGE_SIZE,
-                on_play=on_play,
-                page_obj=page_obj,
-                ad_service=ad_service,
-                ad_indices=ad_indices,
-            )
-
-            end = min(PAGE_SIZE, total)
+            end = min(PAGE_SIZE, len(chans))
             tile_controls.append(
                 ft.Container(
-                    content=ft.Text(
-                        LBL_SHOWING_RANGE.format(start=1, end=end, total=total),
-                        size=11,
-                        color=AppColors.GREY_DIM,
-                        italic=True,
-                        text_align=ft.TextAlign.CENTER,
-                        width=float("inf"),
-                    ),
+                    content=ft.Text(LBL_SHOWING_RANGE.format(start=1, end=end, total=len(chans)), size=11, color=AppColors.GREY_DIM, italic=True, text_align=ft.TextAlign.CENTER, width=float("inf")),
                     padding=ft.Padding(0, 5, 0, 5),
-                ),
+                )
             )
+            grid = build_channel_grid(chans[:end], 0, on_play, page_obj, ad_service, liveliness)
             tile_controls.append(grid)
 
-            # D-pad focus anchor: focusable Container OUTSIDE the grid (sibling in Column)
-            hint_btn = ft.Container(
-                content=ft.Row(
-                    [
-                        ft.Container(
-                            width=8,
-                            height=8,
-                            border_radius=4,
-                            bgcolor=ft.Colors.GREEN,
-                        ),
-                        ft.Text("Live", size=10, color=AppColors.GREY_DIM),
-                        ft.Container(
-                            width=8,
-                            height=8,
-                            border_radius=4,
-                            bgcolor=ft.Colors.RED,
-                        ),
-                        ft.Text(
-                            "Offline — Play green channels",
-                            size=10,
-                            color=AppColors.GREY_DIM,
-                            italic=True,
-                        ),
-                    ],
-                    spacing=6,
-                    alignment=ft.MainAxisAlignment.CENTER,
-                ),
-                padding=ft.Padding(8, 4, 8, 4),
-                border_radius=8,
-                ink=True,
-                on_click=lambda e: None,
-            )
-            hint_btn.tab_index = 998
-            tile_controls.append(hint_btn)
+            if len(chans) > PAGE_SIZE:
+                remaining = len(chans) - PAGE_SIZE
+                next_btn = build_nav_btn(
+                    LBL_SHOW_NEXT.format(count=min(PAGE_SIZE, remaining), remaining=remaining),
+                    ft.Icons.EXPAND_MORE,
+                    lambda e, g_chans=chans: show_page(e.control.parent, g_chans, PAGE_SIZE, page_obj, on_play, ad_service, liveliness),
+                )
+                tile_controls.append(next_btn)
 
-            if total > PAGE_SIZE:
-                remaining = total - end
-                show_count = min(PAGE_SIZE, remaining)
-                next_label = LBL_SHOW_NEXT.format(count=show_count, remaining=remaining)
-                # The nav_btn's on_click gets patched below with the correct tile reference
-                nav_btn = build_nav_btn(ft.Icons.EXPAND_MORE, next_label)
-                nav_btn._patch_target = True
-                tile_controls.append(nav_btn)
-
-            cards_data = liveliness.collect_cards_data(grid)
-            if cards_data:
-                page_obj.run_task(liveliness.fire_batch, cards_data)
+        subtitle_text = f"{len(chans)} channels"
+        if is_user_country:
+            subtitle_text += " \u2022 Preferred Region"
 
         exp_tile = ft.ExpansionTile(
-            title=ft.Text(f"{name} ({len(channels)})", weight=ft.FontWeight.BOLD),
+            title=ft.Text(group_name, weight=ft.FontWeight.BOLD, color=AppColors.PRIMARY if is_user_country else None),
+            subtitle=ft.Text(subtitle_text, size=11, color=AppColors.PRIMARY if is_user_country else AppColors.GREY_DIM),
             expanded=should_expand,
-            on_change=lambda e, ch=channels: _handle_expansion(
-                e,
-                ch,
-                active_tiles,
-                page_obj,
-                on_play,
-                ad_service,
-                liveliness,
-            ),
+            on_change=lambda e, g_chans=chans: _handle_expansion(e, g_chans, active_tiles, page_obj, on_play, ad_service, liveliness),
             controls=tile_controls,
             collapsed_bgcolor=ft.Colors.TRANSPARENT,
             bgcolor=ft.Colors.with_opacity(0.03, ft.Colors.ON_SURFACE),
@@ -401,24 +184,10 @@ def build_channel_groups(
         tile_wrapper = ft.Container(
             content=exp_tile,
             border_radius=12,
+            ink=True,
+            on_click=lambda e, t=exp_tile: (setattr(t, "expanded", not t.expanded) or t.update()),
         )
-
-        # Patch nav button to reference the correct expansion tile
-        if should_expand:
-            next_offset = min(PAGE_SIZE, len(channels))
-            for ctrl in tile_controls:
-                if hasattr(ctrl, "_patch_target"):
-                    ctrl.on_click = lambda e, t=exp_tile, ch=channels, off=next_offset: (
-                        show_page(
-                            t,
-                            ch,
-                            off,
-                            page_obj,
-                            on_play,
-                            ad_service,
-                            liveliness,
-                        )
-                    )
+        tile_wrapper.tab_index = 0
 
         active_tiles.append(exp_tile)
         target.controls.append(tile_wrapper)

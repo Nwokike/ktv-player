@@ -85,81 +85,12 @@ def build_onboarding_view(
 
     def render_content(current_countries: list[dict]):
         if not state.channels:
-            # Render Offline UI
-            offline_retry_btn = ft.FilledButton(
-                ref=retry_btn,
-                content="Retry Connection",
-                icon=ft.Icons.REFRESH,
-                on_click=handle_retry,
-                style=ft.ButtonStyle(
-                    color="white",
-                    bgcolor=AppColors.PRIMARY,
-                    padding=ft.Padding(32, 16, 32, 16),
-                    shape=ft.RoundedRectangleBorder(radius=16),
-                ),
-                width=320,
+            from views.onboarding_offline import build_offline_card
+            content_container.content = build_offline_card(
+                page_obj, handle_retry, handle_offline_mode, retry_btn, offline_btn
             )
-
-            offline_mode_btn = ft.OutlinedButton(
-                ref=offline_btn,
-                content="Continue to Offline Mode",
-                icon=ft.Icons.PLAY_ARROW_ROUNDED,
-                on_click=handle_offline_mode,
-                style=ft.ButtonStyle(
-                    color=AppColors.PRIMARY,
-                    padding=ft.Padding(32, 16, 32, 16),
-                    shape=ft.RoundedRectangleBorder(radius=16),
-                    side=ft.BorderSide(2, AppColors.PRIMARY),
-                ),
-                width=320,
-            )
-
-            offline_card = ft.Container(
-                content=ft.Column(
-                    [
-                        ft.Container(
-                            content=ft.Icon(
-                                ft.Icons.WIFI_OFF_ROUNDED,
-                                size=48,
-                                color=AppColors.PRIMARY,
-                            ),
-                            bgcolor=ft.Colors.with_opacity(0.1, AppColors.PRIMARY),
-                            padding=20,
-                            border_radius=50,
-                        ),
-                        ft.Container(height=10),
-                        ft.Text(
-                            "Connection Required",
-                            size=22,
-                            weight=ft.FontWeight.BOLD,
-                            text_align=ft.TextAlign.CENTER,
-                        ),
-                        ft.Text(
-                            "KTV Player needs an active internet connection to download the initial TV playlist and complete setup. "
-                            "Please check your Wi-Fi or mobile data.",
-                            size=14,
-                            text_align=ft.TextAlign.CENTER,
-                            color=AppColors.GREY_DIM,
-                            width=340,
-                        ),
-                        ft.Container(height=15),
-                        offline_retry_btn,
-                        ft.Container(height=5),
-                        offline_mode_btn,
-                    ],
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    alignment=ft.MainAxisAlignment.CENTER,
-                    spacing=10,
-                ),
-                padding=30,
-                border_radius=20,
-                bgcolor=ft.Colors.with_opacity(0.04, ft.Colors.ON_SURFACE),
-                border=ft.Border.all(
-                    1,
-                    ft.Colors.with_opacity(0.1, ft.Colors.ON_SURFACE),
-                ),
-                alignment=ft.Alignment(0, 0),
-            )
+            page_obj.update()
+            return
 
             content_container.content = ft.Column(
                 [
@@ -187,56 +118,10 @@ def build_onboarding_view(
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 alignment=ft.MainAxisAlignment.CENTER,
                 scroll=ft.ScrollMode.AUTO,
-                expand=True,
-            )
-            return
-
         # Online Flow
         terms_checked = ft.Ref[ft.Checkbox]()
-        country_list = ft.ListView(height=220, spacing=3, padding=6, auto_scroll=False)
-        all_country_tiles = []
-
-        def select_country(name: str):
-            selected_state["country"] = name
-            for entry in all_country_tiles:
-                is_sel = entry["name"] == name
-                entry["tile"].bgcolor = AppColors.PRIMARY if is_sel else None
-                entry["tile"].leading = ft.Icon(
-                    ft.Icons.CHECK_CIRCLE
-                    if is_sel
-                    else ft.Icons.RADIO_BUTTON_UNCHECKED,
-                    color=ft.Colors.WHITE if is_sel else AppColors.GREY_DIM,
-                )
-                entry["tile"].title = ft.Text(
-                    entry["name"],
-                    color=ft.Colors.WHITE if is_sel else None,
-                    weight=ft.FontWeight.W_600 if is_sel else ft.FontWeight.NORMAL,
-                )
-            country_list.update()
-
-        countries_list_copy = list(current_countries)
-        if not countries_list_copy:
-            countries_list_copy = [{"name": "Global"}]
-        country_names = [c["name"] for c in countries_list_copy]
-        if "Other" not in country_names:
-            countries_list_copy.append({"name": "Other"})
-
-        for c in countries_list_copy:
-            cname = c["name"]
-            tile = ft.ListTile(
-                title=ft.Text(cname, size=14),
-                leading=ft.Icon(
-                    ft.Icons.RADIO_BUTTON_UNCHECKED,
-                    color=AppColors.GREY_DIM,
-                ),
-                key=cname,
-                on_click=lambda e, name=cname: select_country(name),
-                dense=True,
-                shape=ft.RoundedRectangleBorder(radius=12),
-            )
-            tile.on_focus = lambda e: _scroll_to_focused(e, country_list)
-            all_country_tiles.append({"name": cname, "tile": tile})
-            country_list.controls.append(tile)
+        from views.onboarding_country import build_country_list
+        country_container = build_country_list(current_countries, selected_state, page_obj)
 
         async def handle_submit(e):
             if not terms_checked.current.value:

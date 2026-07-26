@@ -157,131 +157,12 @@ class ImmersivePlayer(ft.Stack):
     # --- Controls ---
 
     def _build_controls(self) -> fv.AdaptiveVideoControls:
-        speed_container = ft.Container(
-            content=self.speed_text,
-            padding=ft.Padding(8, 4, 8, 4),
-            border_radius=4,
-            ink=True,
-            on_click=lambda e: self.page.run_task(self._cycle_speed),
-        )
-        speed_container.tab_index = 0
-
-        back_btn = ft.IconButton(
-            icon=ft.Icons.ARROW_BACK_IOS_NEW_ROUNDED,
-            icon_color=ft.Colors.WHITE,
-            tooltip="Back",
-            on_click=lambda e: self.page.run_task(self._on_back, e),
-        )
-        title_text = ft.Text(
-            self.title or "Now Playing",
-            color=ft.Colors.WHITE,
-            weight=ft.FontWeight.W_500,
-            max_lines=1,
-            overflow=ft.TextOverflow.ELLIPSIS,
-        )
-
-        sub_btn = ft.IconButton(
-            icon=ft.Icons.SUBTITLES_ROUNDED,
-            icon_color=ft.Colors.WHITE,
-            tooltip="Subtitles",
-            on_click=lambda e: self.page.run_task(self._pick_subtitles),
-        )
-
-        return fv.AdaptiveVideoControls(
-            # --- Mobile (touch) ---
-            material=fv.MaterialVideoControls(
-                visible_on_mount=True,
-                display_seek_bar=True,
-                seek_on_double_tap=True,
-                seek_gesture=True,
-                volume_gesture=True,
-                brightness_gesture=True,
-                speed_up_on_long_press=True,
-                speed_up_factor=2.0,
-                controls_transition_duration=ft.Duration(milliseconds=300),
-                seek_bar_position_color=AppColors.PRIMARY,
-                button_bar_button_color=ft.Colors.WHITE,
-                top_button_bar_margin=ft.Margin(16, 35, 16, 0),
-                top_button_bar=[
-                    back_btn,
-                    title_text,
-                    fv.VideoSpacer(),
-                    sub_btn,
-                    fv.VideoFullscreenButton(icon_color=ft.Colors.WHITE),
-                ],
-                bottom_button_bar=[
-                    fv.VideoPositionIndicator(
-                        text_style=ft.TextStyle(size=12, color=ft.Colors.WHITE),
-                    ),
-                    fv.VideoSpacer(),
-                    speed_container,
-                ],
-            ),
-            # --- Desktop / TV (keyboard + D-pad) ---
-            material_desktop=fv.MaterialDesktopVideoControls(
-                visible_on_mount=True,
-                display_seek_bar=True,
-                modify_volume_on_scroll=True,
-                toggle_fullscreen_on_double_press=True,
-                play_and_pause_on_tap=False,
-                hide_mouse_on_controls_removal=True,
-                primary_button_bar=[
-                    fv.VideoSkipPreviousButton(icon_color=ft.Colors.WHITE),
-                    fv.VideoPlayOrPauseButton(icon_size=36, icon_color=ft.Colors.WHITE),
-                    fv.VideoSkipNextButton(icon_color=ft.Colors.WHITE),
-                ],
-                top_button_bar=[
-                    back_btn,
-                    title_text,
-                    fv.VideoSpacer(),
-                    sub_btn,
-                    fv.VideoFullscreenButton(icon_color=ft.Colors.WHITE),
-                ],
-                bottom_button_bar=[
-                    fv.VideoVolumeButton(slider_width=80, icon_color=ft.Colors.WHITE),
-                    fv.VideoSpacer(),
-                    fv.VideoPositionIndicator(
-                        text_style=ft.TextStyle(size=12, color=ft.Colors.WHITE),
-                    ),
-                    fv.VideoSpacer(),
-                    speed_container,
-                ],
-                seek_bar_position_color=AppColors.PRIMARY,
-                seek_bar_buffer_color=ft.Colors.with_opacity(0.3, ft.Colors.WHITE),
-                seek_bar_hover_height=8,
-                volume_bar_active_color=AppColors.PRIMARY,
-                controls_hover_duration=ft.Duration(seconds=3),
-            ),
-        )
+        from components.player.controls import build_player_controls
+        return build_player_controls(self)
 
     async def _pick_subtitles(self):
-        if not hasattr(self.page, "_sub_file_picker"):
-            picker = ft.FilePicker()
-            self.page._sub_file_picker = picker
-
-        try:
-            files = await self.page._sub_file_picker.pick_files(
-                dialog_title="Select Subtitle File",
-                file_type=ft.FilePickerFileType.CUSTOM,
-                allowed_extensions=["srt", "vtt"],
-                allow_multiple=False,
-            )
-            if files and files[0].path:
-                sub_path = files[0].path
-                sub_name = files[0].name
-                self.video.subtitle_track = fv.VideoSubtitleTrack(
-                    src=sub_path,
-                    title=sub_name,
-                )
-                self.video.update()
-                self.page.snack_bar = ft.SnackBar(
-                    ft.Text(f"Subtitles loaded: {sub_name}"),
-                    bgcolor=AppColors.SUCCESS,
-                )
-                self.page.snack_bar.open = True
-                self.page.update()
-        except Exception as ex:
-            logger.warning("Subtitle pick canceled or failed: %s", ex)
+        from components.player.handlers import pick_subtitles
+        await pick_subtitles(self)
 
     # --- Playback ---
 
@@ -319,15 +200,8 @@ class ImmersivePlayer(ft.Stack):
             self._show_final_error()
 
     async def _cycle_speed(self):
-        self._speed_idx = (self._speed_idx + 1) % len(self._speeds)
-        rate = self._speeds[self._speed_idx]
-        self.video.playback_rate = rate
-        self.speed_text.value = f"{rate}x"
-        try:
-            self.video.update()
-            self.speed_text.update()
-        except Exception as ex:
-            logger.warning("Failed to update speed UI: %s", ex)
+        from components.player.handlers import cycle_speed
+        await cycle_speed(self)
 
     def _on_position_change(self, e: ft.ControlEvent):
         self._hide_overlay()
@@ -397,30 +271,8 @@ class ImmersivePlayer(ft.Stack):
             self._show_final_error()
 
     def _on_complete(self, e: ft.ControlEvent):
-        if re.match(r"https?://", self.resource):
-            if self._reconnect_count < STREAM_RECONNECT_MAX:
-                self._reconnect_count += 1
-                self.page.run_task(self._reconnect_stream)
-            else:
-                self.status_text.value = "Stream ended. Tap to go back."
-                self.loading_ring.visible = False
-                self.overlay.visible = True
-                self._enable_tap_to_close()
-                self.update()
-
-    async def _reconnect_stream(self):
-        if self._is_closing:
-            return
-
-        try:
-            if self.video:
-                self.video.playlist = [
-                    fv.VideoMedia(self.resource, http_headers=self.http_headers),
-                ]
-                self.overlay.visible = False
-                self.update()
-        except Exception as ex:
-            logger.debug("Failed to reconnect stream: %s", ex)
+        from components.player.handlers import handle_stream_complete
+        handle_stream_complete(self, e)
 
     # --- Close ---
 
