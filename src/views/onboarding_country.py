@@ -1,10 +1,13 @@
 """Country list tile builder for onboarding view."""
 
 import flet as ft
+
 from core.theme import AppColors
 
 
-def build_country_list(current_countries: list[dict], selected_state: dict, page_obj: ft.Page) -> ft.Container:
+def build_country_list(
+    current_countries: list[dict], selected_state: dict, page_obj: ft.Page
+) -> ft.Container:
     """Build country selection list view container."""
     country_list = ft.ListView(height=180, spacing=2, padding=5, auto_scroll=False)
     country_tiles = []

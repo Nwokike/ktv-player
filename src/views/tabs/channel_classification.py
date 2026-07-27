@@ -1,6 +1,7 @@
 """Channel group classification and cache management."""
 
 import logging
+
 from core.constants import MAX_SEARCH_RESULTS
 from core.state import state
 

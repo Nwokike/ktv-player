@@ -46,10 +46,19 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
             _loading_spinner = ft.Column(
                 [
                     ft.Container(height=80),
-                    ft.ProgressRing(width=60, height=60, stroke_width=6, color=AppColors.PRIMARY),
+                    ft.ProgressRing(
+                        width=60, height=60, stroke_width=6, color=AppColors.PRIMARY
+                    ),
                     ft.Container(height=20),
-                    ft.Text(LBL_LOADING_CHANNELS, color=AppColors.GREY_DIM, size=16, weight=ft.FontWeight.BOLD),
-                    ft.Text(LBL_LOADING_CHANNELS_SUB, color=AppColors.GREY_DIM, size=12),
+                    ft.Text(
+                        LBL_LOADING_CHANNELS,
+                        color=AppColors.GREY_DIM,
+                        size=16,
+                        weight=ft.FontWeight.BOLD,
+                    ),
+                    ft.Text(
+                        LBL_LOADING_CHANNELS_SUB, color=AppColors.GREY_DIM, size=12
+                    ),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             )
@@ -76,15 +85,57 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
         inner = ft.Column(spacing=10, expand=True, scroll=ft.ScrollMode.AUTO)
 
         if index == 0:
-            build_channel_groups(inner, 1, page_obj, on_play, ad_service, liveliness, view_state, active_tiles)
+            build_channel_groups(
+                inner,
+                1,
+                page_obj,
+                on_play,
+                ad_service,
+                liveliness,
+                view_state,
+                active_tiles,
+            )
         elif index == 1:
-            build_channel_groups(inner, 0, page_obj, on_play, ad_service, liveliness, view_state, active_tiles)
+            build_channel_groups(
+                inner,
+                0,
+                page_obj,
+                on_play,
+                ad_service,
+                liveliness,
+                view_state,
+                active_tiles,
+            )
         elif index == 2:
-            build_custom_tab_content(inner, page_obj, on_play, ad_service, liveliness, view_state, active_tiles)
+            build_custom_tab_content(
+                inner,
+                page_obj,
+                on_play,
+                ad_service,
+                liveliness,
+                view_state,
+                active_tiles,
+            )
         elif index == 3:
-            build_local_tab_content(inner, page_obj, on_play, ad_service, liveliness, view_state, active_tiles)
+            build_local_tab_content(
+                inner,
+                page_obj,
+                on_play,
+                ad_service,
+                liveliness,
+                view_state,
+                active_tiles,
+            )
         elif index == 4:
-            build_preferences_tab_content(inner, page_obj, on_play, ad_service, liveliness, view_state, active_tiles)
+            build_preferences_tab_content(
+                inner,
+                page_obj,
+                on_play,
+                ad_service,
+                liveliness,
+                view_state,
+                active_tiles,
+            )
 
         view_state["tab_built"][index] = True
         if not has_query:
@@ -105,10 +156,12 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
         recently_watched_section.visible = bool(state.history)
         build_tab(view_state["selected_tab"])
 
-    setattr(page_obj, "_dashboard_refresh", refresh_dashboard)
+    page_obj._dashboard_refresh = refresh_dashboard
 
     def execute_search(e=None):
-        view_state["search_query"] = search_field.value.strip() if search_field.value else ""
+        view_state["search_query"] = (
+            search_field.value.strip() if search_field.value else ""
+        )
         build_tab(view_state["selected_tab"])
 
     search_field = ft.SearchBar(
@@ -121,7 +174,9 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
         expand=True,
     )
 
-    recently_watched_section, refresh_carousel = build_recently_watched_section(page_obj, on_play)
+    recently_watched_section, refresh_carousel = build_recently_watched_section(
+        page_obj, on_play
+    )
 
     def _resolve_effective_mode():
         if page_obj.theme_mode == ft.ThemeMode.SYSTEM:
@@ -137,10 +192,14 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
         page_obj.theme_mode = new_mode
 
         async def _save():
-            await db_manager.set_setting("theme_mode", "dark" if new_mode == ft.ThemeMode.DARK else "light")
+            await db_manager.set_setting(
+                "theme_mode", "dark" if new_mode == ft.ThemeMode.DARK else "light"
+            )
 
         page_obj.run_task(_save)
-        theme_btn.icon = ft.Icons.LIGHT_MODE if new_mode == ft.ThemeMode.DARK else ft.Icons.DARK_MODE
+        theme_btn.icon = (
+            ft.Icons.LIGHT_MODE if new_mode == ft.ThemeMode.DARK else ft.Icons.DARK_MODE
+        )
         refresh_dashboard()
 
     init_is_dark = _resolve_effective_mode()
@@ -155,7 +214,13 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
         [
             ft.Row(
                 [
-                    ft.Image(src="/icon.png", width=36, height=36, fit=ft.BoxFit.CONTAIN, border_radius=8),
+                    ft.Image(
+                        src="/icon.png",
+                        width=36,
+                        height=36,
+                        fit=ft.BoxFit.CONTAIN,
+                        border_radius=8,
+                    ),
                     ft.Text("KTV Player", size=18, weight=ft.FontWeight.BOLD),
                 ],
                 spacing=8,
@@ -182,7 +247,9 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
     body = ft.Column(
         [
             recently_watched_section,
-            ft.Container(content=tab_content, expand=True, padding=ft.Padding(12, 0, 12, 12)),
+            ft.Container(
+                content=tab_content, expand=True, padding=ft.Padding(12, 0, 12, 12)
+            ),
         ],
         expand=True,
         spacing=0,

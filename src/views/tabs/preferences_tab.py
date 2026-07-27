@@ -132,6 +132,7 @@ def build_preferences_tab_content(
 
     def open_logs_terminal():
         from views.tabs.preferences_logs import build_logs_dialog
+
         dlg = build_logs_dialog(page_obj)
         page_obj.open(dlg)
 
@@ -163,9 +164,16 @@ def build_preferences_tab_content(
                     content=ft.Column(
                         [
                             ft.ListTile(
-                                leading=ft.Icon(ft.Icons.TERMINAL_ROUNDED, color=AppColors.PRIMARY),
-                                title=ft.Text("Live Activity Terminal", weight=ft.FontWeight.W_500),
-                                subtitle=ft.Text("View real-time connection activity, stream logs, and errors for debugging.", size=12),
+                                leading=ft.Icon(
+                                    ft.Icons.TERMINAL_ROUNDED, color=AppColors.PRIMARY
+                                ),
+                                title=ft.Text(
+                                    "Live Activity Terminal", weight=ft.FontWeight.W_500
+                                ),
+                                subtitle=ft.Text(
+                                    "View real-time connection activity, stream logs, and errors for debugging.",
+                                    size=12,
+                                ),
                                 on_click=lambda e: open_logs_terminal(),
                             ),
                         ],
@@ -185,15 +193,23 @@ def build_preferences_tab_content(
                     content=ft.Column(
                         [
                             ft.ListTile(
-                                leading=ft.Icon(ft.Icons.HISTORY, color=AppColors.WARNING),
-                                title=ft.Text(LBL_CLEAR_HISTORY, weight=ft.FontWeight.W_500),
+                                leading=ft.Icon(
+                                    ft.Icons.HISTORY, color=AppColors.WARNING
+                                ),
+                                title=ft.Text(
+                                    LBL_CLEAR_HISTORY, weight=ft.FontWeight.W_500
+                                ),
                                 subtitle=ft.Text(LBL_CLEAR_HISTORY_DESC, size=12),
                                 on_click=handle_clear_history,
                             ),
                             ft.Divider(height=1),
                             ft.ListTile(
-                                leading=ft.Icon(ft.Icons.DELETE_FOREVER, color=AppColors.WARNING),
-                                title=ft.Text(LBL_RESET_LIBRARY, weight=ft.FontWeight.W_500),
+                                leading=ft.Icon(
+                                    ft.Icons.DELETE_FOREVER, color=AppColors.WARNING
+                                ),
+                                title=ft.Text(
+                                    LBL_RESET_LIBRARY, weight=ft.FontWeight.W_500
+                                ),
                                 subtitle=ft.Text(LBL_RESET_LIBRARY_DESC, size=12),
                                 on_click=handle_clear_custom,
                             ),
@@ -216,16 +232,32 @@ def build_preferences_tab_content(
                         [
                             ft.Row(
                                 [
-                                    ft.Text("App Version", size=14, weight=ft.FontWeight.W_500),
-                                    ft.Text(f"v{APP_VERSION}", size=14, color=AppColors.GREY_DIM),
+                                    ft.Text(
+                                        "App Version",
+                                        size=14,
+                                        weight=ft.FontWeight.W_500,
+                                    ),
+                                    ft.Text(
+                                        f"v{APP_VERSION}",
+                                        size=14,
+                                        color=AppColors.GREY_DIM,
+                                    ),
                                 ],
                                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                             ),
                             ft.Divider(height=1),
                             ft.Row(
                                 [
-                                    ft.Text("Framework Engine", size=14, weight=ft.FontWeight.W_500),
-                                    ft.Text("Flet 0.86.2 + mpv", size=14, color=AppColors.GREY_DIM),
+                                    ft.Text(
+                                        "Framework Engine",
+                                        size=14,
+                                        weight=ft.FontWeight.W_500,
+                                    ),
+                                    ft.Text(
+                                        "Flet 0.86.2 + mpv",
+                                        size=14,
+                                        color=AppColors.GREY_DIM,
+                                    ),
                                 ],
                                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                             ),

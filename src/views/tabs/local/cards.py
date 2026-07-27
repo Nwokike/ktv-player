@@ -1,6 +1,7 @@
 """UI card builders for local video files."""
 
 import flet as ft
+
 from core.theme import AppColors
 from services.local_scanner import _format_size
 
@@ -41,8 +42,15 @@ def _build_video_card(video, idx, on_play, page_obj):
         ),
         padding=12,
         border_radius=16,
-        bgcolor=AppColors.get_surface(page_obj) if page_obj else ft.Colors.with_opacity(0.04, ft.Colors.ON_SURFACE),
-        border=ft.Border.all(0.5, AppColors.get_border_color(page_obj) if page_obj else ft.Colors.with_opacity(0.08, ft.Colors.ON_SURFACE)),
+        bgcolor=AppColors.get_surface(page_obj)
+        if page_obj
+        else ft.Colors.with_opacity(0.04, ft.Colors.ON_SURFACE),
+        border=ft.Border.all(
+            0.5,
+            AppColors.get_border_color(page_obj)
+            if page_obj
+            else ft.Colors.with_opacity(0.08, ft.Colors.ON_SURFACE),
+        ),
         ink=True,
         height=140,
         key=f"local_vid_{idx}",

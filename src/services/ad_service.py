@@ -8,7 +8,7 @@ from core.constants import AD_PRELOAD_MAX_RETRIES, AD_PRELOAD_RETRY_DELAY
 
 try:
     import flet_ads as fta
-    import flet_ads.base_ad as base_ad
+    from flet_ads import base_ad
 
     def _patched_init(self):
         try:
@@ -73,7 +73,9 @@ class AdService:
         if not self._consent_manager:
             return
         try:
-            status = await self._consent_manager.get_privacy_options_requirement_status()
+            status = (
+                await self._consent_manager.get_privacy_options_requirement_status()
+            )
             if status == fta.PrivacyOptionsRequirementStatus.REQUIRED:
                 await self._consent_manager.show_privacy_options_form()
                 self._can_request_ads = await self._consent_manager.can_request_ads()
@@ -103,7 +105,11 @@ class AdService:
         )
 
     def get_native_style_ad(self) -> ft.Control | None:
-        if not _HAS_FLET_ADS or not self.page.platform.is_mobile() or not self._can_request_ads:
+        if (
+            not _HAS_FLET_ADS
+            or not self.page.platform.is_mobile()
+            or not self._can_request_ads
+        ):
             return None
         try:
             ad = fta.BannerAd(
@@ -117,7 +123,11 @@ class AdService:
             return None
 
     def get_standard_banner_ad(self) -> ft.Control | None:
-        if not _HAS_FLET_ADS or not self.page.platform.is_mobile() or not self._can_request_ads:
+        if (
+            not _HAS_FLET_ADS
+            or not self.page.platform.is_mobile()
+            or not self._can_request_ads
+        ):
             return None
         try:
             ad = fta.BannerAd(
@@ -131,7 +141,11 @@ class AdService:
             return None
 
     def get_anchor_banner_ad(self) -> ft.Control | None:
-        if not _HAS_FLET_ADS or not self.page.platform.is_mobile() or not self._can_request_ads:
+        if (
+            not _HAS_FLET_ADS
+            or not self.page.platform.is_mobile()
+            or not self._can_request_ads
+        ):
             return None
         try:
             ad = fta.BannerAd(
@@ -153,7 +167,11 @@ class AdService:
         self._on_interstitial_close = on_close
         self._ad_loaded_event = asyncio.Event()
         try:
-            if not _HAS_FLET_ADS or not self.page.platform.is_mobile() or not self._can_request_ads:
+            if (
+                not _HAS_FLET_ADS
+                or not self.page.platform.is_mobile()
+                or not self._can_request_ads
+            ):
                 self._ad_loaded_event.set()
                 return
 
@@ -223,7 +241,7 @@ class AdService:
                 logger.info("Waiting for interstitial ad to finish loading...")
                 try:
                     await asyncio.wait_for(self._ad_loaded_event.wait(), timeout=10.0)
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     logger.warning(
                         "Preloaded ad not ready within 10s, falling back to on-demand",
                     )
@@ -239,7 +257,7 @@ class AdService:
                         await asyncio.wait_for(
                             self._ad_closed_event.wait(), timeout=30.0
                         )
-                    except asyncio.TimeoutError:
+                    except TimeoutError:
                         logger.warning(
                             "Timed out waiting for preloaded interstitial ad to close",
                         )
@@ -287,7 +305,7 @@ class AdService:
             # too long, timeout and let the video play so the user isn't stuck.
             try:
                 await asyncio.wait_for(ad_closed.wait(), timeout=10.0)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.warning("Timed out waiting for on-demand interstitial ad")
             return ad_shown
         except Exception:

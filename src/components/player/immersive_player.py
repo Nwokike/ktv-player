@@ -1,13 +1,12 @@
 import asyncio
 import logging
-import re
 from collections.abc import Callable
 from typing import Any
 
 import flet as ft
 import flet_video as fv
 
-from core.constants import STREAM_RECONNECT_MAX, STREAM_RETRY_DELAY, STREAM_RETRY_MAX
+from core.constants import STREAM_RETRY_DELAY, STREAM_RETRY_MAX
 from core.theme import AppColors
 
 logger = logging.getLogger(__name__)
@@ -158,10 +157,12 @@ class ImmersivePlayer(ft.Stack):
 
     def _build_controls(self) -> fv.AdaptiveVideoControls:
         from components.player.controls import build_player_controls
+
         return build_player_controls(self)
 
     async def _pick_subtitles(self):
         from components.player.handlers import pick_subtitles
+
         await pick_subtitles(self)
 
     # --- Playback ---
@@ -177,7 +178,7 @@ class ImmersivePlayer(ft.Stack):
                     self.ad_service.show_interstitial(),
                     timeout=20.0,
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.warning("Ad timed out during playback start")
             except Exception as ex:
                 logger.warning("Ad skipped due to error: %s", ex)
@@ -195,15 +196,18 @@ class ImmersivePlayer(ft.Stack):
             playing = await self.video.is_playing()
             if playing:
                 self._hide_overlay()
-        except Exception as ex:
-            logger.exception("start_playback error: %s", ex)
+        except Exception:
+            logger.exception("start_playback error")
             self._show_final_error()
 
     async def _cycle_speed(self):
         from components.player.handlers import cycle_speed
+
         await cycle_speed(self)
 
     def _on_position_change(self, e: ft.ControlEvent):
+        self._retry_count = 0
+        self._reconnect_count = 0
         self._hide_overlay()
 
     def _hide_overlay(self):
@@ -235,8 +239,10 @@ class ImmersivePlayer(ft.Stack):
             self.status_text.value = (
                 f"Stream error, retrying ({self._retry_count}/{STREAM_RETRY_MAX})..."
             )
+            self._overlay_hidden = False
             self.loading_ring.visible = True
             self.overlay.visible = True
+            self._enable_tap_to_close()
             self.update()
             self.page.run_task(self._retry_playback)
         else:
@@ -244,6 +250,7 @@ class ImmersivePlayer(ft.Stack):
 
     def _show_final_error(self):
         self._is_final_error = True
+        self._overlay_hidden = False
         self.status_text.value = "Failed to load. Tap to go back."
         self.loading_ring.visible = False
         self.overlay.visible = True
@@ -263,15 +270,13 @@ class ImmersivePlayer(ft.Stack):
                     fv.VideoMedia(self.resource, http_headers=self.http_headers),
                 ]
                 await self.video.play()
-                self.overlay.visible = False
-                self._retry_count = 0
-                self.update()
         except Exception as ex:
             logger.error("Retry playback failed: %s", ex)
             self._show_final_error()
 
     def _on_complete(self, e: ft.ControlEvent):
         from components.player.handlers import handle_stream_complete
+
         handle_stream_complete(self, e)
 
     # --- Close ---

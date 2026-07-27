@@ -1,6 +1,5 @@
 import flet as ft
 
-
 _tab_index_counter = 0
 _MAX_TAB_INDEX = 1_000_000
 

@@ -1,7 +1,7 @@
 """Startup flow and navigation handlers for AppController."""
 
 import logging
-import flet as ft
+
 from channels.provider import channel_provider
 from core.state import state
 from database.manager import db_manager
@@ -32,9 +32,6 @@ async def run_startup_flow(controller):
         return
 
     if state.is_first_launch or not state.has_accepted_terms:
-        state.is_loading = True
-        await controller.load_channels()
-
         from views.onboarding import build_onboarding_view
 
         onboarding = build_onboarding_view(
@@ -46,6 +43,9 @@ async def run_startup_flow(controller):
         controller.page.views.clear()
         controller.page.views.append(onboarding)
         controller.page.update()
+
+        if not state.channels:
+            controller.page.run_task(controller.load_channels)
     else:
         state.is_loading = True
         controller.page.run_task(controller.load_channels)

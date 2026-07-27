@@ -1,6 +1,7 @@
 """Permission and service helpers for local video tab."""
 
 import logging
+
 import flet as ft
 
 from services.local_scanner import get_default_scan_paths, is_mobile
@@ -39,7 +40,7 @@ async def _request_storage_permission() -> bool:
     return True
 
 
-async def _get_scan_paths(custom_paths: list[str] = None) -> list[str]:
+async def _get_scan_paths(custom_paths: list[str] | None = None) -> list[str]:
     """Get scan paths using StoragePaths, targeting safe media folders, plus custom paths."""
     paths = list(custom_paths) if custom_paths else []
 

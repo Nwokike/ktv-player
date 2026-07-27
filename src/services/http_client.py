@@ -2,7 +2,6 @@
 
 import httpx
 
-
 _client: httpx.AsyncClient | None = None
 
 

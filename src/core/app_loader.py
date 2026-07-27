@@ -3,8 +3,8 @@
 import logging
 
 import flet as ft
+
 from channels.provider import channel_provider
-from core.constants import ERR_NETWORK
 from core.state import state
 from core.theme import AppColors
 from database.manager import db_manager

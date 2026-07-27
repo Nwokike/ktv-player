@@ -1,10 +1,13 @@
 """Offline state UI card for onboarding flow."""
 
 import flet as ft
+
 from core.theme import AppColors
 
 
-def build_offline_card(page_obj, handle_retry, handle_offline_mode, retry_btn, offline_btn):
+def build_offline_card(
+    page_obj, handle_retry, handle_offline_mode, retry_btn, offline_btn
+):
     """Build connection failure / offline mode onboarding card."""
     offline_retry_btn = ft.FilledButton(
         ref=retry_btn,

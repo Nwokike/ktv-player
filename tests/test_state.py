@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.core.state import AppState, MAX_HISTORY_ITEMS
+from src.core.state import MAX_HISTORY_ITEMS, AppState
 
 
 @pytest.fixture

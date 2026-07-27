@@ -2,7 +2,6 @@
 
 from unittest.mock import MagicMock, patch
 
-
 from src.core.focus_manager import (
     next_tab_index,
     reset_tab_counter,

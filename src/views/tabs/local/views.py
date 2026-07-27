@@ -14,7 +14,12 @@ from views.tabs.local.renderers import (
     _render_permission_needed,
     _render_scanning,
 )
-from views.tabs.local.services import _ensure_services, _fp, _get_scan_paths, _request_storage_permission
+from views.tabs.local.services import (
+    _ensure_services,
+    _fp,
+    _get_scan_paths,
+    _request_storage_permission,
+)
 
 logger = logging.getLogger(__name__)
 

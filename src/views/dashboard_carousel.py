@@ -1,6 +1,7 @@
 """Recently watched horizontal carousel for dashboard."""
 
 import flet as ft
+
 from core.constants import LBL_RECENTLY_WATCHED
 from core.state import state
 from core.theme import AppColors

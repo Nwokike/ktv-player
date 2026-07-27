@@ -92,7 +92,7 @@ def _format_size(size_bytes: int) -> str:
 
 def _format_modified(mtime: float) -> str:
     try:
-        dt = datetime.fromtimestamp(mtime)
+        dt = datetime.fromtimestamp(mtime, tz=datetime.timezone.utc)
         return dt.strftime("%b %d, %Y")
     except Exception:
         return ""

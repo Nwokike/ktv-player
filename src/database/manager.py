@@ -2,7 +2,6 @@ import asyncio
 import json
 import logging
 import os
-import time
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -55,7 +54,9 @@ class DatabaseManager:
     def _save_now(self):
         try:
             self.storage_dir.mkdir(parents=True, exist_ok=True)
-            data_bytes = json.dumps(self._data, ensure_ascii=False, indent=2).encode("utf-8")
+            data_bytes = json.dumps(self._data, ensure_ascii=False, indent=2).encode(
+                "utf-8"
+            )
             if self.storage_file.exists():
                 old = self.storage_file.read_bytes()
                 if old != data_bytes:
@@ -189,6 +190,6 @@ class DatabaseManager:
                 self._save_now()
 
 
-import contextlib  # noqa: E402
+import contextlib
 
 db_manager = DatabaseManager()

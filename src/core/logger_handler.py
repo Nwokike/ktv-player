@@ -30,7 +30,9 @@ class MemoryLogHandler(logging.Handler):
 in_memory_log_handler = MemoryLogHandler()
 in_memory_log_handler.setLevel(logging.DEBUG)
 in_memory_log_handler.setFormatter(
-    logging.Formatter("%(asctime)s [%(name)s] %(levelname)s: %(message)s", datefmt="%H:%M:%S")
+    logging.Formatter(
+        "%(asctime)s [%(name)s] %(levelname)s: %(message)s", datefmt="%H:%M:%S"
+    )
 )
 
 root_logger = logging.getLogger()

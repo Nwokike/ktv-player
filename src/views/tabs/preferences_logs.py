@@ -1,6 +1,7 @@
 """Activity Terminal modal dialog for preferences tab."""
 
 import flet as ft
+
 from core.theme import AppColors
 
 
@@ -49,10 +50,14 @@ def build_logs_dialog(page_obj: ft.Page) -> ft.AlertDialog:
                         color=ft.Colors.ON_SURFACE_VARIANT,
                     ),
                     ft.Container(
-                        content=ft.Column([log_control], scroll=ft.ScrollMode.AUTO, expand=True),
+                        content=ft.Column(
+                            [log_control], scroll=ft.ScrollMode.AUTO, expand=True
+                        ),
                         padding=12,
                         bgcolor=AppColors.DARK_BG,
-                        border=ft.Border.all(1, ft.Colors.with_opacity(0.15, ft.Colors.WHITE)),
+                        border=ft.Border.all(
+                            1, ft.Colors.with_opacity(0.15, ft.Colors.WHITE)
+                        ),
                         border_radius=12,
                         expand=True,
                     ),

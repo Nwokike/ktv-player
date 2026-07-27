@@ -54,15 +54,27 @@ class AppColors:
 
     @staticmethod
     def get_surface(page: ft.Page) -> str:
-        return AppColors.DARK_SURFACE if AppColors._is_dark(page) else AppColors.LIGHT_SURFACE
+        return (
+            AppColors.DARK_SURFACE
+            if AppColors._is_dark(page)
+            else AppColors.LIGHT_SURFACE
+        )
 
     @staticmethod
     def get_surface_variant(page: ft.Page) -> str:
-        return AppColors.DARK_SURFACE_VARIANT if AppColors._is_dark(page) else AppColors.LIGHT_SURFACE_VARIANT
+        return (
+            AppColors.DARK_SURFACE_VARIANT
+            if AppColors._is_dark(page)
+            else AppColors.LIGHT_SURFACE_VARIANT
+        )
 
     @staticmethod
     def get_card_bg(page: ft.Page) -> str:
-        return AppColors.DARK_SURFACE if AppColors._is_dark(page) else AppColors.LIGHT_SURFACE
+        return (
+            AppColors.DARK_SURFACE
+            if AppColors._is_dark(page)
+            else AppColors.LIGHT_SURFACE
+        )
 
     @staticmethod
     def get_border_color(page: ft.Page) -> str:
@@ -77,7 +89,11 @@ class AppColors:
 
     @staticmethod
     def get_text_dim(page: ft.Page) -> str:
-        return AppColors.DARK_TEXT_DIM if AppColors._is_dark(page) else AppColors.LIGHT_TEXT_DIM
+        return (
+            AppColors.DARK_TEXT_DIM
+            if AppColors._is_dark(page)
+            else AppColors.LIGHT_TEXT_DIM
+        )
 
 
 class AppTheme:

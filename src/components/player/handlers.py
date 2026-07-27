@@ -1,8 +1,10 @@
 """Event handlers for ImmersivePlayer."""
 
-import re
 import logging
+import re
+
 import flet as ft
+
 from core.constants import STREAM_RECONNECT_MAX
 
 logger = logging.getLogger(__name__)
@@ -56,13 +58,15 @@ def handle_stream_complete(player_inst, e: ft.ControlEvent):
     if re.match(r"https?://", player_inst.resource):
         if player_inst._reconnect_count < STREAM_RECONNECT_MAX:
             player_inst._reconnect_count += 1
-            player_inst.page.run_task(reconnect_stream, player_inst)
-        else:
-            player_inst.status_text.value = "Stream ended. Tap to go back."
-            player_inst.loading_ring.visible = False
+            player_inst._overlay_hidden = False
+            player_inst.status_text.value = f"Reconnecting stream ({player_inst._reconnect_count}/{STREAM_RECONNECT_MAX})..."
+            player_inst.loading_ring.visible = True
             player_inst.overlay.visible = True
             player_inst._enable_tap_to_close()
             player_inst.update()
+            player_inst.page.run_task(reconnect_stream, player_inst)
+        else:
+            player_inst._show_final_error()
 
 
 async def reconnect_stream(player_inst):
@@ -73,10 +77,11 @@ async def reconnect_stream(player_inst):
     try:
         if player_inst.video:
             from flet_video import VideoMedia
+
             player_inst.video.playlist = [
                 VideoMedia(player_inst.resource, http_headers=player_inst.http_headers),
             ]
-            player_inst.overlay.visible = False
-            player_inst.update()
+            await player_inst.video.play()
     except Exception as ex:
         logger.debug("Failed to reconnect stream: %s", ex)
+        player_inst._show_final_error()

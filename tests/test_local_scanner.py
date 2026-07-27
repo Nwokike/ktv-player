@@ -2,7 +2,6 @@
 
 from pathlib import Path
 
-
 from src.services.local_scanner import (
     _format_size,
     _has_nomedia,

@@ -2,6 +2,7 @@
 
 import asyncio
 import contextlib
+from collections.abc import Callable
 
 import flet as ft
 
@@ -24,8 +25,8 @@ from database.manager import db_manager
 def build_onboarding_view(
     page_obj: ft.Page,
     countries: list[dict],
-    on_complete: callable,
-    load_channels: callable = None,
+    on_complete: Callable,
+    load_channels: Callable | None = None,
 ) -> ft.View:
     selected_state = {"country": ""}
     content_container = ft.Container(expand=True)
@@ -58,9 +59,9 @@ def build_onboarding_view(
                     bgcolor=AppColors.ERROR,
                 )
                 page_obj.snack_bar.open = True
-        except Exception as err:
+        except (OSError, ValueError, TypeError, RuntimeError) as err:
             page_obj.snack_bar = ft.SnackBar(
-                ft.Text(f"Connection failed: {str(err)}"),
+                ft.Text(f"Connection failed: {err!s}"),
                 bgcolor=AppColors.ERROR,
             )
             page_obj.snack_bar.open = True
@@ -86,42 +87,19 @@ def build_onboarding_view(
     def render_content(current_countries: list[dict]):
         if not state.channels:
             from views.onboarding_offline import build_offline_card
+
             content_container.content = build_offline_card(
                 page_obj, handle_retry, handle_offline_mode, retry_btn, offline_btn
             )
-            page_obj.update()
             return
 
-            content_container.content = ft.Column(
-                [
-                    ft.Container(height=40),
-                    ft.Column(
-                        [
-                            ft.Image(
-                                src="/icon.png",
-                                width=90,
-                                height=90,
-                                border_radius=20,
-                            ),
-                            ft.Text(
-                                LBL_WELCOME,
-                                size=34,
-                                weight=ft.FontWeight.BOLD,
-                                text_align=ft.TextAlign.CENTER,
-                            ),
-                        ],
-                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    ),
-                    ft.Container(height=20),
-                    offline_card,
-                ],
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                alignment=ft.MainAxisAlignment.CENTER,
-                scroll=ft.ScrollMode.AUTO,
         # Online Flow
         terms_checked = ft.Ref[ft.Checkbox]()
         from views.onboarding_country import build_country_list
-        country_container = build_country_list(current_countries, selected_state, page_obj)
+
+        country_container = build_country_list(
+            current_countries, selected_state, page_obj
+        )
 
         async def handle_submit(e):
             if not terms_checked.current.value:
@@ -198,7 +176,7 @@ def build_onboarding_view(
                     width=float("inf"),
                 ),
                 ft.Container(
-                    content=country_list,
+                    content=country_container,
                     border=ft.Border.all(1.5, AppColors.PRIMARY),
                     border_radius=16,
                     bgcolor=AppColors.get_surface_variant(page_obj),
@@ -233,7 +211,9 @@ def build_onboarding_view(
                 ),
                 ft.Divider(height=20, color=ft.Colors.TRANSPARENT),
                 ft.FilledButton(
-                    content=ft.Text(LBL_START_WATCHING, size=16, weight=ft.FontWeight.W_600),
+                    content=ft.Text(
+                        LBL_START_WATCHING, size=16, weight=ft.FontWeight.W_600
+                    ),
                     on_click=handle_submit,
                     style=ft.ButtonStyle(
                         color="white",

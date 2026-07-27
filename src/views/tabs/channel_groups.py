@@ -10,7 +10,6 @@ from core.state import state
 from core.theme import AppColors
 from views.tabs.channel_classification import (
     _build_groups,
-    _invalidate_groups_cache,
     _search_channels,
 )
 from views.tabs.pagination import build_nav_btn, show_page
@@ -63,10 +62,21 @@ def build_channel_groups(
                 ft.Column(
                     [
                         ft.Container(height=80),
-                        ft.ProgressRing(width=60, height=60, stroke_width=6, color=AppColors.PRIMARY),
+                        ft.ProgressRing(
+                            width=60, height=60, stroke_width=6, color=AppColors.PRIMARY
+                        ),
                         ft.Container(height=20),
-                        ft.Text("Fetching and validating channels...", color=AppColors.PRIMARY, size=18, weight=ft.FontWeight.BOLD),
-                        ft.Text("Please wait, massive playlists may take a moment.", color=AppColors.GREY_DIM, size=12),
+                        ft.Text(
+                            "Fetching and validating channels...",
+                            color=AppColors.PRIMARY,
+                            size=18,
+                            weight=ft.FontWeight.BOLD,
+                        ),
+                        ft.Text(
+                            "Please wait, massive playlists may take a moment.",
+                            color=AppColors.GREY_DIM,
+                            size=12,
+                        ),
                     ],
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 )
@@ -81,12 +91,28 @@ def build_channel_groups(
             ft.Column(
                 [
                     ft.Container(height=80),
-                    ft.Icon(ft.Icons.WIFI_OFF_ROUNDED, size=64, color=AppColors.WARNING),
+                    ft.Icon(
+                        ft.Icons.WIFI_OFF_ROUNDED, size=64, color=AppColors.WARNING
+                    ),
                     ft.Container(height=16),
-                    ft.Text("No channels available", color=AppColors.PRIMARY, size=18, weight=ft.FontWeight.BOLD),
-                    ft.Text("Could not load network playlists. Check internet or retry.", color=AppColors.GREY_DIM, size=12, text_align=ft.TextAlign.CENTER),
+                    ft.Text(
+                        "No channels available",
+                        color=AppColors.PRIMARY,
+                        size=18,
+                        weight=ft.FontWeight.BOLD,
+                    ),
+                    ft.Text(
+                        "Could not load network playlists. Check internet or retry.",
+                        color=AppColors.GREY_DIM,
+                        size=12,
+                        text_align=ft.TextAlign.CENTER,
+                    ),
                     ft.Container(height=20),
-                    ft.FilledButton("Retry Loading Channels", on_click=_retry, style=ft.ButtonStyle(bgcolor=AppColors.PRIMARY)),
+                    ft.FilledButton(
+                        "Retry Loading Channels",
+                        on_click=_retry,
+                        style=ft.ButtonStyle(bgcolor=AppColors.PRIMARY),
+                    ),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             )
@@ -104,10 +130,22 @@ def build_channel_groups(
             ft.Column(
                 [
                     ft.Container(height=40),
-                    ft.Icon(ft.Icons.ADD_TO_QUEUE_ROUNDED, size=48, color=AppColors.PRIMARY),
+                    ft.Icon(
+                        ft.Icons.ADD_TO_QUEUE_ROUNDED, size=48, color=AppColors.PRIMARY
+                    ),
                     ft.Container(height=12),
-                    ft.Text("No custom content added yet", color=AppColors.PRIMARY, size=16, weight=ft.FontWeight.BOLD),
-                    ft.Text("Tap the '+' button above to add custom playlists or stream URLs.", color=AppColors.GREY_DIM, size=12, text_align=ft.TextAlign.CENTER),
+                    ft.Text(
+                        "No custom content added yet",
+                        color=AppColors.PRIMARY,
+                        size=16,
+                        weight=ft.FontWeight.BOLD,
+                    ),
+                    ft.Text(
+                        "Tap the '+' button above to add custom playlists or stream URLs.",
+                        color=AppColors.GREY_DIM,
+                        size=12,
+                        text_align=ft.TextAlign.CENTER,
+                    ),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             )
@@ -119,9 +157,16 @@ def build_channel_groups(
             ft.Column(
                 [
                     ft.Container(height=40),
-                    ft.Icon(ft.Icons.SEARCH_OFF_ROUNDED, size=48, color=AppColors.GREY_DIM),
+                    ft.Icon(
+                        ft.Icons.SEARCH_OFF_ROUNDED, size=48, color=AppColors.GREY_DIM
+                    ),
                     ft.Container(height=12),
-                    ft.Text(f"No channels matching '{query}'", color=AppColors.GREY_DIM, size=14, text_align=ft.TextAlign.CENTER),
+                    ft.Text(
+                        f"No channels matching '{query}'",
+                        color=AppColors.GREY_DIM,
+                        size=14,
+                        text_align=ft.TextAlign.CENTER,
+                    ),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             )
@@ -131,9 +176,12 @@ def build_channel_groups(
     sorted_group_names = sorted(
         groups.keys(),
         key=lambda g: (
-            0 if g == state.user_country
-            else 1 if g == "Global"
-            else 2 if g.startswith("Custom")
+            0
+            if g == state.user_country
+            else 1
+            if g == "Global"
+            else 2
+            if g.startswith("Custom")
             else 3,
             g,
         ),
@@ -151,19 +199,38 @@ def build_channel_groups(
             end = min(PAGE_SIZE, len(chans))
             tile_controls.append(
                 ft.Container(
-                    content=ft.Text(LBL_SHOWING_RANGE.format(start=1, end=end, total=len(chans)), size=11, color=AppColors.GREY_DIM, italic=True, text_align=ft.TextAlign.CENTER, width=float("inf")),
+                    content=ft.Text(
+                        LBL_SHOWING_RANGE.format(start=1, end=end, total=len(chans)),
+                        size=11,
+                        color=AppColors.GREY_DIM,
+                        italic=True,
+                        text_align=ft.TextAlign.CENTER,
+                        width=float("inf"),
+                    ),
                     padding=ft.Padding(0, 5, 0, 5),
                 )
             )
-            grid = build_channel_grid(chans[:end], 0, on_play, page_obj, ad_service, liveliness)
+            grid = build_channel_grid(
+                chans[:end], 0, on_play, page_obj, ad_service, liveliness
+            )
             tile_controls.append(grid)
 
             if len(chans) > PAGE_SIZE:
                 remaining = len(chans) - PAGE_SIZE
                 next_btn = build_nav_btn(
-                    LBL_SHOW_NEXT.format(count=min(PAGE_SIZE, remaining), remaining=remaining),
+                    LBL_SHOW_NEXT.format(
+                        count=min(PAGE_SIZE, remaining), remaining=remaining
+                    ),
                     ft.Icons.EXPAND_MORE,
-                    lambda e, g_chans=chans: show_page(e.control.parent, g_chans, PAGE_SIZE, page_obj, on_play, ad_service, liveliness),
+                    lambda e, g_chans=chans: show_page(
+                        e.control.parent,
+                        g_chans,
+                        PAGE_SIZE,
+                        page_obj,
+                        on_play,
+                        ad_service,
+                        liveliness,
+                    ),
                 )
                 tile_controls.append(next_btn)
 
@@ -172,10 +239,20 @@ def build_channel_groups(
             subtitle_text += " \u2022 Preferred Region"
 
         exp_tile = ft.ExpansionTile(
-            title=ft.Text(group_name, weight=ft.FontWeight.BOLD, color=AppColors.PRIMARY if is_user_country else None),
-            subtitle=ft.Text(subtitle_text, size=11, color=AppColors.PRIMARY if is_user_country else AppColors.GREY_DIM),
+            title=ft.Text(
+                group_name,
+                weight=ft.FontWeight.BOLD,
+                color=AppColors.PRIMARY if is_user_country else None,
+            ),
+            subtitle=ft.Text(
+                subtitle_text,
+                size=11,
+                color=AppColors.PRIMARY if is_user_country else AppColors.GREY_DIM,
+            ),
             expanded=should_expand,
-            on_change=lambda e, g_chans=chans: _handle_expansion(e, g_chans, active_tiles, page_obj, on_play, ad_service, liveliness),
+            on_change=lambda e, g_chans=chans: _handle_expansion(
+                e, g_chans, active_tiles, page_obj, on_play, ad_service, liveliness
+            ),
             controls=tile_controls,
             collapsed_bgcolor=ft.Colors.TRANSPARENT,
             bgcolor=ft.Colors.with_opacity(0.03, ft.Colors.ON_SURFACE),
@@ -185,7 +262,9 @@ def build_channel_groups(
             content=exp_tile,
             border_radius=12,
             ink=True,
-            on_click=lambda e, t=exp_tile: (setattr(t, "expanded", not t.expanded) or t.update()),
+            on_click=lambda e, t=exp_tile: (
+                setattr(t, "expanded", not t.expanded) or t.update()
+            ),
         )
         tile_wrapper.tab_index = 0
 

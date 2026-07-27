@@ -11,6 +11,14 @@ logger = logging.getLogger(__name__)
 _CACHE_DIR = os.path.join("storage", "data")
 _CACHE_FILE = os.path.join(_CACHE_DIR, "cached_playlist.m3u8")
 
+
+def _write_cache(text: str) -> None:
+    """Write playlist text to cache file (sync helper for asyncio.to_thread)."""
+    os.makedirs(_CACHE_DIR, exist_ok=True)
+    with open(_CACHE_FILE, "w", encoding="utf-8") as f:
+        f.write(text)
+
+
 NON_COUNTRY_GROUPS = {
     "movies",
     "news",
@@ -106,8 +114,7 @@ class ChannelProvider:
                             self.MASTER_PLAYLIST_URL, timeout=30.0
                         )
                         response.raise_for_status()
-                        with open(_CACHE_FILE, "w", encoding="utf-8") as f:
-                            f.write(response.text)
+                        await asyncio.to_thread(_write_cache, response.text)
                         self._channels = self._parse_cached(response.text)
                     except Exception:
                         logger.exception("Failed to fetch master playlist")

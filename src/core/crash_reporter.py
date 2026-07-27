@@ -42,7 +42,7 @@ def record_crash(exc: Exception, context: str = ""):
     _cleanup_old_crashes()
 
     crash_dir = _get_crash_dir()
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.datetime.now(datetime.UTC).strftime("%Y%m%d_%H%M%S")
     filepath = os.path.join(crash_dir, f"crash_{timestamp}.log")
 
     try:

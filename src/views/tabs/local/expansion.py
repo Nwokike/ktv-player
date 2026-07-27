@@ -1,6 +1,7 @@
 """Expansion tile handlers for local video folders."""
 
 import contextlib
+
 import flet as ft
 
 from core.constants import PAGE_SIZE
@@ -8,7 +9,9 @@ from core.theme import AppColors
 from views.tabs.local.cards import _build_video_card
 
 
-def _handle_local_expansion(e, folder, active_tiles, page_obj, on_play, show_local_page_fn):
+def _handle_local_expansion(
+    e, folder, active_tiles, page_obj, on_play, show_local_page_fn
+):
     if str(e.data).lower() == "true":
         for t in active_tiles:
             if t is not e.control and t.expanded:

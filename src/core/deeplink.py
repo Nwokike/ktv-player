@@ -3,6 +3,7 @@
 import base64
 import logging
 import urllib.parse
+
 from core.url_validator import _is_valid_play_url
 
 logger = logging.getLogger(__name__)
@@ -37,6 +38,6 @@ def parse_deep_link(route: str) -> tuple[str | None, str | None]:
                 logger.warning("Failed to decode deep link title")
 
         return decoded, title
-    except Exception as ex:
-        logger.exception("Failed to decode deep link: %s", ex)
+    except Exception:
+        logger.exception("Failed to decode deep link")
         return None, None

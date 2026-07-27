@@ -1,29 +1,25 @@
 """KTV Player — main entry point and AppController."""
 
 import asyncio
-import base64
 import contextlib
 import logging
 import os
-import re
 import urllib.parse
 
 import flet as ft
 
-from channels.provider import channel_provider
+import core.logger_handler  # noqa: F401
 from components.player.immersive_player import ImmersivePlayer
 from core.constants import (
     APP_NAME,
     ERR_NETWORK,
 )
 from core.focus_manager import FocusManager
-import core.logger_handler  # noqa: F401
 from core.logging_config import setup_logging
 from core.state import state
 from core.theme import AppColors, AppTheme
 from database.manager import db_manager
 from services.ad_service import AdService
-from services.iptv_service import iptv_service
 from services.liveliness_checker import LivelinessChecker
 
 logger = logging.getLogger(__name__)
@@ -116,6 +112,7 @@ class AppController:
 
     async def load_channels(self, force=False):
         from core.app_loader import load_all_channels
+
         await load_all_channels(self.page, self._loading_lock)
 
     # --- Playback ---
@@ -185,6 +182,7 @@ class AppController:
 
     def _handle_deep_link(self, route: str):
         from core.deeplink import parse_deep_link
+
         url, title = parse_deep_link(route)
         if url:
             logger.info("Deep link URL valid, launching play_stream")
@@ -245,14 +243,17 @@ class AppController:
 
     async def _startup_flow(self):
         from core.startup import run_startup_flow
+
         await run_startup_flow(self)
 
     async def _onboarding_complete(self):
         from core.startup import complete_onboarding
+
         await complete_onboarding(self)
 
     async def _go_to_dashboard(self):
         from core.startup import go_to_dashboard
+
         await go_to_dashboard(self)
 
     def view_pop(self, e):
