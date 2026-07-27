@@ -5,16 +5,27 @@ import sys
 
 
 def setup_logging(level: int = logging.INFO) -> None:
-    """Configure root logger with a consistent format and handler."""
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(
-        logging.Formatter(
-            fmt="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-            datefmt="%H:%M:%S",
-        ),
+    """Configure root logger with consistent format and stderr for errors."""
+    fmt = logging.Formatter(
+        "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        datefmt="%H:%M:%S",
     )
+
+    # INFO+ goes to stdout
+    stdout = logging.StreamHandler(sys.stdout)
+    stdout.setFormatter(fmt)
+    stdout.setLevel(level)
+
+    # WARNING+ also goes to stderr (visible in terminal, not captured by Flet)
+    stderr = logging.StreamHandler(sys.stderr)
+    stderr.setFormatter(fmt)
+    stderr.setLevel(logging.WARNING)
+
     root = logging.getLogger()
     root.setLevel(level)
-    # Avoid duplicate handlers if called multiple times
     if not root.handlers:
-        root.addHandler(handler)
+        root.addHandler(stdout)
+        root.addHandler(stderr)
+
+    # Ensure exceptions always include traceback
+    logging.captureWarnings(True)

@@ -210,8 +210,19 @@ def build_channel_groups(
                     padding=ft.Padding(0, 5, 0, 5),
                 )
             )
+            ad_indices = {
+                idx
+                for idx in range(end)
+                if (idx + 1) % 12 == 0 and (idx + 1) < len(chans)
+            }
             grid = build_channel_grid(
-                chans[:end], 0, on_play, page_obj, ad_service, liveliness
+                chans[:end],
+                0,
+                PAGE_SIZE,
+                on_play=on_play,
+                page_obj=page_obj,
+                ad_service=ad_service,
+                ad_indices=ad_indices,
             )
             tile_controls.append(grid)
 

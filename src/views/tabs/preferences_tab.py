@@ -134,7 +134,7 @@ def build_preferences_tab_content(
         from views.tabs.preferences_logs import build_logs_dialog
 
         dlg = build_logs_dialog(page_obj)
-        page_obj.open(dlg)
+        page_obj.show_dialog(dlg)
 
     target.controls.append(
         ft.Column(

@@ -19,7 +19,7 @@ async def load_all_channels(page_obj, loading_lock):
         return
 
     async with loading_lock:
-        from views.tabs.channel_groups import _invalidate_groups_cache
+        from views.tabs.channel_classification import _invalidate_groups_cache
 
         _invalidate_groups_cache()
 

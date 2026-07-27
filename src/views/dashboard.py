@@ -233,15 +233,27 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
     )
 
     tabs = ft.Tabs(
+        length=5,  # Number of tabs
         selected_index=0,
         on_change=on_tab_change,
-        tabs=[
-            ft.Tab(text=LBL_CATEGORIES, icon=ft.Icons.GRID_VIEW_ROUNDED),
-            ft.Tab(text=LBL_COUNTRIES, icon=ft.Icons.PUBLIC_ROUNDED),
-            ft.Tab(text=LBL_CUSTOM, icon=ft.Icons.PLAYLIST_ADD_ROUNDED),
-            ft.Tab(text=LBL_LOCAL, icon=ft.Icons.FOLDER_ROUNDED),
-            ft.Tab(text=LBL_SETTINGS, icon=ft.Icons.SETTINGS_ROUNDED),
-        ],
+        content=ft.Column(
+            expand=True,
+            controls=[
+                ft.TabBar(
+                    tabs=[
+                        ft.Tab(label=LBL_CATEGORIES, icon=ft.Icons.GRID_VIEW_ROUNDED),
+                        ft.Tab(label=LBL_COUNTRIES, icon=ft.Icons.PUBLIC_ROUNDED),
+                        ft.Tab(label=LBL_CUSTOM, icon=ft.Icons.PLAYLIST_ADD_ROUNDED),
+                        ft.Tab(label=LBL_LOCAL, icon=ft.Icons.FOLDER_ROUNDED),
+                        ft.Tab(label=LBL_SETTINGS, icon=ft.Icons.SETTINGS_ROUNDED),
+                    ]
+                ),
+                ft.TabBarView(
+                    expand=True,
+                    controls=[tab_content],
+                ),
+            ],
+        ),
     )
 
     body = ft.Column(
@@ -256,7 +268,7 @@ def build_dashboard_view(page_obj, on_play, ad_service, liveliness, load_channel
     )
 
     if ad_service:
-        banner = ad_service.build_banner_ad()
+        banner = ad_service.get_anchor_banner_ad()
         if banner:
             body.controls.append(banner)
 
