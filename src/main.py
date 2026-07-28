@@ -14,7 +14,6 @@ from core.constants import (
     APP_NAME,
     ERR_NETWORK,
 )
-from core.focus_manager import FocusManager
 from core.logging_config import setup_logging
 from core.state import state
 from core.theme import AppColors, AppTheme
@@ -32,7 +31,6 @@ class AppController:
         self.page = page
         self.ad_service: AdService | None = None
         self.liveliness: LivelinessChecker | None = None
-        self.focus_manager: FocusManager | None = None
         self._loading_lock: asyncio.Lock | None = None
 
     async def init(self):
@@ -70,13 +68,15 @@ class AppController:
             state.has_accepted_terms = True
             state.is_first_launch = False
         saved_theme = await db_manager.get_setting("theme_mode")
-        if saved_theme:
-            self.page.theme_mode = (
-                ft.ThemeMode.DARK if saved_theme == "dark" else ft.ThemeMode.LIGHT
-            )
+        if saved_theme == "dark":
+            self.page.theme_mode = ft.ThemeMode.DARK
+        elif saved_theme == "light":
+            self.page.theme_mode = ft.ThemeMode.LIGHT
+        # else keep SYSTEM (the default from line 56)
 
-        # Load favorites into state for O(1) lookups
-        state.favorites = await db_manager.get_favorite_urls()
+        # Load favorites into state — convert set from DB to list for ObservableList support
+        urls = await db_manager.get_favorite_urls()
+        state.favorites = list(urls)
 
         # Load history
         state.history = await db_manager.get_history()
@@ -87,19 +87,29 @@ class AppController:
         cached_entries = await db_manager.load_liveliness_cache()
         liveliness_cache.load_from_db(cached_entries)
 
-        # Focus manager
-        self.focus_manager = FocusManager(self.page)
-        self.focus_manager.set_back_handler(self._handle_back)
+        # Mount component frontend — AppShell manages routing, theme, nav.
+        from app_next import AppShell
+        from app_next.state.controller_ctx import (
+            ControllerMethods,
+            ControllerMethodsCtx,
+        )
+
+        methods = ControllerMethods(
+            refresh_channels=self.load_channels,
+            play_stream=self.play_stream,
+            pop_views=self._handle_back,
+        )
+        self.page.render(lambda: ControllerMethodsCtx(methods, lambda: AppShell()))
 
     def _on_global_error(self, e):
         logger.error("Global error: %s", e.data if hasattr(e, "data") else e)
         try:
-            self.page.snack_bar = ft.SnackBar(
-                ft.Text(ERR_NETWORK),
-                bgcolor=AppColors.WARNING,
+            self.page.show_dialog(
+                ft.SnackBar(
+                    ft.Text(ERR_NETWORK),
+                    bgcolor=AppColors.WARNING,
+                )
             )
-            self.page.snack_bar.open = True
-            self.page.update()
         except Exception:
             pass
 
@@ -119,12 +129,12 @@ class AppController:
 
     async def play_stream(self, url: str, title: str | None = None):
         if not _is_valid_play_url(url):
-            self.page.snack_bar = ft.SnackBar(
-                ft.Text("Invalid or blocked URL."),
-                bgcolor=AppColors.ERROR,
+            self.page.show_dialog(
+                ft.SnackBar(
+                    ft.Text("Invalid or blocked URL."),
+                    bgcolor=AppColors.ERROR,
+                )
             )
-            self.page.snack_bar.open = True
-            self.page.update()
             return
 
         # Save to history
@@ -222,39 +232,9 @@ class AppController:
                 self._handle_deep_link(reconstructed)
                 return
 
-        # 3. Standard Routing
-        if parsed.path in ("/", ""):
-            self.page.views.clear()
-            self.page.run_task(self._startup_flow)
-
-        elif parsed.path == "/dashboard":
-            self.page.views.clear()
-            from views.dashboard import build_dashboard_view
-
-            view = build_dashboard_view(
-                page_obj=self.page,
-                on_play=self.play_stream,
-                ad_service=self.ad_service,
-                liveliness=self.liveliness,
-                load_channels=self.load_channels,
-            )
-            self.page.views.append(view)
-            self.page.update()
-
-    async def _startup_flow(self):
-        from core.startup import run_startup_flow
-
-        await run_startup_flow(self)
-
-    async def _onboarding_complete(self):
-        from core.startup import complete_onboarding
-
-        await complete_onboarding(self)
-
-    async def _go_to_dashboard(self):
-        from core.startup import go_to_dashboard
-
-        await go_to_dashboard(self)
+        # 3. AppShell handles all dashboard routing via the component tree.
+        # Legacy /dashboard route handler was removed with the old views/ tree.
+        # Player views (/play) are pushed by play_stream() above the shell.
 
     def view_pop(self, e):
         if not self.page.views:

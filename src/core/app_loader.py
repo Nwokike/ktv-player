@@ -15,16 +15,10 @@ logger = logging.getLogger(__name__)
 
 async def load_all_channels(page_obj, loading_lock):
     """Fetch and merge built-in, custom, and playlist channels into global state."""
-    if loading_lock.locked():
-        return
-
     async with loading_lock:
         from views.tabs.channel_classification import _invalidate_groups_cache
 
         _invalidate_groups_cache()
-
-        state.is_loading = True
-        page_obj.update()
 
         try:
             channels = await channel_provider.get_all_channels()
@@ -56,16 +50,11 @@ async def load_all_channels(page_obj, loading_lock):
         except Exception:
             logger.exception("Failed to load channels")
             try:
-                page_obj.snack_bar = ft.SnackBar(
-                    ft.Text("Failed to load channels. Check your connection."),
-                    bgcolor=AppColors.ERROR,
+                page_obj.show_dialog(
+                    ft.SnackBar(
+                        ft.Text("Failed to load channels. Check your connection."),
+                        bgcolor=AppColors.ERROR,
+                    )
                 )
-                page_obj.snack_bar.open = True
             except Exception:
                 pass
-        finally:
-            state.is_loading = False
-            refresh = getattr(page_obj, "_dashboard_refresh", None)
-            if refresh:
-                refresh()
-            page_obj.update()

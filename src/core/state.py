@@ -1,3 +1,5 @@
+from dataclasses import field
+
 import flet as ft
 
 from core.constants import MAX_HISTORY_ITEMS
@@ -8,7 +10,7 @@ class AppState:
     is_loading: bool = False
     channels: list[dict] = []  # noqa: RUF012
     history: list[str] = []  # noqa: RUF012
-    favorites: set[str] = set()  # noqa: RUF012
+    favorites: list[str] = field(default_factory=list)
 
     user_country: str = ""
     has_accepted_terms: bool = False
@@ -21,7 +23,7 @@ class AppState:
     def __init__(self):
         self.channels = []
         self.history = []
-        self.favorites = set()
+        self.favorites = []
 
     def add_to_history(self, url: str):
         if url in self.history:
@@ -42,7 +44,7 @@ class AppState:
         self.is_loading = False
         self.channels = []
         self.history = []
-        self.favorites = set()
+        self.favorites = []
         self.user_country = ""
         self.has_accepted_terms = False
         self.is_first_launch = True

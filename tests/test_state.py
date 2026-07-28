@@ -17,7 +17,7 @@ class TestAppState:
         assert app_state.is_loading is False
         assert app_state.channels == []
         assert app_state.history == []
-        assert app_state.favorites == set()
+        assert app_state.favorites == []
         assert app_state.user_country == ""
         assert app_state.has_accepted_terms is False
         assert app_state.is_first_launch is True
@@ -72,7 +72,7 @@ class TestAppState:
         assert hash_a != hash_b
 
     def test_is_favorite(self, app_state):
-        app_state.favorites.add("http://cnn.com")
+        app_state.favorites.append("http://cnn.com")
         assert app_state.is_favorite("http://cnn.com") is True
         assert app_state.is_favorite("http://bbc.com") is False
 
@@ -83,7 +83,7 @@ class TestAppState:
         app_state.is_loading = True
         app_state.set_channels([{"url": "http://test.com"}])
         app_state.add_to_history("http://test.com")
-        app_state.favorites.add("http://test.com")
+        app_state.favorites.append("http://test.com")
         app_state.user_country = "US"
         app_state.has_accepted_terms = True
         app_state.is_first_launch = False
@@ -91,7 +91,7 @@ class TestAppState:
         assert app_state.is_loading is False
         assert app_state.channels == []
         assert app_state.history == []
-        assert app_state.favorites == set()
+        assert app_state.favorites == []
         assert app_state.user_country == ""
         assert app_state.is_first_launch is True
 
