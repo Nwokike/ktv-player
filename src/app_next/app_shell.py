@@ -73,7 +73,14 @@ def AppShell() -> Control:
     state = ft.use_context(AppStateCtx)
 
     if _should_show_onboarding(state):
-        screen = OnboardingScreen(
+        # Onboarding is the first screen — no back-navigation needed.
+        # Return the screen DIRECTLY (not wrapped in FocusScope) so the
+        # inner ListView receives bounded height constraints from the View
+        # and creates a proper scroll viewport. FocusScope/KeyboardListener
+        # does NOT have host_expanded=True, so expand=True on any child of
+        # KeyboardListener is a no-op — the ListView never gets bounded
+        # height and cannot scroll (verified in Flet 0.86.4).
+        return OnboardingScreen(
             countries=channel_provider.get_countries(),
             on_complete=_onboarding_complete,
             prober=controller.refresh_channels,
