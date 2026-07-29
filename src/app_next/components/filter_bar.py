@@ -189,7 +189,7 @@ def FilterBar(
         on_click=lambda e: _toggle_fav(),
     )
 
-    controls_row = [category_btn, country_btn, custom_btn, fav_chip]
+    controls_row = [country_btn, category_btn, custom_btn, fav_chip]
 
     if callable(on_add_content):
         add_btn = ft.IconButton(

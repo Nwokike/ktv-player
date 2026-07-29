@@ -52,6 +52,14 @@ def HomeScreen() -> Control:
     filters, set_filters = ft.use_state(_init_filters)
     add_dialog_open, set_add_dialog_open = ft.use_state(False)
 
+    def _auto_load():
+        if not state.channels and callable(getattr(controller, "refresh_channels", None)):
+            import asyncio
+
+            asyncio.create_task(controller.refresh_channels())
+
+    ft.use_effect(_auto_load, [])
+
     channels_map = ft.use_memo(
         lambda: _build_channels_map(state.channels), [state.channels_hash]
     )
