@@ -54,7 +54,7 @@ def use_keyboard_shortcuts(
 
         async def _handler(e: ft.KeyboardEvent) -> None:
             handled = False
-            if e.ctrl and e.key == "k":
+            if e.ctrl and e.key.lower() == "k":
                 if on_search is not None:
                     result = on_search()
                     if hasattr(result, "__await__"):

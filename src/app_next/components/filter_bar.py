@@ -154,12 +154,14 @@ def FilterBar(
             )
         )
 
+    chips_row = ft.Row(controls=chips, scroll=ft.ScrollMode.AUTO, spacing=6)
+
     if overlays_col:
         return ft.Container(
-            content=ft.Stack(controls=[*chips, *overlays_col]),
+            content=ft.Column(controls=[chips_row, *overlays_col], spacing=4),
             padding=ft.Padding.symmetric(horizontal=4),
         )
     return ft.Container(
-        content=ft.Row(controls=chips, scroll=ft.ScrollMode.AUTO, spacing=6),
+        content=chips_row,
         padding=ft.Padding.symmetric(horizontal=4),
     )

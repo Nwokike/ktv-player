@@ -39,3 +39,22 @@ async def test_get_setting_passes_default_through():
         dbm.get_setting = mock.AsyncMock(return_value="fallback")
         await storage.get_setting("missing", default="fallback")
         dbm.get_setting.assert_awaited_once_with("missing", default="fallback")
+
+
+@pytest.mark.anyio
+async def test_add_playlist_and_custom_channel_delegates():
+    storage = use_storage()
+    assert storage.db_manager is not None
+    with mock.patch("app_next.hooks.use_storage.db_manager") as dbm:
+        dbm.add_playlist = mock.AsyncMock()
+        dbm.add_custom_channel = mock.AsyncMock()
+
+        await storage.add_playlist("Test Playlist", "http://example.com/m3u")
+        dbm.add_playlist.assert_awaited_once_with(
+            "Test Playlist", "http://example.com/m3u"
+        )
+
+        await storage.add_custom_channel("Test Channel", "http://example.com/stream")
+        dbm.add_custom_channel.assert_awaited_once_with(
+            "Test Channel", "http://example.com/stream"
+        )

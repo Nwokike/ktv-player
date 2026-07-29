@@ -71,8 +71,13 @@ def HomeScreen() -> Control:
     channels_map = ft.use_memo(
         lambda: _build_channels_map(state.channels), [state.channels_hash]
     )
+    fav_dep = (
+        tuple(state.favorites)
+        if isinstance(state.favorites, (list, set, tuple))
+        else state.favorites
+    )
     favorites_set = ft.use_memo(
-        lambda: _build_favorites_set(state), [state.channels_hash]
+        lambda: _build_favorites_set(state), [state.channels_hash, fav_dep]
     )
     visible = ft.use_memo(
         lambda: apply_filters(state.channels, filters, favorites_set),

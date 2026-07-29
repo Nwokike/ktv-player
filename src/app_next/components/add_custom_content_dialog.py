@@ -92,9 +92,9 @@ def AddCustomContentDialog(
             final_name = _format_name(name, add_type)
             final_url = url.strip()
             if add_type == "playlist":
-                await storage.db_manager.add_playlist(final_name, final_url)
+                await storage.add_playlist(final_name, final_url)
             else:
-                await storage.db_manager.add_custom_channel(final_name, final_url)
+                await storage.add_custom_channel(final_name, final_url)
             _notify_success(LBL_ADDED_SUCCESS.format(name=final_name))
             set_last_add(time.time())
             _reset()

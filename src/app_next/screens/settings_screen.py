@@ -201,11 +201,21 @@ def SettingsScreen() -> Control:
         )
 
     def _about_content() -> Control:
+        import sys
+
         return ft.Column(
             controls=[
                 ft.Text(f"Version: {APP_VERSION}", size=14),
-                ft.Text("Framework: Flet 0.86.3 + mpv", size=12, color=ft.Colors.GREY),
-                ft.Text("Built with Python 3.13", size=12, color=ft.Colors.GREY),
+                ft.Text(
+                    f"Framework: Flet {ft.__version__} + mpv",
+                    size=12,
+                    color=ft.Colors.GREY,
+                ),
+                ft.Text(
+                    f"Built with Python {sys.version.split()[0]}",
+                    size=12,
+                    color=ft.Colors.GREY,
+                ),
                 ft.Divider(height=1),
                 ft.Text("An IPTV rendering engine and local media player.", size=12),
             ],

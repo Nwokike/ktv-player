@@ -36,11 +36,16 @@ def SearchScreen() -> Control:
         [state.channels_hash, debounced_query],
     )
 
+    fav_dep = (
+        tuple(state.favorites)
+        if isinstance(state.favorites, (list, set, tuple))
+        else state.favorites
+    )
     favorites_set = ft.use_memo(
         lambda: (
             set(state.favorites) if isinstance(state.favorites, (list, set)) else set()
         ),
-        [state.channels_hash],
+        [state.channels_hash, fav_dep],
     )
 
     def on_play(url):

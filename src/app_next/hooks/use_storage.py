@@ -20,11 +20,21 @@ from database.manager import db_manager
 class Storage:
     """Subset of db_manager that components need. Extend per milestone."""
 
+    @property
+    def db_manager(self):
+        return db_manager
+
     async def set_setting(self, key: str, value: str) -> None:
         await db_manager.set_setting(key, value)
 
     async def get_setting(self, key: str, default: Any = None) -> str | None:
         return await db_manager.get_setting(key, default=default)
+
+    async def add_playlist(self, name: str, url: str) -> None:
+        await db_manager.add_playlist(name, url)
+
+    async def add_custom_channel(self, name: str, url: str) -> None:
+        await db_manager.add_custom_channel(name, url)
 
 
 def use_storage() -> Storage:
