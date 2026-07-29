@@ -18,7 +18,7 @@ def extract_countries(channels: list[dict]) -> list[str]:
 
 
 def extract_country_dicts(channels: list[dict]) -> list[dict]:
-    """Derive sorted country list from channel data. Returns dicts with 'name' key."""
+    """Derive sorted country list from channel data. Returns dicts with 'name' key, ending with 'Other'."""
     seen = set()
     result = []
     for c in channels:
@@ -27,10 +27,12 @@ def extract_country_dicts(channels: list[dict]) -> list[dict]:
         original_group = c.get("group", "General")
         parts = [p.strip() for p in original_group.split(";")]
         country = parts[0] if c.get("country_code") else "Global"
-        if country and country not in seen:
+        if country and country != "Other" and country not in seen:
             seen.add(country)
             result.append({"name": country})
-    return sorted(result, key=lambda x: x["name"])
+    sorted_res = sorted(result, key=lambda x: x["name"])
+    sorted_res.append({"name": "Other"})
+    return sorted_res
 
 
 def build_channels_map(channels: list[dict]) -> dict[str, dict]:

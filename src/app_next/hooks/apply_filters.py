@@ -15,9 +15,10 @@ HomeScreen and other views. The filter dict contract:
 from core.constants import MAX_SEARCH_RESULTS
 
 
-def _default_filters() -> dict:
+def _default_filters(user_country: str = "all") -> dict:
+    country_val = "all" if not user_country or user_country == "Other" else user_country
     return {
-        "country": "all",
+        "country": country_val,
         "category": "all",
         "custom": "none",
         "fav_only": False,

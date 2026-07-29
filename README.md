@@ -12,7 +12,7 @@
   <img src="https://img.shields.io/badge/Windows-0078D6?style=flat-square&logo=windows11&logoColor=white" alt="Windows" />
   <img src="https://img.shields.io/badge/Android-3DDC84?style=flat-square&logo=android&logoColor=white" alt="Android" />
   <br>
-  <img src="https://img.shields.io/badge/Built%20with-Flet%200.85-00B0FF?style=flat-square" alt="Built with Flet" />
+  <img src="https://img.shields.io/badge/Built%20with-Flet%200.86-00B0FF?style=flat-square" alt="Built with Flet" />
 </p>
 
 ---

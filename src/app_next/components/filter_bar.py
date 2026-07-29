@@ -109,7 +109,7 @@ def FilterBar(
     if isinstance(available_countries, dict):
         country_dict = available_countries
         sorted_countries = sorted(country_dict.keys())
-        if user_country and user_country in sorted_countries:
+        if user_country and user_country != "Other" and user_country in sorted_countries:
             u_count = country_dict[user_country]
             country_menu_items.append(
                 ft.PopupMenuItem(
@@ -135,7 +135,7 @@ def FilterBar(
             )
     else:
         sorted_countries = list(available_countries)
-        if user_country and user_country in sorted_countries:
+        if user_country and user_country != "Other" and user_country in sorted_countries:
             country_menu_items.append(
                 ft.PopupMenuItem(
                     content=ft.Text(f"{user_country} (Local)", size=FONT_MD),

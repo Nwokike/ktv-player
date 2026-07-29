@@ -325,6 +325,8 @@ def SettingsScreen() -> Control:
     def _localization_content() -> Control:
         countries = channel_provider.get_countries()
         country_names = [c.get("name", "") for c in countries if c.get("name")]
+        if "Other" not in country_names:
+            country_names.append("Other")
 
         current = state.user_country
         default_val = (

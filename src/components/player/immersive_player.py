@@ -86,6 +86,7 @@ class ImmersivePlayer(ft.Stack):
             pause_upon_entering_background_mode=True,
             resume_upon_entering_foreground_mode=True,
             playlist_mode=fv.PlaylistMode.NONE,
+            subtitle_track=fv.VideoSubtitleTrack.auto(),
             subtitle_configuration=fv.VideoSubtitleConfiguration(
                 text_style=ft.TextStyle(
                     size=22.0,
