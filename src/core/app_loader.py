@@ -2,11 +2,8 @@
 
 import logging
 
-import flet as ft
-
 from channels.provider import channel_provider
 from core.state import state
-from core.theme import AppColors
 from database.manager import db_manager
 from services.iptv_service import iptv_service
 
@@ -69,11 +66,8 @@ async def load_all_channels(page_obj, loading_lock):
         except Exception:
             logger.exception("Failed to load channels")
             try:
-                page_obj.show_dialog(
-                    ft.SnackBar(
-                        ft.Text("Failed to load channels. Check your connection."),
-                        bgcolor=AppColors.ERROR,
-                    )
-                )
+                from app_next.utils.notifications import notify_error
+
+                notify_error("Failed to load channels. Check your connection.")
             except Exception:
                 pass

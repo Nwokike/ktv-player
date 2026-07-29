@@ -129,14 +129,6 @@ class ImmersivePlayer(ft.Stack):
             self.overlay,
         ]
 
-    async def capture_screenshot(self) -> bytes | None:
-        """Capture a PNG screenshot of the current video frame."""
-        try:
-            return await self.video.take_screenshot(format="image/png")
-        except Exception as ex:
-            logger.warning("Failed to capture screenshot: %s", ex)
-            return None
-
     # --- Controls ---
 
     def _build_controls(self) -> fv.AdaptiveVideoControls:
@@ -217,6 +209,8 @@ class ImmersivePlayer(ft.Stack):
     def _on_error(self, e: ft.ControlEvent):
         err_msg = str(e.data) if hasattr(e, "data") and e.data else str(e)
         logger.debug("on_error: %s", err_msg)
+        if self._is_closing:
+            return
         if "Cannot seek" in err_msg or "force-seekable" in err_msg:
             return
         if self._is_final_error:
@@ -274,6 +268,7 @@ class ImmersivePlayer(ft.Stack):
         if self._is_closing:
             return
         self._is_closing = True
+        self._is_final_error = True
         try:
             if self.video:
                 self.video.playlist = []
@@ -281,8 +276,6 @@ class ImmersivePlayer(ft.Stack):
                 await self.video.stop()
         except Exception as ex:
             logger.debug("Ignored error while stopping video on close: %s", ex)
-
-        self._is_final_error = True
 
     async def _on_back(self, e: ft.ControlEvent | None = None):
         await self.handle_close()

@@ -8,7 +8,7 @@ favorites toggle flow. Delegates to sub-components.
 import logging
 
 import flet as ft
-from flet.controls.control import Control
+from flet import Control
 
 from app_next.components.add_custom_content_dialog import AddCustomContentDialog
 from app_next.components.channel_grid import ChannelGrid
@@ -23,21 +23,16 @@ from app_next.state.controller_ctx import ControllerMethodsCtx
 from app_next.utils.channels import (
     build_channels_map,
     build_favorites_set,
-    extract_categories,
     extract_category_counts,
-    extract_countries,
     extract_country_counts,
 )
 from app_next.utils.favorites import toggle_favorite
-
-# --- aliases kept for backward-compatible test imports ---
-
-_build_channels_map = build_channels_map
-_build_favorites_set = build_favorites_set
-_extract_countries = extract_countries
-_extract_categories = extract_categories
-_extract_country_counts = extract_country_counts
-_extract_category_counts = extract_category_counts
+from core.constants import (
+    ERR_PLAYBACK_FAILED,
+    LBL_ADD_CONTENT_SHORT,
+    LBL_NO_CHANNELS_FOUND,
+    LBL_NO_CHANNELS_HINT,
+)
 
 logger = logging.getLogger("HomeScreen")
 
@@ -55,6 +50,15 @@ def HomeScreen() -> Control:
 
     filters, set_filters = ft.use_state(_init_filters)
     add_dialog_open, set_add_dialog_open = ft.use_state(False)
+    liveliness_version, set_liveliness_version = ft.use_state(0)
+
+    # Register callback so grid re-renders when liveliness results arrive
+    def _on_liveliness_change():
+        set_liveliness_version(lambda v: v + 1)
+
+    from services.liveliness import liveliness_cache
+
+    liveliness_cache.set_on_change(_on_liveliness_change)
 
     def _auto_load():
         if not state.channels and callable(
@@ -67,7 +71,7 @@ def HomeScreen() -> Control:
     ft.use_effect(_auto_load, [])
 
     channels_map = ft.use_memo(
-        lambda: _build_channels_map(state.channels), [state.channels_hash]
+        lambda: build_channels_map(state.channels), [state.channels_hash]
     )
     fav_dep = (
         tuple(state.favorites)
@@ -75,7 +79,7 @@ def HomeScreen() -> Control:
         else state.favorites
     )
     favorites_set = ft.use_memo(
-        lambda: _build_favorites_set(state), [state.channels_hash, fav_dep]
+        lambda: build_favorites_set(state), [state.channels_hash, fav_dep]
     )
 
     # Separate built-in vs custom channels for filters
@@ -92,7 +96,7 @@ def HomeScreen() -> Control:
 
     visible = ft.use_memo(
         lambda: apply_filters(state.channels, filters, favorites_set),
-        [state.channels_hash, filters, favorites_set],
+        [state.channels_hash, filters, favorites_set, liveliness_version],
     )
 
     logger.info(
@@ -106,20 +110,13 @@ def HomeScreen() -> Control:
     def on_play(url: str):
         import asyncio
 
-        from core.theme import AppColors
-
         async def _play():
             try:
                 await controller.play_stream(url, None)
             except Exception:
-                from flet.controls.context import context
+                from app_next.utils.notifications import notify_error
 
-                try:
-                    context.page.show_dialog(
-                        ft.SnackBar(ft.Text("Playback failed"), bgcolor=AppColors.ERROR)
-                    )
-                except Exception:
-                    pass
+                notify_error(ERR_PLAYBACK_FAILED)
 
         asyncio.create_task(_play())
 
@@ -157,8 +154,8 @@ def HomeScreen() -> Control:
     filter_bar = FilterBar(
         filters=filters,
         on_change=on_filters_updated,
-        available_countries=_extract_country_counts(built_in_channels),
-        available_categories=_extract_category_counts(built_in_channels),
+        available_countries=extract_country_counts(built_in_channels),
+        available_categories=extract_category_counts(built_in_channels),
         user_country=state.user_country,
         custom_playlists=custom_playlists,
         total_count=len(visible),
@@ -169,9 +166,9 @@ def HomeScreen() -> Control:
         body = LoadingState()
     elif not visible:
         body = EmptyState(
-            title="No channels found",
-            message="Try changing filters or add custom content.",
-            action_label="Add Content",
+            title=LBL_NO_CHANNELS_FOUND,
+            message=LBL_NO_CHANNELS_HINT,
+            action_label=LBL_ADD_CONTENT_SHORT,
             on_action=lambda e: set_add_dialog_open(True),
         )
     else:

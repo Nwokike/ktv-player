@@ -14,6 +14,7 @@ def toggle_theme(page: ft.Page) -> None:
     is_dark = AppColors._is_dark(page)
     new_mode = ft.ThemeMode.LIGHT if is_dark else ft.ThemeMode.DARK
     page.theme_mode = new_mode
+    page.update()
 
     async def _save():
         await db_manager.set_setting(

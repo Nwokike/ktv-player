@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 _in_flight: set[str] = set()
 _liveliness_queue: asyncio.Queue[str] | None = None
+_worker_tasks: list[asyncio.Task] = []
 _workers_started = False
 
 
@@ -50,9 +51,17 @@ def _ensure_queue():
             loop = asyncio.get_running_loop()
             _workers_started = True
             for _ in range(3):
-                loop.create_task(_liveliness_worker())
+                _worker_tasks.append(loop.create_task(_liveliness_worker()))
         except RuntimeError:
             pass
+
+
+def shutdown_workers():
+    """Cancel all background liveliness workers. Call on app exit."""
+    for task in _worker_tasks:
+        if not task.done():
+            task.cancel()
+    _worker_tasks.clear()
 
 
 def enqueue_liveliness_check(url: str):

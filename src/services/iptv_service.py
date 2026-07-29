@@ -49,7 +49,8 @@ class IPTVService:
                         self.fetch_playlist(url), timeout=timeout
                     )
                 except TimeoutError:
-                    return Exception(f"Playlist fetch timed out: {url[:60]}")
+                    logger.warning("Playlist fetch timed out: %s", url[:60])
+                    return []
 
             tasks = [fetch_with_timeout(p["url"]) for p in active_playlists]
             results = await asyncio.gather(*tasks, return_exceptions=True)

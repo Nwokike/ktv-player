@@ -31,6 +31,10 @@ def setup_logging(level: int = logging.DEBUG) -> None:
     # Ensure exceptions always include traceback
     logging.captureWarnings(True)
 
+    # Only log httpx warnings/errors — suppress per-request INFO noise
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("httpcore").setLevel(logging.WARNING)
+
 
 # Automatically configure logging on module import
 setup_logging()

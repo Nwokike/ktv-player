@@ -24,7 +24,7 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 import flet as ft
-from flet.controls.control import Control
+from flet import Control
 
 from app_next.components.loading_state import LoadingState
 from app_next.hooks.use_storage import Storage, use_storage
@@ -32,6 +32,7 @@ from app_next.state.app_state import AppStateCtx
 from app_next.utils.channels import extract_country_dicts
 from app_next.utils.notifications import notify_warning
 from core.constants import (
+    LBL_CONNECTING,
     LBL_PLEASE_ACCEPT_TERMS,
     LBL_PLEASE_SELECT_COUNTRY,
     LBL_SELECT_COUNTRY,
@@ -141,7 +142,7 @@ def OnboardingScreen(
         await _maybe_invoke(on_complete)
 
     if is_loading:
-        return LoadingState(label="Connecting...")
+        return LoadingState(label=LBL_CONNECTING)
 
     if is_offline:
         from app_next.components.offline_flow import OfflineFlow as _OfflineFlow
@@ -159,9 +160,6 @@ def OnboardingScreen(
 
 
 # --- helpers ---
-
-
-_extract_countries = extract_country_dicts
 
 
 async def _maybe_invoke(fn: Callable[[], Awaitable[None] | None]) -> None:

@@ -21,7 +21,7 @@ Verified API (Flet 0.86.4, .venv/lib/python3.14/site-packages/flet/):
 from collections.abc import Awaitable, Callable
 
 import flet as ft
-from flet.controls.control import Control
+from flet import Control
 
 # Keys the Material platform emits for system Back. Verified against legacy
 # `core/focus_manager.py` line 31 (same set kept for parity).

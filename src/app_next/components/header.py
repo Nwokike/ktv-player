@@ -3,8 +3,7 @@
 from collections.abc import Callable
 
 import flet as ft
-from flet.controls.context import context
-from flet.controls.control import Control
+from flet import Control, context
 
 from app_next.utils.theme_utils import toggle_theme as _toggle_theme_util
 from core.constants import LBL_ADD_CONTENT, LBL_SEARCH_HINT
@@ -39,14 +38,18 @@ def Header(
         expand=True,
     )
 
-    action_controls = [
-        ft.IconButton(
-            icon=ft.Icons.ADD_CIRCLE_OUTLINE,
-            tooltip=add_tooltip,
-            on_click=lambda e: on_add_content() if callable(on_add_content) else None,
-            icon_size=ICON_MD,
-        )
-    ]
+    _compact_style = ft.ButtonStyle(padding=ft.Padding.all(4))
+
+    # Add button — placed on the left, next to the logo
+    add_button = ft.IconButton(
+        icon=ft.Icons.ADD_CIRCLE_OUTLINE,
+        tooltip=add_tooltip,
+        on_click=lambda e: on_add_content() if callable(on_add_content) else None,
+        icon_size=ICON_MD,
+        style=_compact_style,
+    )
+
+    action_controls = []
 
     if callable(on_refresh):
         action_controls.append(
@@ -55,17 +58,19 @@ def Header(
                 tooltip="Scan Again",
                 on_click=lambda e: on_refresh(),
                 icon_size=ICON_SM,
+                style=_compact_style,
             )
         )
 
-    # Dynamic Theme Icon
+    # Dynamic Theme Icon — shows CURRENT state (moon when dark, sun when light)
     try:
-        page_theme = context.page.theme_mode
-        is_dark = page_theme == ft.ThemeMode.DARK
+        from core.theme import AppColors
+
+        is_dark = AppColors._is_dark(context.page)
     except Exception:
         is_dark = True
 
-    theme_icon = ft.Icons.LIGHT_MODE if is_dark else ft.Icons.DARK_MODE
+    theme_icon = ft.Icons.DARK_MODE if is_dark else ft.Icons.LIGHT_MODE
 
     action_controls.append(
         ft.IconButton(
@@ -73,6 +78,7 @@ def Header(
             tooltip="Toggle Theme",
             on_click=_handle_toggle_theme,
             icon_size=ICON_SM,
+            style=_compact_style,
         )
     )
 
@@ -85,6 +91,7 @@ def Header(
     return ft.Container(
         content=ft.Row(
             controls=[
+                add_button,
                 ft.Image(
                     src="/icon.png",
                     width=32,

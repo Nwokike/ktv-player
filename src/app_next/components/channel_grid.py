@@ -9,7 +9,7 @@ from collections.abc import Callable
 from typing import Any
 
 import flet as ft
-from flet.controls.control import Control
+from flet import Control
 
 from app_next.components.channel_card import ChannelCard
 from app_next.components.empty_state import EmptyState

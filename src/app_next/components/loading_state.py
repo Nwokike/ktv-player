@@ -5,7 +5,7 @@ a renderer context.
 """
 
 import flet as ft
-from flet.controls.control import Control
+from flet import Control
 
 _DEFAULT_LABEL = "Loading..."
 _CENTER = ft.Alignment(0.0, 0.0)

@@ -57,7 +57,7 @@ def use_keyboard_shortcuts(
         effect scheduler captures its return value as the effect's
         cleanup, which runs automatically when the component unmounts.
         """
-        from flet.controls.context import context as _ctx
+        from flet import context as _ctx
 
         try:
             page = _ctx.page

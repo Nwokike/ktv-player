@@ -5,7 +5,7 @@ for retry and skip actions; the parent component owns async + loading state.
 """
 
 import flet as ft
-from flet.controls.control import Control
+from flet import Control
 
 from core.theme import AppColors
 

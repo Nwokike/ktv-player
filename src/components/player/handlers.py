@@ -26,7 +26,7 @@ async def cycle_speed(player_inst):
 
 async def pick_subtitles(player_inst):
     """Open Subtitle Track selection dialog or FilePicker for .srt and .vtt subtitle files."""
-    from flet.controls.services.file_picker import FilePicker, FilePickerFileType
+    from flet import FilePicker, FilePickerFileType
     from flet_video import VideoSubtitleTrack
 
     async def _select_auto(e=None):

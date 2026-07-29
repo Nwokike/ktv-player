@@ -12,12 +12,22 @@ visuals (8px padding, 10px corner radius, ink/splash on press).
 from collections.abc import Callable
 
 import flet as ft
-from flet.controls.control import Control
+from flet import Control
 
 from app_next.components.focus_styles import card_button_style
 from core.constants import LBL_RECENTLY_WATCHED
 from core.theme import AppColors
 from services.logo_cache import get_cached_logo
+
+
+def _display_name(url: str) -> str:
+    """Extract a readable display name from a URL or path."""
+    import os
+
+    # Take the last path segment, strip extension
+    name = os.path.splitext(os.path.basename(url))[0]
+    # If the name is empty or just an extension, fall back to "Stream"
+    return name if name else "Stream"
 
 
 def RecentlyWatched(
@@ -32,7 +42,7 @@ def RecentlyWatched(
 
     cards = []
     for url in visible_items:
-        ch = channels_map.get(url, {"name": url, "logo": ""})
+        ch = channels_map.get(url, {"name": _display_name(url), "logo": ""})
         logo_src = ch.get("logo", "") or "/icon.png"
         if not logo_src.startswith("/"):
             cached = get_cached_logo(logo_src)

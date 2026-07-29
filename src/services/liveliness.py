@@ -1,5 +1,6 @@
 import time
 from collections import OrderedDict
+from collections.abc import Callable
 
 
 class LivelinessCache:
@@ -8,6 +9,11 @@ class LivelinessCache:
         self._max_size = max_size
         self._ttl = ttl
         self._dirty: list[tuple[str, bool, int]] = []
+        self._on_change: Callable[[], None] | None = None
+
+    def set_on_change(self, callback: Callable[[], None]) -> None:
+        """Register a callback that fires when liveliness results arrive."""
+        self._on_change = callback
 
     def get(self, url: str) -> bool | None:
         entry = self._cache.get(url)
@@ -27,6 +33,11 @@ class LivelinessCache:
             self._cache.popitem(last=False)
         self._cache[url] = (is_live, now)
         self._dirty.append((url, is_live, int(now)))
+        if self._on_change:
+            try:
+                self._on_change()
+            except Exception:
+                pass
 
     def clear(self):
         self._cache.clear()

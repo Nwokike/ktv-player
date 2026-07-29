@@ -11,7 +11,7 @@ import time
 from collections.abc import Awaitable, Callable
 
 import flet as ft
-from flet.controls.control import Control
+from flet import Control
 
 from app_next.hooks.use_storage import use_storage
 from app_next.state.controller_ctx import ControllerMethodsCtx
@@ -113,7 +113,7 @@ def AddCustomContentDialog(
         on_close()
 
     async def _dismiss():
-        from flet.controls.context import context
+        from flet import context
 
         try:
             context.page.pop_dialog()
@@ -125,7 +125,7 @@ def AddCustomContentDialog(
     async def _show():
         if not open:
             return
-        from flet.controls.context import context
+        from flet import context
 
         dialog = ft.AlertDialog(
             modal=True,

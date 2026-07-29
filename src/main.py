@@ -17,7 +17,7 @@ from core.constants import (
 )
 from core.logging_config import setup_logging
 from core.state import state
-from core.theme import AppColors, AppTheme
+from core.theme import AppTheme
 from database.manager import db_manager
 from services.ad_service import AdService
 from services.liveliness_checker import LivelinessChecker
@@ -33,6 +33,7 @@ class AppController:
         self.ad_service: AdService | None = None
         self.liveliness: LivelinessChecker | None = None
         self._loading_lock: asyncio.Lock | None = None
+        self._is_player_closing: bool = False
         # Explicit modal name stack so _handle_back can pop the
         # topmost dialog before popping a view.
         self._modal_stack: list[str] = []
@@ -130,14 +131,20 @@ class AppController:
         logger.info("AppShell frontend mounted successfully")
 
     def _on_global_error(self, e):
-        logger.error("Global error: %s", e.data if hasattr(e, "data") else e)
+        err_data = e.data if hasattr(e, "data") else str(e)
+        # Suppress errors from the video player stopping (e.g., during back press)
+        if self._is_player_closing:
+            logger.debug("Global error during player close (suppressed): %s", err_data)
+            self._is_player_closing = False
+            return
+        if self.page.views and any(v.route == "/play" for v in self.page.views):
+            logger.debug("Global error during playback (suppressed): %s", err_data)
+            return
+        logger.error("Global error: %s", err_data)
         try:
-            self.page.show_dialog(
-                ft.SnackBar(
-                    ft.Text(ERR_NETWORK),
-                    bgcolor=AppColors.WARNING,
-                )
-            )
+            from app_next.utils.notifications import notify_warning
+
+            notify_warning(ERR_NETWORK)
         except Exception:
             pass
 
@@ -193,12 +200,9 @@ class AppController:
             return
 
         if not _is_valid_play_url(url):
-            self.page.show_dialog(
-                ft.SnackBar(
-                    ft.Text("Invalid or blocked URL."),
-                    bgcolor=AppColors.ERROR,
-                )
-            )
+            from app_next.utils.notifications import notify_error
+
+            notify_error("Invalid or blocked URL.")
             return
 
         # Save to history
@@ -261,6 +265,7 @@ class AppController:
         if not self.page.views:
             return
         if len(self.page.views) > 1 and self.page.views[-1].route == "/play":
+            self._is_player_closing = True
             self.page.views.pop()
             self.page.update()
 
@@ -362,9 +367,9 @@ class AppController:
         except Exception:
             logger.exception("Failed to start playback")
             try:
-                self.page.show_dialog(
-                    ft.SnackBar(ft.Text("Playback failed"), bgcolor=AppColors.ERROR)
-                )
+                from app_next.utils.notifications import notify_error
+
+                notify_error("Playback failed")
             except Exception:
                 pass
 
@@ -376,6 +381,26 @@ async def main(page: ft.Page):
 
     page.on_route_change = controller.route_change
     page.on_view_pop = controller.view_pop
+
+    # Graceful shutdown: cancel background workers and close resources
+    # when the page closes (app exit).
+    async def _on_close(e=None):
+        from services.liveliness_checker import shutdown_workers as shutdown_liveliness
+        from services.logo_cache import shutdown_workers as shutdown_logos
+
+        shutdown_liveliness()
+        shutdown_logos()
+        with contextlib.suppress(Exception):
+            if controller.ad_service:
+                await controller.ad_service.close()
+        with contextlib.suppress(Exception):
+            from services.http_client import close_http_client
+
+            await close_http_client()
+        with contextlib.suppress(Exception):
+            await db_manager.close()
+
+    page.on_close = _on_close
 
     await controller.route_change()
 

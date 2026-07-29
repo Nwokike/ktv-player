@@ -24,10 +24,13 @@ _IMAGE_SIGNATURES = {
 }
 
 _in_flight: set[str] = set()
+_failed_logos: dict[str, float] = {}  # url -> timestamp of last failure
 _logo_queue: asyncio.Queue[str] | None = None
+_logo_worker_tasks: list[asyncio.Task] = []
 _logo_workers_started = False
 _cache_dir_initialized = False
 _last_evict_time = 0.0
+_FAILED_LOGO_TTL = 300  # Don't retry failed logos for 5 minutes
 
 
 def _detect_image_type(data: bytes) -> str | None:
@@ -112,6 +115,7 @@ async def _download_one(logo_url: str) -> str | None:
 
         detected = _detect_image_type(resp.content)
         if detected is None:
+            _failed_logos[logo_url] = time.time()
             return None
 
         safe_name = hashlib.sha256(logo_url.encode()).hexdigest()[:16]
@@ -124,6 +128,7 @@ async def _download_one(logo_url: str) -> str | None:
         await asyncio.to_thread(_write_file, cached_path, resp.content)
         return cached_path
     except Exception:
+        _failed_logos[logo_url] = time.time()
         return None
     finally:
         _in_flight.discard(logo_url)
@@ -150,7 +155,15 @@ def _ensure_queue():
     if not _logo_workers_started:
         _logo_workers_started = True
         for _ in range(_LOGO_WORKERS):
-            asyncio.create_task(_logo_worker())
+            _logo_worker_tasks.append(asyncio.create_task(_logo_worker()))
+
+
+def shutdown_workers():
+    """Cancel all background logo download workers. Call on app exit."""
+    for task in _logo_worker_tasks:
+        if not task.done():
+            task.cancel()
+    _logo_worker_tasks.clear()
 
 
 def enqueue_logo_download(logo_url: str):
@@ -159,6 +172,10 @@ def enqueue_logo_download(logo_url: str):
     if get_cached_logo(logo_url):
         return
     if logo_url in _in_flight:
+        return
+    # Skip recently failed downloads (negative cache)
+    failed_at = _failed_logos.get(logo_url)
+    if failed_at and (time.time() - failed_at) < _FAILED_LOGO_TTL:
         return
 
     _ensure_cache_dir()

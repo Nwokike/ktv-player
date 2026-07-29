@@ -8,7 +8,7 @@ plus a "Load more" button if there are more videos.
 from collections.abc import Callable
 
 import flet as ft
-from flet.controls.control import Control
+from flet import Control
 
 from app_next.components.video_card import VideoCard
 from core.constants import PAGE_SIZE

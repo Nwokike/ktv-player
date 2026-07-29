@@ -37,6 +37,7 @@ class AdService:
         self._ad_loaded_event: asyncio.Event | None = None
         self._can_request_ads: bool = True
         self._consent_manager = None
+        self._is_shutting_down: bool = False
 
     def get_banner_unit_id(self) -> str:
         return self.BANNER_ID
@@ -208,8 +209,13 @@ class AdService:
     async def _retry_preload(self, on_close: Callable | None = None):
         self._preload_retry_count += 1
         await asyncio.sleep(AD_PRELOAD_RETRY_DELAY)
-        if self.interstitial is None:
+        if self.interstitial is None and not self._is_shutting_down:
             await self.preload_interstitial(on_close)
+
+    async def close(self):
+        """Cancel pending retries and release resources."""
+        self._is_shutting_down = True
+        self.interstitial = None
 
     async def _handle_close(self, e):
         logger.info("Interstitial ad closed by user")

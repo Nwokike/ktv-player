@@ -8,8 +8,8 @@ from core.constants import MAX_HISTORY_ITEMS
 @ft.observable
 class AppState:
     is_loading: bool = False
-    channels: list[dict] = []  # noqa: RUF012
-    history: list[str] = []  # noqa: RUF012
+    channels: list[dict] = field(default_factory=list)
+    history: list[str] = field(default_factory=list)
     favorites: list[str] = field(default_factory=list)
 
     user_country: str = ""

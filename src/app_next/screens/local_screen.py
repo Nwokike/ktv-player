@@ -1,16 +1,73 @@
 """LocalScreen — device video scanner with folder expansion tiles."""
 
 import asyncio
+import logging
 
 import flet as ft
-from flet.controls.control import Control
+from flet import Control
+
+logger = logging.getLogger("LocalScreen")
 
 from app_next.components.empty_state import EmptyState
 from app_next.components.folder_expansion_tile import FolderExpansionTile
 from app_next.components.header import Header
 from app_next.components.loading_state import LoadingState
 from app_next.state.controller_ctx import ControllerMethodsCtx
+from core.constants import (
+    ERR_FOLDER_PICK_FAILED,
+    LBL_ADD_FOLDER,
+    LBL_LOCAL_FOOTER_HINT,
+    LBL_LOCAL_SEARCH_HINT,
+    LBL_NO_LOCAL_VIDEOS,
+    LBL_NO_LOCAL_VIDEOS_HINT,
+    LBL_SCAN_AGAIN,
+    LBL_SCANNING_DEVICE,
+)
 from services.local_scanner import get_default_scan_paths, scan_videos
+
+
+async def _get_storage_paths() -> list[str]:
+    """Get accessible storage paths. Uses Flet's StoragePaths on Android
+    (which returns real filesystem paths), falls back to hardcoded paths on desktop."""
+    try:
+        from flet import StoragePaths
+
+        sp = StoragePaths()
+        paths = []
+
+        # get_downloads_directory works on Android and returns a real path
+        downloads = await sp.get_downloads_directory()
+        if downloads:
+            paths.append(downloads)
+            logger.info("StoragePaths downloads: %s", downloads)
+
+        # get_external_storage_directory returns the external root on Android
+        try:
+            ext = await sp.get_external_storage_directory()
+            if ext and ext not in paths:
+                paths.append(ext)
+                logger.info("StoragePaths external: %s", ext)
+        except Exception:
+            pass
+
+        # get_external_storage_directories returns SD card paths etc.
+        try:
+            exts = await sp.get_external_storage_directories()
+            if exts:
+                for e in exts:
+                    if e not in paths:
+                        paths.append(e)
+                        logger.info("StoragePaths external_multi: %s", e)
+        except Exception:
+            pass
+
+        if paths:
+            return paths
+    except Exception as ex:
+        logger.debug("StoragePaths unavailable: %s", ex)
+
+    # Fallback to default paths (works on desktop)
+    return get_default_scan_paths()
 
 
 @ft.component
@@ -26,7 +83,7 @@ def LocalScreen() -> Control:
         try:
             import json
 
-            from flet.controls.services.shared_preferences import SharedPreferences
+            from flet import SharedPreferences
 
             sp = SharedPreferences()
             raw = await sp.get("ktv_custom_video_paths")
@@ -41,7 +98,7 @@ def LocalScreen() -> Control:
         try:
             import json
 
-            from flet.controls.services.shared_preferences import SharedPreferences
+            from flet import SharedPreferences
 
             sp = SharedPreferences()
             await sp.set("ktv_custom_video_paths", json.dumps(paths))
@@ -51,27 +108,31 @@ def LocalScreen() -> Control:
     async def _scan():
         set_is_scanning(True)
         try:
-            paths = list(get_default_scan_paths())
+            paths = list(await _get_storage_paths())
             custom = await _get_custom_paths()
             for p in custom:
                 if p not in paths:
                     paths.append(p)
+            logger.info("Scanning %d paths: %s", len(paths), paths)
             result = await asyncio.to_thread(scan_videos, paths)
+            logger.info("Scan found %d folders", len(result))
             set_folders(result)
         except Exception:
+            logger.exception("Scan failed")
             set_folders([])
         finally:
             set_is_scanning(False)
 
     ft.on_mounted(_scan)
 
-    async def _refresh(e=None):
-        await _scan()
+    def _refresh(e=None):
+        asyncio.create_task(_scan())
 
-    async def _pick_folder(e=None):
-        from flet.controls.services.file_picker import FilePicker
+    def _pick_folder(e=None):
+        asyncio.create_task(_pick_folder_async())
 
-        from core.theme import AppColors
+    async def _pick_folder_async():
+        from flet import FilePicker
 
         fp = FilePicker()
         try:
@@ -79,16 +140,10 @@ def LocalScreen() -> Control:
         except asyncio.CancelledError:
             return
         except Exception:
-            from flet.controls.context import context
+            logger.exception("Directory picker failed")
+            from app_next.utils.notifications import notify_warning
 
-            try:
-                context.page.show_dialog(
-                    ft.SnackBar(
-                        ft.Text("Failed to pick folder"), bgcolor=AppColors.WARNING
-                    )
-                )
-            except Exception:
-                pass
+            notify_warning(ERR_FOLDER_PICK_FAILED)
             return
         if path:
             paths = await _get_custom_paths()
@@ -102,16 +157,16 @@ def LocalScreen() -> Control:
 
     header = Header(
         search_value=search_query,
-        search_hint="Search local videos...",
+        search_hint=LBL_LOCAL_SEARCH_HINT,
         on_search_change=set_search_query,
         on_add_content=_pick_folder,
-        add_tooltip="Add Folder",
+        add_tooltip=LBL_ADD_FOLDER,
         on_refresh=_refresh,
     )
 
     if is_scanning:
         return ft.Column(
-            controls=[header, LoadingState(label="Scanning device storage...")],
+            controls=[header, LoadingState(label=LBL_SCANNING_DEVICE)],
             expand=True,
             spacing=0,
         )
@@ -145,9 +200,9 @@ def LocalScreen() -> Control:
             content=ft.Column(
                 controls=[
                     EmptyState(
-                        title="No local videos found",
-                        message="Tap the + button at the top to add a video folder.",
-                        action_label="Scan Again",
+                        title=LBL_NO_LOCAL_VIDEOS,
+                        message=LBL_NO_LOCAL_VIDEOS_HINT,
+                        action_label=LBL_SCAN_AGAIN,
                         on_action=_refresh,
                     ),
                 ],
@@ -160,7 +215,7 @@ def LocalScreen() -> Control:
         ]
         footer_hint = ft.Container(
             content=ft.Text(
-                "If you want to add more folders, click the + sign at the top",
+                LBL_LOCAL_FOOTER_HINT,
                 size=12,
                 color=ft.Colors.GREY_400,
                 text_align=ft.TextAlign.CENTER,

@@ -7,7 +7,7 @@ the view stack via ControllerMethodsCtx.pop_views.
 """
 
 import flet as ft
-from flet.controls.control import Control
+from flet import Control
 
 from app_next.hooks.use_focus_scope import FocusScope
 from app_next.hooks.use_keyboard_shortcuts import use_keyboard_shortcuts
@@ -70,7 +70,7 @@ def AppShell() -> Control:
             tab_body = HomeScreen(key=ft.ValueKey("home"))
         screen = _dashboard_scaffold(body=tab_body)
 
-        from flet.controls.context import context
+        from flet import context
 
         page = context.page
 

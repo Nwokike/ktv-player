@@ -20,7 +20,7 @@ Liveliness: `liveliness_status` prop (True/False/None). Card calls
 from collections.abc import Callable
 
 import flet as ft
-from flet.controls.control import Control
+from flet import Control
 
 from app_next.components.focus_styles import card_button_style
 from core.constants import (

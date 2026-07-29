@@ -179,6 +179,9 @@ def is_mobile() -> bool:
 
 def get_default_scan_paths() -> list[str]:
     """Fallback paths if Flet StoragePaths service is unavailable."""
+    import logging
+
+    logger = logging.getLogger(__name__)
     paths = []
 
     home = Path.home()
@@ -204,4 +207,5 @@ def get_default_scan_paths() -> list[str]:
                 if target.exists() and target.is_dir():
                     paths.append(str(target))
 
+    logger.info("Scan paths resolved: %s", paths)
     return paths

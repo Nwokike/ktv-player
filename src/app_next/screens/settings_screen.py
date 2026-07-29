@@ -8,7 +8,7 @@ import asyncio
 import logging
 
 import flet as ft
-from flet.controls.control import Control
+from flet import Control
 
 from app_next.state.app_state import AppStateCtx
 from app_next.state.controller_ctx import ControllerMethodsCtx
@@ -18,24 +18,37 @@ from channels.provider import channel_provider
 from core.constants import (
     APP_NAME,
     APP_VERSION,
+    ERR_CLEAR_HISTORY_FAILED,
+    ERR_RESET_LIBRARY_FAILED,
     LBL_ABOUT,
     LBL_ACTIVITY_TERMINAL,
     LBL_APPEARANCE,
+    LBL_CLEAR,
     LBL_CLEAR_HISTORY,
     LBL_CLEAR_HISTORY_DESC,
+    LBL_CLEARING,
+    LBL_CLOSE,
+    LBL_COPY_TO_CLIPBOARD,
     LBL_COUNTRY_UPDATED,
     LBL_DARK_MODE,
     LBL_DARK_MODE_DESC,
     LBL_DATA_MANAGEMENT,
     LBL_DEFAULT_REGION,
+    LBL_FILTER_BY_COUNTRY,
     LBL_HISTORY_CLEARED,
     LBL_LIBRARY_RESET,
     LBL_LIVE_ACTIVITY_TERMINAL,
     LBL_LOCALIZATION,
+    LBL_LOG_CLEARED,
+    LBL_LOG_COPIED,
+    LBL_NO_ACTIVITY_LOG,
     LBL_OPEN_TERMINAL,
     LBL_RESET_LIBRARY,
     LBL_RESET_LIBRARY_DESC,
+    LBL_RESETTING,
     LBL_TERMINAL_DESC,
+    LBL_USAGE_AGREEMENT_BUTTON,
+    LBL_USAGE_AGREEMENT_TITLE,
     TERMS_TEXT,
 )
 from core.logger_handler import MemoryLogHandler
@@ -85,7 +98,7 @@ _SECTIONS = [
 def build_logs_dialog(page: ft.Page) -> ft.AlertDialog:
     """Build live activity terminal modal dialog."""
     logs = MemoryLogHandler.get_logs()
-    logs_str = "\n".join(logs) if logs else "No activity recorded yet."
+    logs_str = "\n".join(logs) if logs else LBL_NO_ACTIVITY_LOG
 
     log_text_control = ft.Text(
         value=logs_str,
@@ -98,7 +111,7 @@ def build_logs_dialog(page: ft.Page) -> ft.AlertDialog:
     async def _copy_logs(e=None):
         try:
             await ft.Clipboard().set(log_text_control.value)
-            snack = ft.SnackBar(content=ft.Text("Activity log copied to clipboard!"))
+            snack = ft.SnackBar(content=ft.Text(LBL_LOG_COPIED))
             page.overlay.append(snack)
             snack.open = True
             page.update()
@@ -107,7 +120,7 @@ def build_logs_dialog(page: ft.Page) -> ft.AlertDialog:
 
     def _clear_logs(e=None):
         MemoryLogHandler.clear_logs()
-        log_text_control.value = "Activity log cleared."
+        log_text_control.value = LBL_LOG_CLEARED
         page.update()
 
     return ft.AlertDialog(
@@ -159,17 +172,17 @@ def build_logs_dialog(page: ft.Page) -> ft.AlertDialog:
         ),
         actions=[
             ft.TextButton(
-                "Copy to Clipboard",
+                LBL_COPY_TO_CLIPBOARD,
                 icon=ft.Icons.COPY,
                 on_click=lambda e: asyncio.create_task(_copy_logs()),
             ),
             ft.TextButton(
-                "Clear",
+                LBL_CLEAR,
                 icon=ft.Icons.DELETE_SWEEP,
                 on_click=_clear_logs,
             ),
             ft.TextButton(
-                "Close",
+                LBL_CLOSE,
                 on_click=lambda e: page.pop_dialog(),
             ),
         ],
@@ -196,7 +209,7 @@ def SettingsScreen() -> Control:
             logger.info("Watch history cleared successfully")
         except Exception as ex:
             logger.error("Failed to clear history: %s", ex)
-            _notify_warning("Failed to clear history.")
+            _notify_warning(ERR_CLEAR_HISTORY_FAILED)
         finally:
             set_is_clearing(False)
 
@@ -210,7 +223,7 @@ def SettingsScreen() -> Control:
             logger.info("Custom library reset successfully")
         except Exception as ex:
             logger.error("Failed to reset custom content: %s", ex)
-            _notify_warning("Failed to reset custom content.")
+            _notify_warning(ERR_RESET_LIBRARY_FAILED)
         finally:
             set_is_resetting(False)
 
@@ -225,40 +238,40 @@ def SettingsScreen() -> Control:
         asyncio.create_task(_do())
 
     def _is_dark() -> bool:
-        from flet.controls.context import context
+        from flet import context
 
         return AppColors._is_dark(context.page)
 
     def _toggle_theme(e):
-        from flet.controls.context import context
+        from flet import context
 
         logger.info("Theme mode toggle triggered")
         _toggle_theme_util(context.page)
 
     def _open_terminal(e):
-        from flet.controls.context import context
+        from flet import context
 
         logger.info("Opening Live Activity Terminal dialog")
         context.page.show_dialog(build_logs_dialog(context.page))
 
     def _show_terms_dialog(e=None):
-        from flet.controls.context import context
+        from flet import context
 
         dlg = ft.AlertDialog(
-            title=ft.Text("Usage Agreement & Legal", weight=ft.FontWeight.BOLD),
+            title=ft.Text(LBL_USAGE_AGREEMENT_TITLE, weight=ft.FontWeight.BOLD),
             content=ft.Container(
                 content=ft.Text(TERMS_TEXT, size=FONT_SM, selectable=True),
                 width=450,
             ),
             actions=[
-                ft.TextButton("Close", on_click=lambda e: context.page.pop_dialog())
+                ft.TextButton(LBL_CLOSE, on_click=lambda e: context.page.pop_dialog())
             ],
             actions_alignment=ft.MainAxisAlignment.END,
         )
         context.page.show_dialog(dlg)
 
     def _build_card(title: str, icon: str, content: Control) -> Control:
-        from flet.controls.context import context
+        from flet import context
 
         page = context.page
         card_bg = AppColors.get_card_bg(page)
@@ -352,7 +365,7 @@ def SettingsScreen() -> Control:
                                     weight=ft.FontWeight.W_500,
                                 ),
                                 ft.Text(
-                                    "Filter default channels by country",
+                                    LBL_FILTER_BY_COUNTRY,
                                     size=FONT_SM,
                                     color=AppColors.grey_dim(),
                                 ),
@@ -381,7 +394,7 @@ def SettingsScreen() -> Control:
         )
 
     def _data_content() -> Control:
-        from flet.controls.context import context
+        from flet import context
 
         border_color = AppColors.get_border_color(context.page)
         return ft.Column(
@@ -415,7 +428,7 @@ def SettingsScreen() -> Control:
                         ),
                         ft.OutlinedButton(
                             content=ft.Text(
-                                "Clearing..." if is_clearing else LBL_CLEAR_HISTORY,
+                                LBL_CLEARING if is_clearing else LBL_CLEAR_HISTORY,
                                 size=FONT_SM,
                             ),
                             icon=ft.Icons.DELETE_OUTLINED,
@@ -455,7 +468,7 @@ def SettingsScreen() -> Control:
                         ),
                         ft.OutlinedButton(
                             content=ft.Text(
-                                "Resetting..." if is_resetting else LBL_RESET_LIBRARY,
+                                LBL_RESETTING if is_resetting else LBL_RESET_LIBRARY,
                                 size=FONT_SM,
                             ),
                             icon=ft.Icons.RESTART_ALT,
@@ -506,7 +519,7 @@ def SettingsScreen() -> Control:
         )
 
     def _about_content() -> Control:
-        from flet.controls.context import context
+        from flet import context
 
         border_color = AppColors.get_border_color(context.page)
         return ft.Column(
@@ -542,7 +555,7 @@ def SettingsScreen() -> Control:
                 ft.Row(
                     controls=[
                         ft.TextButton(
-                            "Usage Agreement & Legal Terms",
+                            LBL_USAGE_AGREEMENT_BUTTON,
                             icon=ft.Icons.GAVEL_ROUNDED,
                             on_click=_show_terms_dialog,
                         ),

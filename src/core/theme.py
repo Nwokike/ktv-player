@@ -23,12 +23,12 @@ class AppColors:
     LIGHT_SURFACE = "#FFFFFF"
     LIGHT_SURFACE_VARIANT = "#F0F2F8"
     LIGHT_TEXT = "#1A1D2D"
-    
+
     # Changed from #64748B to #334155 to make "ash" text much darker and legible
-    LIGHT_TEXT_DIM = "#334155" 
-    
+    LIGHT_TEXT_DIM = "#334155"
+
     # Changed from #94A3B8 to #64748B so muted text doesn't vanish into the background
-    LIGHT_TEXT_MUTED = "#64748B" 
+    LIGHT_TEXT_MUTED = "#64748B"
 
     # General terminal colors
     TERMINAL_BG = "#0D0D0D"
@@ -112,7 +112,7 @@ class AppColors:
         """
         try:
             if page is None:
-                from flet.controls.context import context
+                from flet import context
 
                 page = context.page
             if AppColors._is_dark(page):

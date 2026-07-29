@@ -7,7 +7,7 @@ a renderer context.
 from collections.abc import Callable
 
 import flet as ft
-from flet.controls.control import Control
+from flet import Control
 
 
 def EmptyState(
