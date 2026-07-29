@@ -66,7 +66,7 @@ def ChannelCard(
     elif liveliness_status is False:
         dot_color = AppColors.ERROR
     else:
-        dot_color = AppColors.GREY_DIM
+        dot_color = AppColors.grey_dim()
 
     fav_icon_name = ft.Icons.FAVORITE if is_favorite else ft.Icons.FAVORITE_BORDER
     fav_icon_color = AppColors.PRIMARY if is_favorite else ft.Colors.WHITE_70

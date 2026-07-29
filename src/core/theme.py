@@ -18,9 +18,6 @@ class AppColors:
     DARK_TEXT_DIM = "#8E94A5"
     DARK_TEXT_MUTED = "#5A6078"
 
-    GREY_DIM = "#8E94A5"
-    GREY_MUTED = "#5A6078"
-
     # --- Light Mode Colors (Tweaked for better contrast) ---
     LIGHT_BG = "#F5F7FB"
     LIGHT_SURFACE = "#FFFFFF"
