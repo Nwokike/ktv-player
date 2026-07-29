@@ -77,3 +77,27 @@ def test_extract_categories_deduplicates():
     c = _extract_categories(channels)
     assert "News" in c
     assert len(c) == 2
+
+
+def test_extract_country_counts():
+    from app_next.utils.channels import extract_country_counts
+
+    channels = [
+        {"url": "http://a", "group": "Nigeria;Sports", "country_code": "M3U"},
+        {"url": "http://b", "group": "Nigeria;News", "country_code": "M3U"},
+        {"url": "http://c", "group": "Ghana;General", "country_code": "M3U"},
+    ]
+    counts = extract_country_counts(channels)
+    assert counts == {"Nigeria": 2, "Ghana": 1}
+
+
+def test_extract_category_counts():
+    from app_next.utils.channels import extract_category_counts
+
+    channels = [
+        {"url": "http://a", "group": "Nigeria;Sports"},
+        {"url": "http://b", "group": "Nigeria;Sports"},
+        {"url": "http://c", "group": "Nigeria;News"},
+    ]
+    counts = extract_category_counts(channels)
+    assert counts == {"Sports": 2, "News": 1}

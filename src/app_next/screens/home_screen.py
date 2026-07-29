@@ -24,7 +24,9 @@ from app_next.utils.channels import (
     build_channels_map,
     build_favorites_set,
     extract_categories,
+    extract_category_counts,
     extract_countries,
+    extract_country_counts,
 )
 from app_next.utils.favorites import toggle_favorite
 
@@ -34,6 +36,8 @@ _build_channels_map = build_channels_map
 _build_favorites_set = build_favorites_set
 _extract_countries = extract_countries
 _extract_categories = extract_categories
+_extract_country_counts = extract_country_counts
+_extract_category_counts = extract_category_counts
 
 logger = logging.getLogger("HomeScreen")
 
@@ -53,7 +57,9 @@ def HomeScreen() -> Control:
     add_dialog_open, set_add_dialog_open = ft.use_state(False)
 
     def _auto_load():
-        if not state.channels and callable(getattr(controller, "refresh_channels", None)):
+        if not state.channels and callable(
+            getattr(controller, "refresh_channels", None)
+        ):
             import asyncio
 
             asyncio.create_task(controller.refresh_channels())
@@ -151,8 +157,8 @@ def HomeScreen() -> Control:
     filter_bar = FilterBar(
         filters=filters,
         on_change=on_filters_updated,
-        available_countries=_extract_countries(built_in_channels),
-        available_categories=_extract_categories(built_in_channels),
+        available_countries=_extract_country_counts(built_in_channels),
+        available_categories=_extract_category_counts(built_in_channels),
         user_country=state.user_country,
         custom_playlists=custom_playlists,
         total_count=len(visible),

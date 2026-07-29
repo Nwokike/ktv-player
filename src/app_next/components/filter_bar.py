@@ -16,8 +16,8 @@ from core.tokens import FONT_MD, ICON_SM, SPACING_XS
 def FilterBar(
     filters: dict,
     on_change: Callable[[dict], None],
-    available_countries: list[str],
-    available_categories: list[str],
+    available_countries: list[str] | dict[str, int],
+    available_categories: list[str] | dict[str, int],
     user_country: str,
     custom_playlists: list[str] | None = None,
     total_count: int = 0,
@@ -28,8 +28,8 @@ def FilterBar(
     Args:
         filters: current filter state dict.
         on_change: fires with updated dict when a filter item is selected.
-        available_countries: sorted list of built-in country names.
-        available_categories: sorted list of built-in category strings.
+        available_countries: sorted list of country names or dict mapping name to count.
+        available_categories: sorted list of category strings or dict mapping name to count.
         user_country: user-preferred country (pinned near top of country list).
         custom_playlists: list of user-added playlist names.
         total_count: number of visible channels after filter.
@@ -54,15 +54,27 @@ def FilterBar(
                 {"category": "all", "country": "all", "custom": "none"}
             ),
         )
-    ] + [
-        ft.PopupMenuItem(
-            content=ft.Text(cat, size=FONT_MD),
-            on_click=lambda e, c=cat: _fire(
-                {"category": c, "country": "all", "custom": "none"}
-            ),
-        )
-        for cat in available_categories
     ]
+    if isinstance(available_categories, dict):
+        for cat, count in sorted(available_categories.items(), key=lambda x: x[0]):
+            category_items.append(
+                ft.PopupMenuItem(
+                    content=ft.Text(f"{cat} ({count})", size=FONT_MD),
+                    on_click=lambda e, c=cat: _fire(
+                        {"category": c, "country": "all", "custom": "none"}
+                    ),
+                )
+            )
+    else:
+        for cat in available_categories:
+            category_items.append(
+                ft.PopupMenuItem(
+                    content=ft.Text(cat, size=FONT_MD),
+                    on_click=lambda e, c=cat: _fire(
+                        {"category": c, "country": "all", "custom": "none"}
+                    ),
+                )
+            )
 
     category_btn = ft.PopupMenuButton(
         content=ft.Chip(
@@ -85,7 +97,6 @@ def FilterBar(
     current_country = filters.get("country", "all")
     country_label = current_country if current_country != "all" else "Country"
 
-    sorted_countries = list(available_countries)
     country_menu_items = [
         ft.PopupMenuItem(
             content=ft.Text("All Countries", size=FONT_MD),
@@ -94,28 +105,58 @@ def FilterBar(
             ),
         )
     ]
-    if user_country and user_country in sorted_countries:
-        country_menu_items.append(
-            ft.PopupMenuItem(
-                content=ft.Text(f"{user_country} (Local)", size=FONT_MD),
-                on_click=lambda e, u=user_country: _fire(
-                    {"country": u, "category": "all", "custom": "none"}
-                ),
-            )
-        )
-        sorted_countries.remove(user_country)
 
-    country_menu_items.extend(
-        [
-            ft.PopupMenuItem(
-                content=ft.Text(c_name, size=FONT_MD),
-                on_click=lambda e, c=c_name: _fire(
-                    {"country": c, "category": "all", "custom": "none"}
-                ),
+    if isinstance(available_countries, dict):
+        country_dict = available_countries
+        sorted_countries = sorted(country_dict.keys())
+        if user_country and user_country in sorted_countries:
+            u_count = country_dict[user_country]
+            country_menu_items.append(
+                ft.PopupMenuItem(
+                    content=ft.Text(
+                        f"{user_country} ({u_count}) (Local)", size=FONT_MD
+                    ),
+                    on_click=lambda e, u=user_country: _fire(
+                        {"country": u, "category": "all", "custom": "none"}
+                    ),
+                )
             )
-            for c_name in sorted_countries
-        ]
-    )
+            sorted_countries.remove(user_country)
+
+        for c_name in sorted_countries:
+            c_count = country_dict[c_name]
+            country_menu_items.append(
+                ft.PopupMenuItem(
+                    content=ft.Text(f"{c_name} ({c_count})", size=FONT_MD),
+                    on_click=lambda e, c=c_name: _fire(
+                        {"country": c, "category": "all", "custom": "none"}
+                    ),
+                )
+            )
+    else:
+        sorted_countries = list(available_countries)
+        if user_country and user_country in sorted_countries:
+            country_menu_items.append(
+                ft.PopupMenuItem(
+                    content=ft.Text(f"{user_country} (Local)", size=FONT_MD),
+                    on_click=lambda e, u=user_country: _fire(
+                        {"country": u, "category": "all", "custom": "none"}
+                    ),
+                )
+            )
+            sorted_countries.remove(user_country)
+
+        country_menu_items.extend(
+            [
+                ft.PopupMenuItem(
+                    content=ft.Text(c_name, size=FONT_MD),
+                    on_click=lambda e, c=c_name: _fire(
+                        {"country": c, "category": "all", "custom": "none"}
+                    ),
+                )
+                for c_name in sorted_countries
+            ]
+        )
 
     country_btn = ft.PopupMenuButton(
         content=ft.Chip(

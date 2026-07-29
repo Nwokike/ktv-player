@@ -66,3 +66,39 @@ def extract_categories(channels: list[dict]) -> list[str]:
             seen.add(category)
             result.append(category)
     return sorted(result)
+
+
+def extract_country_counts(channels: list[dict]) -> dict[str, int]:
+    """Derive mapping of country names to channel counts from channel data."""
+    from collections import Counter
+
+    counts: Counter[str] = Counter()
+    for c in channels:
+        if c.get("is_custom"):
+            continue
+        original_group = c.get("group", "General")
+        parts = [p.strip() for p in original_group.split(";")]
+        country = parts[0] if c.get("country_code") else "Global"
+        if country:
+            counts[country] += 1
+    return dict(counts)
+
+
+def extract_category_counts(channels: list[dict]) -> dict[str, int]:
+    """Derive mapping of category names to channel counts from channel data."""
+    from collections import Counter
+
+    counts: Counter[str] = Counter()
+    for c in channels:
+        if c.get("is_custom"):
+            continue
+        original_group = c.get("group", "General")
+        parts = [p.strip() for p in original_group.split(";")]
+        category = (
+            parts[-1]
+            if len(parts) > 1
+            else (parts[0] if not c.get("country_code") else "General")
+        )
+        if category and category.lower() != "general":
+            counts[category] += 1
+    return dict(counts)
