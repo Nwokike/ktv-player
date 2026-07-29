@@ -208,7 +208,6 @@ def _build_online_form(
 
     return ft.Container(
         expand=True,
-        alignment=ft.Alignment(0.0, 0.0),
         padding=ft.Padding.symmetric(horizontal=40),
         content=ft.ListView(
             controls=[

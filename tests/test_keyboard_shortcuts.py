@@ -10,6 +10,8 @@ the resulting handler directly.
 import asyncio
 from unittest import mock
 
+import flet.controls.context as _flet_ctx
+
 from app_next.hooks.use_keyboard_shortcuts import use_keyboard_shortcuts
 
 
@@ -17,114 +19,131 @@ def test_use_keyboard_shortcuts_is_callable():
     assert callable(use_keyboard_shortcuts)
 
 
-def test_handler_dispatches_ctrl_k_to_on_search():
-    mock_controller = mock.MagicMock()
-    mock_controller.page = mock.MagicMock()
-    mock_page = mock_controller.page
+def _mock_context_page():
+    """Patch Context.page at the class level with a PropertyMock.
+
+    ft.controls.context.context.page is a read-only property that raises
+    RuntimeError outside a running Flet app.  Patching it at the class
+    level with a PropertyMock avoids triggering the original getter.
+    Returns (mock_page, cleanup_fn).
+    """
+    mock_page = mock.MagicMock()
     mock_page.on_keyboard_event = None
 
-    on_search = mock.MagicMock()
+    p = mock.patch.object(
+        type(_flet_ctx.context),
+        "page",
+        mock.PropertyMock(return_value=mock_page),
+    )
+    p.start()
+    return mock_page, p.stop
 
-    # Patch ft.on_mounted so it immediately runs the installer
-    with mock.patch("flet.on_mounted") as mock_mounted:
-        use_keyboard_shortcuts(
-            controller=mock_controller,
-            on_search=on_search,
-        )
-        # on_mounted was called with a coroutine function; call it
-        assert mock_mounted.called
-        installer = mock_mounted.call_args[0][0]
-        asyncio.run(installer())
 
-    handler = mock_page.on_keyboard_event
-    assert handler is not None
+def test_handler_dispatches_ctrl_k_to_on_search():
+    mock_page, cleanup = _mock_context_page()
+    try:
+        on_search = mock.MagicMock()
 
-    async def _run():
-        fake_event = mock.Mock()
-        fake_event.ctrl = True
-        fake_event.key = "k"
-        await handler(fake_event)
+        with mock.patch("flet.on_mounted") as mock_mounted:
+            use_keyboard_shortcuts(
+                controller=mock.MagicMock(),
+                on_search=on_search,
+            )
+            assert mock_mounted.called
+            installer = mock_mounted.call_args[0][0]
+            asyncio.run(installer())
 
-    asyncio.run(_run())
-    on_search.assert_called_once()
+        handler = mock_page.on_keyboard_event
+        assert handler is not None
+
+        async def _run():
+            fake_event = mock.Mock()
+            fake_event.ctrl = True
+            fake_event.key = "k"
+            await handler(fake_event)
+
+        asyncio.run(_run())
+        on_search.assert_called_once()
+    finally:
+        cleanup()
 
 
 def test_handler_chains_to_previous_handler_for_unhandled_keys():
-    mock_controller = mock.MagicMock()
-    mock_controller.page = mock.MagicMock()
-    mock_page = mock_controller.page
+    mock_page, cleanup = _mock_context_page()
+    try:
+        previous_handler = mock.MagicMock()
+        mock_page.on_keyboard_event = previous_handler
 
-    previous_handler = mock.MagicMock()
-    mock_page.on_keyboard_event = previous_handler
+        with mock.patch("flet.on_mounted") as mock_mounted:
+            use_keyboard_shortcuts(controller=mock.MagicMock())
+            installer = mock_mounted.call_args[0][0]
+            asyncio.run(installer())
 
-    with mock.patch("flet.on_mounted") as mock_mounted:
-        use_keyboard_shortcuts(controller=mock_controller)
-        installer = mock_mounted.call_args[0][0]
-        asyncio.run(installer())
+        handler = mock_page.on_keyboard_event
+        assert handler is not None
 
-    handler = mock_page.on_keyboard_event
-    assert handler is not None
+        async def _run():
+            fake_event = mock.Mock()
+            fake_event.ctrl = False
+            fake_event.key = "a"
+            await handler(fake_event)
 
-    async def _run():
-        fake_event = mock.Mock()
-        fake_event.ctrl = False
-        fake_event.key = "a"
-        await handler(fake_event)
-
-    asyncio.run(_run())
-    previous_handler.assert_called_once()
+        asyncio.run(_run())
+        previous_handler.assert_called_once()
+    finally:
+        cleanup()
 
 
 def test_handler_does_not_swallow_arrow_keys():
     """Arrow keys are navigation — they must not be intercepted."""
-    mock_controller = mock.MagicMock()
-    mock_controller.page = mock.MagicMock()
-    mock_page = mock_controller.page
-    mock_page.on_keyboard_event = None
+    mock_page, cleanup = _mock_context_page()
+    try:
+        with mock.patch("flet.on_mounted") as mock_mounted:
+            use_keyboard_shortcuts(controller=mock.MagicMock())
+            installer = mock_mounted.call_args[0][0]
+            asyncio.run(installer())
 
-    with mock.patch("flet.on_mounted") as mock_mounted:
-        use_keyboard_shortcuts(controller=mock_controller)
-        installer = mock_mounted.call_args[0][0]
-        asyncio.run(installer())
+        handler = mock_page.on_keyboard_event
+        assert handler is not None
 
-    handler = mock_page.on_keyboard_event
-    assert handler is not None
+        async def _run():
+            fake_event = mock.Mock()
+            fake_event.ctrl = False
+            fake_event.key = "ArrowDown"
+            await handler(fake_event)
 
-    async def _run():
-        fake_event = mock.Mock()
-        fake_event.ctrl = False
-        fake_event.key = "ArrowDown"
-        await handler(fake_event)
-
-    # No crash — arrow keys pass through (with no-op previous handler)
-    asyncio.run(_run())
+        # No crash — arrow keys pass through (with no-op previous handler)
+        asyncio.run(_run())
+    finally:
+        cleanup()
 
 
 def test_on_search_coroutine_is_awaited():
     """on_search coroutine must be awaited (not fire-and-forget),
     so that the search tab switch happens before subsequent keys."""
-    mock_controller = mock.MagicMock()
-    mock_controller.page = mock.MagicMock()
-    mock_page = mock_controller.page
-    mock_page.on_keyboard_event = None
+    mock_page, cleanup = _mock_context_page()
+    try:
+        order: list[str] = []
 
-    order: list[str] = []
+        async def on_search() -> None:
+            order.append("search")
 
-    async def on_search() -> None:
-        order.append("search")
+        with mock.patch("flet.on_mounted") as mock_mounted:
+            use_keyboard_shortcuts(
+                controller=mock.MagicMock(), on_search=on_search
+            )
+            installer = mock_mounted.call_args[0][0]
+            asyncio.run(installer())
 
-    with mock.patch("flet.on_mounted") as mock_mounted:
-        use_keyboard_shortcuts(controller=mock_controller, on_search=on_search)
-        installer = mock_mounted.call_args[0][0]
-        asyncio.run(installer())
+        handler = mock_page.on_keyboard_event
 
-    handler = mock_page.on_keyboard_event
+        async def _run():
+            fake_event = mock.Mock()
+            fake_event.ctrl = True
+            fake_event.key = "k"
+            await handler(fake_event)
 
-    async def _run():
-        fake_event = mock.Mock()
-        fake_event.ctrl = True
-        fake_event.key = "k"
-        await handler(fake_event)
-
-    asyncio.run(_run())
-    assert order == ["search"]
+        asyncio.run(_run())
+        assert order == ["search"]
+    finally:
+        cleanup()

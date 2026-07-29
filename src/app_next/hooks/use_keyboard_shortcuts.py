@@ -47,8 +47,11 @@ def use_keyboard_shortcuts(
     """
 
     async def _install() -> None:
-        page = controller.page if hasattr(controller, "page") else None
-        if page is None:
+        from flet.controls.context import context as _ctx
+
+        try:
+            page = _ctx.page
+        except Exception:
             return
         previous = page.on_keyboard_event
 
