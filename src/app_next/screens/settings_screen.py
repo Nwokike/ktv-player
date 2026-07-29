@@ -10,6 +10,8 @@ from flet.controls.control import Control
 
 from app_next.state.app_state import AppStateCtx
 from app_next.state.controller_ctx import ControllerMethodsCtx
+from app_next.utils.notifications import notify, notify_warning
+from app_next.utils.theme_utils import toggle_theme as _toggle_theme_util
 from channels.provider import channel_provider
 from core.constants import (
     APP_VERSION,
@@ -35,22 +37,8 @@ _SECTIONS = [
 ]
 
 
-def _notify(msg: str) -> None:
-    from flet.controls.context import context
-
-    try:
-        context.page.show_dialog(ft.SnackBar(ft.Text(msg)))
-    except Exception:
-        pass
-
-
-def _notify_warning(msg: str) -> None:
-    from flet.controls.context import context
-
-    try:
-        context.page.show_dialog(ft.SnackBar(ft.Text(msg), bgcolor=AppColors.WARNING))
-    except Exception:
-        pass
+_notify = notify
+_notify_warning = notify_warning
 
 
 @ft.component
@@ -58,21 +46,30 @@ def SettingsScreen() -> Control:
     state = ft.use_context(AppStateCtx)
     controller = ft.use_context(ControllerMethodsCtx)
 
+    is_clearing, set_is_clearing = ft.use_state(False)
+    is_resetting, set_is_resetting = ft.use_state(False)
+
     async def _clear_history():
+        set_is_clearing(True)
         try:
             await db_manager.clear_history()
             core_state.history.clear()
             _notify(LBL_HISTORY_CLEARED)
         except Exception:
             _notify_warning("Failed to clear history.")
+        finally:
+            set_is_clearing(False)
 
     async def _reset_custom():
+        set_is_resetting(True)
         try:
             await db_manager.clear_custom_content()
             _notify(LBL_LIBRARY_RESET)
             await controller.refresh_channels()
         except Exception:
             _notify_warning("Failed to reset custom content.")
+        finally:
+            set_is_resetting(False)
 
     def _update_country(country_name: str):
         async def _do():
@@ -92,16 +89,7 @@ def SettingsScreen() -> Control:
     def _toggle_theme(e):
         from flet.controls.context import context
 
-        page = context.page
-        new_mode = ft.ThemeMode.LIGHT if _is_dark() else ft.ThemeMode.DARK
-        page.theme_mode = new_mode
-
-        async def save():
-            await db_manager.set_setting(
-                "theme_mode", "dark" if new_mode == ft.ThemeMode.DARK else "light"
-            )
-
-        asyncio.create_task(save())
+        _toggle_theme_util(context.page)
 
     # --- Section content builders ---
 
@@ -150,7 +138,8 @@ def SettingsScreen() -> Control:
                     dense=True,
                 ),
                 ft.FilledButton(
-                    content=ft.Text("Clear History"),
+                    content=ft.Text("Clearing..." if is_clearing else "Clear History"),
+                    disabled=is_clearing,
                     on_click=lambda e: asyncio.create_task(_clear_history()),
                 ),
                 ft.Divider(height=8),
@@ -160,7 +149,8 @@ def SettingsScreen() -> Control:
                     dense=True,
                 ),
                 ft.FilledButton(
-                    content=ft.Text("Reset Library"),
+                    content=ft.Text("Resetting..." if is_resetting else "Reset Library"),
+                    disabled=is_resetting,
                     on_click=lambda e: asyncio.create_task(_reset_custom()),
                 ),
             ],

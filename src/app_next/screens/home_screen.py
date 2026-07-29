@@ -5,8 +5,6 @@ filtered results. Owns the "Add Custom Content" dialog state and the
 favorites toggle flow. Delegates to sub-components.
 """
 
-from typing import Any
-
 import flet as ft
 from flet.controls.control import Control
 
@@ -14,50 +12,28 @@ from app_next.components.add_custom_content_dialog import AddCustomContentDialog
 from app_next.components.channel_grid import ChannelGrid
 from app_next.components.empty_state import EmptyState
 from app_next.components.filter_bar import FilterBar
+from app_next.components.loading_state import LoadingState
 from app_next.components.recently_watched import RecentlyWatched
 from app_next.hooks.apply_filters import _default_filters, apply_filters
 from app_next.state.app_state import AppStateCtx
 from app_next.state.controller_ctx import ControllerMethodsCtx
+from app_next.utils.channels import (
+    build_channels_map,
+    build_favorites_set,
+    extract_categories,
+    extract_countries,
+)
+from app_next.utils.favorites import toggle_favorite
+from app_next.utils.theme_utils import toggle_theme as _toggle_theme_util
 from core.constants import LBL_ADD_CONTENT
 from database.manager import db_manager
 
-# --- pure helpers (exported for tests) ---
+# --- aliases kept for backward-compatible test imports ---
 
-
-def _build_channels_map(channels: list[dict]) -> dict[str, dict]:
-    return {ch["url"]: ch for ch in channels if ch.get("url")}
-
-
-def _build_favorites_set(state_obj: Any) -> set[str]:
-    favs = state_obj.favorites
-    if isinstance(favs, set):
-        return favs
-    if isinstance(favs, list):
-        return set(favs)
-    return set()
-
-
-def _extract_countries(channels: list[dict]) -> list[str]:
-    seen = set()
-    result = []
-    for c in channels:
-        group = c.get("group", "General")
-        country = group.split(";")[0].strip()
-        if country and country not in seen and c.get("country_code"):
-            seen.add(country)
-            result.append(country)
-    return sorted(result)
-
-
-def _extract_categories(channels: list[dict]) -> list[str]:
-    seen = set()
-    result = []
-    for c in channels:
-        group = c.get("group", "General")
-        if group and group not in seen:
-            seen.add(group)
-            result.append(group)
-    return sorted(result)
+_build_channels_map = build_channels_map
+_build_favorites_set = build_favorites_set
+_extract_countries = extract_countries
+_extract_categories = extract_categories
 
 
 @ft.component
@@ -89,10 +65,25 @@ def HomeScreen() -> Control:
     def on_play(url: str):
         import asyncio
 
-        asyncio.create_task(controller.play_stream(url, None))
+        from core.theme import AppColors
+
+        async def _play():
+            try:
+                await controller.play_stream(url, None)
+            except Exception:
+                from flet.controls.context import context
+
+                try:
+                    context.page.show_dialog(
+                        ft.SnackBar(ft.Text("Playback failed"), bgcolor=AppColors.ERROR)
+                    )
+                except Exception:
+                    pass
+
+        asyncio.create_task(_play())
 
     def on_toggle_favorite(url: str):
-        _toggle_favorite_async(url, state, favorites_set)
+        toggle_favorite(url, state)
 
     def on_filters_updated(new_filters: dict):
         set_filters(new_filters)
@@ -101,22 +92,10 @@ def HomeScreen() -> Control:
         set_add_dialog_open(False)
         await controller.refresh_channels()
 
-    def toggle_theme(e):
+    def _handle_toggle_theme(e):
         from flet.controls.context import context
 
-        from core.theme import AppColors
-
-        page = context.page
-        is_dark = AppColors._is_dark(page)
-        new_mode = ft.ThemeMode.LIGHT if is_dark else ft.ThemeMode.DARK
-        page.theme_mode = new_mode
-
-        async def _save():
-            await db_manager.set_setting(
-                "theme_mode", "dark" if new_mode == ft.ThemeMode.DARK else "light"
-            )
-
-        page.run_task(_save)
+        _toggle_theme_util(context.page)
 
     # --- Build tree ---
 
@@ -139,7 +118,7 @@ def HomeScreen() -> Control:
             ft.IconButton(
                 icon=ft.Icons.LIGHT_MODE,
                 tooltip="Toggle Theme",
-                on_click=toggle_theme,
+                on_click=_handle_toggle_theme,
                 icon_size=18,
             ),
         ],
@@ -161,7 +140,9 @@ def HomeScreen() -> Control:
         total_count=len(visible),
     )
 
-    if not visible:
+    if not state.channels and state.is_loading:
+        body = LoadingState()
+    elif not visible:
         body = EmptyState(
             title="No channels found",
             message="Try changing filters or add custom content.",
@@ -198,21 +179,3 @@ def HomeScreen() -> Control:
             spacing=0,
         ),
     )
-
-
-def _toggle_favorite_async(url: str, state, favorites_set: set[str]):
-    import asyncio
-
-    async def _do():
-        try:
-            if url in favorites_set:
-                await db_manager.remove_favorite(url)
-                if url in state.favorites:
-                    state.favorites.remove(url)
-            else:
-                await db_manager.add_favorite(url)
-                state.favorites.append(url)
-        except Exception:
-            pass
-
-    asyncio.create_task(_do())

@@ -1,11 +1,11 @@
 """Tests for HomeScreen component — pure helpers."""
 
-from app_next.screens.home_screen import (
-    HomeScreen,
-    _build_channels_map,
-    _build_favorites_set,
-    _extract_categories,
-    _extract_countries,
+from app_next.screens.home_screen import HomeScreen
+from app_next.utils.channels import (
+    build_channels_map as _build_channels_map,
+    build_favorites_set as _build_favorites_set,
+    extract_categories as _extract_categories,
+    extract_countries as _extract_countries,
 )
 
 

@@ -95,6 +95,23 @@ class AppColors:
             else AppColors.LIGHT_TEXT_DIM
         )
 
+    @staticmethod
+    def grey_dim(page=None) -> str:
+        """Return a grey color that adapts to dark/light theme.
+
+        Falls back to ``"#888888"`` when no page context is available.
+        """
+        try:
+            if page is None:
+                from flet.controls.context import context
+
+                page = context.page
+            if AppColors._is_dark(page):
+                return "#AAAAAA"  # lighter grey on dark backgrounds
+            return "#888888"  # darker grey on light backgrounds
+        except Exception:
+            return "#888888"
+
 
 class AppTheme:
     @staticmethod

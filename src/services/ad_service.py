@@ -60,7 +60,6 @@ class AdService:
             return
         try:
             self._consent_manager = fta.ConsentManager()
-            self.page.services.append(self._consent_manager)
             await self._consent_manager.request_consent_info_update()
             await self._consent_manager.load_and_show_consent_form_if_required()
             self._can_request_ads = await self._consent_manager.can_request_ads()

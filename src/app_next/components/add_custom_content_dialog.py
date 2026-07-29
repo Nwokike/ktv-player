@@ -15,6 +15,7 @@ from flet.controls.control import Control
 
 from app_next.hooks.use_storage import use_storage
 from app_next.state.controller_ctx import ControllerMethodsCtx
+from app_next.utils.notifications import notify, notify_warning
 from core.constants import (
     ADD_CONTENT_COOLDOWN,
     LBL_ADDED_SUCCESS,
@@ -123,6 +124,8 @@ def AddCustomContentDialog(
             await controller.close_modal()
 
     async def _show():
+        if not open:
+            return
         from flet.controls.context import context
 
         dialog = ft.AlertDialog(
@@ -187,19 +190,5 @@ def AddCustomContentDialog(
     return ft.Container(height=0, visible=False)
 
 
-def _notify_success(msg: str) -> None:
-    from flet.controls.context import context
-
-    try:
-        context.page.show_dialog(ft.SnackBar(ft.Text(msg)))
-    except Exception:
-        pass
-
-
-def _notify_warning(msg: str) -> None:
-    from flet.controls.context import context
-
-    try:
-        context.page.show_dialog(ft.SnackBar(ft.Text(msg), bgcolor=AppColors.WARNING))
-    except Exception:
-        pass
+_notify_success = notify
+_notify_warning = notify_warning

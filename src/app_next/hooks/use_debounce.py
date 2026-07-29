@@ -31,6 +31,11 @@ def use_debounce(value, delay_ms: int = 250):
 
         timer.current = asyncio.create_task(_after_delay())
 
-    ft.use_effect(_cancel_and_schedule, [value])
+    def _cleanup():
+        old = timer.current
+        if old is not None and not old.done():
+            old.cancel()
+
+    ft.use_effect(_cancel_and_schedule, [value], cleanup=_cleanup)
 
     return debounced

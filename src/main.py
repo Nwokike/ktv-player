@@ -167,6 +167,10 @@ class AppController:
     # --- Playback ---
 
     async def play_stream(self, url: str, title: str | None = None):
+        if self.page.views and any(v.route == "/play" for v in self.page.views):
+            logger.warning("Player already active, ignoring duplicate play_stream call")
+            return
+
         if not _is_valid_play_url(url):
             self.page.show_dialog(
                 ft.SnackBar(
@@ -233,6 +237,8 @@ class AppController:
         await self._safe_start_playback(player)
 
     def _close_player(self):
+        if not self.page.views:
+            return
         if len(self.page.views) > 1 and self.page.views[-1].route == "/play":
             self.page.views.pop()
             self.page.update()
@@ -285,14 +291,36 @@ class AppController:
         # Legacy /dashboard route handler was removed with the old views/ tree.
         # Player views (/play) are pushed by play_stream() above the shell.
 
+    @staticmethod
+    def _find_immersive_player(control) -> ImmersivePlayer | None:
+        """Recursively walk `.content` and `.controls` to find an ImmersivePlayer
+        nested inside FocusScope (KeyboardListener) or other wrappers."""
+        if isinstance(control, ImmersivePlayer):
+            return control
+        if hasattr(control, "content") and control.content is not None:
+            found = AppController._find_immersive_player(control.content)
+            if found:
+                return found
+        if hasattr(control, "controls") and control.controls:
+            for child in control.controls:
+                found = AppController._find_immersive_player(child)
+                if found:
+                    return found
+        return None
+
     def view_pop(self, e):
         if not self.page.views:
             return
         top = self.page.views[-1]
+        player = None
         for control in top.controls:
-            if isinstance(control, ImmersivePlayer):
-                self.page.run_task(self._close_and_pop, control)
-                return
+            player = self._find_immersive_player(control)
+            if player:
+                break
+
+        if player:
+            self.page.run_task(self._close_and_pop, player)
+            return
 
         if len(self.page.views) > 1:
             self.page.views.pop()
@@ -312,6 +340,12 @@ class AppController:
             await player.start_playback()
         except Exception:
             logger.exception("Failed to start playback")
+            try:
+                self.page.show_dialog(
+                    ft.SnackBar(ft.Text("Playback failed"), bgcolor=AppColors.ERROR)
+                )
+            except Exception:
+                pass
 
 
 async def main(page: ft.Page):

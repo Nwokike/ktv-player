@@ -1,10 +1,13 @@
 import asyncio
 import contextlib
 import hashlib
+import logging
 import os
 import time
 
 import httpx
+
+logger = logging.getLogger(__name__)
 
 from core.constants import LOGO_CACHE_MAX_FILES, LOGO_DOWNLOAD_TIMEOUT
 
@@ -23,8 +26,8 @@ _IMAGE_SIGNATURES = {
 _in_flight: set[str] = set()
 _logo_queue: asyncio.Queue[str] | None = None
 _logo_workers_started = False
-
-os.makedirs(LOGO_CACHE_DIR, exist_ok=True)
+_cache_dir_initialized = False
+_last_evict_time = 0.0
 
 
 def _detect_image_type(data: bytes) -> str | None:
@@ -43,20 +46,36 @@ def _get_cached_path(logo_url: str, ext: str = "png") -> str:
     return os.path.join(LOGO_CACHE_DIR, f"{safe_name}.{ext}")
 
 
-def _evict_oldest_if_needed():
-    try:
-        files = [
-            (f, os.path.getmtime(os.path.join(LOGO_CACHE_DIR, f)))
-            for f in os.listdir(LOGO_CACHE_DIR)
-        ]
-        if len(files) >= LOGO_CACHE_MAX_FILES:
-            files.sort(key=lambda x: x[1])
-            to_remove = len(files) - LOGO_CACHE_MAX_FILES + 10
-            for f, _ in files[:to_remove]:
-                with contextlib.suppress(OSError):
-                    os.remove(os.path.join(LOGO_CACHE_DIR, f))
-    except OSError:
-        pass
+def _ensure_cache_dir():
+    global _cache_dir_initialized
+    if not _cache_dir_initialized:
+        os.makedirs(LOGO_CACHE_DIR, exist_ok=True)
+        _cache_dir_initialized = True
+
+
+async def _evict_oldest_if_needed():
+    global _last_evict_time
+    now = time.time()
+    if now - _last_evict_time < 30.0:
+        return
+    _last_evict_time = now
+
+    def _evict_sync():
+        try:
+            files = [
+                (f, os.path.getmtime(os.path.join(LOGO_CACHE_DIR, f)))
+                for f in os.listdir(LOGO_CACHE_DIR)
+            ]
+            if len(files) >= LOGO_CACHE_MAX_FILES:
+                files.sort(key=lambda x: x[1])
+                to_remove = len(files) - LOGO_CACHE_MAX_FILES + 10
+                for f, _ in files[:to_remove]:
+                    with contextlib.suppress(OSError):
+                        os.remove(os.path.join(LOGO_CACHE_DIR, f))
+        except OSError:
+            pass
+
+    await asyncio.to_thread(_evict_sync)
 
 
 def get_cached_logo(logo_url: str) -> str | None:
@@ -104,7 +123,7 @@ async def _download_one(logo_url: str) -> str | None:
 
         await asyncio.to_thread(_write_file, cached_path, resp.content)
         return cached_path
-    except httpx.HTTPError, httpx.TimeoutException, Exception:
+    except Exception:
         return None
     finally:
         _in_flight.discard(logo_url)
@@ -112,11 +131,16 @@ async def _download_one(logo_url: str) -> str | None:
 
 async def _logo_worker():
     while True:
-        url = await _logo_queue.get()
         try:
-            await _download_one(url)
-        finally:
-            _logo_queue.task_done()
+            url = await _logo_queue.get()
+            try:
+                await _download_one(url)
+            except Exception:
+                logger.exception("Logo download failed for %s", url)
+            finally:
+                _logo_queue.task_done()
+        except Exception:
+            await asyncio.sleep(1)
 
 
 def _ensure_queue():
@@ -137,7 +161,8 @@ def enqueue_logo_download(logo_url: str):
     if logo_url in _in_flight:
         return
 
-    _evict_oldest_if_needed()
+    _ensure_cache_dir()
+    asyncio.create_task(_evict_oldest_if_needed())
     _ensure_queue()
     asyncio.create_task(_logo_queue.put(logo_url))
 
@@ -149,7 +174,8 @@ async def download_logo(
     if not logo_url or logo_url == "/icon.png":
         return None
 
-    _evict_oldest_if_needed()
+    _ensure_cache_dir()
+    await _evict_oldest_if_needed()
     return await _download_one(logo_url)
 
 

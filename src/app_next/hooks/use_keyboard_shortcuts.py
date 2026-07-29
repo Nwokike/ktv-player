@@ -40,19 +40,30 @@ def use_keyboard_shortcuts(
     component first renders. The handler chains to any existing
     page.on_keyboard_event so it does not swallow unhandled keys.
 
+    On unmount the previous page.on_keyboard_event handler is restored,
+    preventing handler nesting when the component remounts.
+
     Args:
         controller: ControllerMethods instance (read via use_context).
         on_search: called when Ctrl+K is pressed.
         on_refresh: called when Ctrl+R is pressed.
     """
 
-    async def _install() -> None:
+    def _install() -> Callable[[], None]:
+        """Install the keyboard shortcut handler and return a cleanup
+        that restores the previous handler on unmount.
+
+        Because this function is synchronous (not async), the flet
+        effect scheduler captures its return value as the effect's
+        cleanup, which runs automatically when the component unmounts.
+        """
         from flet.controls.context import context as _ctx
 
         try:
             page = _ctx.page
         except Exception:
-            return
+            return lambda: None
+
         previous = page.on_keyboard_event
 
         async def _handler(e: ft.KeyboardEvent) -> None:
@@ -74,5 +85,12 @@ def use_keyboard_shortcuts(
                     await result
 
         page.on_keyboard_event = _handler
+
+        # Returned cleanup restores the original handler on unmount,
+        # preventing closure-chain nesting across remounts.
+        def _cleanup() -> None:
+            page.on_keyboard_event = previous
+
+        return _cleanup
 
     ft.on_mounted(_install)

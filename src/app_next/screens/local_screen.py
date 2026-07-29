@@ -69,10 +69,24 @@ def LocalScreen() -> Control:
     async def _pick_folder(e):
         from flet.controls.services.file_picker import FilePicker
 
+        from core.theme import AppColors
+
         fp = FilePicker()
         try:
             path = await fp.get_directory_path(dialog_title="Select Video Folder")
+        except asyncio.CancelledError:
+            return
         except Exception:
+            from flet.controls.context import context
+
+            try:
+                context.page.show_dialog(
+                    ft.SnackBar(
+                        ft.Text("Failed to pick folder"), bgcolor=AppColors.WARNING
+                    )
+                )
+            except Exception:
+                pass
             return
         if path:
             paths = await _get_custom_paths()

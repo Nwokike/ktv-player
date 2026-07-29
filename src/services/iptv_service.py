@@ -28,7 +28,7 @@ class IPTVService:
             resp = await client.get(url, headers=headers, timeout=playlist_timeout)
             resp.raise_for_status()
             return parse_m3u_text(resp.text, default_group="Custom")
-        except httpx.HTTPError, httpx.TimeoutException, Exception:
+        except Exception:
             return []
 
     async def fetch_playlist(self, url: str) -> list[dict]:

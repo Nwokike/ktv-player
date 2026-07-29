@@ -52,6 +52,11 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
             controls_transition_duration=ft.Duration(milliseconds=300),
             seek_bar_position_color=AppColors.PRIMARY,
             button_bar_button_color=ft.Colors.WHITE,
+            primary_button_bar=[
+                fv.VideoSpacer(flex=2),
+                fv.VideoPlayOrPauseButton(icon_size=48.0),
+                fv.VideoSpacer(flex=2),
+            ],
             top_button_bar_margin=ft.Margin(16, 35, 16, 0),
             top_button_bar=[
                 back_btn,
@@ -74,12 +79,12 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
             display_seek_bar=True,
             modify_volume_on_scroll=True,
             toggle_fullscreen_on_double_press=True,
-            play_and_pause_on_tap=False,
+            play_and_pause_on_tap=True,
             hide_mouse_on_controls_removal=True,
             primary_button_bar=[
-                fv.VideoSkipPreviousButton(icon_color=ft.Colors.WHITE),
-                fv.VideoPlayOrPauseButton(icon_size=36, icon_color=ft.Colors.WHITE),
-                fv.VideoSkipNextButton(icon_color=ft.Colors.WHITE),
+                fv.VideoSpacer(flex=2),
+                fv.VideoPlayOrPauseButton(icon_size=32.0),
+                fv.VideoSpacer(flex=2),
             ],
             top_button_bar=[
                 back_btn,

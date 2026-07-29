@@ -251,6 +251,7 @@ class ImmersivePlayer(ft.Stack):
                 self.video.playlist = [
                     fv.VideoMedia(self.resource, http_headers=self.http_headers),
                 ]
+                self.video.update()
                 await self.video.play()
         except Exception as ex:
             logger.error("Retry playback failed: %s", ex)
@@ -270,6 +271,7 @@ class ImmersivePlayer(ft.Stack):
         try:
             if self.video:
                 self.video.playlist = []
+                self.video.update()
                 await self.video.stop()
         except Exception as ex:
             logger.debug("Ignored error while stopping video on close: %s", ex)

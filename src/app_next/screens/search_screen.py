@@ -5,9 +5,12 @@ from flet.controls.control import Control
 
 from app_next.components.channel_grid import ChannelGrid
 from app_next.components.empty_state import EmptyState
+from app_next.components.loading_state import LoadingState
 from app_next.hooks.use_debounce import use_debounce
 from app_next.state.app_state import AppStateCtx
 from app_next.state.controller_ctx import ControllerMethodsCtx
+from app_next.utils.channels import build_favorites_set
+from app_next.utils.favorites import toggle_favorite
 from core.constants import LBL_SEARCH_HINT, MAX_SEARCH_RESULTS
 
 
@@ -36,16 +39,9 @@ def SearchScreen() -> Control:
         [state.channels_hash, debounced_query],
     )
 
-    fav_dep = (
-        tuple(state.favorites)
-        if isinstance(state.favorites, (list, set, tuple))
-        else state.favorites
-    )
     favorites_set = ft.use_memo(
-        lambda: (
-            set(state.favorites) if isinstance(state.favorites, (list, set)) else set()
-        ),
-        [state.channels_hash, fav_dep],
+        lambda: build_favorites_set(state),
+        [state.channels_hash, state.favorites],
     )
 
     def on_play(url):
@@ -62,16 +58,18 @@ def SearchScreen() -> Control:
         expand=True,
     )
 
-    body = (
-        ChannelGrid(
+    if not state.channels and state.is_loading:
+        body = LoadingState()
+    elif visible:
+        body = ChannelGrid(
             channels=visible,
             favorites_set=favorites_set,
             on_play=on_play,
-            on_toggle_favorite=lambda url: _toggle_fav_simple(url, state),
+            on_toggle_favorite=lambda url: toggle_favorite(url, state),
             ad_service=getattr(controller, "ad_service", None),
         )
-        if visible
-        else EmptyState(
+    else:
+        body = EmptyState(
             title="No results",
             message="Try a different search term."
             if query.strip()
@@ -79,7 +77,6 @@ def SearchScreen() -> Control:
             icon=ft.Icons.SEARCH_OFF,
             action_label=None,
         )
-    )
 
     return ft.Container(
         expand=True,
@@ -94,29 +91,3 @@ def SearchScreen() -> Control:
             spacing=0,
         ),
     )
-
-
-def _toggle_fav_simple(url: str, state):
-    """Fire-and-forget favorite toggle."""
-    import asyncio
-
-    from database.manager import db_manager
-
-    async def _do():
-        try:
-            if url in (state.favorites or set()):
-                await db_manager.remove_favorite(url)
-                if hasattr(state.favorites, "discard"):
-                    state.favorites.discard(url)
-                else:
-                    state.favorites.remove(url)
-            else:
-                await db_manager.add_favorite(url)
-                if isinstance(state.favorites, set):
-                    state.favorites.add(url)
-                elif isinstance(state.favorites, list):
-                    state.favorites.append(url)
-        except Exception:
-            pass
-
-    asyncio.create_task(_do())

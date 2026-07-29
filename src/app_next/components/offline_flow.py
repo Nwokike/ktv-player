@@ -20,7 +20,7 @@ def OfflineFlow(on_retry, on_skip) -> Control:
         expand=True,
         content=ft.Column(
             controls=[
-                ft.Icon(ft.Icons.CLOUD_OFF, size=64, color=AppColors.GREY_DIM),
+                ft.Icon(ft.Icons.CLOUD_OFF, size=64, color=AppColors.grey_dim()),
                 ft.Text(
                     "Can't connect to the channel directory.",
                     text_align=ft.TextAlign.CENTER,
@@ -30,7 +30,7 @@ def OfflineFlow(on_retry, on_skip) -> Control:
                     "You can retry, or continue in offline mode with your local videos.",
                     text_align=ft.TextAlign.CENTER,
                     size=13,
-                    color=AppColors.GREY_DIM,
+                    color=AppColors.grey_dim(),
                 ),
                 ft.FilledButton(
                     content=ft.Text("Retry Connection"),

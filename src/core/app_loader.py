@@ -16,21 +16,29 @@ logger = logging.getLogger(__name__)
 async def load_all_channels(page_obj, loading_lock):
     """Fetch and merge built-in, custom, and playlist channels into global state."""
     async with loading_lock:
-        # The legacy views.tabs.channel_classification._invalidate_groups_cache()
-        # call was removed when the views/ tree was cut over (commit 73d2cf6
-        # deleted channel_classification.py but left this import dangling,
-        # causing every refresh_channels() call to silently raise
-        # ModuleNotFoundError). Per-tab group caches are no longer used —
-        # the new AppShell frontend recomputes groups from state.channels
-        # on each render via HomeScreen._extract_categories (pure, memoized).
         try:
-            channels = await channel_provider.get_all_channels()
+            built_in = await channel_provider.get_all_channels()
+
+            # Build merged list from scratch with URL-based deduplication
+            merged: list[dict] = []
+            seen_urls: set[str] = set()
+
+            for ch in built_in:
+                merged.append(ch)
+                url = ch.get("url", "")
+                if url:
+                    seen_urls.add(url)
 
             # Merge custom channels
             custom_channels = await db_manager.get_custom_channels()
             for cc in custom_channels:
+                url = cc.get("url", "")
+                if url and url in seen_urls:
+                    continue
                 cc["is_custom"] = True
-                channels.append(cc)
+                merged.append(cc)
+                if url:
+                    seen_urls.add(url)
 
             # Merge playlists
             playlists = await db_manager.get_playlists()
@@ -41,15 +49,20 @@ async def load_all_channels(page_obj, loading_lock):
                             pl["url"],
                         )
                         for pc in playlist_channels:
+                            pc_url = pc.get("url", "")
+                            if pc_url and pc_url in seen_urls:
+                                continue
                             pc["is_custom"] = True
-                        channels.extend(playlist_channels)
+                            merged.append(pc)
+                            if pc_url:
+                                seen_urls.add(pc_url)
                     except Exception:
                         logger.exception(
                             "Failed to fetch playlist: %s",
                             pl.get("name"),
                         )
 
-            state.set_channels(channels)
+            state.set_channels(merged)
         except Exception:
             logger.exception("Failed to load channels")
             try:

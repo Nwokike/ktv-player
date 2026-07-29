@@ -29,6 +29,8 @@ from flet.controls.control import Control
 from app_next.components.loading_state import LoadingState
 from app_next.hooks.use_storage import Storage, use_storage
 from app_next.state.app_state import AppStateCtx
+from app_next.utils.channels import extract_country_dicts
+from app_next.utils.notifications import notify_warning
 from core.constants import (
     LBL_PLEASE_ACCEPT_TERMS,
     LBL_PLEASE_SELECT_COUNTRY,
@@ -116,7 +118,7 @@ def OnboardingScreen(
 
     # Derive country list from loaded channels, falling back to static prop
     available_countries = ft.use_memo(
-        lambda: _extract_countries(state.channels) or countries,
+        lambda: extract_country_dicts(state.channels) or countries,
         [state.channels_hash],
     )
 
@@ -159,17 +161,7 @@ def OnboardingScreen(
 # --- helpers ---
 
 
-def _extract_countries(channels: list[dict]) -> list[dict]:
-    """Derive country list from channel data (matches home_screen._extract_countries)."""
-    seen = set()
-    result = []
-    for c in channels:
-        group = c.get("group", "General")
-        country = group.split(";")[0].strip()
-        if country and country not in seen and c.get("country_code"):
-            seen.add(country)
-            result.append({"name": country})
-    return sorted(result, key=lambda x: x["name"])
+_extract_countries = extract_country_dicts
 
 
 async def _maybe_invoke(fn: Callable[[], Awaitable[None] | None]) -> None:
@@ -178,15 +170,7 @@ async def _maybe_invoke(fn: Callable[[], Awaitable[None] | None]) -> None:
         await result
 
 
-def _notify_warning(msg: str) -> None:
-    """Show a SnackBar-as-dialog warning. Best-effort — swallow if no page."""
-    from flet.controls.context import context
-
-    try:
-        page = context.page
-        page.show_dialog(ft.SnackBar(ft.Text(msg), bgcolor=AppColors.WARNING))
-    except Exception:
-        pass
+_notify_warning = notify_warning
 
 
 def _build_online_form(
@@ -227,7 +211,7 @@ def _build_online_form(
                             LBL_WELCOME_SUB,
                             size=15,
                             text_align=ft.TextAlign.CENTER,
-                            color=AppColors.GREY_DIM,
+                            color=AppColors.grey_dim(),
                             width=400,
                         ),
                     ],
@@ -244,7 +228,7 @@ def _build_online_form(
                 ft.Text(
                     LBL_TV_NAV_HINT,
                     size=12,
-                    color=AppColors.GREY_DIM,
+                    color=AppColors.grey_dim(),
                     text_align=ft.TextAlign.CENTER,
                 ),
                 ft.Container(
@@ -255,10 +239,10 @@ def _build_online_form(
                 ),
                 ft.Divider(height=20, color=ft.Colors.TRANSPARENT),
                 ft.Container(
-                    content=ft.Text(TERMS_TEXT, size=12, color=AppColors.GREY_DIM),
+                    content=ft.Text(TERMS_TEXT, size=12, color=AppColors.grey_dim()),
                     padding=16,
                     border_radius=14,
-                    border=ft.Border.all(1, AppColors.GREY_DIM),
+                    border=ft.Border.all(1, AppColors.grey_dim()),
                 ),
                 ft.Row(
                     controls=[
@@ -308,7 +292,7 @@ def _country_tile(
         ),
         leading=ft.Icon(
             ft.Icons.CHECK_CIRCLE if is_selected else ft.Icons.RADIO_BUTTON_UNCHECKED,
-            color=ft.Colors.WHITE if is_selected else AppColors.GREY_DIM,
+            color=ft.Colors.WHITE if is_selected else AppColors.grey_dim(),
         ),
         on_click=lambda e, n=name: on_select(n),
         dense=True,

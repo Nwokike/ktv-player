@@ -51,7 +51,7 @@ def test_handler_dispatches_ctrl_k_to_on_search():
             )
             assert mock_mounted.called
             installer = mock_mounted.call_args[0][0]
-            asyncio.run(installer())
+            installer()
 
         handler = mock_page.on_keyboard_event
         assert handler is not None
@@ -77,7 +77,7 @@ def test_handler_chains_to_previous_handler_for_unhandled_keys():
         with mock.patch("flet.on_mounted") as mock_mounted:
             use_keyboard_shortcuts(controller=mock.MagicMock())
             installer = mock_mounted.call_args[0][0]
-            asyncio.run(installer())
+            installer()
 
         handler = mock_page.on_keyboard_event
         assert handler is not None
@@ -101,7 +101,7 @@ def test_handler_does_not_swallow_arrow_keys():
         with mock.patch("flet.on_mounted") as mock_mounted:
             use_keyboard_shortcuts(controller=mock.MagicMock())
             installer = mock_mounted.call_args[0][0]
-            asyncio.run(installer())
+            installer()
 
         handler = mock_page.on_keyboard_event
         assert handler is not None
@@ -133,7 +133,7 @@ def test_on_search_coroutine_is_awaited():
                 controller=mock.MagicMock(), on_search=on_search
             )
             installer = mock_mounted.call_args[0][0]
-            asyncio.run(installer())
+            installer()
 
         handler = mock_page.on_keyboard_event
 
@@ -145,5 +145,79 @@ def test_on_search_coroutine_is_awaited():
 
         asyncio.run(_run())
         assert order == ["search"]
+    finally:
+        cleanup()
+
+
+def test_installer_returns_cleanup_that_restores_previous_handler():
+    """The installer returns a cleanup callable that, when invoked,
+    restores the original page.on_keyboard_event — preventing handler
+    nesting across remounts."""
+    mock_page, cleanup = _mock_context_page()
+    try:
+        original = mock.MagicMock()
+        mock_page.on_keyboard_event = original
+
+        with mock.patch("flet.on_mounted") as mock_mounted:
+            use_keyboard_shortcuts(controller=mock.MagicMock())
+            installer = mock_mounted.call_args[0][0]
+            clean = installer()
+
+        # After install, handler is our _handler (not the original)
+        assert mock_page.on_keyboard_event is not original
+        assert callable(mock_page.on_keyboard_event)
+
+        # After cleanup, the original handler is restored
+        clean()
+        assert mock_page.on_keyboard_event is original
+    finally:
+        cleanup()
+
+
+def test_cleanup_on_remount_prevents_handler_nesting():
+    """Simulate mount → unmount (cleanup) → remount to verify the
+    closure chain does not grow beyond one level."""
+    mock_page, cleanup = _mock_context_page()
+    try:
+        original = mock.MagicMock()
+        mock_page.on_keyboard_event = original
+
+        with mock.patch("flet.on_mounted") as mock_mounted:
+            use_keyboard_shortcuts(controller=mock.MagicMock())
+            installer = mock_mounted.call_args[0][0]
+            clean1 = installer()
+
+        handler1 = mock_page.on_keyboard_event
+
+        # Unmount
+        clean1()
+        assert mock_page.on_keyboard_event is original
+
+        # Remount
+        with mock.patch("flet.on_mounted") as mock_mounted:
+            use_keyboard_shortcuts(controller=mock.MagicMock())
+            installer = mock_mounted.call_args[0][0]
+            clean2 = installer()
+
+        handler2 = mock_page.on_keyboard_event
+
+        # handler1 and handler2 are different closures because each
+        # _install creates a fresh one — but they both chain to the
+        # same 'previous' (original).  Verify no deep nesting by
+        # checking that handler2's chained call reaches original.
+        async def _run():
+            fake_event = mock.Mock()
+            fake_event.ctrl = False
+            fake_event.key = "a"
+            await handler2(fake_event)
+
+        asyncio.run(_run())
+        # original should be called exactly once (handler2 -> original)
+        # NOT twice (handler2 -> handler1 -> original)
+        original.assert_called_once()
+
+        # Clean up second mount
+        clean2()
+        assert mock_page.on_keyboard_event is original
     finally:
         cleanup()

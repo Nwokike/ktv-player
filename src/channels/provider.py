@@ -81,7 +81,7 @@ class ChannelProvider:
 
     async def get_all_channels(self) -> list[dict]:
         if self._channels:
-            return self._channels
+            return list(self._channels)
 
         try:
             os.makedirs(_CACHE_DIR, exist_ok=True)
@@ -93,7 +93,7 @@ class ChannelProvider:
                 if file_age < self.CACHE_DURATION:
                     # Fresh cache — use it, no refresh needed
                     self._channels = self._parse_cached(cached_text)
-                    return self._channels
+                    return list(self._channels)
                 elif file_age < self.STALE_DURATION:
                     # Stale but usable — serve it, then try refresh
                     self._channels = self._parse_cached(cached_text)
@@ -103,11 +103,11 @@ class ChannelProvider:
                 refresh_lock = await self._get_refresh_lock()
                 if refresh_lock.locked():
                     await asyncio.sleep(0.5)
-                    return self._channels
+                    return list(self._channels)
 
                 async with refresh_lock:
                     if self._channels:
-                        return self._channels
+                        return list(self._channels)
                     try:
                         client = get_http_client()
                         response = await client.get(
@@ -125,7 +125,7 @@ class ChannelProvider:
         except Exception:
             logger.exception("Error in get_all_channels")
 
-        return self._channels
+        return list(self._channels)
 
     def get_countries(self) -> list[dict]:
         channels = self._channels

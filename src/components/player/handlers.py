@@ -28,6 +28,8 @@ async def pick_subtitles(player_inst):
     if not hasattr(player_inst.page, "_sub_file_picker"):
         picker = ft.FilePicker()
         player_inst.page._sub_file_picker = picker
+        player_inst.page.overlay.append(picker)
+        player_inst.page.update()
 
     try:
         files = await player_inst.page._sub_file_picker.pick_files(
@@ -44,11 +46,8 @@ async def pick_subtitles(player_inst):
                 src=sub_path,
                 title=files[0].name,
             )
-            if hasattr(player_inst.video_player, "subtitle_configuration"):
-                player_inst.video_player.subtitle_configuration = custom_track
-            elif hasattr(player_inst.video_player, "subtitle_track"):
-                player_inst.video_player.subtitle_track = custom_track
-            player_inst.page.update()
+            player_inst.video.subtitle_track = custom_track
+            player_inst.video.update()
     except Exception as ex:
         logger.warning("Subtitle pick failed: %s", ex)
 
@@ -81,6 +80,7 @@ async def reconnect_stream(player_inst):
             player_inst.video.playlist = [
                 VideoMedia(player_inst.resource, http_headers=player_inst.http_headers),
             ]
+            player_inst.video.update()
             await player_inst.video.play()
     except Exception as ex:
         logger.debug("Failed to reconnect stream: %s", ex)

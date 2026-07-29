@@ -33,8 +33,8 @@ class AppState:
             self.history = self.history[:MAX_HISTORY_ITEMS]
 
     def set_channels(self, channels: list[dict]):
-        self.channels = channels
-        self.channels_hash = sum(hash(c.get("url", "")) for c in channels) % 10_000_000
+        self.channels = list(channels)  # copy, not direct reference
+        self.channels_hash = sum(hash(c.get("url", "")) for c in self.channels) % 10_000_000
 
     def is_favorite(self, url: str) -> bool:
         return url in self.favorites

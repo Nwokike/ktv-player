@@ -75,7 +75,7 @@ def RecentlyWatched(
                     LBL_RECENTLY_WATCHED,
                     size=15,
                     weight=ft.FontWeight.W_600,
-                    color=AppColors.GREY_DIM,
+                    color=AppColors.grey_dim(),
                 ),
                 ft.ListView(
                     controls=cards,
