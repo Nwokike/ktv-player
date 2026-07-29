@@ -6,9 +6,12 @@ def extract_countries(channels: list[dict]) -> list[str]:
     seen = set()
     result = []
     for c in channels:
-        group = c.get("group", "General")
-        country = group.split(";")[0].strip()
-        if country and country not in seen and c.get("country_code"):
+        if c.get("is_custom"):
+            continue
+        original_group = c.get("group", "General")
+        parts = [p.strip() for p in original_group.split(";")]
+        country = parts[0] if c.get("country_code") else "Global"
+        if country and country not in seen:
             seen.add(country)
             result.append(country)
     return sorted(result)
@@ -19,9 +22,12 @@ def extract_country_dicts(channels: list[dict]) -> list[dict]:
     seen = set()
     result = []
     for c in channels:
-        group = c.get("group", "General")
-        country = group.split(";")[0].strip()
-        if country and country not in seen and c.get("country_code"):
+        if c.get("is_custom"):
+            continue
+        original_group = c.get("group", "General")
+        parts = [p.strip() for p in original_group.split(";")]
+        country = parts[0] if c.get("country_code") else "Global"
+        if country and country not in seen:
             seen.add(country)
             result.append({"name": country})
     return sorted(result, key=lambda x: x["name"])
@@ -47,8 +53,16 @@ def extract_categories(channels: list[dict]) -> list[str]:
     seen = set()
     result = []
     for c in channels:
-        group = c.get("group", "General")
-        if group and group not in seen:
-            seen.add(group)
-            result.append(group)
+        if c.get("is_custom"):
+            continue
+        original_group = c.get("group", "General")
+        parts = [p.strip() for p in original_group.split(";")]
+        category = (
+            parts[-1]
+            if len(parts) > 1
+            else (parts[0] if not c.get("country_code") else "General")
+        )
+        if category and category.lower() != "general" and category not in seen:
+            seen.add(category)
+            result.append(category)
     return sorted(result)

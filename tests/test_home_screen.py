@@ -3,8 +3,14 @@
 from app_next.screens.home_screen import HomeScreen
 from app_next.utils.channels import (
     build_channels_map as _build_channels_map,
+)
+from app_next.utils.channels import (
     build_favorites_set as _build_favorites_set,
+)
+from app_next.utils.channels import (
     extract_categories as _extract_categories,
+)
+from app_next.utils.channels import (
     extract_countries as _extract_countries,
 )
 
@@ -69,5 +75,5 @@ def test_extract_categories_deduplicates():
         {"url": "http://c", "group": "Nigeria;News"},
     ]
     c = _extract_categories(channels)
-    assert "Nigeria;News" in c
+    assert "News" in c
     assert len(c) == 2

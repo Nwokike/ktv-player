@@ -1,33 +1,50 @@
-"""Design tokens for KTV Player."""
+"""Design tokens for KTV Player.
+
+Centralized design system tokens for typography, spacing, border radii, icon sizes, and component metrics.
+"""
+
+# Typography
+FONT_FAMILY_PRIMARY = "Outfit"
+FONT_FAMILY_MONO = "Courier New"
 
 FONT_XS = 10
-FONT_SM = 12
-FONT_MD = 14
-FONT_LG = 16
+FONT_SM = 11
+FONT_MD = 13
+FONT_LG = 15
 FONT_XL = 18
 FONT_XXL = 24
 FONT_XXXL = 32
 
+# Spacing & Padding
 SPACING_XS = 4
 SPACING_SM = 8
-SPACING_MD = 16
-SPACING_LG = 24
+SPACING_MD = 14
+SPACING_LG = 20
 SPACING_XL = 32
 
+# Border Radii
 BORDER_RADIUS_SM = 4
 BORDER_RADIUS_MD = 8
 BORDER_RADIUS_LG = 12
 BORDER_RADIUS_XL = 16
 BORDER_RADIUS_FULL = 9999
 
+# Icon Dimensions
 ICON_SM = 16
 ICON_MD = 20
 ICON_LG = 24
 ICON_XL = 32
 
+# Animation Durations (ms)
 ANIMATION_FAST = 150
 ANIMATION_NORMAL = 250
 ANIMATION_SLOW = 350
+
+# Component Specific Metrics
+CARD_ASPECT_RATIO = 0.75
+GRID_MAX_EXTENT = 160
+DIALOG_WIDTH_MD = 500
+DIALOG_HEIGHT_MD = 420
 
 # Aliases
 SPACE_XS = SPACING_XS

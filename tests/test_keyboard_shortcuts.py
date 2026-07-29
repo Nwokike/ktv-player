@@ -129,9 +129,7 @@ def test_on_search_coroutine_is_awaited():
             order.append("search")
 
         with mock.patch("flet.on_mounted") as mock_mounted:
-            use_keyboard_shortcuts(
-                controller=mock.MagicMock(), on_search=on_search
-            )
+            use_keyboard_shortcuts(controller=mock.MagicMock(), on_search=on_search)
             installer = mock_mounted.call_args[0][0]
             installer()
 
@@ -188,6 +186,7 @@ def test_cleanup_on_remount_prevents_handler_nesting():
             clean1 = installer()
 
         handler1 = mock_page.on_keyboard_event
+        assert handler1 is not original
 
         # Unmount
         clean1()
@@ -200,6 +199,7 @@ def test_cleanup_on_remount_prevents_handler_nesting():
             clean2 = installer()
 
         handler2 = mock_page.on_keyboard_event
+        assert handler1 is not handler2
 
         # handler1 and handler2 are different closures because each
         # _install creates a fresh one — but they both chain to the

@@ -31,6 +31,7 @@ from core.constants import (
     STATUS_DOT_SIZE,
 )
 from core.theme import AppColors
+from services.liveliness_checker import enqueue_liveliness_check
 from services.logo_cache import enqueue_logo_download, get_cached_logo
 
 
@@ -44,6 +45,9 @@ def ChannelCard(
     url = channel.get("url", "")
     name = channel.get("name", "Unknown")
     logo_src = channel.get("logo") or "/icon.png"
+
+    if liveliness_status is None and url:
+        enqueue_liveliness_check(url)
 
     # resolve logo source
     if logo_src.startswith("/"):

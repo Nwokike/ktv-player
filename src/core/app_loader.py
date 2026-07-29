@@ -36,6 +36,7 @@ async def load_all_channels(page_obj, loading_lock):
                 if url and url in seen_urls:
                     continue
                 cc["is_custom"] = True
+                cc["is_single_custom"] = True
                 merged.append(cc)
                 if url:
                     seen_urls.add(url)
@@ -48,11 +49,13 @@ async def load_all_channels(page_obj, loading_lock):
                         playlist_channels = await iptv_service.fetch_playlist(
                             pl["url"],
                         )
+                        pl_name = pl.get("name", "Custom Playlist")
                         for pc in playlist_channels:
                             pc_url = pc.get("url", "")
                             if pc_url and pc_url in seen_urls:
                                 continue
                             pc["is_custom"] = True
+                            pc["playlist_name"] = pl_name
                             merged.append(pc)
                             if pc_url:
                                 seen_urls.add(pc_url)

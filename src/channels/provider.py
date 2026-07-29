@@ -92,10 +92,20 @@ class ChannelProvider:
                 file_age = time.time() - os.path.getmtime(_CACHE_FILE)
                 if file_age < self.CACHE_DURATION:
                     # Fresh cache — use it, no refresh needed
+                    logger.info(
+                        "Using fresh playlist cache (age: %.1f hours)", file_age / 3600
+                    )
                     self._channels = self._parse_cached(cached_text)
+                    logger.info(
+                        "Loaded %d channels from playlist cache", len(self._channels)
+                    )
                     return list(self._channels)
                 elif file_age < self.STALE_DURATION:
                     # Stale but usable — serve it, then try refresh
+                    logger.info(
+                        "Playlist cache is stale (age: %.1f hours); serving and refreshing in background",
+                        file_age / 3600,
+                    )
                     self._channels = self._parse_cached(cached_text)
                     should_refresh = True
 
@@ -106,9 +116,12 @@ class ChannelProvider:
                     return list(self._channels)
 
                 async with refresh_lock:
-                    if self._channels:
+                    if self._channels and not cached_text:
                         return list(self._channels)
                     try:
+                        logger.info(
+                            "Fetching master playlist from %s", self.MASTER_PLAYLIST_URL
+                        )
                         client = get_http_client()
                         response = await client.get(
                             self.MASTER_PLAYLIST_URL, timeout=30.0
@@ -116,11 +129,19 @@ class ChannelProvider:
                         response.raise_for_status()
                         await asyncio.to_thread(_write_cache, response.text)
                         self._channels = self._parse_cached(response.text)
+                        logger.info(
+                            "Master playlist fetched successfully: %d channels parsed",
+                            len(self._channels),
+                        )
                     except Exception:
                         logger.exception("Failed to fetch master playlist")
                         # Fallback to cache if available
                         if not self._channels and cached_text:
                             self._channels = self._parse_cached(cached_text)
+                            logger.info(
+                                "Fallback: loaded %d channels from cached playlist",
+                                len(self._channels),
+                            )
 
         except Exception:
             logger.exception("Error in get_all_channels")

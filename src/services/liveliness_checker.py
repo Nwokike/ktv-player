@@ -15,8 +15,64 @@ from services.liveliness import liveliness_cache
 logger = logging.getLogger(__name__)
 
 
+_in_flight: set[str] = set()
+_liveliness_queue: asyncio.Queue[str] | None = None
+_workers_started = False
+
+
+async def _liveliness_worker():
+    checker = LivelinessChecker(None)
+    while True:
+        try:
+            url = await _liveliness_queue.get()
+            try:
+                await checker.check_single(url)
+                dirty = liveliness_cache.drain_dirty()
+                if dirty:
+                    from database.manager import db_manager
+
+                    await db_manager.save_liveliness_batch(dirty)
+            except Exception:
+                logger.exception("Liveliness check failed for %s", url)
+            finally:
+                _liveliness_queue.task_done()
+                _in_flight.discard(url)
+        except Exception:
+            await asyncio.sleep(1)
+
+
+def _ensure_queue():
+    global _liveliness_queue, _workers_started
+    if _liveliness_queue is None:
+        _liveliness_queue = asyncio.Queue(maxsize=500)
+    if not _workers_started:
+        try:
+            loop = asyncio.get_running_loop()
+            _workers_started = True
+            for _ in range(3):
+                loop.create_task(_liveliness_worker())
+        except RuntimeError:
+            pass
+
+
+def enqueue_liveliness_check(url: str):
+    if not url or liveliness_cache.get(url) is not None:
+        return
+    if url in _in_flight:
+        return
+
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        return
+
+    _ensure_queue()
+    _in_flight.add(url)
+    loop.create_task(_liveliness_queue.put(url))
+
+
 class LivelinessChecker:
-    def __init__(self, page_obj):
+    def __init__(self, page_obj=None):
         self.page_obj = page_obj
         self._semaphore = asyncio.Semaphore(LIVELINESS_SEMAPHORE)
 
@@ -57,15 +113,16 @@ class LivelinessChecker:
             for cd, result in zip(batch, results, strict=True):
                 if isinstance(result, tuple):
                     _, is_live = result
-                    cd["indicator"].bgcolor = (
-                        AppColors.SUCCESS if is_live else AppColors.ERROR
-                    )
-                else:
-                    cd["indicator"].bgcolor = AppColors.ERROR
+                    if "indicator" in cd and hasattr(cd["indicator"], "bgcolor"):
+                        cd["indicator"].bgcolor = (
+                            AppColors.SUCCESS if is_live else AppColors.ERROR
+                        )
 
             batch_num = i // LIVELINESS_BATCH_SIZE
             is_last = (i + LIVELINESS_BATCH_SIZE) >= len(cards_data)
-            if is_last or (batch_num % LIVELINESS_UPDATE_INTERVAL == 0):
+            if self.page_obj and (
+                is_last or (batch_num % LIVELINESS_UPDATE_INTERVAL == 0)
+            ):
                 try:
                     self.page_obj.update()
                 except Exception:
@@ -80,17 +137,6 @@ class LivelinessChecker:
             from database.manager import db_manager
 
             await db_manager.save_liveliness_batch(dirty)
-
-    def collect_cards_data(self, grid) -> list:
-        cards_data = []
-        for wrapper in grid.controls:
-            card = getattr(wrapper, "content", None)
-            if card and getattr(card, "data", None):
-                url = card.data.get("url")
-                indicator = card.data.get("indicator")
-                if url and indicator:
-                    cards_data.append({"url": url, "indicator": indicator})
-        return cards_data
 
     async def close(self):
         pass

@@ -59,7 +59,7 @@ def ChannelGrid(
                     ft.Container(
                         content=ad_slot,
                         col=12,
-                        alignment=ft.alignment.center,
+                        alignment=ft.Alignment.CENTER,
                         padding=ft.Padding(0, 5, 0, 5),
                     )
                 )

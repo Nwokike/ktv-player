@@ -28,7 +28,6 @@ from core.constants import (
     LBL_URL_HINT,
     MAX_NAME_LENGTH,
 )
-from core.theme import AppColors
 
 # --- pure helpers (exported for unit tests) ---
 

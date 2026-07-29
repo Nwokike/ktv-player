@@ -10,7 +10,7 @@ class MemoryLogHandler(logging.Handler):
     """In-memory ring-buffer log handler for live Activity Terminal."""
 
     _logs: ClassVar[list[str]] = []
-    _MAX_LOGS = 300
+    _MAX_LOGS = 500
 
     def emit(self, record: logging.LogRecord) -> None:
         try:
@@ -24,6 +24,10 @@ class MemoryLogHandler(logging.Handler):
     @classmethod
     def get_logs(cls) -> list[str]:
         return list(cls._logs)
+
+    @classmethod
+    def clear_logs(cls) -> None:
+        cls._logs.clear()
 
 
 # Attach to root logger

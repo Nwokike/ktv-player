@@ -1,17 +1,15 @@
 """FilterBar — sticky row of 4 filter chips for the Home screen.
 
-Chips: Country, Category, Favorites-only toggle, Source (All/Built-in/Custom).
-Each chip opens a simple dropdown overlay when tapped.
-
-This is a @ft.component because it owns use_state for the open-dropdown
-tracking. Tests are at the helper level; full rendering verified in manual
-smoke.
+Chips: Category (Dropdown), Country (Dropdown), Custom (Dropdown), Favorites (Toggle).
+Uses Flet PopupMenuButton for Material 3 dropdown menus.
 """
 
 from collections.abc import Callable
 
 import flet as ft
 from flet.controls.control import Control
+
+from core.tokens import FONT_MD, ICON_SM, SPACING_XS
 
 
 @ft.component
@@ -21,147 +19,194 @@ def FilterBar(
     available_countries: list[str],
     available_categories: list[str],
     user_country: str,
+    custom_playlists: list[str] | None = None,
     total_count: int = 0,
+    on_add_content: Callable[[], None] | None = None,
 ) -> Control:
     """Render filter chips.
 
     Args:
         filters: current filter state dict.
         on_change: fires with updated dict when a filter item is selected.
-        available_countries: sorted list of country names from channel data.
-        available_categories: sorted list of category strings.
-        user_country: user-preferred country (shown first in country list).
+        available_countries: sorted list of built-in country names.
+        available_categories: sorted list of built-in category strings.
+        user_country: user-preferred country (pinned near top of country list).
+        custom_playlists: list of user-added playlist names.
         total_count: number of visible channels after filter.
+        on_add_content: optional callback to add custom content.
     """
-    open_dropdown, set_open_dropdown = ft.use_state(None)
 
     def _fire(new_partial: dict):
         updated = {**filters, **new_partial}
         if callable(on_change):
             on_change(updated)
-        set_open_dropdown(None)
 
     def _toggle_fav():
         _fire({"fav_only": not filters.get("fav_only", False)})
 
-    def _chip(label: str, icon, selected: bool, on_click):
-        return ft.Chip(
-            label=ft.Text(label, size=13),
-            leading=ft.Icon(icon, size=16),
-            selected=selected,
-            on_click=on_click,
+    # --- 1. Category Chip & Menu ---
+    current_category = filters.get("category", "all")
+    category_label = current_category if current_category != "all" else "Category"
+    category_items = [
+        ft.PopupMenuItem(
+            content=ft.Text("All Categories", size=FONT_MD),
+            on_click=lambda e: _fire(
+                {"category": "all", "country": "all", "custom": "none"}
+            ),
         )
+    ] + [
+        ft.PopupMenuItem(
+            content=ft.Text(cat, size=FONT_MD),
+            on_click=lambda e, c=cat: _fire(
+                {"category": c, "country": "all", "custom": "none"}
+            ),
+        )
+        for cat in available_categories
+    ]
 
-    def _dropdown_overlay(items: list[tuple[str, Callable]]) -> Control:
-        return ft.Container(
-            width=220,
-            bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH,
-            border_radius=12,
-            padding=6,
-            content=ft.Column(
+    category_btn = ft.PopupMenuButton(
+        content=ft.Chip(
+            label=ft.Row(
                 controls=[
-                    ft.Container(
-                        content=ft.TextButton(
-                            content=ft.Text(label, size=14, weight=ft.FontWeight.W_500),
-                            on_click=lambda e, a=action: a(),
-                        ),
-                        padding=2,
-                    )
-                    for label, action in items
+                    ft.Text(category_label, size=FONT_MD),
+                    ft.Icon(ft.Icons.ARROW_DROP_DOWN, size=ICON_SM),
                 ],
                 spacing=2,
-                scroll=ft.ScrollMode.AUTO,
+                tight=True,
+            ),
+            leading=ft.Icon(ft.Icons.CATEGORY, size=ICON_SM),
+            selected=current_category != "all",
+        ),
+        items=category_items,
+        menu_position=ft.PopupMenuPosition.UNDER,
+    )
+
+    # --- 2. Country Chip & Menu ---
+    current_country = filters.get("country", "all")
+    country_label = current_country if current_country != "all" else "Country"
+
+    sorted_countries = list(available_countries)
+    country_menu_items = [
+        ft.PopupMenuItem(
+            content=ft.Text("All Countries", size=FONT_MD),
+            on_click=lambda e: _fire(
+                {"country": "all", "category": "all", "custom": "none"}
             ),
         )
+    ]
+    if user_country and user_country in sorted_countries:
+        country_menu_items.append(
+            ft.PopupMenuItem(
+                content=ft.Text(f"{user_country} (Local)", size=FONT_MD),
+                on_click=lambda e, u=user_country: _fire(
+                    {"country": u, "category": "all", "custom": "none"}
+                ),
+            )
+        )
+        sorted_countries.remove(user_country)
 
-    intro = ft.Chip(
-        label=ft.Text(
-            f"{total_count} channels" if total_count else "All channels", size=13
-        ),
+    country_menu_items.extend(
+        [
+            ft.PopupMenuItem(
+                content=ft.Text(c_name, size=FONT_MD),
+                on_click=lambda e, c=c_name: _fire(
+                    {"country": c, "category": "all", "custom": "none"}
+                ),
+            )
+            for c_name in sorted_countries
+        ]
     )
 
-    country_label = filters["country"] if filters["country"] != "all" else "Country"
-    category_label = filters["category"] if filters["category"] != "all" else "Category"
-    source_label = {"all": "Source", "built-in": "Built-in", "custom": "Custom"}.get(
-        filters["source"], "Source"
+    country_btn = ft.PopupMenuButton(
+        content=ft.Chip(
+            label=ft.Row(
+                controls=[
+                    ft.Text(country_label, size=FONT_MD),
+                    ft.Icon(ft.Icons.ARROW_DROP_DOWN, size=ICON_SM),
+                ],
+                spacing=2,
+                tight=True,
+            ),
+            leading=ft.Icon(ft.Icons.PUBLIC, size=ICON_SM),
+            selected=current_country != "all",
+        ),
+        items=country_menu_items,
+        menu_position=ft.PopupMenuPosition.UNDER,
     )
 
-    chips = [
-        intro,
-        _chip(
-            country_label,
-            ft.Icons.PUBLIC,
-            filters["country"] != "all",
-            lambda e: set_open_dropdown(
-                "country" if open_dropdown != "country" else None
-            ),
-        ),
-        _chip(
-            category_label,
-            ft.Icons.CATEGORY,
-            filters["category"] != "all",
-            lambda e: set_open_dropdown(
-                "category" if open_dropdown != "category" else None
-            ),
-        ),
-        _chip(
-            "★ Fav" if filters["fav_only"] else "Fav",
-            ft.Icons.STAR if filters["fav_only"] else ft.Icons.STAR_BORDER,
-            filters["fav_only"],
-            lambda e: _toggle_fav(),
-        ),
-        _chip(
-            source_label,
-            ft.Icons.SOURCE,
-            filters["source"] != "all",
-            lambda e: set_open_dropdown(
-                "source" if open_dropdown != "source" else None
+    # --- 3. Custom Chip & Menu ---
+    current_custom = filters.get("custom", "none")
+    custom_label = (
+        "Custom"
+        if current_custom == "none"
+        else ("Single Channels" if current_custom == "single" else current_custom)
+    )
+
+    custom_menu_items = [
+        ft.PopupMenuItem(
+            content=ft.Text("Single Channels", size=FONT_MD),
+            on_click=lambda e: _fire(
+                {"custom": "single", "country": "all", "category": "all"}
             ),
         ),
     ]
-
-    # Build overlays
-    overlays_col = []
-    if open_dropdown == "country":
-        items = list(available_countries)
-        if user_country in items:
-            items.remove(user_country)
-            items.insert(0, user_country)
-        overlays_col.append(
-            _dropdown_overlay(
-                [("All", lambda: _fire({"country": "all"}))]
-                + [(n, lambda n=n: _fire({"country": n})) for n in items],
+    if custom_playlists:
+        for pl in custom_playlists:
+            custom_menu_items.append(
+                ft.PopupMenuItem(
+                    content=ft.Text(pl, size=FONT_MD),
+                    on_click=lambda e, name=pl: _fire(
+                        {"custom": name, "country": "all", "category": "all"}
+                    ),
+                )
             )
-        )
-    elif open_dropdown == "category":
-        overlays_col.append(
-            _dropdown_overlay(
-                [("All", lambda: _fire({"category": "all"}))]
-                + [
-                    (n, lambda n=n: _fire({"category": n}))
-                    for n in available_categories
+
+    custom_btn = ft.PopupMenuButton(
+        content=ft.Chip(
+            label=ft.Row(
+                controls=[
+                    ft.Text(custom_label, size=FONT_MD),
+                    ft.Icon(ft.Icons.ARROW_DROP_DOWN, size=ICON_SM),
                 ],
-            )
-        )
-    elif open_dropdown == "source":
-        overlays_col.append(
-            _dropdown_overlay(
-                [
-                    ("All", lambda: _fire({"source": "all"})),
-                    ("Built-in", lambda: _fire({"source": "built-in"})),
-                    ("Custom", lambda: _fire({"source": "custom"})),
-                ]
-            )
-        )
+                spacing=2,
+                tight=True,
+            ),
+            leading=ft.Icon(ft.Icons.FOLDER_SPECIAL, size=ICON_SM),
+            selected=current_custom != "none",
+        ),
+        items=custom_menu_items,
+        menu_position=ft.PopupMenuPosition.UNDER,
+    )
 
-    chips_row = ft.Row(controls=chips, scroll=ft.ScrollMode.AUTO, spacing=6)
+    # --- 4. Favorites Chip ---
+    fav_selected = filters.get("fav_only", False)
+    fav_chip = ft.Chip(
+        label=ft.Text("★ Fav" if fav_selected else "Fav", size=FONT_MD),
+        leading=ft.Icon(
+            ft.Icons.STAR if fav_selected else ft.Icons.STAR_BORDER, size=ICON_SM
+        ),
+        selected=fav_selected,
+        on_click=lambda e: _toggle_fav(),
+    )
 
-    if overlays_col:
-        return ft.Container(
-            content=ft.Column(controls=[chips_row, *overlays_col], spacing=4),
-            padding=ft.Padding.symmetric(horizontal=4),
+    controls_row = [category_btn, country_btn, custom_btn, fav_chip]
+
+    if callable(on_add_content):
+        add_btn = ft.IconButton(
+            icon=ft.Icons.ADD_CIRCLE_OUTLINE,
+            icon_size=ICON_SM + 4,
+            tooltip="Add Custom Content",
+            on_click=lambda e: on_add_content(),
         )
+        controls_row.append(add_btn)
+
+    chips_row = ft.Row(
+        controls=controls_row,
+        scroll=ft.ScrollMode.AUTO,
+        spacing=SPACING_XS,
+    )
+
     return ft.Container(
         content=chips_row,
-        padding=ft.Padding.symmetric(horizontal=4),
+        padding=ft.Padding.symmetric(horizontal=8, vertical=4),
     )

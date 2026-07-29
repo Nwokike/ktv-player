@@ -21,7 +21,11 @@ def _resolve_storage_dir() -> Path:
 class DatabaseManager:
     """Platform-resilient JSON-backed storage manager matching Colab Shell's StorageService."""
 
-    def __init__(self, db_path: str = "storage/data/ktv_storage.json", storage_path: str | Path | None = None):
+    def __init__(
+        self,
+        db_path: str = "storage/data/ktv_storage.json",
+        storage_path: str | Path | None = None,
+    ):
         if storage_path is not None:
             self.storage_dir = Path(storage_path)
             self.storage_dir.mkdir(parents=True, exist_ok=True)
@@ -41,6 +45,7 @@ class DatabaseManager:
 
     async def init_db(self) -> None:
         async with self._lock:
+
             def _load_sync():
                 if self.storage_file.exists():
                     try:
@@ -65,6 +70,7 @@ class DatabaseManager:
                 for k in self._data:
                     if k in loaded:
                         self._data[k] = loaded[k]
+            logger.info("Database loaded successfully from %s", self.storage_file)
 
     async def _save_now(self) -> None:
         data_bytes = json.dumps(self._data, ensure_ascii=False, indent=2).encode(
@@ -213,5 +219,6 @@ class DatabaseManager:
         async with self._lock:
             if self._dirty:
                 await self._save_now()
+
 
 db_manager = DatabaseManager()

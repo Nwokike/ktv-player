@@ -7,6 +7,7 @@ from flet.controls.control import Control
 
 from app_next.components.empty_state import EmptyState
 from app_next.components.folder_expansion_tile import FolderExpansionTile
+from app_next.components.header import Header
 from app_next.components.loading_state import LoadingState
 from app_next.state.controller_ctx import ControllerMethodsCtx
 from services.local_scanner import get_default_scan_paths, scan_videos
@@ -18,6 +19,7 @@ def LocalScreen() -> Control:
 
     folders, set_folders = ft.use_state([])
     is_scanning, set_is_scanning = ft.use_state(True)
+    search_query, set_search_query = ft.use_state("")
 
     async def _get_custom_paths() -> list[str]:
         """Load custom paths from SharedPreferences."""
@@ -63,10 +65,10 @@ def LocalScreen() -> Control:
 
     ft.on_mounted(_scan)
 
-    async def _refresh(e):
+    async def _refresh(e=None):
         await _scan()
 
-    async def _pick_folder(e):
+    async def _pick_folder(e=None):
         from flet.controls.services.file_picker import FilePicker
 
         from core.theme import AppColors
@@ -98,17 +100,53 @@ def LocalScreen() -> Control:
     def on_play(path: str):
         asyncio.create_task(controller.play_stream(path, None))
 
-    if is_scanning:
-        return LoadingState(label="Scanning device storage...")
+    header = Header(
+        search_value=search_query,
+        search_hint="Search local videos...",
+        on_search_change=set_search_query,
+        on_add_content=_pick_folder,
+        add_tooltip="Add Folder",
+        on_refresh=_refresh,
+    )
 
-    if not folders:
-        return ft.Container(
+    if is_scanning:
+        return ft.Column(
+            controls=[header, LoadingState(label="Scanning device storage...")],
+            expand=True,
+            spacing=0,
+        )
+
+    # Filter folders and files based on search query
+    filtered_folders = []
+    q = search_query.strip().lower()
+    if not q:
+        filtered_folders = folders
+    else:
+        for f in folders:
+            matching_files = [
+                v for v in f.videos if q in v.title.lower() or q in v.path.lower()
+            ]
+            if q in f.folder_name.lower() or matching_files:
+                from services.local_scanner import VideoFolder
+
+                filtered_folders.append(
+                    VideoFolder(
+                        folder_name=f.folder_name,
+                        folder_path=f.folder_path,
+                        videos=matching_files
+                        if not q in f.folder_name.lower()
+                        else f.videos,
+                    )
+                )
+
+    if not filtered_folders:
+        body = ft.Container(
             expand=True,
             content=ft.Column(
                 controls=[
                     EmptyState(
                         title="No local videos found",
-                        message="Tap Scan to search your device for video files.",
+                        message="Tap the + button at the top to add a video folder.",
                         action_label="Scan Again",
                         on_action=_refresh,
                     ),
@@ -116,36 +154,39 @@ def LocalScreen() -> Control:
                 alignment=ft.MainAxisAlignment.CENTER,
             ),
         )
+    else:
+        tiles: list[Control] = [
+            FolderExpansionTile(folder=f, on_play=on_play) for f in filtered_folders
+        ]
+        footer_hint = ft.Container(
+            content=ft.Text(
+                "If you want to add more folders, click the + sign at the top",
+                size=12,
+                color=ft.Colors.GREY_400,
+                text_align=ft.TextAlign.CENTER,
+            ),
+            padding=ft.Padding(16, 16, 16, 24),
+            alignment=ft.Alignment.CENTER,
+        )
+        tiles.append(footer_hint)
 
-    tiles = [FolderExpansionTile(folder=f, on_play=on_play) for f in folders]
+        body = ft.Column(
+            controls=[
+                ft.ListView(
+                    controls=tiles,
+                    expand=True,
+                    spacing=4,
+                    build_controls_on_demand=True,
+                ),
+            ],
+            expand=True,
+            spacing=0,
+        )
+
     return ft.Column(
         controls=[
-            ft.Container(
-                content=ft.Row(
-                    controls=[
-                        ft.FilledButton(
-                            content=ft.Text("Scan Again"),
-                            icon=ft.Icons.REFRESH,
-                            on_click=_refresh,
-                            autofocus=True,
-                        ),
-                        ft.FilledButton(
-                            content=ft.Text("Add Folder"),
-                            icon=ft.Icons.CREATE_NEW_FOLDER,
-                            on_click=_pick_folder,
-                        ),
-                    ],
-                    alignment=ft.MainAxisAlignment.CENTER,
-                    spacing=8,
-                ),
-                padding=ft.Padding(12, 8, 12, 4),
-            ),
-            ft.ListView(
-                controls=tiles,
-                expand=True,
-                spacing=4,
-                build_controls_on_demand=True,
-            ),
+            header,
+            body,
         ],
         expand=True,
         spacing=0,

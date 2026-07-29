@@ -34,7 +34,9 @@ class AppState:
 
     def set_channels(self, channels: list[dict]):
         self.channels = list(channels)  # copy, not direct reference
-        self.channels_hash = sum(hash(c.get("url", "")) for c in self.channels) % 10_000_000
+        self.channels_hash = (
+            sum(hash(c.get("url", "")) for c in self.channels) % 10_000_000
+        )
 
     def is_favorite(self, url: str) -> bool:
         return url in self.favorites

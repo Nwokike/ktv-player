@@ -47,8 +47,10 @@ def FocusScope(
             if hasattr(result, "__await__"):
                 await result
 
-    return ft.KeyboardListener(
-        on_key_down=handle_key_down,
-        content=child,
+    return ft.Container(
+        content=ft.KeyboardListener(
+            on_key_down=handle_key_down,
+            content=child,
+        ),
         expand=True,
     )

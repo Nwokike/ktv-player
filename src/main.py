@@ -38,6 +38,18 @@ class AppController:
         self._modal_stack: list[str] = []
 
     async def init(self):
+        import sys
+
+        from core.constants import APP_VERSION
+
+        logger.info(
+            "Starting %s v%s on Python %s (Flet %s)",
+            APP_NAME,
+            APP_VERSION,
+            sys.version.split()[0],
+            ft.__version__,
+        )
+
         self.page.title = APP_NAME
         self.page.padding = 0
         self.page.spacing = 0
@@ -53,6 +65,8 @@ class AppController:
 
         # Init services
         await db_manager.init_db()
+        logger.info("Database storage initialized successfully")
+
         self.ad_service = AdService(self.page)
         self.liveliness = LivelinessChecker(self.page)
         self._loading_lock = asyncio.Lock()
@@ -76,7 +90,6 @@ class AppController:
             self.page.theme_mode = ft.ThemeMode.DARK
         elif saved_theme == "light":
             self.page.theme_mode = ft.ThemeMode.LIGHT
-        # else keep SYSTEM (the default from line 56)
 
         # Load favorites into state — convert set from DB to list for ObservableList support
         urls = await db_manager.get_favorite_urls()
@@ -84,6 +97,13 @@ class AppController:
 
         # Load history
         state.history = await db_manager.get_history()
+        logger.info(
+            "State loaded: region=%s, terms=%s, favorites=%d, history=%d",
+            state.user_country or "default",
+            state.has_accepted_terms,
+            len(state.favorites),
+            len(state.history),
+        )
 
         # Restore liveliness cache from DB
         from services.liveliness import liveliness_cache
@@ -107,6 +127,7 @@ class AppController:
             close_modal=self.close_modal,
         )
         self.page.render(lambda: ControllerMethodsCtx(methods, lambda: AppShell()))
+        logger.info("AppShell frontend mounted successfully")
 
     def _on_global_error(self, e):
         logger.error("Global error: %s", e.data if hasattr(e, "data") else e)

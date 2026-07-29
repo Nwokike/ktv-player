@@ -7,6 +7,7 @@ from database.manager import db_manager
 
 def toggle_favorite(url: str, state) -> None:
     """Fire-and-forget favorite toggle."""
+
     async def _do():
         try:
             if url in (state.favorites or []):

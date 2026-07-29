@@ -48,10 +48,14 @@ LBL_ADD = "Add Content"
 LBL_ADDED_SUCCESS = "{name} added successfully!"
 
 # Preferences
+LBL_APPEARANCE = "Appearance"
+LBL_DARK_MODE = "Dark Theme Mode"
+LBL_DARK_MODE_DESC = "Toggle dark visual theme across application"
 LBL_LOCALIZATION = "Localization"
 LBL_LOCALIZATION_DESC = (
     "Select your home region to prioritize its networks at the top of your dashboard."
 )
+LBL_DEFAULT_REGION = "Default Region & Country Focus"
 LBL_DATA_MANAGEMENT = "Data Management"
 LBL_CLEAR_HISTORY = "Clear Watch History"
 LBL_CLEAR_HISTORY_DESC = "Remove all recently watched streams from memory"
@@ -59,6 +63,15 @@ LBL_HISTORY_CLEARED = "Watch history cleared!"
 LBL_RESET_LIBRARY = "Reset Custom Library"
 LBL_RESET_LIBRARY_DESC = "Delete all manually added custom URLs and external playlists"
 LBL_LIBRARY_RESET = "Custom library reset!"
+LBL_ACTIVITY_TERMINAL = "Activity Terminal"
+LBL_LIVE_ACTIVITY_TERMINAL = "Live Activity Terminal"
+LBL_OPEN_TERMINAL = "Open Activity Terminal"
+LBL_TERMINAL_DESC = (
+    "View live application events, connection logs, and network trace data. "
+    "Essential for diagnosing playback and parsing issues."
+)
+LBL_ABOUT = "About KTV Player"
+LBL_ABOUT_DESC = "A high-performance IPTV rendering engine and local media player built with Flet and python-mpv."
 
 # Pagination
 LBL_SHOW_PREVIOUS = "Show previous {count} (channels {start}\u2013{end})"

@@ -3,6 +3,7 @@
 import asyncio
 
 import flet as ft
+
 from database.manager import db_manager
 
 

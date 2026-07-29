@@ -26,7 +26,9 @@ def test_desktop_controls_have_no_skip_buttons():
     assert isinstance(desktop, fv.MaterialDesktopVideoControls)
     if desktop.primary_button_bar:
         for btn in desktop.primary_button_bar:
-            assert not isinstance(btn, (fv.VideoSkipPreviousButton, fv.VideoSkipNextButton))
+            assert not isinstance(
+                btn, (fv.VideoSkipPreviousButton, fv.VideoSkipNextButton)
+            )
 
 
 def test_mobile_controls_have_no_skip_buttons():
@@ -40,7 +42,9 @@ def test_mobile_controls_have_no_skip_buttons():
     assert isinstance(mobile, fv.MaterialVideoControls)
     if mobile.primary_button_bar:
         for btn in mobile.primary_button_bar:
-            assert not isinstance(btn, (fv.VideoSkipPreviousButton, fv.VideoSkipNextButton))
+            assert not isinstance(
+                btn, (fv.VideoSkipPreviousButton, fv.VideoSkipNextButton)
+            )
 
 
 def test_desktop_play_and_pause_on_tap_enabled():

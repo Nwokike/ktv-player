@@ -3,12 +3,22 @@
 from app_next.hooks.apply_filters import _default_filters, apply_filters
 
 
-def _ch(name, url, group="General", is_custom=False, country_code="M3U"):
+def _ch(
+    name,
+    url,
+    group="General",
+    is_custom=False,
+    country_code="M3U",
+    is_single_custom=False,
+    playlist_name=None,
+):
     return {
         "name": name,
         "url": url,
         "group": group,
         "is_custom": is_custom,
+        "is_single_custom": is_single_custom,
+        "playlist_name": playlist_name,
         "country_code": country_code,
     }
 
@@ -63,44 +73,41 @@ def test_fav_only_with_empty_favorites_returns_empty():
     assert out == []
 
 
-def test_source_built_in_excludes_custom_channels():
+def test_country_filter_excludes_custom_channels():
     channels = [
-        _ch("A", "http://a", is_custom=False),
-        _ch("B", "http://b", is_custom=True),
+        _ch("A", "http://a", group="Nigeria;Sports", is_custom=False),
+        _ch("B", "http://b", group="Nigeria;Sports", is_custom=True),
     ]
-    out = apply_filters(channels, {**_default_filters(), "source": "built-in"}, set())
+    out = apply_filters(channels, {**_default_filters(), "country": "Nigeria"}, set())
     assert [c["name"] for c in out] == ["A"]
 
 
-def test_source_custom_keeps_only_custom():
+def test_custom_all_keeps_only_custom():
     channels = [
         _ch("A", "http://a", is_custom=False),
         _ch("B", "http://b", is_custom=True),
     ]
-    out = apply_filters(channels, {**_default_filters(), "source": "custom"}, set())
+    out = apply_filters(channels, {**_default_filters(), "custom": "all"}, set())
     assert [c["name"] for c in out] == ["B"]
 
 
-def test_source_all_keeps_both():
+def test_custom_single_keeps_only_single():
     channels = [
-        _ch("A", "http://a", is_custom=False),
-        _ch("B", "http://b", is_custom=True),
+        _ch(
+            "A", "http://a", is_custom=True, is_single_custom=False, playlist_name="P1"
+        ),
+        _ch("B", "http://b", is_custom=True, is_single_custom=True),
     ]
-    out = apply_filters(channels, _default_filters(), set())
-    assert len(out) == 2
+    out = apply_filters(channels, {**_default_filters(), "custom": "single"}, set())
+    assert [c["name"] for c in out] == ["B"]
 
 
-def test_filters_compose():
+def test_custom_playlist_keeps_matching_playlist():
     channels = [
-        _ch("A", "http://a", group="Nigeria;Sports", is_custom=True),
-        _ch("B", "http://b", group="Nigeria;Sports", is_custom=False),
-        _ch("C", "http://c", group="Nigeria;News", is_custom=True),
+        _ch("A", "http://a", is_custom=True, playlist_name="My Playlist"),
+        _ch("B", "http://b", is_custom=True, playlist_name="Other Playlist"),
     ]
-    f = {
-        **_default_filters(),
-        "country": "Nigeria",
-        "category": "Nigeria;Sports",
-        "source": "custom",
-    }
-    out = apply_filters(channels, f, set())
+    out = apply_filters(
+        channels, {**_default_filters(), "custom": "My Playlist"}, set()
+    )
     assert [c["name"] for c in out] == ["A"]

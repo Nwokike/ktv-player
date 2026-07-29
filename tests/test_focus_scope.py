@@ -8,16 +8,17 @@ import pytest
 from app_next.hooks.use_focus_scope import FocusScope
 
 
-def test_focus_scope_returns_keyboard_listener_with_child():
+def test_focus_scope_returns_container_with_keyboard_listener():
     scope = FocusScope(child=ft.Text("hi"))
-    assert isinstance(scope, ft.KeyboardListener)
-    assert isinstance(scope.content, ft.Text)
+    assert isinstance(scope, ft.Container)
+    assert isinstance(scope.content, ft.KeyboardListener)
+    assert isinstance(scope.content.content, ft.Text)
 
 
 def test_focus_scope_passes_child_through():
     text = ft.Text("hi")
     scope = FocusScope(child=text)
-    assert scope.content is text
+    assert scope.content.content is text
 
 
 @pytest.mark.anyio
@@ -27,7 +28,7 @@ async def test_on_back_fires_for_back_key():
     fake_event.key = "Back"
 
     scope = FocusScope(child=ft.Text("x"), on_back=lambda e: received.append(e))
-    await scope.on_key_down(fake_event)
+    await scope.content.on_key_down(fake_event)
     assert received == [fake_event]
 
 
@@ -38,7 +39,7 @@ async def test_on_back_fires_for_escape():
     fake_event.key = "Escape"
 
     scope = FocusScope(child=ft.Text("x"), on_back=lambda e: received.append(e))
-    await scope.on_key_down(fake_event)
+    await scope.content.on_key_down(fake_event)
     assert received == [fake_event]
 
 
@@ -49,7 +50,7 @@ async def test_on_back_fires_for_browser_back():
     fake_event.key = "BrowserBack"
 
     scope = FocusScope(child=ft.Text("x"), on_back=lambda e: received.append(e))
-    await scope.on_key_down(fake_event)
+    await scope.content.on_key_down(fake_event)
     assert received == [fake_event]
 
 
@@ -60,7 +61,7 @@ async def test_on_back_does_not_fire_for_arrow_keys():
         fake_event = mock.Mock()
         fake_event.key = key
         scope = FocusScope(child=ft.Text("x"), on_back=lambda e: received.append(e))
-        await scope.on_key_down(fake_event)
+        await scope.content.on_key_down(fake_event)
     assert received == []
 
 
@@ -70,4 +71,4 @@ async def test_on_back_optional_works_without_handler():
     fake_event = mock.Mock()
     fake_event.key = "Back"
     scope = FocusScope(child=ft.Text("x"))  # no on_back
-    await scope.on_key_down(fake_event)  # must not raise
+    await scope.content.on_key_down(fake_event)  # must not raise

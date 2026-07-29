@@ -1,11 +1,9 @@
 """Tests for DatabaseManager and state synchronization."""
 
-from pathlib import Path
-
 import pytest
 
-from database.manager import DatabaseManager
 from core.state import AppState
+from database.manager import DatabaseManager
 
 
 @pytest.fixture

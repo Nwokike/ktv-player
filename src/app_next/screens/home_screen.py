@@ -1,9 +1,11 @@
-"""HomeScreen — main browsing screen compositing carousel + filters + grid.
+"""HomeScreen — main browsing screen compositing header + carousel + filters + grid.
 
 Reads observable AppState via use_context. Memoizes channel maps and
 filtered results. Owns the "Add Custom Content" dialog state and the
 favorites toggle flow. Delegates to sub-components.
 """
+
+import logging
 
 import flet as ft
 from flet.controls.control import Control
@@ -12,6 +14,7 @@ from app_next.components.add_custom_content_dialog import AddCustomContentDialog
 from app_next.components.channel_grid import ChannelGrid
 from app_next.components.empty_state import EmptyState
 from app_next.components.filter_bar import FilterBar
+from app_next.components.header import Header
 from app_next.components.loading_state import LoadingState
 from app_next.components.recently_watched import RecentlyWatched
 from app_next.hooks.apply_filters import _default_filters, apply_filters
@@ -24,9 +27,6 @@ from app_next.utils.channels import (
     extract_countries,
 )
 from app_next.utils.favorites import toggle_favorite
-from app_next.utils.theme_utils import toggle_theme as _toggle_theme_util
-from core.constants import LBL_ADD_CONTENT
-from database.manager import db_manager
 
 # --- aliases kept for backward-compatible test imports ---
 
@@ -35,13 +35,21 @@ _build_favorites_set = build_favorites_set
 _extract_countries = extract_countries
 _extract_categories = extract_categories
 
+logger = logging.getLogger("HomeScreen")
+
 
 @ft.component
 def HomeScreen() -> Control:
     state = ft.use_context(AppStateCtx)
     controller = ft.use_context(ControllerMethodsCtx)
 
-    filters, set_filters = ft.use_state(_default_filters())
+    def _init_filters():
+        f = _default_filters()
+        if getattr(state, "user_country", None):
+            f["country"] = state.user_country
+        return f
+
+    filters, set_filters = ft.use_state(_init_filters)
     add_dialog_open, set_add_dialog_open = ft.use_state(False)
 
     channels_map = ft.use_memo(
@@ -55,9 +63,28 @@ def HomeScreen() -> Control:
     favorites_set = ft.use_memo(
         lambda: _build_favorites_set(state), [state.channels_hash, fav_dep]
     )
+
+    # Separate built-in vs custom channels for filters
+    built_in_channels = ft.use_memo(
+        lambda: [c for c in state.channels if not c.get("is_custom", False)],
+        [state.channels_hash],
+    )
+    custom_playlists = ft.use_memo(
+        lambda: sorted(
+            {c["playlist_name"] for c in state.channels if c.get("playlist_name")}
+        ),
+        [state.channels_hash],
+    )
+
     visible = ft.use_memo(
         lambda: apply_filters(state.channels, filters, favorites_set),
         [state.channels_hash, filters, favorites_set],
+    )
+
+    logger.info(
+        "Rendered HomeScreen (total_channels=%d, visible_filtered=%d)",
+        len(state.channels),
+        len(visible),
     )
 
     # --- handlers ---
@@ -86,43 +113,25 @@ def HomeScreen() -> Control:
         toggle_favorite(url, state)
 
     def on_filters_updated(new_filters: dict):
-        set_filters(new_filters)
+        updated = {**filters, **new_filters}
+        set_filters(updated)
 
     async def on_add_content_complete():
         set_add_dialog_open(False)
         await controller.refresh_channels()
 
-    def _handle_toggle_theme(e):
-        from flet.controls.context import context
-
-        _toggle_theme_util(context.page)
-
     # --- Build tree ---
 
-    header = ft.Row(
-        controls=[
-            ft.Image(
-                src="/icon.png",
-                width=36,
-                height=36,
-                fit=ft.BoxFit.CONTAIN,
-                border_radius=8,
-            ),
-            ft.IconButton(
-                icon=ft.Icons.ADD_CIRCLE_OUTLINE,
-                tooltip=LBL_ADD_CONTENT,
-                on_click=lambda e: set_add_dialog_open(True),
-                icon_size=22,
-                autofocus=True,
-            ),
-            ft.IconButton(
-                icon=ft.Icons.LIGHT_MODE,
-                tooltip="Toggle Theme",
-                on_click=_handle_toggle_theme,
-                icon_size=18,
-            ),
-        ],
-        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+    def on_refresh_home():
+        import asyncio
+
+        asyncio.create_task(controller.refresh_channels())
+
+    header = Header(
+        search_value=filters.get("search", ""),
+        on_search_change=lambda q: on_filters_updated({"search": q}),
+        on_add_content=lambda: set_add_dialog_open(True),
+        on_refresh=on_refresh_home,
     )
 
     recently = RecentlyWatched(
@@ -134,10 +143,12 @@ def HomeScreen() -> Control:
     filter_bar = FilterBar(
         filters=filters,
         on_change=on_filters_updated,
-        available_countries=_extract_countries(state.channels),
-        available_categories=_extract_categories(state.channels),
+        available_countries=_extract_countries(built_in_channels),
+        available_categories=_extract_categories(built_in_channels),
         user_country=state.user_country,
+        custom_playlists=custom_playlists,
         total_count=len(visible),
+        on_add_content=lambda: set_add_dialog_open(True),
     )
 
     if not state.channels and state.is_loading:
@@ -169,7 +180,7 @@ def HomeScreen() -> Control:
         expand=True,
         content=ft.Column(
             controls=[
-                ft.Container(content=header, padding=ft.Padding(12, 8, 12, 4)),
+                header,
                 recently,
                 filter_bar,
                 body,

@@ -1,20 +1,15 @@
 """apply_filters — pure filter function over the channel list.
 
 This module has ZERO Flet imports so it is trivially testable. Used by
-HomeScreen (M2) and SearchScreen (M3). The filter dict contract:
+HomeScreen and other views. The filter dict contract:
 
-    {"country": "all" | <name>, "category": "all" | <name>,
-     "fav_only": False, "source": "all" | "built-in" | "custom"}
-
-Channel fields used:
-    c["url"]               identity key (required)
-    c["name"]              display name (optional, defaults "")
-    c["group"]             category; ";-delimited, segment 0 = country
-    c["is_custom"]         True for user-added (defaults False if missing)
-    c["country_code"]      "M3U" / "" — only used for sorting/grouping priority
-
-Returns:
-    list[dict]: filtered channels, capped at MAX_SEARCH_RESULTS (50).
+    {
+        "country": "all" | <name>,
+        "category": "all" | <name>,
+        "custom": "none" | "all" | "single" | <playlist_name>,
+        "fav_only": False,
+        "search": "",
+    }
 """
 
 from core.constants import MAX_SEARCH_RESULTS
@@ -24,32 +19,60 @@ def _default_filters() -> dict:
     return {
         "country": "all",
         "category": "all",
+        "custom": "none",
         "fav_only": False,
-        "source": "all",
+        "search": "",
     }
 
 
 def _matches(c: dict, filters: dict, favorites_set: set[str]) -> bool:
-    country = filters.get("country", "all")
-    if country != "all":
-        group_segments = c.get("group", "General").split(";")
-        channel_country = group_segments[0].strip() if group_segments else ""
-        if channel_country != country:
+    # 1. Search Query Filter
+    search_q = filters.get("search", "").strip().lower()
+    if search_q:
+        c_name = c.get("name", "").lower()
+        c_url = c.get("url", "").lower()
+        if search_q not in c_name and search_q not in c_url:
             return False
 
-    category = filters.get("category", "all")
-    if category != "all" and c.get("group", "General") != category:
-        return False
-
+    # 2. Favorites Only Toggle
     if filters.get("fav_only", False) and c.get("url", "") not in favorites_set:
         return False
 
-    source = filters.get("source", "all")
-    if source == "built-in" and c.get("is_custom", False):
-        return False
+    is_custom = c.get("is_custom", False)
 
-    if source == "custom":
-        return c.get("is_custom", False)
+    # 3. Custom Filter Scope
+    custom_sel = filters.get("custom", "none")
+    if custom_sel != "none":
+        if not is_custom:
+            return False
+        if custom_sel == "single":
+            if not c.get("is_single_custom", False):
+                return False
+        elif custom_sel != "all" and c.get("playlist_name") != custom_sel:
+            return False
+    else:
+        # 4. Built-in Country & Category Filters (applies to built-in channels)
+        country = filters.get("country", "all")
+        if country != "all":
+            if is_custom:
+                return False
+            parts = [p.strip() for p in c.get("group", "General").split(";")]
+            channel_country = parts[0] if c.get("country_code") else "Global"
+            if channel_country != country:
+                return False
+
+        category = filters.get("category", "all")
+        if category != "all":
+            if is_custom:
+                return False
+            parts = [p.strip() for p in c.get("group", "General").split(";")]
+            channel_category = (
+                parts[-1]
+                if len(parts) > 1
+                else (parts[0] if not c.get("country_code") else "General")
+            )
+            if channel_category != category and c.get("group") != category:
+                return False
 
     return True
 

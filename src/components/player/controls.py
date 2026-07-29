@@ -78,9 +78,9 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
             visible_on_mount=True,
             display_seek_bar=True,
             modify_volume_on_scroll=True,
-            toggle_fullscreen_on_double_press=True,
+            toggle_fullscreen_on_double_press=False,
             play_and_pause_on_tap=True,
-            hide_mouse_on_controls_removal=True,
+            hide_mouse_on_controls_removal=False,
             primary_button_bar=[
                 fv.VideoSpacer(flex=2),
                 fv.VideoPlayOrPauseButton(icon_size=32.0),
@@ -106,6 +106,6 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
             seek_bar_buffer_color=ft.Colors.with_opacity(0.3, ft.Colors.WHITE),
             seek_bar_hover_height=8,
             volume_bar_active_color=AppColors.PRIMARY,
-            controls_hover_duration=ft.Duration(seconds=3),
+            controls_hover_duration=ft.Duration(seconds=4),
         ),
     )

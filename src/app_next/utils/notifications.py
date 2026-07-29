@@ -1,6 +1,7 @@
 """Notification utilities for app_next components."""
 
 import flet as ft
+
 from core.theme import AppColors
 
 

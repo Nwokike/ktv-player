@@ -72,7 +72,7 @@ def FolderExpansionTile(
                     content=ft.Text(f"Load more ({remaining} remaining)"),
                     on_click=_load_more,
                 ),
-                alignment=ft.alignment.center,
+                alignment=ft.Alignment.CENTER,
                 padding=10,
             )
         )

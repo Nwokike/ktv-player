@@ -25,6 +25,8 @@ class AppColors:
     LIGHT_TEXT_MUTED = "#94A3B8"
 
     GREY_DIM = "#888888"
+    TERMINAL_BG = "#0D0D0D"
+    TERMINAL_TEXT = "#A6E22E"
 
     WHITE = ft.Colors.WHITE
     BLACK = ft.Colors.BLACK

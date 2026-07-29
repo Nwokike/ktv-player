@@ -82,7 +82,7 @@ class ImmersivePlayer(ft.Stack):
             volume=volume,
             muted=muted,
             wakelock=True,
-            filter_quality=ft.FilterQuality.MEDIUM,
+            filter_quality=ft.FilterQuality.LOW,
             pause_upon_entering_background_mode=True,
             resume_upon_entering_foreground_mode=True,
             playlist_mode=fv.PlaylistMode.NONE,
@@ -98,14 +98,16 @@ class ImmersivePlayer(ft.Stack):
                 visible=True,
             ),
             configuration=fv.VideoConfiguration(
-                output_driver="gpu",
                 hardware_decoding_api="auto-safe",
                 enable_hardware_acceleration=True,
                 mpv_properties={
+                    "profile": "fast",
                     "cache": "yes",
-                    "cache-secs": "5",
-                    "demuxer-max-bytes": "50M",
-                    "demuxer-max-back-bytes": "10M",
+                    "cache-secs": "3",
+                    "demuxer-max-bytes": "12M",
+                    "demuxer-max-back-bytes": "3M",
+                    "vd-lavc-threads": "2",
+                    "hr-seek": "no",
                 },
             ),
             fill_color=ft.Colors.BLACK,
@@ -116,7 +118,7 @@ class ImmersivePlayer(ft.Stack):
             on_load=lambda e: logger.debug("on_load: %s", e.data),
             on_error=self._on_error,
             on_complete=self._on_complete,
-            on_position_change=self._on_position_change,
+            on_position_change=lambda e: self._hide_overlay(),
             on_enter_fullscreen=lambda e: logger.debug("Entered fullscreen"),
             on_exit_fullscreen=lambda e: logger.debug("Exited fullscreen"),
         )
@@ -150,7 +152,12 @@ class ImmersivePlayer(ft.Stack):
     # --- Playback ---
 
     async def start_playback(self):
-        logger.debug("start_playback resource=%s", self.resource[:60])
+        logger.info(
+            "Initializing playback: title='%s', resource='%s', headers=%s",
+            self.title,
+            self.resource,
+            self.http_headers,
+        )
         self._reconnect_count = 0
 
         # Show interstitial ad before playback, unless player was already closed
@@ -166,7 +173,7 @@ class ImmersivePlayer(ft.Stack):
                 logger.warning("Ad skipped due to error: %s", ex)
 
         if self._is_closing:
-            logger.debug("Playback cancelled — player closed during ad")
+            logger.info("Playback cancelled — player closed during ad")
             return
 
         try:
@@ -177,6 +184,7 @@ class ImmersivePlayer(ft.Stack):
             await self.video.play()
             playing = await self.video.is_playing()
             if playing:
+                logger.info("Stream playback started successfully for '%s'", self.title)
                 self._hide_overlay()
         except Exception:
             logger.exception("start_playback error")
@@ -187,9 +195,7 @@ class ImmersivePlayer(ft.Stack):
 
         await cycle_speed(self)
 
-    def _on_position_change(self, e: ft.ControlEvent):
-        self._retry_count = 0
-        self._reconnect_count = 0
+    def _on_position_change(self, e: ft.ControlEvent | None = None):
         self._hide_overlay()
 
     def _hide_overlay(self):
