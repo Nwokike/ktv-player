@@ -30,7 +30,7 @@ def card_button_style(
     *,
     padding: PaddingValue = _DEFAULT_CARD_PADDING,
     radius: float = 16,
-    overlay_alpha: float = 0.12,
+    overlay_alpha: float = 0.25,
 ) -> ButtonStyle:
     """Return a ButtonStyle that visually matches a Container-based card.
 
@@ -43,6 +43,7 @@ def card_button_style(
         padding=padding,
         shape=RoundedRectangleBorder(radius=radius),
         bgcolor=Colors.TRANSPARENT,
+        color=Colors.ON_SURFACE,
         overlay_color=Colors.with_opacity(overlay_alpha, Colors.ON_SURFACE),
         elevation=0,
     )

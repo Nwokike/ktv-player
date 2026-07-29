@@ -56,7 +56,7 @@ def AppShell() -> Control:
     state = ft.use_context(AppStateCtx)
 
     if _should_show_onboarding(state):
-        return OnboardingScreen(
+        screen = OnboardingScreen(
             countries=channel_provider.get_countries(),
             on_complete=_onboarding_complete,
             prober=controller.refresh_channels,
@@ -96,4 +96,4 @@ def AppShell() -> Control:
     async def _on_back(e):
         controller.pop_views()
 
-    return FocusScope(child=screen, on_back=_on_back)
+    return FocusScope(child=ft.SafeArea(content=screen, expand=True), on_back=_on_back)

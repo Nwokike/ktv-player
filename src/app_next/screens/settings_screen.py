@@ -136,7 +136,7 @@ def build_logs_dialog(page: ft.Page) -> ft.AlertDialog:
                     ft.Text(
                         LBL_TERMINAL_DESC,
                         size=FONT_SM,
-                        color=ft.Colors.GREY_400,
+                        color=AppColors.grey_dim(),
                     ),
                     ft.Container(
                         content=ft.Column(
@@ -145,7 +145,7 @@ def build_logs_dialog(page: ft.Page) -> ft.AlertDialog:
                         ),
                         bgcolor=AppColors.TERMINAL_BG,
                         border=ft.Border.all(
-                            1, ft.Colors.with_opacity(0.15, ft.Colors.WHITE)
+                            1, ft.Colors.with_opacity(0.25, ft.Colors.WHITE)
                         ),
                         border_radius=BORDER_RADIUS_MD,
                         padding=SPACING_MD,
@@ -309,7 +309,7 @@ def SettingsScreen() -> Control:
                                 ft.Text(
                                     LBL_DARK_MODE_DESC,
                                     size=FONT_SM,
-                                    color=ft.Colors.GREY_400,
+                                    color=AppColors.grey_dim(),
                                 ),
                             ],
                             spacing=2,
@@ -354,7 +354,7 @@ def SettingsScreen() -> Control:
                                 ft.Text(
                                     "Filter default channels by country",
                                     size=FONT_SM,
-                                    color=ft.Colors.GREY_400,
+                                    color=AppColors.grey_dim(),
                                 ),
                             ],
                             spacing=2,
@@ -405,7 +405,7 @@ def SettingsScreen() -> Control:
                                         ft.Text(
                                             LBL_CLEAR_HISTORY_DESC,
                                             size=FONT_SM,
-                                            color=ft.Colors.GREY_400,
+                                            color=AppColors.grey_dim(),
                                         ),
                                     ],
                                     spacing=2,
@@ -445,7 +445,7 @@ def SettingsScreen() -> Control:
                                         ft.Text(
                                             LBL_RESET_LIBRARY_DESC,
                                             size=FONT_SM,
-                                            color=ft.Colors.GREY_400,
+                                            color=AppColors.grey_dim(),
                                         ),
                                     ],
                                     spacing=2,
@@ -488,7 +488,7 @@ def SettingsScreen() -> Control:
                                 ft.Text(
                                     f"{logs_count} log entries recorded in memory",
                                     size=FONT_SM,
-                                    color=ft.Colors.GREY_400,
+                                    color=AppColors.grey_dim(),
                                 ),
                             ],
                             spacing=2,
@@ -530,7 +530,7 @@ def SettingsScreen() -> Control:
                                 ft.Text(
                                     f"Version {APP_VERSION} (Engine: Flet {ft.__version__})",
                                     size=FONT_SM,
-                                    color=ft.Colors.GREY_400,
+                                    color=AppColors.grey_dim(),
                                 ),
                             ],
                             spacing=2,

@@ -103,7 +103,7 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
                 speed_container,
             ],
             seek_bar_position_color=AppColors.PRIMARY,
-            seek_bar_buffer_color=ft.Colors.with_opacity(0.3, ft.Colors.WHITE),
+            seek_bar_buffer_color=ft.Colors.with_opacity(0.5, ft.Colors.WHITE),
             seek_bar_hover_height=8,
             volume_bar_active_color=AppColors.PRIMARY,
             controls_hover_duration=ft.Duration(seconds=4),

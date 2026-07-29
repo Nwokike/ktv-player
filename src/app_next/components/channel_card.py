@@ -69,7 +69,7 @@ def ChannelCard(
         dot_color = AppColors.grey_dim()
 
     fav_icon_name = ft.Icons.FAVORITE if is_favorite else ft.Icons.FAVORITE_BORDER
-    fav_icon_color = AppColors.PRIMARY if is_favorite else ft.Colors.WHITE_70
+    fav_icon_color = AppColors.PRIMARY if is_favorite else AppColors.grey_dim()
 
     return ft.FilledButton(
         key=ft.ValueKey(url),

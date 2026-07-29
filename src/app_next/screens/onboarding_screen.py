@@ -285,6 +285,7 @@ def _country_tile(
     is_selected = name == selected_country
     return ft.ListTile(
         key=ft.ValueKey(name),
+        bgcolor=AppColors.PRIMARY if is_selected else None,
         title=ft.Text(
             name,
             color=ft.Colors.WHITE if is_selected else None,
