@@ -21,13 +21,21 @@ async def _noop_async() -> None:
     """No-op async default for refresh_channels (no IO, returns immediately)."""
 
 
-async def _noop_async2(_a: str, _b: "str | None" = None) -> None:
+async def _noop_async2(_a: str, _b: str | None = None) -> None:
     """No-op async default for play_stream(url, title)."""
 
 
 def _noop_sync() -> None:
     """No-op sync default for pop_views."""
     return
+
+
+async def _noop_async_modal(_name: str = "") -> None:
+    """No-op async default for push_modal(name)."""
+
+
+async def _noop_async_close_modal() -> None:
+    """No-op async default for close_modal()."""
 
 
 @dataclass
@@ -41,8 +49,11 @@ class ControllerMethods:
     """
 
     refresh_channels: Callable[[], Awaitable[None]] = _noop_async
-    play_stream: Callable[[str, "str | None"], Awaitable[None]] = _noop_async2
+    play_stream: Callable[[str, str | None], Awaitable[None]] = _noop_async2
     pop_views: Callable[[], None] = _noop_sync
+    push_modal: Callable[[str], Awaitable[None]] = _noop_async_modal
+    pop_modal: Callable[[], Awaitable[None]] = _noop_async_close_modal
+    close_modal: Callable[[], Awaitable[None]] = _noop_async_close_modal
 
 
 ControllerMethodsCtx = ft.create_context(ControllerMethods())

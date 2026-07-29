@@ -16,10 +16,13 @@ logger = logging.getLogger(__name__)
 async def load_all_channels(page_obj, loading_lock):
     """Fetch and merge built-in, custom, and playlist channels into global state."""
     async with loading_lock:
-        from views.tabs.channel_classification import _invalidate_groups_cache
-
-        _invalidate_groups_cache()
-
+        # The legacy views.tabs.channel_classification._invalidate_groups_cache()
+        # call was removed when the views/ tree was cut over (commit 73d2cf6
+        # deleted channel_classification.py but left this import dangling,
+        # causing every refresh_channels() call to silently raise
+        # ModuleNotFoundError). Per-tab group caches are no longer used —
+        # the new AppShell frontend recomputes groups from state.channels
+        # on each render via HomeScreen._extract_categories (pure, memoized).
         try:
             channels = await channel_provider.get_all_channels()
 

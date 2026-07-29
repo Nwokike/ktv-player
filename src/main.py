@@ -9,6 +9,7 @@ import urllib.parse
 import flet as ft
 
 import core.logger_handler  # noqa: F401
+from app_next.hooks.use_focus_scope import FocusScope
 from components.player.immersive_player import ImmersivePlayer
 from core.constants import (
     APP_NAME,
@@ -32,6 +33,9 @@ class AppController:
         self.ad_service: AdService | None = None
         self.liveliness: LivelinessChecker | None = None
         self._loading_lock: asyncio.Lock | None = None
+        # Explicit modal name stack so _handle_back can pop the
+        # topmost dialog before popping a view.
+        self._modal_stack: list[str] = []
 
     async def init(self):
         self.page.title = APP_NAME
@@ -98,6 +102,9 @@ class AppController:
             refresh_channels=self.load_channels,
             play_stream=self.play_stream,
             pop_views=self._handle_back,
+            push_modal=self.push_modal,
+            pop_modal=self.pop_modal,
+            close_modal=self.close_modal,
         )
         self.page.render(lambda: ControllerMethodsCtx(methods, lambda: AppShell()))
 
@@ -113,7 +120,39 @@ class AppController:
         except Exception:
             pass
 
+    async def push_modal(self, name: str) -> None:
+        """Push a named modal onto the stack. Call from
+        AddCustomContentDialog (or future dialogs) on open."""
+        self._modal_stack.append(name)
+        self.page.update()
+
+    async def close_modal(self) -> None:
+        """Pop the top modal from the stack. Call from
+        AddCustomContentDialog on_dismiss and _dismiss."""
+        if self._modal_stack:
+            self._modal_stack.pop()
+        self.page.update()
+
+    async def pop_modal(self, name: str) -> None:
+        """Remove a specific named modal (not necessarily the top).
+
+        Useful when a dialog is dismissed via a non-standard path
+        and the caller knows exactly which modal to remove."""
+        if name in self._modal_stack:
+            self._modal_stack.remove(name)
+        self.page.update()
+
     def _handle_back(self):
+        """Handle OS back button / FocusScope.on_back.
+
+        If a modal dialog is open (tracked in _modal_stack),
+        close it first. Otherwise, fall through to the existing
+        view-pop behaviour.
+        """
+        if self._modal_stack:
+            self._modal_stack.pop()
+            self.page.update()
+            return
         if len(self.page.views) > 1:
             self.page.views.pop()
             self.page.update()
@@ -162,7 +201,15 @@ class AppController:
                 "Referer": "https://kwik.cx/",
             }
 
-        # Create player view immediately so the screen isn't blank
+        # Create player view immediately so the screen isn't blank.
+        # Wrap ImmersivePlayer in a FocusScope so Escape/Back while
+        # the player is active closes it natively (no parallel
+        # page.on_keyboard_event handler). handle_close() runs
+        # ImmersivePlayer cleanup (will_unmount) before the view pop.
+        async def _player_on_back(e):
+            await player.handle_close()
+            await self._close_player()
+
         player = ImmersivePlayer(
             resource=url,
             title=title,
@@ -173,7 +220,9 @@ class AppController:
 
         player_view = ft.View(
             route="/play",
-            controls=[player],
+            controls=[
+                FocusScope(child=player, on_back=_player_on_back),
+            ],
             padding=0,
         )
 

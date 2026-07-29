@@ -109,7 +109,7 @@ def SettingsScreen() -> Control:
         return ft.Row(
             controls=[
                 ft.Text("Dark Mode"),
-                ft.Switch(value=_is_dark(), on_change=_toggle_theme),
+                ft.Switch(value=_is_dark(), on_change=_toggle_theme, autofocus=True),
             ],
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
         )
@@ -222,12 +222,13 @@ def SettingsScreen() -> Control:
     }
 
     tiles: list[Control] = []
-    for section in _SECTIONS:
+    for idx, section in enumerate(_SECTIONS):
         tile = ft.ExpansionTile(
             leading=ft.Icon(section["icon"]),
             title=ft.Text(section["title"]),
             controls=[content_builders[section["key"]]()],
             dense=True,
+            expanded=idx == 0,
         )
         tiles.append(tile)
         tiles.append(ft.Divider(height=1))

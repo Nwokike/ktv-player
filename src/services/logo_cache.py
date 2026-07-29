@@ -104,7 +104,7 @@ async def _download_one(logo_url: str) -> str | None:
 
         await asyncio.to_thread(_write_file, cached_path, resp.content)
         return cached_path
-    except (httpx.HTTPError, httpx.TimeoutException, Exception):
+    except httpx.HTTPError, httpx.TimeoutException, Exception:
         return None
     finally:
         _in_flight.discard(logo_url)

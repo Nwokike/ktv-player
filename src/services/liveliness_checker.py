@@ -35,7 +35,7 @@ class LivelinessChecker:
                 try:
                     resp = await client.head(url, timeout=check_timeout)
                     is_live = resp.status_code < 400
-                except (httpx.HTTPError, httpx.TimeoutException, Exception):
+                except httpx.HTTPError, httpx.TimeoutException, Exception:
                     resp = await client.get(
                         url,
                         headers={"Range": "bytes=0-0"},
@@ -44,7 +44,7 @@ class LivelinessChecker:
                     is_live = resp.status_code in (200, 206, 301, 302, 304)
                 liveliness_cache.set(url, is_live)
                 return (url, is_live)
-            except (httpx.HTTPError, httpx.TimeoutException, Exception):
+            except httpx.HTTPError, httpx.TimeoutException, Exception:
                 liveliness_cache.set(url, False)
                 return (url, False)
 

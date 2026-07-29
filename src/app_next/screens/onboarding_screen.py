@@ -266,6 +266,7 @@ def _build_online_form(
                         ft.Checkbox(
                             value=terms_accepted,
                             on_change=lambda e: on_terms_toggle(e.control.value),
+                            autofocus=True,
                         ),
                         ft.Text(
                             LBL_USAGE_AGREEMENT, size=14, weight=ft.FontWeight.W_500

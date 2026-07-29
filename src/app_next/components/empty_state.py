@@ -16,6 +16,7 @@ def EmptyState(
     action_label: str | None = None,
     on_action: Callable | None = None,
     icon: ft.IconData = ft.Icons.INFO_OUTLINE,
+    autofocus_action: bool = False,
 ) -> Control:
     items = [
         ft.Icon(icon, size=64),
@@ -34,7 +35,13 @@ def EmptyState(
             )
         )
     if action_label and on_action:
-        items.append(ft.FilledButton(content=ft.Text(action_label), on_click=on_action))
+        items.append(
+            ft.FilledButton(
+                content=ft.Text(action_label),
+                on_click=on_action,
+                autofocus=autofocus_action,
+            )
+        )
     return ft.Container(
         expand=True,
         alignment=ft.Alignment(0.0, 0.0),

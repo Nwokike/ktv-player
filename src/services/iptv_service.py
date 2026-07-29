@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class IPTVService:
-    def get_client(self) -> "httpx.AsyncClient":
+    def get_client(self) -> httpx.AsyncClient:
         return get_http_client()
 
     async def fetch_built_in_channels(self):
@@ -28,7 +28,7 @@ class IPTVService:
             resp = await client.get(url, headers=headers, timeout=playlist_timeout)
             resp.raise_for_status()
             return parse_m3u_text(resp.text, default_group="Custom")
-        except (httpx.HTTPError, httpx.TimeoutException, Exception):
+        except httpx.HTTPError, httpx.TimeoutException, Exception:
             return []
 
     async def fetch_playlist(self, url: str) -> list[dict]:

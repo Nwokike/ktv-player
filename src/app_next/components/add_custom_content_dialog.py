@@ -14,6 +14,7 @@ import flet as ft
 from flet.controls.control import Control
 
 from app_next.hooks.use_storage import use_storage
+from app_next.state.controller_ctx import ControllerMethodsCtx
 from core.constants import (
     ADD_CONTENT_COOLDOWN,
     LBL_ADDED_SUCCESS,
@@ -75,6 +76,7 @@ def AddCustomContentDialog(
     last_add, set_last_add = ft.use_state(0.0)
     is_adding, set_is_adding = ft.use_state(False)
     storage = use_storage()
+    controller = ft.use_context(ControllerMethodsCtx)
 
     def _reset():
         set_name("")
@@ -105,20 +107,22 @@ def AddCustomContentDialog(
         finally:
             set_is_adding(False)
 
-    def _handle_cancel(e):
+    async def _handle_cancel(e):
         _reset()
-        _dismiss()
+        await _dismiss()
         on_close()
 
-    def _dismiss():
+    async def _dismiss():
         from flet.controls.context import context
 
         try:
             context.page.pop_dialog()
         except Exception:
             pass
+        if controller is not None:
+            await controller.close_modal()
 
-    def _show():
+    async def _show():
         from flet.controls.context import context
 
         dialog = ft.AlertDialog(
@@ -164,8 +168,15 @@ def AddCustomContentDialog(
                     disabled=not _can_add(name, url, last_add) or is_adding,
                 ),
             ],
-            on_dismiss=lambda: on_close(),
+            on_dismiss=lambda: (
+                asyncio.create_task(
+                    controller.close_modal() if controller else asyncio.sleep(0)
+                )
+                or on_close()
+            ),
         )
+        if controller is not None:
+            await controller.push_modal("add_content")
         try:
             context.page.show_dialog(dialog)
         except Exception:

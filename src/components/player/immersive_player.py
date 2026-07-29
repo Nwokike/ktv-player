@@ -37,7 +37,6 @@ class ImmersivePlayer(ft.Stack):
         self._is_final_error = False
         self._is_closing = False
         self._was_closed_during_ad = False
-        self._previous_keyboard_handler = None
 
         # Overlay
         self.status_text = ft.Text(
@@ -135,23 +134,6 @@ class ImmersivePlayer(ft.Stack):
         except Exception as ex:
             logger.warning("Failed to capture screenshot: %s", ex)
             return None
-
-    # --- Lifecycle ---
-
-    def did_mount(self):
-        self._previous_keyboard_handler = self.page.on_keyboard_event
-        self.page.on_keyboard_event = self._handle_player_keyboard
-
-    def will_unmount(self):
-        # Only restore if this player still owns the handler
-        if self.page.on_keyboard_event == self._handle_player_keyboard:
-            self.page.on_keyboard_event = self._previous_keyboard_handler
-
-    def _handle_player_keyboard(self, e: ft.KeyboardEvent):
-        if e.key in ("Escape", "Back", "BrowserBack"):
-            self.page.run_task(self._on_back)
-        elif self._previous_keyboard_handler:
-            self._previous_keyboard_handler(e)
 
     # --- Controls ---
 

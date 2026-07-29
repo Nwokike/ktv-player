@@ -48,11 +48,13 @@ def test_channel_grid_keyed_with_url():
         liveliness_cache_obj=None,
         ad_service=None,
     )
-    # Cards in GridView are wrapped in Containers — check their content
+    # Phase A: ChannelCard is now an ft.FilledButton (was ft.Container). It's
+    # still wrapped in a col-bearing Container inside the GridView, but its
+    # .key still holds the URL ValueKey. Match by Container-with-inner-key.
     for c in grid.controls:
         if isinstance(c, ft.Container) and hasattr(c, "content"):
             inner = c.content
-            if isinstance(inner, ft.Container) and inner.key is not None:
+            if inner is not None and getattr(inner, "key", None) is not None:
                 assert "http://x/0" in str(inner.key) or "http://x/1" in str(inner.key)
                 return
     assert False, "No keyed ChannelCard found in GridView"

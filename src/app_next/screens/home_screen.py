@@ -129,6 +129,7 @@ def HomeScreen() -> Control:
                 tooltip=LBL_ADD_CONTENT,
                 on_click=lambda e: set_add_dialog_open(True),
                 icon_size=22,
+                autofocus=True,
             ),
             ft.IconButton(
                 icon=ft.Icons.LIGHT_MODE,

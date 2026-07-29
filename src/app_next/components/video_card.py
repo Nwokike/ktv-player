@@ -3,6 +3,12 @@
 Plain function (no @ft.component). Receives a LocalVideo dataclass and
 on_play callback. Shows name, file size, and a movie icon. Matches the
 legacy local/cards.py layout.
+
+The outer tile is an `ft.FilledButton` (NOT a `Container`) so that Flet
+0.86.4 will give it native D-pad focus on Android TV / Fire Stick remotes
+— see Phase A of the focus rewrite. The card-button style preserves the
+prior Container visuals (12px padding, 16px corner radius, ink/splash
+on press).
 """
 
 from collections.abc import Callable
@@ -10,6 +16,7 @@ from collections.abc import Callable
 import flet as ft
 from flet.controls.control import Control
 
+from app_next.components.focus_styles import card_button_style
 from services.local_scanner import LocalVideo, _format_size
 
 
@@ -17,12 +24,10 @@ def VideoCard(
     video: LocalVideo,
     on_play: Callable[[str], None],
 ) -> Control:
-    return ft.Container(
-        padding=12,
-        border_radius=16,
+    return ft.FilledButton(
         height=140,
-        ink=True,
         on_click=lambda e: on_play(video.path),
+        style=card_button_style(padding=ft.Padding.all(12), radius=16),
         content=ft.Column(
             controls=[
                 ft.Row(

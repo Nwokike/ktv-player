@@ -44,7 +44,7 @@ def _is_system_dir(dir_path: Path) -> bool:
     try:
         attrs = os.stat(str(dir_path)).st_file_attributes
         return bool(attrs & _SKIP_ATTR)
-    except (OSError, AttributeError):
+    except OSError, AttributeError:
         return False
 
 
@@ -150,7 +150,7 @@ def scan_videos(
                                 modified=stat.st_mtime,
                             ),
                         )
-                    except (OSError, PermissionError):
+                    except OSError, PermissionError:
                         continue
 
             if video_files:

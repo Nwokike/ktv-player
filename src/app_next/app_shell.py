@@ -18,6 +18,7 @@ import flet as ft
 from flet.controls.control import Control
 
 from app_next.hooks.use_focus_scope import FocusScope
+from app_next.hooks.use_keyboard_shortcuts import use_keyboard_shortcuts
 from app_next.screens.home_screen import HomeScreen
 from app_next.screens.local_screen import LocalScreen
 from app_next.screens.onboarding_screen import OnboardingScreen
@@ -61,6 +62,12 @@ def AppShell() -> Control:
     """Top-level shell. Reads observable state; renders Onboarding or dashboard."""
     selected_tab, set_selected_tab = ft.use_state(0)
     controller = ft.use_context(ControllerMethodsCtx)
+
+    use_keyboard_shortcuts(
+        controller=controller,
+        on_search=lambda: set_selected_tab(1),
+        on_refresh=controller.refresh_channels,
+    )
 
     # State is accessed via use_context (auto-subscribes to observable changes).
     state = ft.use_context(AppStateCtx)

@@ -113,6 +113,7 @@ def LocalScreen() -> Control:
                             content=ft.Text("Scan Again"),
                             icon=ft.Icons.REFRESH,
                             on_click=_refresh,
+                            autofocus=True,
                         ),
                         ft.FilledButton(
                             content=ft.Text("Add Folder"),

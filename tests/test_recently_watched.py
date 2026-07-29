@@ -1,6 +1,7 @@
 """Tests for RecentlyWatched carousel component."""
 
 import flet as ft
+from flet_tree import walk
 
 from app_next.components.recently_watched import RecentlyWatched
 
@@ -42,21 +43,18 @@ def test_recently_watched_card_triggers_on_play():
         assert fired == ["http://x/0"]
 
 
-# helpers
-def _walk(c):
-    yield c
-    children = getattr(c, "controls", None) or []
-    if isinstance(children, list):
-        for ch in children:
-            yield from _walk(ch)
-    content = getattr(c, "content", None)
-    if content:
-        yield from _walk(content)
-
-
 def _find_card_like(root):
+    """Return clickable card-like controls.
+
+    NOTE: Phase A migrates RecentlyWatched cards from Container to FilledButton
+    so they become D-pad-focusable. This helper keeps working across both
+    shapes by matching either a non-empty on_click Container OR any button.
+    Once Phase A lands, all matches will be FilledButtons.
+    """
     results = []
-    for c in _walk(root):
-        if isinstance(c, ft.Container) and hasattr(c, "on_click") and c.on_click:
+    for c in walk(root):
+        if isinstance(
+            c, (ft.FilledButton, ft.OutlinedButton, ft.ElevatedButton, ft.TextButton)
+        ) or (isinstance(c, ft.Container) and hasattr(c, "on_click") and c.on_click):
             results.append(c)
     return results

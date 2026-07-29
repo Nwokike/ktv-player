@@ -1,12 +1,15 @@
 """Tests for ChannelCard component."""
 
 import flet as ft
+from flet_tree import find_icon, walk
 
 from app_next.components.channel_card import ChannelCard
 from core.constants import CARD_HEIGHT, STATUS_DOT_SIZE
 
 
-def test_channel_card_returns_a_container():
+def test_channel_card_is_a_focusable_filled_button():
+    # Phase A: ChannelCard is now an ft.FilledButton (not a Container) so the
+    # Flet runtime gives it native D-pad focus on Android TV remotes.
     card = ChannelCard(
         channel={"url": "http://x", "name": "Test Channel", "logo": ""},
         is_favorite=False,
@@ -14,7 +17,7 @@ def test_channel_card_returns_a_container():
         on_toggle_favorite=lambda u: None,
         liveliness_status=None,
     )
-    assert isinstance(card, ft.Container)
+    assert isinstance(card, ft.FilledButton)
 
 
 def test_channel_card_has_stable_key():
@@ -49,7 +52,7 @@ def test_channel_card_favorite_icon_reflects_is_favorite():
         on_toggle_favorite=lambda u: None,
         liveliness_status=None,
     )
-    ico = _find_icon(fav_card, ft.Icons.FAVORITE)
+    ico = find_icon(fav_card, ft.Icons.FAVORITE)
     assert ico is not None
 
     unfav_card = ChannelCard(
@@ -59,7 +62,7 @@ def test_channel_card_favorite_icon_reflects_is_favorite():
         on_toggle_favorite=lambda u: None,
         liveliness_status=None,
     )
-    ico2 = _find_icon(unfav_card, ft.Icons.FAVORITE_BORDER)
+    ico2 = find_icon(unfav_card, ft.Icons.FAVORITE_BORDER)
     assert ico2 is not None
 
 
@@ -85,27 +88,8 @@ def test_channel_card_liveliness_dot_color():
     assert dot2 is not None
 
 
-# --- helpers ---
-def _walk(c):
-    yield c
-    children = getattr(c, "controls", None) or []
-    if isinstance(children, list):
-        for ch in children:
-            yield from _walk(ch)
-    content = getattr(c, "content", None)
-    if content:
-        yield from _walk(content)
-
-
-def _find_icon(root, icon_name):
-    for c in _walk(root):
-        if isinstance(c, ft.Icon) and c.icon == icon_name:
-            return c
-    return None
-
-
 def _find_dot(root):
-    for c in _walk(root):
+    for c in walk(root):
         if isinstance(c, ft.Container) and c.border_radius == STATUS_DOT_SIZE // 2:
             return c
     return None
