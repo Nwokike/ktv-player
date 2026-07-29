@@ -10,6 +10,7 @@ class AppColors:
     WARNING = "#F44336"
     ERROR = "#FF5252"
 
+    # --- Dark Mode Colors (Untouched) ---
     DARK_BG = "#0D0F1A"
     DARK_SURFACE = "#151828"
     DARK_SURFACE_VARIANT = "#1E2235"
@@ -17,14 +18,22 @@ class AppColors:
     DARK_TEXT_DIM = "#8E94A5"
     DARK_TEXT_MUTED = "#5A6078"
 
+    GREY_DIM = "#8E94A5"
+    GREY_MUTED = "#5A6078"
+
+    # --- Light Mode Colors (Tweaked for better contrast) ---
     LIGHT_BG = "#F5F7FB"
     LIGHT_SURFACE = "#FFFFFF"
     LIGHT_SURFACE_VARIANT = "#F0F2F8"
     LIGHT_TEXT = "#1A1D2D"
-    LIGHT_TEXT_DIM = "#64748B"
-    LIGHT_TEXT_MUTED = "#94A3B8"
+    
+    # Changed from #64748B to #334155 to make "ash" text much darker and legible
+    LIGHT_TEXT_DIM = "#334155" 
+    
+    # Changed from #94A3B8 to #64748B so muted text doesn't vanish into the background
+    LIGHT_TEXT_MUTED = "#64748B" 
 
-    GREY_DIM = "#888888"
+    # General terminal colors
     TERMINAL_BG = "#0D0D0D"
     TERMINAL_TEXT = "#A6E22E"
 
@@ -80,8 +89,9 @@ class AppColors:
 
     @staticmethod
     def get_border_color(page: ft.Page) -> str:
+        # Increased light mode border opacity slightly from 0.12 to 0.15 for better definition
         return ft.Colors.with_opacity(
-            0.12,
+            0.12 if AppColors._is_dark(page) else 0.15,
             ft.Colors.WHITE if AppColors._is_dark(page) else ft.Colors.BLACK,
         )
 
@@ -101,7 +111,7 @@ class AppColors:
     def grey_dim(page=None) -> str:
         """Return a grey color that adapts to dark/light theme.
 
-        Falls back to ``"#888888"`` when no page context is available.
+        Falls back to ``"#555555"`` (darker grey) when no page context is available.
         """
         try:
             if page is None:
@@ -110,9 +120,9 @@ class AppColors:
                 page = context.page
             if AppColors._is_dark(page):
                 return "#AAAAAA"  # lighter grey on dark backgrounds
-            return "#888888"  # darker grey on light backgrounds
+            return "#555555"  # Changed from #888888 to #555555 for better light mode contrast
         except Exception:
-            return "#888888"
+            return "#555555"
 
 
 class AppTheme:
