@@ -48,7 +48,7 @@ def test_mobile_controls_have_no_skip_buttons():
 
 
 def test_desktop_play_and_pause_on_tap_enabled():
-    """Desktop controls should enable play_and_pause_on_tap."""
+    """Desktop controls should disable play_and_pause_on_tap per user request."""
     import flet_video as fv
 
     player = mock.MagicMock()
@@ -56,4 +56,4 @@ def test_desktop_play_and_pause_on_tap_enabled():
     controls = build_player_controls(player)
     desktop = controls.material_desktop
     assert isinstance(desktop, fv.MaterialDesktopVideoControls)
-    assert desktop.play_and_pause_on_tap is True
+    assert desktop.play_and_pause_on_tap is False

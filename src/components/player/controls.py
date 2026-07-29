@@ -79,7 +79,7 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
             display_seek_bar=True,
             modify_volume_on_scroll=True,
             toggle_fullscreen_on_double_press=False,
-            play_and_pause_on_tap=True,
+            play_and_pause_on_tap=False,
             hide_mouse_on_controls_removal=False,
             primary_button_bar=[
                 fv.VideoSpacer(flex=2),

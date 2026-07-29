@@ -17,7 +17,6 @@ async def cycle_speed(player_inst):
     player_inst.video.playback_rate = rate
     player_inst.speed_text.value = f"{rate}x"
     try:
-        player_inst.video.controls = player_inst._build_controls()
         player_inst.video.update()
         if hasattr(player_inst.speed_text, "update"):
             player_inst.speed_text.update()
