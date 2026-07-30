@@ -14,7 +14,7 @@ from flet import Control, context
 
 from app_next.utils.theme_utils import toggle_theme as _toggle_theme_util
 from core.constants import LBL_ADD_CONTENT, LBL_SEARCH_HINT
-from core.tokens import FONT_MD, ICON_MD, ICON_SM, RADIUS_MD, SPACING_SM
+from core.tokens import FONT_MD, ICON_SM, RADIUS_MD, SPACING_SM
 
 _HEADER_TOOLBAR_HEIGHT = 48
 
@@ -48,8 +48,10 @@ def Header(
     )
 
     _compact_style = ft.ButtonStyle(padding=ft.Padding.all(4))
-    _leading_width = 88 if callable(on_add_content) else 44
+    _leading_width = 44
 
+    # Logo is the leading control. The "+" add action lives as the
+    # LAST item in the actions row so the row reads: [refresh?] [theme] [+].
     leading_controls: list[Control] = [
         ft.Image(
             src="/icon.png",
@@ -59,16 +61,6 @@ def Header(
             border_radius=RADIUS_MD,
         ),
     ]
-    if callable(on_add_content):
-        leading_controls.append(
-            ft.IconButton(
-                icon=ft.Icons.ADD_CIRCLE_OUTLINE,
-                tooltip=add_tooltip,
-                on_click=lambda e: on_add_content(),
-                icon_size=ICON_MD,
-                style=_compact_style,
-            )
-        )
 
     actions: list[Control] = []
     if callable(on_refresh):
@@ -97,6 +89,16 @@ def Header(
             style=_compact_style,
         )
     )
+    if callable(on_add_content):
+        actions.append(
+            ft.IconButton(
+                icon=ft.Icons.ADD_CIRCLE_OUTLINE,
+                tooltip=add_tooltip,
+                on_click=lambda e: on_add_content(),
+                icon_size=ICON_SM,
+                style=_compact_style,
+            )
+        )
 
     return ft.AppBar(
         leading=ft.Row(
