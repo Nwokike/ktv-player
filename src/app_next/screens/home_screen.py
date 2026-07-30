@@ -5,10 +5,11 @@ filtered results. Owns the "Add Custom Content" dialog state and the
 favorites toggle flow. Delegates to sub-components.
 """
 
+import asyncio
 import logging
 
 import flet as ft
-from flet import Control
+from flet import Control, use_ref
 
 from app_next.components.add_custom_content_dialog import AddCustomContentDialog
 from app_next.components.channel_grid import ChannelGrid
@@ -51,10 +52,33 @@ def HomeScreen() -> Control:
     filters, set_filters = ft.use_state(_init_filters)
     add_dialog_open, set_add_dialog_open = ft.use_state(False)
     liveliness_version, set_liveliness_version = ft.use_state(0)
+    # Coalesce liveliness _on_change storms. Without this, 1929 probe
+    # results each trigger a full HomeScreen rebuild in lockstep with
+    # the worker queue drain — see live trace. Verified .venv:
+    # use_ref returns MutableRef (components/hooks/use_ref.py:11-21);
+    # asyncio.get_running_loop() raises RuntimeError when no loop is
+    # running, which is the sync-render fallback we want.
+    pending_render = use_ref(False)
 
-    # Register callback so grid re-renders when liveliness results arrive
     def _on_liveliness_change():
-        set_liveliness_version(lambda v: v + 1)
+        if pending_render.current:
+            return
+        pending_render.current = True
+
+        async def _flush():
+            await asyncio.sleep(0.15)
+            pending_render.current = False
+            set_liveliness_version(lambda v: v + 1)
+
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(_flush())
+        except RuntimeError:
+            # No event loop yet (very first sync render before the
+            # page is mounted). Bypass the coalescer and bump
+            # immediately so the first probe isn't dropped.
+            pending_render.current = False
+            set_liveliness_version(lambda v: v + 1)
 
     from services.liveliness import liveliness_cache
 
