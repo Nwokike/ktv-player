@@ -1,10 +1,12 @@
-"""Favorites toggle utility for app_next components."""
+"""Favorites toggle utility."""
 
 import asyncio
+import logging
 
 from database.manager import db_manager
 
-# Guards against rapid-fire toggles on the same URL.
+logger = logging.getLogger(__name__)
+
 _in_flight: set[str] = set()
 
 
@@ -24,8 +26,12 @@ def toggle_favorite(url: str, state) -> None:
                 await db_manager.add_favorite(url)
                 state.favorites = current + [url]
         except Exception:
-            pass
+            logger.exception("Failed to toggle favorite for %s", url)
         finally:
             _in_flight.discard(url)
 
-    asyncio.create_task(_do())
+    try:
+        loop = asyncio.get_running_loop()
+        loop.create_task(_do())
+    except RuntimeError:
+        pass

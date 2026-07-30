@@ -3,6 +3,8 @@
 import re
 import urllib.parse
 
+from core.constants import VALID_STREAM_SCHEMES
+
 _SENSITIVE_PATHS = (
     "/etc/",
     "/proc/",
@@ -25,7 +27,7 @@ def _is_valid_play_url(raw: str) -> bool:
         lower = raw.lower()
         return not any(s.lower() in lower for s in _SENSITIVE_PATHS)
 
-    for scheme in ("http://", "https://", "rtsp://", "rtmp://", "rtp://", "mms://"):
+    for scheme in VALID_STREAM_SCHEMES:
         if raw.startswith(scheme):
             try:
                 urllib.parse.urlparse(raw)

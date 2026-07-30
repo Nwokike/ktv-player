@@ -30,7 +30,9 @@ _logo_worker_tasks: list[asyncio.Task] = []
 _logo_workers_started = False
 _cache_dir_initialized = False
 _last_evict_time = 0.0
+_last_failed_evict_time = 0.0
 _FAILED_LOGO_TTL = 300  # Don't retry failed logos for 5 minutes
+_FAILED_LOGO_EVICT_INTERVAL = 60.0  # Evict stale failed entries every 60s
 
 
 def _detect_image_type(data: bytes) -> str | None:
@@ -166,6 +168,18 @@ def shutdown_workers():
     _logo_worker_tasks.clear()
 
 
+def _evict_stale_failed_logos():
+    """Remove _failed_logos entries older than _FAILED_LOGO_TTL."""
+    global _last_failed_evict_time
+    now = time.time()
+    if now - _last_failed_evict_time < _FAILED_LOGO_EVICT_INTERVAL:
+        return
+    _last_failed_evict_time = now
+    stale = [url for url, ts in _failed_logos.items() if (now - ts) >= _FAILED_LOGO_TTL]
+    for url in stale:
+        _failed_logos.pop(url, None)
+
+
 def enqueue_logo_download(logo_url: str):
     if not logo_url or logo_url == "/icon.png":
         return
@@ -173,15 +187,25 @@ def enqueue_logo_download(logo_url: str):
         return
     if logo_url in _in_flight:
         return
-    # Skip recently failed downloads (negative cache)
     failed_at = _failed_logos.get(logo_url)
     if failed_at and (time.time() - failed_at) < _FAILED_LOGO_TTL:
         return
 
     _ensure_cache_dir()
-    asyncio.create_task(_evict_oldest_if_needed())
+    _evict_stale_failed_logos()
     _ensure_queue()
-    asyncio.create_task(_logo_queue.put(logo_url))
+
+    async def _enqueue():
+        try:
+            await _logo_queue.put(logo_url)
+        except Exception:
+            logger.debug("Failed to enqueue logo download: %s", logo_url)
+
+    try:
+        loop = asyncio.get_running_loop()
+        loop.create_task(_enqueue())
+    except RuntimeError:
+        pass
 
 
 async def download_logo(

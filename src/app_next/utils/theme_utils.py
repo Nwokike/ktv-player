@@ -1,10 +1,13 @@
-"""Theme toggling utility for app_next components."""
+"""Theme toggling utility."""
 
 import asyncio
+import logging
 
 import flet as ft
 
 from database.manager import db_manager
+
+logger = logging.getLogger(__name__)
 
 
 def toggle_theme(page: ft.Page) -> None:
@@ -17,8 +20,15 @@ def toggle_theme(page: ft.Page) -> None:
     page.update()
 
     async def _save():
-        await db_manager.set_setting(
-            "theme_mode", "dark" if new_mode == ft.ThemeMode.DARK else "light"
-        )
+        try:
+            await db_manager.set_setting(
+                "theme_mode", "dark" if new_mode == ft.ThemeMode.DARK else "light"
+            )
+        except Exception:
+            logger.exception("Failed to persist theme mode")
 
-    asyncio.create_task(_save())
+    try:
+        loop = asyncio.get_running_loop()
+        loop.create_task(_save())
+    except RuntimeError:
+        pass

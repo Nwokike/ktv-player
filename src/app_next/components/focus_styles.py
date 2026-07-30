@@ -1,22 +1,4 @@
-"""Shared Focus-aware styling helpers for card-like tiles.
-
-Cards that are clickable (ChannelCard, RecentlyWatched card, VideoCard) need
-to be D-pad-focusable on Android TV / Fire Stick remotes. Flet 0.86.4's
-`ft.Container` is NOT focusable — only Material buttons (FilledButton,
-TextButton, OutlinedButton, IconButton) carry `autofocus`, `on_focus`,
-`on_blur`, and a `focus()` method.
-
-`card_button_style` returns a `ButtonStyle` that preserves the previous
-Container-card visuals:
-- `padding` set from the existing per-card padding
-- `shape=RoundedRectangleBorder(radius=...)` to keep the rounded corners
-- `bgcolor=Colors.TRANSPARENT` so the card shows its own background colour
-- `overlay_color` restores the ink/ripple that `ink=True` provided
-
-Tests in test_focus_cards.py assert that cards return `FilledButton`
-instances with these properties applied. The helper is intentionally tiny
-and pure so it can be unit-tested separately.
-"""
+"""Shared Focus-aware styling helpers for card-like tiles."""
 
 from flet import ButtonStyle, Colors, Padding, PaddingValue, RoundedRectangleBorder
 

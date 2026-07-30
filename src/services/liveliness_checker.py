@@ -20,6 +20,9 @@ _liveliness_queue: asyncio.Queue[str] | None = None
 _worker_tasks: list[asyncio.Task] = []
 _workers_started = False
 
+_WORKERS = 2
+_QUEUE_MAX = 500
+
 
 async def _liveliness_worker():
     checker = LivelinessChecker(None)
@@ -45,15 +48,28 @@ async def _liveliness_worker():
 def _ensure_queue():
     global _liveliness_queue, _workers_started
     if _liveliness_queue is None:
-        _liveliness_queue = asyncio.Queue(maxsize=500)
+        _liveliness_queue = asyncio.Queue(maxsize=_QUEUE_MAX)
     if not _workers_started:
         try:
             loop = asyncio.get_running_loop()
             _workers_started = True
-            for _ in range(3):
+            for _ in range(_WORKERS):
                 _worker_tasks.append(loop.create_task(_liveliness_worker()))
         except RuntimeError:
             pass
+
+
+def drain_queue():
+    """Clear all pending items from the liveliness queue."""
+    if _liveliness_queue is None:
+        return
+    while not _liveliness_queue.empty():
+        try:
+            _liveliness_queue.get_nowait()
+            _liveliness_queue.task_done()
+        except asyncio.QueueEmpty:
+            break
+    _in_flight.clear()
 
 
 def shutdown_workers():
@@ -83,7 +99,7 @@ def enqueue_liveliness_check(url: str):
 class LivelinessChecker:
     def __init__(self, page_obj=None):
         self.page_obj = page_obj
-        self._semaphore = asyncio.Semaphore(LIVELINESS_SEMAPHORE)
+        self._semaphore = asyncio.Semaphore(4)
 
     def _get_http_client(self) -> httpx.AsyncClient:
         return get_http_client()

@@ -1,10 +1,6 @@
-"""AppShell — top-level @ft.component rendered via page.render(AppShell).
+"""AppShell — top-level shell branching onboarding vs dashboard."""
 
-Branches between OnboardingScreen and the dashboard scaffold based on the
-observable AppState. Owns NavigationBar selected-index as use_state. Wraps
-the whole tree in FocusScope so the Android TV / Fire Stick Back key pops
-the view stack via ControllerMethodsCtx.pop_views.
-"""
+import logging
 
 import flet as ft
 from flet import Control
@@ -18,6 +14,8 @@ from app_next.screens.settings_screen import SettingsScreen
 from app_next.state.app_state import AppStateCtx
 from app_next.state.controller_ctx import ControllerMethodsCtx
 from channels.provider import channel_provider
+
+logger = logging.getLogger("AppShell")
 
 _TAB_NAMES = ("Home", "Local", "Settings")
 _TAB_ICONS = (
@@ -76,11 +74,7 @@ def AppShell() -> Control:
 
         def _on_tab_change(e):
             idx = e.control.selected_index
-            import logging
-
-            logging.getLogger("AppShell").info(
-                "Navigated to tab '%s' (index %d)", _TAB_NAMES[idx], idx
-            )
+            logger.info("Navigated to tab '%s' (index %d)", _TAB_NAMES[idx], idx)
             set_selected_tab(idx)
 
         destinations = [

@@ -13,7 +13,9 @@ from app_next.hooks.use_focus_scope import FocusScope
 from components.player.immersive_player import ImmersivePlayer
 from core.constants import (
     APP_NAME,
+    CDN_HEADER_OVERRIDES,
     ERR_NETWORK,
+    VALID_STREAM_SCHEMES,
 )
 from core.logging_config import setup_logging
 from core.state import state
@@ -225,20 +227,16 @@ class AppController:
             channel = next((c for c in state.channels if c.get("url") == url), None)
             if channel:
                 title = channel.get("name", "Stream")
-            elif not url.startswith(
-                ("http://", "https://", "rtsp://", "rtmp://", "rtp://", "mms://")
-            ):
+            elif not url.startswith(VALID_STREAM_SCHEMES):
                 title = os.path.splitext(os.path.basename(url))[0]
             else:
                 title = "Stream"
 
-        # Automatically inject headers for specific CDNs (e.g. Kwik/AnimePahe)
         headers = {}
-        if "owocdn.top" in url or "uwucdn.top" in url or "kwik" in url:
-            headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Referer": "https://kwik.cx/",
-            }
+        for pattern, hdrs in CDN_HEADER_OVERRIDES.items():
+            if pattern in url:
+                headers = hdrs
+                break
 
         # Create player view immediately so the screen isn't blank.
         # Wrap ImmersivePlayer in a FocusScope so Escape/Back while

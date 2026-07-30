@@ -12,8 +12,6 @@ HomeScreen and other views. The filter dict contract:
     }
 """
 
-from core.constants import MAX_SEARCH_RESULTS
-
 
 def _default_filters(user_country: str = "all") -> dict:
     country_val = "all" if not user_country or user_country == "Other" else user_country
@@ -81,7 +79,5 @@ def _matches(c: dict, filters: dict, favorites_set: set[str]) -> bool:
 def apply_filters(
     channels: list[dict], filters: dict, favorites_set: set[str]
 ) -> list[dict]:
-    """Return channels matching `filters`, capped at MAX_SEARCH_RESULTS."""
-    return [c for c in channels if _matches(c, filters, favorites_set)][
-        :MAX_SEARCH_RESULTS
-    ]
+    """Return channels matching `filters`."""
+    return [c for c in channels if _matches(c, filters, favorites_set)]

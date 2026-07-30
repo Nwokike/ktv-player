@@ -1,15 +1,4 @@
-"""VideoCard — single local video tile for folder expansion grid.
-
-Plain function (no @ft.component). Receives a LocalVideo dataclass and
-on_play callback. Shows name, file size, and a movie icon. Matches the
-legacy local/cards.py layout.
-
-The outer tile is an `ft.FilledButton` (NOT a `Container`) so that Flet
-0.86.4 will give it native D-pad focus on Android TV / Fire Stick remotes
-— see Phase A of the focus rewrite. The card-button style preserves the
-prior Container visuals (12px padding, 16px corner radius, ink/splash
-on press).
-"""
+"""VideoCard — single local video tile for folder expansion grid."""
 
 from collections.abc import Callable
 
@@ -17,7 +6,19 @@ import flet as ft
 from flet import Control
 
 from app_next.components.focus_styles import card_button_style
-from services.local_scanner import LocalVideo, _format_size
+from services.local_scanner import LocalVideo
+
+
+def _format_size(size_bytes: int) -> str:
+    """Format bytes into human-readable size."""
+    if size_bytes < 1024:
+        return f"{size_bytes} B"
+    elif size_bytes < 1024 * 1024:
+        return f"{size_bytes / 1024:.1f} KB"
+    elif size_bytes < 1024 * 1024 * 1024:
+        return f"{size_bytes / (1024 * 1024):.1f} MB"
+    else:
+        return f"{size_bytes / (1024 * 1024 * 1024):.2f} GB"
 
 
 def VideoCard(

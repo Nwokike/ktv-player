@@ -1,12 +1,4 @@
-"""AddCustomContentDialog — modal for adding M3U playlist or single channel.
-
-Built once per render and passed to `use_dialog(dialog)` so the live
-`disabled` prop on the Add Content button reflects the current
-name/url state. The legacy `use_effect(_show, [open]) + show_dialog`
-pattern froze the dialog on first open, leaving the button disabled
-forever — see .venv/lib/python3.14/site-packages/flet/components/hooks/
-use_dialog.py for the modern pattern.
-"""
+"""AddCustomContentDialog — modal for adding M3U playlist or single channel."""
 
 import asyncio
 import time

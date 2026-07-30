@@ -1,24 +1,4 @@
-"""OnboardingScreen — first-launch country select + terms acceptance.
-
-A @ft.component that owns four pieces of local state with use_state:
-selected_country, terms_accepted, is_loading, is_offline.
-
-Online flow:  Image + Welcome + Tagline + CountryPicker + Terms + Start.
-Offline flow: OfflineFlow (retry re-runs probe, skip persists defaults).
-
-Persistence calls write the SAME keys AppController.init() reads (see
-src/main.py lines 65-71): `user_country` and `accepted_terms=true`. On
-success we flip the observable `state.has_accepted_terms` so the parent
-AppShell re-renders to the dashboard without page.update().
-
-OBSERVABLE SUBSCRIPTION NOTE: We access global state via
-`ft.use_context(AppStateCtx)` rather than a plain `from ... import state`.
-This matters because `use_context` automatically attaches an
-ObservableSubscription to the component when the resolved value is an
-Observable (verified in
-.venv/lib/python3.13/site-packages/flet/components/hooks/use_context.py
-lines 105-106). A plain import would NOT subscribe.
-"""
+"""OnboardingScreen — first-launch country select + terms acceptance."""
 
 from collections.abc import Awaitable, Callable
 from typing import Any

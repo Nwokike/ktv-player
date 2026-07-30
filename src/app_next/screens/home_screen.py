@@ -1,9 +1,4 @@
-"""HomeScreen — main browsing screen compositing header + carousel + filters + grid.
-
-Reads observable AppState via use_context. Memoizes channel maps and
-filtered results. Owns the "Add Custom Content" dialog state and the
-favorites toggle flow. Delegates to sub-components.
-"""
+"""HomeScreen — main browsing screen with header, filters, and channel grid."""
 
 import asyncio
 import logging
@@ -53,48 +48,18 @@ def HomeScreen() -> Control:
     filters, set_filters = ft.use_state(_init_filters)
     add_dialog_open, set_add_dialog_open = ft.use_state(False)
     liveliness_version, set_liveliness_version = ft.use_state(0)
-    # Coalesce liveliness _on_change storms. Without this, 1929 probe
-    # results each trigger a full HomeScreen rebuild in lockstep with
-    # the worker queue drain — see live trace. Verified .venv:
-    # use_ref returns MutableRef (components/hooks/use_ref.py:11-21);
-    # asyncio.get_running_loop() raises RuntimeError when no loop is
-    # running, which is the sync-render fallback we want.
     pending_render = use_ref(False)
 
-    def _on_liveliness_change():
-        if pending_render.current:
-            return
-        pending_render.current = True
-
-        async def _flush():
-            await asyncio.sleep(0.15)
-            pending_render.current = False
-            set_liveliness_version(lambda v: v + 1)
-
-        try:
-            loop = asyncio.get_running_loop()
-            loop.create_task(_flush())
-        except RuntimeError:
-            # No event loop yet (very first sync render before the
-            # page is mounted). Bypass the coalescer and bump
-            # immediately so the first probe isn't dropped.
-            pending_render.current = False
-            set_liveliness_version(lambda v: v + 1)
-
-    from services.liveliness import liveliness_cache
-
-    liveliness_cache.set_on_change(_on_liveliness_change)
-
+    # Auto-load channels on first mount
     def _auto_load():
         if not state.channels and callable(
             getattr(controller, "refresh_channels", None)
         ):
-            import asyncio
-
             asyncio.create_task(controller.refresh_channels())
 
     ft.use_effect(_auto_load, [])
 
+    # Memoized channel data
     channels_map = ft.use_memo(
         lambda: build_channels_map(state.channels), [state.channels_hash]
     )
@@ -106,8 +71,6 @@ def HomeScreen() -> Control:
     favorites_set = ft.use_memo(
         lambda: build_favorites_set(state), [state.channels_hash, fav_dep]
     )
-
-    # Separate built-in vs custom channels for filters
     built_in_channels = ft.use_memo(
         lambda: [c for c in state.channels if not c.get("is_custom", False)],
         [state.channels_hash],
@@ -119,10 +82,53 @@ def HomeScreen() -> Control:
         [state.channels_hash],
     )
 
+    # Filtered visible channels
     visible = ft.use_memo(
         lambda: apply_filters(state.channels, filters, favorites_set),
         [state.channels_hash, filters, favorites_set, liveliness_version],
     )
+
+    # ---- Liveliness: filter-driven priority system ----
+    # When filters change → drain old queue → enqueue only what's on screen now.
+    def _seed_visible():
+        from services.liveliness_checker import drain_queue, enqueue_liveliness_check
+        from services.logo_cache import enqueue_logo_download
+
+        # DUMP old work — whatever is on screen NOW is priority
+        drain_queue()
+
+        # Enqueue only the filtered visible channels (first screen)
+        for ch in visible[:24]:
+            url = ch.get("url", "")
+            if url:
+                enqueue_liveliness_check(url)
+            logo = ch.get("logo") or ""
+            if logo and not logo.startswith("/"):
+                enqueue_logo_download(logo)
+
+    ft.use_effect(_seed_visible, [filters])
+
+    # Wire liveliness cache → debounced re-render (500ms coalesce)
+    def _on_liveliness_change():
+        if pending_render.current:
+            return
+        pending_render.current = True
+
+        async def _flush():
+            await asyncio.sleep(0.5)
+            pending_render.current = False
+            set_liveliness_version(lambda v: v + 1)
+
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(_flush())
+        except RuntimeError:
+            pending_render.current = False
+            set_liveliness_version(lambda v: v + 1)
+
+    from services.liveliness import liveliness_cache
+
+    ft.use_effect(lambda: liveliness_cache.set_on_change(_on_liveliness_change), [])
 
     logger.info(
         "Rendered HomeScreen (total_channels=%d, visible_filtered=%d)",
@@ -133,14 +139,11 @@ def HomeScreen() -> Control:
     # --- handlers ---
 
     def on_play(url: str):
-        import asyncio
-
         async def _play():
             try:
                 await controller.play_stream(url, None)
             except Exception:
                 from app_next.utils.notifications import notify_error
-
                 notify_error(ERR_PLAYBACK_FAILED)
 
         asyncio.create_task(_play())
@@ -152,16 +155,21 @@ def HomeScreen() -> Control:
         updated = {**filters, **new_filters}
         set_filters(updated)
 
-    # Buffer the Header search input; commit to filters dict only after
-    # 250ms of no keystrokes. Caches 1929 channels rebuilding on every
-    # character. Source: src/app_next/hooks/use_debounce.py.
     search_input, set_search_input = ft.use_state(filters.get("search", ""))
     debounced_search = use_debounce(search_input, 250)
+
+    # Sync text field when other chips reset search
+    def _sync_search_field():
+        target = filters.get("search", "")
+        if search_input != target:
+            set_search_input(target)
+
+    ft.use_effect(_sync_search_field, [filters])
 
     async def _commit_search():
         new_search = debounced_search
         if filters.get("search") != new_search:
-            set_filters({**filters, "search": new_search})
+            set_filters({"search": new_search, "country": "all", "category": "all", "custom": "none", "fav_only": False})
 
     ft.use_effect(_commit_search, [debounced_search])
 
@@ -172,8 +180,6 @@ def HomeScreen() -> Control:
     # --- Build tree ---
 
     def on_refresh_home():
-        import asyncio
-
         asyncio.create_task(controller.refresh_channels())
 
     header = Header(
@@ -183,10 +189,30 @@ def HomeScreen() -> Control:
         on_refresh=on_refresh_home,
     )
 
+    def _open_recently_watched():
+        from flet import context
+        from app_next.screens.recently_watched_screen import RecentlyWatchedScreen
+
+        page = context.page
+        page.views.append(
+            ft.View(
+                route="/recently-watched",
+                controls=[
+                    RecentlyWatchedScreen(
+                        history=state.history,
+                        channels_map=channels_map,
+                        on_play=on_play,
+                    )
+                ],
+            )
+        )
+        page.update()
+
     recently = RecentlyWatched(
         history=state.history,
         channels_map=channels_map,
         on_play=on_play,
+        on_view_all=_open_recently_watched,
     )
 
     filter_bar = FilterBar(
@@ -215,7 +241,6 @@ def HomeScreen() -> Control:
             favorites_set=favorites_set,
             on_play=on_play,
             on_toggle_favorite=on_toggle_favorite,
-            liveliness_cache_obj=None,
             ad_service=getattr(controller, "ad_service", None),
         )
 
@@ -225,13 +250,6 @@ def HomeScreen() -> Control:
         on_added=on_add_content_complete,
     )
 
-    # Wrap the screen body in a Stack and put a mini FloatingActionButton
-    # over the bottom-right so the + add action stays visible without
-    # crowding the header's search field. Verified .venv:
-    # - controls/material/floating_action_button.py:24,68
-    #   class FloatingActionButton(LayoutControl), mini: bool = False
-    # - controls/layout_control.py:95-104 right/bottom for positioning
-    # - controls/core/stack.py:52 class Stack(LayoutControl)
     return ft.Container(
         expand=True,
         content=ft.Stack(

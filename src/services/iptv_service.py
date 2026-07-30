@@ -1,10 +1,8 @@
-import asyncio
 import logging
 
 import httpx
 
-from channels.provider import channel_provider
-from database.manager import db_manager
+from core.constants import USER_AGENT
 from services.http_client import get_http_client
 from services.m3u_parser import parse_m3u_text
 
@@ -15,15 +13,10 @@ class IPTVService:
     def get_client(self) -> httpx.AsyncClient:
         return get_http_client()
 
-    async def fetch_built_in_channels(self):
-        return await channel_provider.get_all_channels()
-
     async def _parse_m3u_from_url(self, url: str) -> list[dict]:
         try:
             client = self.get_client()
-            headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            }
+            headers = {"User-Agent": USER_AGENT}
             playlist_timeout = httpx.Timeout(20.0, connect=5.0, read=15.0)
             resp = await client.get(url, headers=headers, timeout=playlist_timeout)
             resp.raise_for_status()
@@ -33,47 +26,6 @@ class IPTVService:
 
     async def fetch_playlist(self, url: str) -> list[dict]:
         return await self._parse_m3u_from_url(url)
-
-    async def load_all_sources(self):
-        built_in = await self.fetch_built_in_channels()
-        all_channels = list(built_in)
-
-        playlists = await db_manager.get_playlists()
-        active_playlists = [p for p in playlists if p["is_active"]]
-
-        if active_playlists:
-
-            async def fetch_with_timeout(url: str, timeout: float = 30.0):
-                try:
-                    return await asyncio.wait_for(
-                        self.fetch_playlist(url), timeout=timeout
-                    )
-                except TimeoutError:
-                    logger.warning("Playlist fetch timed out: %s", url[:60])
-                    return []
-
-            tasks = [fetch_with_timeout(p["url"]) for p in active_playlists]
-            results = await asyncio.gather(*tasks, return_exceptions=True)
-            for p, ext_channels in zip(active_playlists, results, strict=True):
-                if isinstance(ext_channels, list):
-                    for c in ext_channels:
-                        c["group"] = p["name"]
-                        c["is_custom"] = True
-                    all_channels.extend(ext_channels)
-
-        custom_channels = await db_manager.get_custom_channels()
-        for c in custom_channels:
-            c["is_custom"] = True
-            if not c.get("group"):
-                c["group"] = "Custom"
-        all_channels.extend(custom_channels)
-
-        return all_channels
-
-    async def close(self):
-        from services.http_client import close_http_client
-
-        await close_http_client()
 
 
 iptv_service = IPTVService()

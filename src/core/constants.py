@@ -124,8 +124,19 @@ TERMS_TEXT = (
 )
 
 
+# Network
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+VALID_STREAM_SCHEMES = ("http://", "https://", "rtsp://", "rtmp://", "rtp://", "mms://")
+CDN_HEADER_OVERRIDES = {
+    "owocdn.top": {"User-Agent": USER_AGENT, "Referer": "https://kwik.cx/"},
+    "uwucdn.top": {"User-Agent": USER_AGENT, "Referer": "https://kwik.cx/"},
+    "kwik": {"User-Agent": USER_AGENT, "Referer": "https://kwik.cx/"},
+}
+
 # Numeric constants
-PAGE_SIZE = 24
+PAGE_SIZE = 48
+LOAD_MORE_SIZE = 48
+AD_ROW_INTERVAL = 24
 LIVELINESS_BATCH_SIZE = 10
 LIVELINESS_UPDATE_INTERVAL = 3
 LIVELINESS_SEMAPHORE = 8
@@ -133,8 +144,6 @@ LOGO_CACHE_MAX_FILES = 200
 LOGO_DOWNLOAD_TIMEOUT = 5.0
 ADD_CONTENT_COOLDOWN = 5.0
 MAX_HISTORY_ITEMS = 20
-MAX_SEARCH_RESULTS = 50
-CHANNEL_CARD_AD_INTERVAL = 12
 AD_PRELOAD_RETRY_DELAY = 30
 AD_PRELOAD_MAX_RETRIES = 5
 STREAM_RETRY_MAX = 3

@@ -1,6 +1,8 @@
 import asyncio
+import contextlib
 import logging
 import os
+import tempfile
 import time
 
 from services.http_client import get_http_client
@@ -13,10 +15,17 @@ _CACHE_FILE = os.path.join(_CACHE_DIR, "cached_playlist.m3u8")
 
 
 def _write_cache(text: str) -> None:
-    """Write playlist text to cache file (sync helper for asyncio.to_thread)."""
+    """Write playlist text to cache file atomically (tmp + rename)."""
     os.makedirs(_CACHE_DIR, exist_ok=True)
-    with open(_CACHE_FILE, "w", encoding="utf-8") as f:
-        f.write(text)
+    fd, tmp_path = tempfile.mkstemp(dir=_CACHE_DIR, suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(text)
+        os.replace(tmp_path, _CACHE_FILE)
+    except Exception:
+        with contextlib.suppress(OSError):
+            os.unlink(tmp_path)
+        raise
 
 
 NON_COUNTRY_GROUPS = {

@@ -1,35 +1,35 @@
-"""Notification utilities for app_next components."""
+"""Notification utilities using SnackBar overlay pattern."""
 
 import flet as ft
 
 from core.theme import AppColors
 
 
-def notify(msg: str) -> None:
-    """Show a SnackBar notification. Best-effort — swallow if no page."""
+def _show_snackbar(msg: str, bgcolor=None) -> None:
+    """Show a SnackBar via page.overlay. Best-effort."""
     from flet import context
 
     try:
-        context.page.show_dialog(ft.SnackBar(ft.Text(msg)))
+        page = context.page
+        snack = ft.SnackBar(
+            content=ft.Text(msg),
+            bgcolor=bgcolor,
+            show_close_icon=True,
+        )
+        page.overlay.append(snack)
+        snack.open = True
+        page.update()
     except Exception:
         pass
+
+
+def notify(msg: str) -> None:
+    _show_snackbar(msg)
 
 
 def notify_warning(msg: str) -> None:
-    """Show a warning SnackBar. Best-effort."""
-    from flet import context
-
-    try:
-        context.page.show_dialog(ft.SnackBar(ft.Text(msg), bgcolor=AppColors.WARNING))
-    except Exception:
-        pass
+    _show_snackbar(msg, bgcolor=AppColors.WARNING)
 
 
 def notify_error(msg: str) -> None:
-    """Show an error SnackBar. Best-effort."""
-    from flet import context
-
-    try:
-        context.page.show_dialog(ft.SnackBar(ft.Text(msg), bgcolor=AppColors.ERROR))
-    except Exception:
-        pass
+    _show_snackbar(msg, bgcolor=AppColors.ERROR)

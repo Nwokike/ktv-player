@@ -1,21 +1,4 @@
-"""ChannelCard — single clickable tile in the virtualized grid.
-
-Pure (prefers props over state). Identity key = `ft.ValueKey(channel["url"])`
-so GridView reconciliation preserves focus/animations across filter changes.
-
-The outer tile is an `ft.FilledButton` (NOT a `Container`) so that Flet 0.86.4
-will give it native D-pad focus on Android TV / Fire Stick remotes — see
-Phase A of the focus rewrite. The card-button style preserves the prior
-Container visuals (12px padding, rounded corners, ink/splash on press).
-
-Favorites: `is_favorite` is passed as a prop (computed in HomeScreen via a
-memoized set-lookup). The card does NOT read `state.favorites` directly.
-The favorite toggle is its OWN `ft.IconButton` so the D-pad can land on it
-separately from the whole-card play click target.
-
-Liveliness: `liveliness_status` prop (True/False/None). Card calls
-`enqueue_logo_download(logo_src)` on render (fire-and-forget, same as legacy).
-"""
+"""ChannelCard — single clickable tile in the virtualized grid."""
 
 from collections.abc import Callable
 
@@ -31,8 +14,7 @@ from core.constants import (
     STATUS_DOT_SIZE,
 )
 from core.theme import AppColors
-from services.liveliness_checker import enqueue_liveliness_check
-from services.logo_cache import enqueue_logo_download, get_cached_logo
+from services.logo_cache import get_cached_logo
 
 
 def ChannelCard(
@@ -46,19 +28,11 @@ def ChannelCard(
     name = channel.get("name", "Unknown")
     logo_src = channel.get("logo") or "/icon.png"
 
-    if liveliness_status is None and url:
-        enqueue_liveliness_check(url)
-
-    # resolve logo source
     if logo_src.startswith("/"):
         resolved_logo = logo_src
     else:
         cached = get_cached_logo(logo_src)
-        if cached:
-            resolved_logo = cached
-        else:
-            resolved_logo = logo_src
-            enqueue_logo_download(logo_src)  # fire-and-forget
+        resolved_logo = cached if cached else logo_src
 
     # liveliness dot
     if liveliness_status is True:
@@ -116,6 +90,6 @@ def ChannelCard(
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             spacing=4,
         ),
-        on_click=lambda e: on_play(url) if on_play else None,
+        on_click=lambda e: on_play(url),
         style=card_button_style(padding=ft.Padding.all(12), radius=CARD_BORDER_RADIUS),
     )

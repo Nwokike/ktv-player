@@ -83,70 +83,52 @@ def FilterBar(
     current_country = filters.get("country", "all")
     country_label = current_country if current_country != "all" else "Country"
 
+    is_dict = isinstance(available_countries, dict)
+    sorted_countries = sorted(available_countries.keys() if is_dict else available_countries)
+
+    def _country_label(name: str) -> str:
+        if is_dict:
+            return f"{name} ({available_countries[name]})"
+        return name
+
+    _RESET = {"fav_only": False, "search": ""}
+
     country_items: list[ft.PopupMenuItem] = [
         ft.PopupMenuItem(
             content=ft.Text("All Countries", size=FONT_MD),
             on_click=lambda e: _fire(
-                {"country": "all", "category": "all", "custom": "none"}
+                {"country": "all", "category": "all", "custom": "none", **_RESET}
             ),
         ),
     ]
-    if isinstance(available_countries, dict):
-        sorted_countries = sorted(available_countries.keys())
-        if (
-            user_country
-            and user_country != "Other"
-            and user_country in sorted_countries
-        ):
-            u_count = available_countries[user_country]
-            country_items.append(
-                ft.PopupMenuItem(
-                    content=ft.Text(
-                        f"{user_country} ({u_count}) (Local)", size=FONT_MD
-                    ),
-                    on_click=lambda e, u=user_country: _fire(
-                        {"country": u, "category": "all", "custom": "none"}
-                    ),
-                )
+    if user_country and user_country != "Other" and user_country in sorted_countries:
+        suffix = " (Local)" if not is_dict else f" ({available_countries[user_country]}) (Local)"
+        country_items.append(
+            ft.PopupMenuItem(
+                content=ft.Text(f"{user_country}{suffix}", size=FONT_MD),
+                on_click=lambda e, u=user_country: _fire(
+                    {"country": u, "category": "all", "custom": "none", **_RESET}
+                ),
             )
-            sorted_countries.remove(user_country)
-        for c_name in sorted_countries:
-            c_count = available_countries[c_name]
-            country_items.append(
-                ft.PopupMenuItem(
-                    content=ft.Text(f"{c_name} ({c_count})", size=FONT_MD),
-                    on_click=lambda e, c=c_name: _fire(
-                        {"country": c, "category": "all", "custom": "none"}
-                    ),
-                )
+        )
+        sorted_countries.remove(user_country)
+    for c_name in sorted_countries:
+        country_items.append(
+            ft.PopupMenuItem(
+                content=ft.Text(_country_label(c_name), size=FONT_MD),
+                on_click=lambda e, c=c_name: _fire(
+                    {"country": c, "category": "all", "custom": "none", **_RESET}
+                ),
             )
-    else:
-        sorted_countries = list(available_countries)
-        if (
-            user_country
-            and user_country != "Other"
-            and user_country in sorted_countries
-        ):
-            country_items.append(
-                ft.PopupMenuItem(
-                    content=ft.Text(f"{user_country} (Local)", size=FONT_MD),
-                    on_click=lambda e, u=user_country: _fire(
-                        {"country": u, "category": "all", "custom": "none"}
-                    ),
-                )
-            )
-            sorted_countries.remove(user_country)
-        for c_name in sorted_countries:
-            country_items.append(
-                ft.PopupMenuItem(
-                    content=ft.Text(c_name, size=FONT_MD),
-                    on_click=lambda e, c=c_name: _fire(
-                        {"country": c, "category": "all", "custom": "none"}
-                    ),
-                )
-            )
+        )
 
-    country_items.insert(0, ft.PopupMenuItem(content=ft.Text("Cancel", size=FONT_MD)))
+    country_items.insert(
+        0,
+        ft.PopupMenuItem(
+            content=ft.Text("Cancel", size=FONT_MD),
+            on_click=lambda e: _fire({"country": "all", "category": "all", "custom": "none", **_RESET}),
+        ),
+    )
 
     country_btn = ft.PopupMenuButton(
         content=_pill(country_label, ft.Icons.PUBLIC, current_country != "all"),
@@ -168,7 +150,7 @@ def FilterBar(
         ft.PopupMenuItem(
             content=ft.Text("All Categories", size=FONT_MD),
             on_click=lambda e: _fire(
-                {"category": "all", "country": "all", "custom": "none"}
+                {"category": "all", "country": "all", "custom": "none", **_RESET}
             ),
         ),
     ]
@@ -178,7 +160,7 @@ def FilterBar(
                 ft.PopupMenuItem(
                     content=ft.Text(f"{cat} ({count})", size=FONT_MD),
                     on_click=lambda e, c=cat: _fire(
-                        {"category": c, "country": "all", "custom": "none"}
+                        {"category": c, "country": "all", "custom": "none", **_RESET}
                     ),
                 )
             )
@@ -188,12 +170,18 @@ def FilterBar(
                 ft.PopupMenuItem(
                     content=ft.Text(cat, size=FONT_MD),
                     on_click=lambda e, c=cat: _fire(
-                        {"category": c, "country": "all", "custom": "none"}
+                        {"category": c, "country": "all", "custom": "none", **_RESET}
                     ),
                 )
             )
 
-    category_items.insert(0, ft.PopupMenuItem(content=ft.Text("Cancel", size=FONT_MD)))
+    category_items.insert(
+        0,
+        ft.PopupMenuItem(
+            content=ft.Text("Cancel", size=FONT_MD),
+            on_click=lambda e: _fire({"category": "all", "country": "all", "custom": "none", **_RESET}),
+        ),
+    )
 
     category_btn = ft.PopupMenuButton(
         content=_pill(category_label, ft.Icons.CATEGORY, current_category != "all"),
@@ -219,7 +207,7 @@ def FilterBar(
         ft.PopupMenuItem(
             content=ft.Text("Single Channels", size=FONT_MD),
             on_click=lambda e: _fire(
-                {"custom": "single", "country": "all", "category": "all"}
+                {"custom": "single", "country": "all", "category": "all", **_RESET}
             ),
         ),
     ]
@@ -229,7 +217,7 @@ def FilterBar(
                 ft.PopupMenuItem(
                     content=ft.Text(pl, size=FONT_MD),
                     on_click=lambda e, name=pl: _fire(
-                        {"custom": name, "country": "all", "category": "all"}
+                        {"custom": name, "country": "all", "category": "all", **_RESET}
                     ),
                 )
             )
@@ -241,7 +229,13 @@ def FilterBar(
             )
             )
 
-    custom_items.insert(0, ft.PopupMenuItem(content=ft.Text("Cancel", size=FONT_MD)))
+    custom_items.insert(
+        0,
+        ft.PopupMenuItem(
+            content=ft.Text("Cancel", size=FONT_MD),
+            on_click=lambda e: _fire({"custom": "none", "country": "all", "category": "all", **_RESET}),
+        ),
+    )
 
     custom_btn = ft.PopupMenuButton(
         content=_pill(custom_label, ft.Icons.FOLDER_SPECIAL, current_custom != "none"),
@@ -274,7 +268,7 @@ def FilterBar(
         border=ft.Border.all(1, fav_border),
         border_radius=8,
         bgcolor=fav_bg,
-        on_click=lambda e: _fire({"fav_only": not fav_selected}),
+        on_click=lambda e: _fire({"fav_only": not fav_selected, "country": "all", "category": "all", "custom": "none", "search": ""}),
         ink=True,
     )
 

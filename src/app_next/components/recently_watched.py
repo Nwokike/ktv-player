@@ -1,13 +1,4 @@
-"""RecentlyWatched — horizontal scrolling carousel of last 10 watched streams.
-
-Plain function (no @ft.component needed). Uses horizontal ListView with
-build_controls_on_demand. Hidden when history is empty.
-
-Each card is an `ft.FilledButton` (NOT a `Container`) so that Flet 0.86.4
-will give it native D-pad focus on Android TV / Fire Stick remotes — see
-Phase A of the focus rewrite. A `card_button_style` keeps the prior
-visuals (8px padding, 10px corner radius, ink/splash on press).
-"""
+"""RecentlyWatched — horizontal scrolling carousel of last 10 watched streams."""
 
 from collections.abc import Callable
 
@@ -21,12 +12,8 @@ from services.logo_cache import get_cached_logo
 
 
 def _display_name(url: str) -> str:
-    """Extract a readable display name from a URL or path."""
     import os
-
-    # Take the last path segment, strip extension
     name = os.path.splitext(os.path.basename(url))[0]
-    # If the name is empty or just an extension, fall back to "Stream"
     return name if name else "Stream"
 
 
@@ -34,6 +21,7 @@ def RecentlyWatched(
     history: list[str],
     channels_map: dict[str, dict],
     on_play: Callable[[str], None],
+    on_view_all: Callable[[], None] | None = None,
 ) -> Control:
     visible_items = history[:10]
 
@@ -78,14 +66,33 @@ def RecentlyWatched(
             )
         )
 
+    # Header row: title on left, arrow on right
+    header_controls: list[Control] = [
+        ft.Text(
+            LBL_RECENTLY_WATCHED,
+            size=15,
+            weight=ft.FontWeight.W_600,
+            color=AppColors.grey_dim(),
+        ),
+    ]
+    if callable(on_view_all):
+        header_controls.append(ft.Container(expand=True))
+        header_controls.append(
+            ft.IconButton(
+                icon=ft.Icons.ARROW_FORWARD_ROUNDED,
+                icon_size=18,
+                icon_color=AppColors.grey_dim(),
+                tooltip="View all",
+                on_click=lambda e: on_view_all(),
+            ),
+        )
+
     return ft.Container(
         content=ft.Column(
             controls=[
-                ft.Text(
-                    LBL_RECENTLY_WATCHED,
-                    size=15,
-                    weight=ft.FontWeight.W_600,
-                    color=AppColors.grey_dim(),
+                ft.Row(
+                    controls=header_controls,
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                 ),
                 ft.ListView(
                     controls=cards,

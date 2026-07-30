@@ -1,8 +1,4 @@
-"""SettingsScreen — modern, compact Material 3 grouped settings interface.
-
-Single-line compact setting rows with right-aligned controls, clean text hierarchy,
-and zero unnecessary vertical wrapping.
-"""
+"""SettingsScreen — modern Material 3 grouped settings."""
 
 import asyncio
 import logging
@@ -20,9 +16,7 @@ from core.constants import (
     APP_VERSION,
     ERR_CLEAR_HISTORY_FAILED,
     ERR_RESET_LIBRARY_FAILED,
-    LBL_ABOUT,
     LBL_ACTIVITY_TERMINAL,
-    LBL_APPEARANCE,
     LBL_CLEAR,
     LBL_CLEAR_HISTORY,
     LBL_CLEAR_HISTORY_DESC,
@@ -32,13 +26,11 @@ from core.constants import (
     LBL_COUNTRY_UPDATED,
     LBL_DARK_MODE,
     LBL_DARK_MODE_DESC,
-    LBL_DATA_MANAGEMENT,
     LBL_DEFAULT_REGION,
     LBL_FILTER_BY_COUNTRY,
     LBL_HISTORY_CLEARED,
     LBL_LIBRARY_RESET,
     LBL_LIVE_ACTIVITY_TERMINAL,
-    LBL_LOCALIZATION,
     LBL_LOG_CLEARED,
     LBL_LOG_COPIED,
     LBL_NO_ACTIVITY_LOG,
@@ -54,529 +46,319 @@ from core.constants import (
 from core.logger_handler import MemoryLogHandler
 from core.state import state as core_state
 from core.theme import AppColors
-from core.tokens import (
-    BORDER_RADIUS_LG,
-    BORDER_RADIUS_MD,
-    BORDER_RADIUS_XL,
-    DIALOG_HEIGHT_MD,
-    DIALOG_WIDTH_MD,
-    FONT_FAMILY_MONO,
-    FONT_LG,
-    FONT_MD,
-    FONT_SM,
-    FONT_XS,
-    ICON_MD,
-    ICON_SM,
-    SPACING_LG,
-    SPACING_MD,
-    SPACING_SM,
-    SPACING_XS,
-)
 from database.manager import db_manager
 
-_notify = notify
-_notify_warning = notify_warning
 logger = logging.getLogger("SettingsScreen")
 
-_SECTIONS = [
-    {"key": "appearance", "icon": ft.Icons.PALETTE, "title": LBL_APPEARANCE},
-    {"key": "localization", "icon": ft.Icons.PUBLIC, "title": LBL_LOCALIZATION},
-    {
-        "key": "data_management",
-        "icon": ft.Icons.STORAGE,
-        "title": LBL_DATA_MANAGEMENT,
-    },
-    {
-        "key": "custom_content",
-        "icon": ft.Icons.TERMINAL,
-        "title": LBL_ACTIVITY_TERMINAL,
-    },
-    {"key": "about", "icon": ft.Icons.INFO, "title": LBL_ABOUT},
-]
 
+# ---------------------------------------------------------------------------
+# Log terminal dialog
+# ---------------------------------------------------------------------------
 
-def build_logs_dialog(page: ft.Page) -> ft.AlertDialog:
-    """Build live activity terminal modal dialog."""
+def _build_logs_dialog(page: ft.Page) -> ft.AlertDialog:
     logs = MemoryLogHandler.get_logs()
     logs_str = "\n".join(logs) if logs else LBL_NO_ACTIVITY_LOG
 
-    log_text_control = ft.Text(
+    log_text = ft.Text(
         value=logs_str,
-        font_family=FONT_FAMILY_MONO,
-        size=FONT_SM,
+        font_family="Courier New",
+        size=12,
         color=AppColors.TERMINAL_TEXT,
         selectable=True,
     )
 
-    async def _copy_logs(e=None):
+    async def _copy(e=None):
         try:
-            await ft.Clipboard().set(log_text_control.value)
-            snack = ft.SnackBar(content=ft.Text(LBL_LOG_COPIED))
-            page.overlay.append(snack)
-            snack.open = True
-            page.update()
+            await ft.Clipboard().set(log_text.value)
+            notify(LBL_LOG_COPIED)
         except Exception:
             pass
 
-    def _clear_logs(e=None):
+    def _clear(e=None):
         MemoryLogHandler.clear_logs()
-        log_text_control.value = LBL_LOG_CLEARED
+        log_text.value = LBL_LOG_CLEARED
         page.update()
 
     return ft.AlertDialog(
-        title=ft.Row(
-            controls=[
-                ft.Icon(ft.Icons.TERMINAL, color=AppColors.PRIMARY, size=ICON_MD),
-                ft.Text(
-                    LBL_LIVE_ACTIVITY_TERMINAL,
-                    weight=ft.FontWeight.BOLD,
-                    size=FONT_LG,
-                ),
-                ft.Container(
-                    content=ft.Text(
-                        f"{len(logs)} logs", size=FONT_XS, color=ft.Colors.WHITE
-                    ),
-                    bgcolor=AppColors.PRIMARY,
-                    border_radius=BORDER_RADIUS_LG,
-                    padding=ft.Padding(SPACING_SM, SPACING_XS, SPACING_SM, SPACING_XS),
-                ),
-            ],
-            spacing=SPACING_SM,
-        ),
+        title=ft.Text(LBL_LIVE_ACTIVITY_TERMINAL, weight=ft.FontWeight.BOLD),
         content=ft.Container(
             content=ft.Column(
                 controls=[
-                    ft.Text(
-                        LBL_TERMINAL_DESC,
-                        size=FONT_SM,
-                        color=AppColors.grey_dim(),
-                    ),
+                    ft.Text(LBL_TERMINAL_DESC, size=12, color=AppColors.grey_dim()),
                     ft.Container(
                         content=ft.Column(
-                            controls=[log_text_control],
+                            controls=[log_text],
                             scroll=ft.ScrollMode.AUTO,
                         ),
                         bgcolor=AppColors.TERMINAL_BG,
-                        border=ft.Border.all(
-                            1, ft.Colors.with_opacity(0.25, ft.Colors.WHITE)
-                        ),
-                        border_radius=BORDER_RADIUS_MD,
-                        padding=SPACING_MD,
+                        border=ft.Border.all(1, ft.Colors.with_opacity(0.2, ft.Colors.WHITE)),
+                        border_radius=8,
+                        padding=12,
                         expand=True,
                     ),
                 ],
-                spacing=SPACING_SM,
+                spacing=8,
             ),
-            width=DIALOG_WIDTH_MD,
-            height=DIALOG_HEIGHT_MD,
+            width=480,
+            height=400,
         ),
         actions=[
-            ft.TextButton(
-                LBL_COPY_TO_CLIPBOARD,
-                icon=ft.Icons.COPY,
-                on_click=lambda e: asyncio.create_task(_copy_logs()),
-            ),
-            ft.TextButton(
-                LBL_CLEAR,
-                icon=ft.Icons.DELETE_SWEEP,
-                on_click=_clear_logs,
-            ),
-            ft.TextButton(
-                LBL_CLOSE,
-                on_click=lambda e: page.pop_dialog(),
-            ),
+            ft.TextButton(LBL_COPY_TO_CLIPBOARD, icon=ft.Icons.COPY, on_click=lambda e: asyncio.create_task(_copy())),
+            ft.TextButton(LBL_CLEAR, icon=ft.Icons.DELETE_SWEEP, on_click=_clear),
+            ft.TextButton(LBL_CLOSE, on_click=lambda e: page.pop_dialog()),
         ],
         actions_alignment=ft.MainAxisAlignment.END,
     )
 
 
+# ---------------------------------------------------------------------------
+# Reusable setting row
+# ---------------------------------------------------------------------------
+
+def _setting_row(
+    leading: Control,
+    title: str,
+    subtitle: str,
+    trailing: Control,
+) -> ft.Container:
+    """A single-line setting: [icon+text] ---- [control]."""
+    return ft.Container(
+        content=ft.Row(
+            controls=[
+                ft.Row(
+                    controls=[
+                        leading,
+                        ft.Column(
+                            controls=[
+                                ft.Text(title, size=13, weight=ft.FontWeight.W_500),
+                                ft.Text(subtitle, size=11, color=AppColors.grey_dim()),
+                            ],
+                            spacing=1,
+                            expand=True,
+                        ),
+                    ],
+                    spacing=12,
+                    expand=True,
+                ),
+                trailing,
+            ],
+            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+        ),
+        padding=ft.Padding(4, 10, 4, 10),
+    )
+
+
+def _section_card(title: str, icon: str, items: list[Control]) -> ft.Container:
+    """A grouped settings card with header + divider + rows."""
+    from flet import context
+
+    page = context.page
+    card_bg = AppColors.get_card_bg(page)
+    border_color = AppColors.get_border_color(page)
+
+    rows: list[Control] = []
+    for i, item in enumerate(items):
+        rows.append(item)
+        if i < len(items) - 1:
+            rows.append(ft.Divider(height=1, color=border_color, leading_indent=44, trailing_indent=0))
+
+    return ft.Container(
+        bgcolor=card_bg,
+        border=ft.Border.all(1, border_color),
+        border_radius=16,
+        padding=ft.Padding(16, 8, 16, 8),
+        content=ft.Column(
+            controls=[
+                ft.Row(
+                    controls=[
+                        ft.Icon(icon, color=AppColors.PRIMARY, size=20),
+                        ft.Text(title, size=14, weight=ft.FontWeight.BOLD),
+                    ],
+                    spacing=10,
+                ),
+                *rows,
+            ],
+            spacing=0,
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Main screen
+# ---------------------------------------------------------------------------
+
 @ft.component
 def SettingsScreen() -> Control:
-    logger.info("Building compact SettingsScreen view")
     state = ft.use_context(AppStateCtx)
     controller = ft.use_context(ControllerMethodsCtx)
 
     is_clearing, set_is_clearing = ft.use_state(False)
     is_resetting, set_is_resetting = ft.use_state(False)
 
-    async def _clear_history():
-        logger.info("Clearing watch history...")
-        set_is_clearing(True)
-        try:
-            await db_manager.clear_history()
-            core_state.history.clear()
-            _notify(LBL_HISTORY_CLEARED)
-            logger.info("Watch history cleared successfully")
-        except Exception as ex:
-            logger.error("Failed to clear history: %s", ex)
-            _notify_warning(ERR_CLEAR_HISTORY_FAILED)
-        finally:
-            set_is_clearing(False)
-
-    async def _reset_custom():
-        logger.info("Resetting custom content library...")
-        set_is_resetting(True)
-        try:
-            await db_manager.clear_custom_content()
-            _notify(LBL_LIBRARY_RESET)
-            await controller.refresh_channels()
-            logger.info("Custom library reset successfully")
-        except Exception as ex:
-            logger.error("Failed to reset custom content: %s", ex)
-            _notify_warning(ERR_RESET_LIBRARY_FAILED)
-        finally:
-            set_is_resetting(False)
-
-    def _update_country(country_name: str):
-        logger.info("Updating user region focus to %s", country_name)
-
-        async def _do():
-            await db_manager.set_setting("user_country", country_name)
-            core_state.user_country = country_name
-            _notify(LBL_COUNTRY_UPDATED.format(country=country_name))
-
-        asyncio.create_task(_do())
+    # -- handlers --
 
     def _is_dark() -> bool:
         from flet import context
-
         return AppColors._is_dark(context.page)
 
     def _toggle_theme(e):
         from flet import context
-
-        logger.info("Theme mode toggle triggered")
         _toggle_theme_util(context.page)
+
+    def _on_country_select(e):
+        if e.control.value:
+            name = e.control.value
+
+            async def _do():
+                await db_manager.set_setting("user_country", name)
+                core_state.user_country = name
+                notify(LBL_COUNTRY_UPDATED.format(country=name))
+
+            asyncio.create_task(_do())
+
+    async def _clear_history():
+        set_is_clearing(True)
+        try:
+            await db_manager.clear_history()
+            core_state.history.clear()
+            notify(LBL_HISTORY_CLEARED)
+        except Exception:
+            notify_warning(ERR_CLEAR_HISTORY_FAILED)
+        finally:
+            set_is_clearing(False)
+
+    async def _reset_custom():
+        set_is_resetting(True)
+        try:
+            await db_manager.clear_custom_content()
+            notify(LBL_LIBRARY_RESET)
+            await controller.refresh_channels()
+        except Exception:
+            notify_warning(ERR_RESET_LIBRARY_FAILED)
+        finally:
+            set_is_resetting(False)
 
     def _open_terminal(e):
         from flet import context
+        context.page.show_dialog(_build_logs_dialog(context.page))
 
-        logger.info("Opening Live Activity Terminal dialog")
-        context.page.show_dialog(build_logs_dialog(context.page))
-
-    def _show_terms_dialog(e=None):
+    def _show_terms(e=None):
         from flet import context
-
-        dlg = ft.AlertDialog(
-            title=ft.Text(LBL_USAGE_AGREEMENT_TITLE, weight=ft.FontWeight.BOLD),
-            content=ft.Container(
-                content=ft.Text(TERMS_TEXT, size=FONT_SM, selectable=True),
-                width=450,
-            ),
-            actions=[
-                ft.TextButton(LBL_CLOSE, on_click=lambda e: context.page.pop_dialog())
-            ],
-            actions_alignment=ft.MainAxisAlignment.END,
+        context.page.show_dialog(
+            ft.AlertDialog(
+                title=ft.Text(LBL_USAGE_AGREEMENT_TITLE, weight=ft.FontWeight.BOLD),
+                content=ft.Container(
+                    content=ft.Text(TERMS_TEXT, size=12, selectable=True),
+                    width=420,
+                ),
+                actions=[ft.TextButton(LBL_CLOSE, on_click=lambda e: context.page.pop_dialog())],
+                actions_alignment=ft.MainAxisAlignment.END,
+            )
         )
-        context.page.show_dialog(dlg)
 
-    def _build_card(title: str, icon: str, content: Control) -> Control:
-        from flet import context
+    # -- build sections --
 
-        page = context.page
-        card_bg = AppColors.get_card_bg(page)
-        border_color = AppColors.get_border_color(page)
+    # 1. Appearance
+    appearance = _section_card("Appearance", ft.Icons.PALETTE, [
+        _setting_row(
+            leading=ft.Icon(ft.Icons.DARK_MODE, size=18, color=AppColors.PRIMARY),
+            title=LBL_DARK_MODE,
+            subtitle=LBL_DARK_MODE_DESC,
+            trailing=ft.Switch(value=_is_dark(), on_change=_toggle_theme),
+        ),
+    ])
 
-        return ft.Container(
-            bgcolor=card_bg,
-            border=ft.Border.all(1, border_color),
-            border_radius=BORDER_RADIUS_XL,
-            padding=ft.Padding(SPACING_MD, SPACING_SM, SPACING_MD, SPACING_SM),
-            content=ft.Column(
+    # 2. Localization
+    countries = channel_provider.get_countries()
+    country_names = [c.get("name", "") for c in countries if c.get("name")]
+    if "Other" not in country_names:
+        country_names.append("Other")
+    current = state.user_country
+    default_country = current if current in country_names else (country_names[0] if country_names else None)
+
+    localization = _section_card("Localization", ft.Icons.PUBLIC, [
+        _setting_row(
+            leading=ft.Icon(ft.Icons.PUBLIC, color=AppColors.PRIMARY),
+            title=LBL_DEFAULT_REGION,
+            subtitle=LBL_FILTER_BY_COUNTRY,
+            trailing=ft.Container(
+                content=ft.Dropdown(
+                    value=default_country,
+                    options=[ft.DropdownOption(key=c, text=c) for c in country_names],
+                    on_select=_on_country_select,
+                ),
+                width=150,
+            ),
+        ),
+    ])
+
+    # 3. Data Management
+    data_mgmt = _section_card("Data Management", ft.Icons.STORAGE, [
+        _setting_row(
+            leading=ft.Icon(ft.Icons.HISTORY, size=18, color=AppColors.PRIMARY),
+            title=LBL_CLEAR_HISTORY,
+            subtitle=LBL_CLEAR_HISTORY_DESC,
+            trailing=ft.OutlinedButton(
+                content=ft.Text(LBL_CLEARING if is_clearing else LBL_CLEAR_HISTORY, size=12),
+                icon=ft.Icons.DELETE_OUTLINED,
+                disabled=is_clearing,
+                on_click=lambda e: asyncio.create_task(_clear_history()),
+            ),
+        ),
+        _setting_row(
+            leading=ft.Icon(ft.Icons.RESTART_ALT, size=18, color=AppColors.PRIMARY),
+            title=LBL_RESET_LIBRARY,
+            subtitle=LBL_RESET_LIBRARY_DESC,
+            trailing=ft.OutlinedButton(
+                content=ft.Text(LBL_RESETTING if is_resetting else LBL_RESET_LIBRARY, size=12),
+                icon=ft.Icons.RESTART_ALT,
+                disabled=is_resetting,
+                on_click=lambda e: asyncio.create_task(_reset_custom()),
+            ),
+        ),
+    ])
+
+    # 4. Activity Terminal
+    logs_count = len(MemoryLogHandler.get_logs())
+    terminal = _section_card("Development", ft.Icons.TERMINAL, [
+        _setting_row(
+            leading=ft.Icon(ft.Icons.TERMINAL, size=18, color=AppColors.PRIMARY),
+            title=LBL_ACTIVITY_TERMINAL,
+            subtitle=f"{logs_count} entries in memory",
+            trailing=ft.FilledButton(
+                LBL_OPEN_TERMINAL,
+                icon=ft.Icons.TERMINAL,
+                on_click=_open_terminal,
+            ),
+        ),
+    ])
+
+    # 5. About
+    about = _section_card("About", ft.Icons.INFO, [
+        ft.Container(
+            content=ft.Row(
                 controls=[
-                    ft.Row(
+                    ft.Image(src="/icon.png", width=56, height=56, fit=ft.BoxFit.CONTAIN, border_radius=12),
+                    ft.Column(
                         controls=[
-                            ft.Icon(icon, color=AppColors.PRIMARY, size=ICON_MD),
-                            ft.Text(
-                                title,
-                                size=FONT_MD,
-                                weight=ft.FontWeight.BOLD,
-                            ),
+                            ft.Text(APP_NAME, size=16, weight=ft.FontWeight.BOLD),
+                            ft.Text(f"Version {APP_VERSION} · Flet {ft.__version__}", size=12, color=AppColors.grey_dim()),
                         ],
-                        spacing=SPACING_SM,
+                        spacing=2,
                     ),
-                    ft.Divider(height=1, color=border_color),
-                    content,
                 ],
-                spacing=SPACING_SM,
+                spacing=14,
             ),
-        )
-
-    # --- Section content builders (Compact, Single-Line Layouts) ---
-
-    def _appearance_content() -> Control:
-        return ft.Row(
-            controls=[
-                ft.Row(
-                    controls=[
-                        ft.Icon(
-                            ft.Icons.DARK_MODE, size=ICON_SM, color=AppColors.PRIMARY
-                        ),
-                        ft.Column(
-                            controls=[
-                                ft.Text(
-                                    LBL_DARK_MODE,
-                                    size=FONT_MD,
-                                    weight=ft.FontWeight.W_500,
-                                ),
-                                ft.Text(
-                                    LBL_DARK_MODE_DESC,
-                                    size=FONT_SM,
-                                    color=AppColors.grey_dim(),
-                                ),
-                            ],
-                            spacing=2,
-                        ),
-                    ],
-                    spacing=SPACING_SM,
-                ),
-                ft.Switch(value=_is_dark(), on_change=_toggle_theme, autofocus=True),
-            ],
-            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-        )
-
-    def _localization_content() -> Control:
-        countries = channel_provider.get_countries()
-        country_names = [c.get("name", "") for c in countries if c.get("name")]
-        if "Other" not in country_names:
-            country_names.append("Other")
-
-        current = state.user_country
-        default_val = (
-            current
-            if current in country_names
-            else (country_names[0] if country_names else None)
-        )
-
-        def _on_dropdown_select(e):
-            if e.control.value:
-                _update_country(e.control.value)
-
-        return ft.Row(
-            controls=[
-                ft.Row(
-                    controls=[
-                        ft.Icon(ft.Icons.PUBLIC, size=ICON_SM, color=AppColors.PRIMARY),
-                        ft.Column(
-                            controls=[
-                                ft.Text(
-                                    LBL_DEFAULT_REGION,
-                                    size=FONT_MD,
-                                    weight=ft.FontWeight.W_500,
-                                ),
-                                ft.Text(
-                                    LBL_FILTER_BY_COUNTRY,
-                                    size=FONT_SM,
-                                    color=AppColors.grey_dim(),
-                                ),
-                            ],
-                            spacing=2,
-                        ),
-                    ],
-                    spacing=SPACING_SM,
-                ),
-                ft.Container(
-                    content=ft.Dropdown(
-                        value=default_val,
-                        options=[
-                            ft.DropdownOption(key=c, text=c) for c in country_names
-                        ],
-                        on_select=_on_dropdown_select,
-                        text_size=FONT_SM,
-                        content_padding=ft.Padding(10, 4, 10, 4),
-                        dense=True,
-                        border_radius=BORDER_RADIUS_MD,
-                    ),
-                    width=160,
-                ),
-            ],
-            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-        )
-
-    def _data_content() -> Control:
-        from flet import context
-
-        border_color = AppColors.get_border_color(context.page)
-        return ft.Column(
-            controls=[
-                ft.Row(
-                    controls=[
-                        ft.Row(
-                            controls=[
-                                ft.Icon(
-                                    ft.Icons.HISTORY,
-                                    size=ICON_SM,
-                                    color=AppColors.PRIMARY,
-                                ),
-                                ft.Column(
-                                    controls=[
-                                        ft.Text(
-                                            LBL_CLEAR_HISTORY,
-                                            size=FONT_MD,
-                                            weight=ft.FontWeight.W_500,
-                                        ),
-                                        ft.Text(
-                                            LBL_CLEAR_HISTORY_DESC,
-                                            size=FONT_SM,
-                                            color=AppColors.grey_dim(),
-                                        ),
-                                    ],
-                                    spacing=2,
-                                ),
-                            ],
-                            spacing=SPACING_SM,
-                        ),
-                        ft.OutlinedButton(
-                            content=ft.Text(
-                                LBL_CLEARING if is_clearing else LBL_CLEAR_HISTORY,
-                                size=FONT_SM,
-                            ),
-                            icon=ft.Icons.DELETE_OUTLINED,
-                            disabled=is_clearing,
-                            on_click=lambda e: asyncio.create_task(_clear_history()),
-                        ),
-                    ],
-                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                ),
-                ft.Divider(height=1, color=border_color),
-                ft.Row(
-                    controls=[
-                        ft.Row(
-                            controls=[
-                                ft.Icon(
-                                    ft.Icons.RESTART_ALT,
-                                    size=ICON_SM,
-                                    color=AppColors.PRIMARY,
-                                ),
-                                ft.Column(
-                                    controls=[
-                                        ft.Text(
-                                            LBL_RESET_LIBRARY,
-                                            size=FONT_MD,
-                                            weight=ft.FontWeight.W_500,
-                                        ),
-                                        ft.Text(
-                                            LBL_RESET_LIBRARY_DESC,
-                                            size=FONT_SM,
-                                            color=AppColors.grey_dim(),
-                                        ),
-                                    ],
-                                    spacing=2,
-                                ),
-                            ],
-                            spacing=SPACING_SM,
-                        ),
-                        ft.OutlinedButton(
-                            content=ft.Text(
-                                LBL_RESETTING if is_resetting else LBL_RESET_LIBRARY,
-                                size=FONT_SM,
-                            ),
-                            icon=ft.Icons.RESTART_ALT,
-                            disabled=is_resetting,
-                            on_click=lambda e: asyncio.create_task(_reset_custom()),
-                        ),
-                    ],
-                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                ),
-            ],
-            spacing=SPACING_SM,
-        )
-
-    def _logs_content() -> Control:
-        logs_count = len(MemoryLogHandler.get_logs())
-        return ft.Row(
-            controls=[
-                ft.Row(
-                    controls=[
-                        ft.Icon(
-                            ft.Icons.TERMINAL, size=ICON_SM, color=AppColors.PRIMARY
-                        ),
-                        ft.Column(
-                            controls=[
-                                ft.Text(
-                                    LBL_ACTIVITY_TERMINAL,
-                                    size=FONT_MD,
-                                    weight=ft.FontWeight.W_500,
-                                ),
-                                ft.Text(
-                                    f"{logs_count} log entries recorded in memory",
-                                    size=FONT_SM,
-                                    color=AppColors.grey_dim(),
-                                ),
-                            ],
-                            spacing=2,
-                        ),
-                    ],
-                    spacing=SPACING_SM,
-                ),
-                ft.FilledButton(
-                    LBL_OPEN_TERMINAL,
-                    icon=ft.Icons.TERMINAL,
-                    on_click=_open_terminal,
-                ),
-            ],
-            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-        )
-
-    def _about_content() -> Control:
-        from flet import context
-
-        border_color = AppColors.get_border_color(context.page)
-        return ft.Column(
-            controls=[
-                ft.Row(
-                    controls=[
-                        ft.Container(
-                            content=ft.Image(
-                                src="/icon.png",
-                                width=64,
-                                height=64,
-                                fit=ft.BoxFit.CONTAIN,
-                                border_radius=BORDER_RADIUS_MD,
-                            ),
-                        ),
-                        ft.Column(
-                            controls=[
-                                ft.Text(
-                                    APP_NAME, size=FONT_LG, weight=ft.FontWeight.BOLD
-                                ),
-                                ft.Text(
-                                    f"Version {APP_VERSION} (Engine: Flet {ft.__version__})",
-                                    size=FONT_SM,
-                                    color=AppColors.grey_dim(),
-                                ),
-                            ],
-                            spacing=2,
-                        ),
-                    ],
-                    spacing=SPACING_MD,
-                ),
-                ft.Divider(height=1, color=border_color),
-                ft.Row(
-                    controls=[
-                        ft.TextButton(
-                            LBL_USAGE_AGREEMENT_BUTTON,
-                            icon=ft.Icons.GAVEL_ROUNDED,
-                            on_click=_show_terms_dialog,
-                        ),
-                    ],
-                    alignment=ft.MainAxisAlignment.CENTER,
-                ),
-            ],
-            spacing=SPACING_SM,
-        )
-
-    cards = [
-        _build_card(LBL_APPEARANCE, ft.Icons.PALETTE, _appearance_content()),
-        _build_card(LBL_LOCALIZATION, ft.Icons.PUBLIC, _localization_content()),
-        _build_card(LBL_DATA_MANAGEMENT, ft.Icons.STORAGE, _data_content()),
-        _build_card(LBL_ACTIVITY_TERMINAL, ft.Icons.TERMINAL, _logs_content()),
-        _build_card(LBL_ABOUT, ft.Icons.INFO, _about_content()),
-    ]
+            padding=ft.Padding(4, 8, 4, 8),
+        ),
+        ft.Divider(height=1, color=AppColors.get_border_color(ft.context.page)),
+        ft.TextButton(LBL_USAGE_AGREEMENT_BUTTON, icon=ft.Icons.GAVEL_ROUNDED, on_click=_show_terms),
+    ])
 
     return ft.ListView(
-        controls=cards,
+        controls=[appearance, localization, data_mgmt, terminal, about],
         expand=True,
-        spacing=SPACING_MD,
-        padding=ft.Padding(SPACING_MD, SPACING_MD, SPACING_MD, SPACING_LG),
+        spacing=12,
+        padding=ft.Padding(16, 16, 16, 24),
     )

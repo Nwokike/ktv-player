@@ -3,9 +3,16 @@
 import logging
 import sys
 
+_configured = False
+
 
 def setup_logging(level: int = logging.DEBUG) -> None:
     """Configure root logger with consistent format and handlers."""
+    global _configured
+    if _configured:
+        return
+    _configured = True
+
     from core.logger_handler import in_memory_log_handler
 
     fmt = logging.Formatter(
@@ -28,13 +35,7 @@ def setup_logging(level: int = logging.DEBUG) -> None:
         in_memory_log_handler.setLevel(logging.DEBUG)
         root.addHandler(in_memory_log_handler)
 
-    # Ensure exceptions always include traceback
     logging.captureWarnings(True)
 
-    # Only log httpx warnings/errors — suppress per-request INFO noise
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
-
-
-# Automatically configure logging on module import
-setup_logging()

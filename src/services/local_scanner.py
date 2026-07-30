@@ -44,7 +44,7 @@ def _is_system_dir(dir_path: Path) -> bool:
     try:
         attrs = os.stat(str(dir_path)).st_file_attributes
         return bool(attrs & _SKIP_ATTR)
-    except OSError, AttributeError:
+    except (OSError, AttributeError):
         return False
 
 
@@ -130,8 +130,7 @@ def scan_videos(
                 dirnames.clear()
                 continue
 
-            # PHASE 3: Bulletproofing.
-            # Aggressively remove hidden and protected folders from the queue BEFORE walking into them.
+            # Skip hidden and system folders
             dirnames[:] = [
                 d for d in dirnames if not d.startswith(".") and d not in _EXCLUDED_DIRS
             ]
@@ -150,7 +149,7 @@ def scan_videos(
                                 modified=stat.st_mtime,
                             ),
                         )
-                    except OSError, PermissionError:
+                    except (OSError, PermissionError):
                         continue
 
             if video_files:
@@ -201,7 +200,7 @@ def get_default_scan_paths() -> list[str]:
         emulated_root = storage_root / "emulated" / "0"
 
         if emulated_root.exists():
-            # PHASE 2: Scoped Storage Bypass. Target specific public folders instead of the root.
+            # Target specific public folders instead of the root
             for safe_folder in ("Movies", "Download", "DCIM", "Pictures", "Video"):
                 target = emulated_root / safe_folder
                 if target.exists() and target.is_dir():

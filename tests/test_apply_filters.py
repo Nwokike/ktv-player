@@ -23,10 +23,10 @@ def _ch(
     }
 
 
-def test_default_filters_returns_all_channels_capped():
+def test_default_filters_returns_all_channels():
     channels = [_ch(f"c{i}", f"http://x/{i}") for i in range(100)]
     out = apply_filters(channels, _default_filters(), favorites_set=set())
-    assert len(out) <= 50  # MAX_SEARCH_RESULTS cap
+    assert len(out) == 100
     assert out[0] == channels[0]
 
 

@@ -1,23 +1,21 @@
-"""In-memory ring-buffer log handler for live Activity Terminal debugging."""
+"""In-memory ring-buffer log handler for live Activity Terminal."""
 
 from __future__ import annotations
 
 import logging
+from collections import deque
 from typing import ClassVar
 
 
 class MemoryLogHandler(logging.Handler):
     """In-memory ring-buffer log handler for live Activity Terminal."""
 
-    _logs: ClassVar[list[str]] = []
-    _MAX_LOGS = 500
+    _logs: ClassVar[deque[str]] = deque(maxlen=500)
 
     def emit(self, record: logging.LogRecord) -> None:
         try:
             msg = self.format(record)
             MemoryLogHandler._logs.append(msg)
-            if len(MemoryLogHandler._logs) > MemoryLogHandler._MAX_LOGS:
-                MemoryLogHandler._logs.pop(0)
         except Exception:
             pass
 

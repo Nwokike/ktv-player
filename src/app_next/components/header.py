@@ -1,7 +1,4 @@
-"""Header — Top Material 3 AppBar: logo + search + actions.
-
-Built on Flet 0.86's ft.AppBar (verified .venv/.../material/app_bar.py):
-"""
+"""Header — Top Material 3 AppBar: logo + search + actions."""
 
 from collections.abc import Callable
 

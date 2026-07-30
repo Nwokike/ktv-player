@@ -19,7 +19,7 @@ def _resolve_storage_dir() -> Path:
 
 
 class DatabaseManager:
-    """Platform-resilient JSON-backed storage manager matching Colab Shell's StorageService."""
+    """JSON-backed storage manager with atomic writes and corruption recovery."""
 
     def __init__(
         self,

@@ -174,7 +174,6 @@ def LocalScreen() -> Control:
         search_hint=LBL_LOCAL_SEARCH_HINT,
         on_search_change=set_search_query,
         on_add_content=_pick_folder,
-        add_tooltip=LBL_ADD_FOLDER,
         on_refresh=_refresh,
     )
 
@@ -186,6 +185,8 @@ def LocalScreen() -> Control:
         )
 
     # Filter folders and files based on search query
+    from services.local_scanner import VideoFolder
+
     filtered_folders = []
     q = search_query.strip().lower()
     if not q:
@@ -196,8 +197,6 @@ def LocalScreen() -> Control:
                 v for v in f.videos if q in v.name.lower() or q in v.path.lower()
             ]
             if q in f.name.lower() or matching_files:
-                from services.local_scanner import VideoFolder
-
                 filtered_folders.append(
                     VideoFolder(
                         name=f.name,
