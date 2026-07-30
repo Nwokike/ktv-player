@@ -252,11 +252,23 @@ def LocalScreen() -> Control:
             spacing=0,
         )
 
-    return ft.Column(
+    # Wrap body in Stack so the FAB can float above it. The FAB action
+    # is the same +pick_folder used by Header on_add_content.
+    return ft.Stack(
         controls=[
-            header,
-            body,
+            ft.Column(
+                controls=[header, body],
+                expand=True,
+                spacing=0,
+            ),
+            ft.FloatingActionButton(
+                content=ft.Icon(ft.Icons.ADD),
+                mini=True,
+                tooltip=LBL_ADD_FOLDER,
+                on_click=lambda e: _pick_folder(),
+                bottom=80,
+                right=12,
+            ),
         ],
         expand=True,
-        spacing=0,
     )

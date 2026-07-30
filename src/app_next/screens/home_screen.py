@@ -225,17 +225,37 @@ def HomeScreen() -> Control:
         on_added=on_add_content_complete,
     )
 
+    # Wrap the screen body in a Stack and put a mini FloatingActionButton
+    # over the bottom-right so the + add action stays visible without
+    # crowding the header's search field. Verified .venv:
+    # - controls/material/floating_action_button.py:24,68
+    #   class FloatingActionButton(LayoutControl), mini: bool = False
+    # - controls/layout_control.py:95-104 right/bottom for positioning
+    # - controls/core/stack.py:52 class Stack(LayoutControl)
     return ft.Container(
         expand=True,
-        content=ft.Column(
+        content=ft.Stack(
             controls=[
-                header,
-                recently,
-                filter_bar,
-                body,
+                ft.Column(
+                    controls=[
+                        header,
+                        recently,
+                        filter_bar,
+                        body,
+                    ],
+                    expand=True,
+                    spacing=0,
+                ),
+                ft.FloatingActionButton(
+                    content=ft.Icon(ft.Icons.ADD),
+                    mini=True,
+                    tooltip=LBL_ADD_CONTENT_SHORT,
+                    on_click=lambda e: set_add_dialog_open(True),
+                    bottom=80,
+                    right=12,
+                ),
                 dialog,
             ],
             expand=True,
-            spacing=0,
         ),
     )
