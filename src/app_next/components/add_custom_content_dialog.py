@@ -1,9 +1,11 @@
 """AddCustomContentDialog — modal for adding M3U playlist or single channel.
 
-Uses use_effect to call page.show_dialog() when open=True, instead of
-returning the AlertDialog in the control tree. This is required because
-DialogControl (AlertDialog) must be rendered via the page overlay, not
-embedded in a Column.
+Built once per render and passed to `use_dialog(dialog)` so the live
+`disabled` prop on the Add Content button reflects the current
+name/url state. The legacy `use_effect(_show, [open]) + show_dialog`
+pattern froze the dialog on first open, leaving the button disabled
+forever — see .venv/lib/python3.14/site-packages/flet/components/hooks/
+use_dialog.py for the modern pattern.
 """
 
 import asyncio
@@ -11,7 +13,7 @@ import time
 from collections.abc import Awaitable, Callable
 
 import flet as ft
-from flet import Control
+from flet import Control, use_dialog
 
 from app_next.hooks.use_storage import use_storage
 from app_next.state.controller_ctx import ControllerMethodsCtx
@@ -67,8 +69,10 @@ def AddCustomContentDialog(
 ) -> Control:
     """Render a dialog for adding custom content when `open` is True.
 
-    Uses use_effect to call page.show_dialog() — the AlertDialog lives
-    in the page overlay, not in the control tree.
+    The `ft.AlertDialog` is built fresh every render so its `disabled`
+    prop tracks current `name`/`url` state, then portaled into the
+    page overlay via `use_dialog(dialog)`. Verified against
+    .venv/lib/python3.14/site-packages/flet/components/hooks/use_dialog.py:38-136.
     """
     add_type, set_add_type = ft.use_state("playlist")
     name, set_name = ft.use_state("")
@@ -98,7 +102,7 @@ def AddCustomContentDialog(
             _notify_success(LBL_ADDED_SUCCESS.format(name=final_name))
             set_last_add(time.time())
             _reset()
-            _dismiss()
+            on_close()
             result = on_added()
             if hasattr(result, "__await__"):
                 asyncio.create_task(result)
@@ -109,24 +113,12 @@ def AddCustomContentDialog(
 
     async def _handle_cancel(e):
         _reset()
-        await _dismiss()
         on_close()
 
-    async def _dismiss():
-        from flet import context
-
-        try:
-            context.page.pop_dialog()
-        except Exception:
-            pass
-        if controller is not None:
-            await controller.close_modal()
-
-    async def _show():
-        if not open:
-            return
-        from flet import context
-
+    # Build the dialog fresh every render. None when not open so
+    # use_dialog can dismiss the overlay.
+    dialog: Control | None = None
+    if open:
         dialog = ft.AlertDialog(
             modal=True,
             title=ft.Text("Add Custom Content"),
@@ -170,21 +162,24 @@ def AddCustomContentDialog(
                     disabled=not _can_add(name, url, last_add) or is_adding,
                 ),
             ],
-            on_dismiss=lambda: (
-                asyncio.create_task(
-                    controller.close_modal() if controller else asyncio.sleep(0)
-                )
-                or on_close()
-            ),
+            on_dismiss=lambda: on_close(),
         )
-        if controller is not None:
-            await controller.push_modal("add_content")
-        try:
-            context.page.show_dialog(dialog)
-        except Exception:
-            pass
 
-    ft.use_effect(_show, [open])
+    use_dialog(dialog)
+
+    # Modal-stack accounting reflects the current open state. Run on
+    # every render so a stale push/pop on the controller is impossible.
+    has_pushed, set_has_pushed = ft.use_state(False)
+
+    async def _sync_modal_stack():
+        if open and not has_pushed and controller is not None:
+            set_has_pushed(True)
+            await controller.push_modal("add_content")
+        elif (not open) and has_pushed and controller is not None:
+            set_has_pushed(False)
+            await controller.close_modal()
+
+    ft.use_effect(_sync_modal_stack, [open])
 
     return ft.Container(height=0, visible=False)
 
