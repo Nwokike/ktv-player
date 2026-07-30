@@ -1,4 +1,11 @@
-"""Header — Top-level header component with App logo, inline search bar, and action buttons."""
+"""Header — Top Material 3 AppBar: logo + search + actions.
+
+Built on Flet 0.86's ft.AppBar (verified .venv/.../material/app_bar.py):
+- leading slot for the logo (and add button if on_add_content is set)
+- title slot for the search field
+- actions slot for refresh + theme toggle
+- toolbar_height=48 + elevation_on_scroll=4 for a tighter, native look
+"""
 
 from collections.abc import Callable
 
@@ -7,7 +14,9 @@ from flet import Control, context
 
 from app_next.utils.theme_utils import toggle_theme as _toggle_theme_util
 from core.constants import LBL_ADD_CONTENT, LBL_SEARCH_HINT
-from core.tokens import FONT_MD, ICON_MD, ICON_SM, RADIUS_MD, SPACING_MD, SPACING_SM
+from core.tokens import FONT_MD, ICON_MD, ICON_SM, RADIUS_MD, SPACING_SM
+
+_HEADER_TOOLBAR_HEIGHT = 48
 
 
 @ft.component
@@ -19,7 +28,7 @@ def Header(
     add_tooltip: str = LBL_ADD_CONTENT,
     on_refresh: Callable[[], None] | None = None,
 ) -> Control:
-    """Render top bar with App Icon, Search Bar, Add Button (+), optional Refresh, and Theme Toggle."""
+    """Render the top AppBar."""
 
     def _handle_toggle_theme(e):
         _toggle_theme_util(context.page)
@@ -39,20 +48,31 @@ def Header(
     )
 
     _compact_style = ft.ButtonStyle(padding=ft.Padding.all(4))
+    _leading_width = 88 if callable(on_add_content) else 44
 
-    # Add button — placed on the left, next to the logo
-    add_button = ft.IconButton(
-        icon=ft.Icons.ADD_CIRCLE_OUTLINE,
-        tooltip=add_tooltip,
-        on_click=lambda e: on_add_content() if callable(on_add_content) else None,
-        icon_size=ICON_MD,
-        style=_compact_style,
-    )
+    leading_controls: list[Control] = [
+        ft.Image(
+            src="/icon.png",
+            width=28,
+            height=28,
+            fit=ft.BoxFit.CONTAIN,
+            border_radius=RADIUS_MD,
+        ),
+    ]
+    if callable(on_add_content):
+        leading_controls.append(
+            ft.IconButton(
+                icon=ft.Icons.ADD_CIRCLE_OUTLINE,
+                tooltip=add_tooltip,
+                on_click=lambda e: on_add_content(),
+                icon_size=ICON_MD,
+                style=_compact_style,
+            )
+        )
 
-    action_controls = []
-
+    actions: list[Control] = []
     if callable(on_refresh):
-        action_controls.append(
+        actions.append(
             ft.IconButton(
                 icon=ft.Icons.REFRESH,
                 tooltip="Scan Again",
@@ -61,18 +81,14 @@ def Header(
                 style=_compact_style,
             )
         )
-
-    # Dynamic Theme Icon — shows CURRENT state (moon when dark, sun when light)
     try:
         from core.theme import AppColors
 
         is_dark = AppColors._is_dark(context.page)
     except Exception:
         is_dark = True
-
     theme_icon = ft.Icons.DARK_MODE if is_dark else ft.Icons.LIGHT_MODE
-
-    action_controls.append(
+    actions.append(
         ft.IconButton(
             icon=theme_icon,
             tooltip="Toggle Theme",
@@ -82,29 +98,16 @@ def Header(
         )
     )
 
-    actions_row = ft.Row(
-        controls=action_controls,
-        spacing=0,
-        tight=True,
-    )
-
-    return ft.Container(
-        content=ft.Row(
-            controls=[
-                add_button,
-                ft.Image(
-                    src="/icon.png",
-                    width=32,
-                    height=32,
-                    fit=ft.BoxFit.CONTAIN,
-                    border_radius=RADIUS_MD,
-                ),
-                search_field,
-                actions_row,
-            ],
-            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-            vertical_alignment=ft.CrossAxisAlignment.CENTER,
-            spacing=SPACING_SM,
+    return ft.AppBar(
+        leading=ft.Row(
+            controls=leading_controls,
+            spacing=2,
+            tight=True,
         ),
-        padding=ft.Padding(SPACING_MD, SPACING_SM, SPACING_MD, 4),
+        leading_width=_leading_width,
+        title=ft.Container(content=search_field, expand=True),
+        center_title=False,
+        toolbar_height=_HEADER_TOOLBAR_HEIGHT,
+        elevation_on_scroll=4,
+        actions=actions,
     )
