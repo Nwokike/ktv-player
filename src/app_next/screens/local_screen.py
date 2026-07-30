@@ -132,11 +132,25 @@ def LocalScreen() -> Control:
         asyncio.create_task(_pick_folder_async())
 
     async def _pick_folder_async():
-        from flet import FilePicker
+        # Use the singleton FilePicker registered in AppController.init()
+        # so it works on Android (where inline FilePicker() loses the
+        # Service registration). Verified:
+        # .venv/controls/services/file_picker.py:215 — async def
+        # get_directory_path(dialog_title=None, initial_directory=None)
+        # -> Optional[str].
+        from flet import context
 
-        fp = FilePicker()
+        picker = getattr(context.page, "file_picker", None)
+        if picker is None:
+            # Defensive fallback if for some reason the singleton isn't
+            # registered (e.g. in a fresh test page).
+            from flet import FilePicker
+
+            picker = FilePicker()
+            context.page.services.append(picker)
+            context.page.file_picker = picker
         try:
-            path = await fp.get_directory_path(dialog_title="Select Video Folder")
+            path = await picker.get_directory_path(dialog_title="Select Video Folder")
         except asyncio.CancelledError:
             return
         except Exception:

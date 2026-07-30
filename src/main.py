@@ -64,6 +64,16 @@ class AppController:
 
         self.page.on_error = self._on_global_error
 
+        # Register a singleton FilePicker at boot. FilePicker extends
+        # Service (verified .venv/controls/services/file_picker.py:166-167
+        # + service.py:11-19) and self-registers through page._services.
+        # Constructing it inline per-call loses the registration on
+        # Android — pages.services.append(picker) then assigns the
+        # reference so local_screen can call page.file_picker directly.
+        file_picker = ft.FilePicker()
+        self.page.services.append(file_picker)
+        self.page.file_picker = file_picker
+
         # Init services
         await db_manager.init_db()
         logger.info("Database storage initialized successfully")
