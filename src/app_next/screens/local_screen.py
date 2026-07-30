@@ -179,17 +179,17 @@ def LocalScreen() -> Control:
     else:
         for f in folders:
             matching_files = [
-                v for v in f.videos if q in v.title.lower() or q in v.path.lower()
+                v for v in f.videos if q in v.name.lower() or q in v.path.lower()
             ]
-            if q in f.folder_name.lower() or matching_files:
+            if q in f.name.lower() or matching_files:
                 from services.local_scanner import VideoFolder
 
                 filtered_folders.append(
                     VideoFolder(
-                        folder_name=f.folder_name,
-                        folder_path=f.folder_path,
+                        name=f.name,
+                        path=f.path,
                         videos=matching_files
-                        if not q in f.folder_name.lower()
+                        if not q in f.name.lower()
                         else f.videos,
                     )
                 )
