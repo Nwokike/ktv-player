@@ -5,7 +5,6 @@ import httpx
 
 from core.constants import (
     LIVELINESS_BATCH_SIZE,
-    LIVELINESS_SEMAPHORE,
     LIVELINESS_UPDATE_INTERVAL,
 )
 from core.theme import AppColors

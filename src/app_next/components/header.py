@@ -1,4 +1,4 @@
-"""Header — Top Material 3 AppBar: logo + search + actions."""
+"""Header — Top Material 3 AppBar with search + actions."""
 
 from collections.abc import Callable
 
@@ -17,25 +17,22 @@ def Header(
     search_hint: str = LBL_SEARCH_HINT,
     on_refresh: Callable[[], None] | None = None,
 ) -> Control:
-    """Render the top AppBar."""
 
     def _handle_toggle_theme(e):
         _toggle_theme_util(context.page)
 
-    search_field = ft.TextField(
+    search_bar = ft.SearchBar(
         value=search_value,
-        hint_text=search_hint,
+        bar_hint_text=search_hint,
+        bar_leading=ft.Icon(ft.Icons.SEARCH),
+        expand=True,
         on_change=lambda e: (
             on_search_change(e.control.value) if callable(on_search_change) else None
         ),
-        prefix_icon=ft.Icons.SEARCH,
-        expand=True,
     )
 
     leading_controls: list[Control] = [
-        ft.Image(
-            src="/icon.png",
-        ),
+        ft.Image(src="/icon.png"),
     ]
 
     actions: list[Control] = []
@@ -67,8 +64,12 @@ def Header(
             controls=leading_controls,
             tight=True,
         ),
-        title=ft.Container(content=search_field, expand=True),
-        center_title=False,
+        title=ft.Container(
+            content=search_bar,
+            expand=True,
+            alignment=ft.Alignment.CENTER,
+        ),
+        center_title=True,
         elevation_on_scroll=4,
         actions=actions,
     )

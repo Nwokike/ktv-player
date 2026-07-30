@@ -144,6 +144,7 @@ def HomeScreen() -> Control:
                 await controller.play_stream(url, None)
             except Exception:
                 from app_next.utils.notifications import notify_error
+
                 notify_error(ERR_PLAYBACK_FAILED)
 
         asyncio.create_task(_play())
@@ -169,7 +170,15 @@ def HomeScreen() -> Control:
     async def _commit_search():
         new_search = debounced_search
         if filters.get("search") != new_search:
-            set_filters({"search": new_search, "country": "all", "category": "all", "custom": "none", "fav_only": False})
+            set_filters(
+                {
+                    "search": new_search,
+                    "country": "all",
+                    "category": "all",
+                    "custom": "none",
+                    "fav_only": False,
+                }
+            )
 
     ft.use_effect(_commit_search, [debounced_search])
 
@@ -191,6 +200,7 @@ def HomeScreen() -> Control:
 
     def _open_recently_watched():
         from flet import context
+
         from app_next.screens.recently_watched_screen import RecentlyWatchedScreen
 
         page = context.page

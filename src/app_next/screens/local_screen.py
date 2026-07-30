@@ -201,9 +201,7 @@ def LocalScreen() -> Control:
                     VideoFolder(
                         name=f.name,
                         path=f.path,
-                        videos=matching_files
-                        if not q in f.name.lower()
-                        else f.videos,
+                        videos=matching_files if not q in f.name.lower() else f.videos,
                     )
                 )
 

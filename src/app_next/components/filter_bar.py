@@ -30,7 +30,10 @@ _MENU_ELEVATION = 4
 _MENU_PADDING = ft.Padding(0, 4, 0, 4)
 _MENU_SHAPE = ft.RoundedRectangleBorder(radius=8)
 
-def _pill(label: str, icon: str, is_selected: bool, show_arrow: bool = True) -> ft.Control:
+
+def _pill(
+    label: str, icon: str, is_selected: bool, show_arrow: bool = True
+) -> ft.Control:
     """Compact outlined pill: icon + text + chevron."""
     border_color = (
         ft.Colors.PRIMARY
@@ -84,7 +87,9 @@ def FilterBar(
     country_label = current_country if current_country != "all" else "Country"
 
     is_dict = isinstance(available_countries, dict)
-    sorted_countries = sorted(available_countries.keys() if is_dict else available_countries)
+    sorted_countries = sorted(
+        available_countries.keys() if is_dict else available_countries
+    )
 
     def _country_label(name: str) -> str:
         if is_dict:
@@ -102,7 +107,11 @@ def FilterBar(
         ),
     ]
     if user_country and user_country != "Other" and user_country in sorted_countries:
-        suffix = " (Local)" if not is_dict else f" ({available_countries[user_country]}) (Local)"
+        suffix = (
+            " (Local)"
+            if not is_dict
+            else f" ({available_countries[user_country]}) (Local)"
+        )
         country_items.append(
             ft.PopupMenuItem(
                 content=ft.Text(f"{user_country}{suffix}", size=FONT_MD),
@@ -126,7 +135,9 @@ def FilterBar(
         0,
         ft.PopupMenuItem(
             content=ft.Text("Cancel", size=FONT_MD),
-            on_click=lambda e: _fire({"country": "all", "category": "all", "custom": "none", **_RESET}),
+            on_click=lambda e: _fire(
+                {"country": "all", "category": "all", "custom": "none", **_RESET}
+            ),
         ),
     )
 
@@ -179,7 +190,9 @@ def FilterBar(
         0,
         ft.PopupMenuItem(
             content=ft.Text("Cancel", size=FONT_MD),
-            on_click=lambda e: _fire({"category": "all", "country": "all", "custom": "none", **_RESET}),
+            on_click=lambda e: _fire(
+                {"category": "all", "country": "all", "custom": "none", **_RESET}
+            ),
         ),
     )
 
@@ -227,13 +240,15 @@ def FilterBar(
                 content=ft.Text(LBL_ADD_CONTENT_SHORT, size=FONT_MD),
                 on_click=lambda e: on_add_content(),
             )
-            )
+        )
 
     custom_items.insert(
         0,
         ft.PopupMenuItem(
             content=ft.Text("Cancel", size=FONT_MD),
-            on_click=lambda e: _fire({"custom": "none", "country": "all", "category": "all", **_RESET}),
+            on_click=lambda e: _fire(
+                {"custom": "none", "country": "all", "category": "all", **_RESET}
+            ),
         ),
     )
 
@@ -252,13 +267,24 @@ def FilterBar(
     # ---- 4. Fav (single-click toggle, no dropdown — same pill style) ----
     fav_selected = filters.get("fav_only", False)
     fav_label = "Fav"
-    fav_border = ft.Colors.PRIMARY if fav_selected else ft.Colors.with_opacity(0.3, ft.Colors.OUTLINE_VARIANT)
-    fav_bg = ft.Colors.with_opacity(0.08, ft.Colors.PRIMARY) if fav_selected else ft.Colors.TRANSPARENT
+    fav_border = (
+        ft.Colors.PRIMARY
+        if fav_selected
+        else ft.Colors.with_opacity(0.3, ft.Colors.OUTLINE_VARIANT)
+    )
+    fav_bg = (
+        ft.Colors.with_opacity(0.08, ft.Colors.PRIMARY)
+        if fav_selected
+        else ft.Colors.TRANSPARENT
+    )
 
     fav_btn = ft.Container(
         content=ft.Row(
             controls=[
-                ft.Icon(ft.Icons.STAR if fav_selected else ft.Icons.STAR_BORDER, size=ICON_SM),
+                ft.Icon(
+                    ft.Icons.STAR if fav_selected else ft.Icons.STAR_BORDER,
+                    size=ICON_SM,
+                ),
                 ft.Text(fav_label, size=FONT_MD, no_wrap=True),
             ],
             spacing=2,
@@ -268,7 +294,15 @@ def FilterBar(
         border=ft.Border.all(1, fav_border),
         border_radius=8,
         bgcolor=fav_bg,
-        on_click=lambda e: _fire({"fav_only": not fav_selected, "country": "all", "category": "all", "custom": "none", "search": ""}),
+        on_click=lambda e: _fire(
+            {
+                "fav_only": not fav_selected,
+                "country": "all",
+                "category": "all",
+                "custom": "none",
+                "search": "",
+            }
+        ),
         ink=True,
     )
 
@@ -289,7 +323,9 @@ def FilterBar(
                     vertical_alignment=ft.CrossAxisAlignment.CENTER,
                 ),
                 padding=ft.Padding(8, 4, 8, 4),
-                border=ft.Border.all(1, ft.Colors.with_opacity(0.3, ft.Colors.OUTLINE_VARIANT)),
+                border=ft.Border.all(
+                    1, ft.Colors.with_opacity(0.3, ft.Colors.OUTLINE_VARIANT)
+                ),
                 border_radius=8,
                 on_click=lambda e: on_add_content(),
                 ink=True,

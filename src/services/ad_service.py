@@ -84,24 +84,28 @@ class AdService:
 
     # ── Ad Controls ───────────────────────────────────────────────────────────
 
-    def _create_ad_container(self, ad_control: ft.Control, width: int) -> ft.Control:
+    def _create_ad_container(self, ad_control: ft.Control) -> ft.Control:
         return ft.Container(
             content=ft.Column(
                 [
                     ad_control,
                     ft.Text(
                         "This app is 100% free. Ads help support the developer.",
-                        size=11,
-                        color=ft.Colors.ON_SURFACE_VARIANT,
+                        size=10,
+                        color=ft.Colors.with_opacity(0.5, ft.Colors.ON_SURFACE),
                         text_align=ft.TextAlign.CENTER,
                     ),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                spacing=5,
+                spacing=4,
             ),
-            width=width,
             alignment=ft.Alignment.CENTER,
-            padding=ft.Padding(0, 10, 0, 10),
+            padding=6,
+            border_radius=16,
+            bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.ON_SURFACE),
+            border=ft.Border.all(1, ft.Colors.with_opacity(0.1, ft.Colors.ON_SURFACE)),
+            margin=ft.Margin(14, 4, 14, 4),
+            expand=True,
         )
 
     def get_native_style_ad(self) -> ft.Control | None:
@@ -118,7 +122,7 @@ class AdService:
                 height=250,
                 on_error=lambda e: None,
             )
-            return self._create_ad_container(ad, width=300)
+            return self._create_ad_container(ad)
         except Exception:
             return None
 
@@ -136,7 +140,7 @@ class AdService:
                 height=100,
                 on_error=lambda e: None,
             )
-            return self._create_ad_container(ad, width=320)
+            return self._create_ad_container(ad)
         except Exception:
             return None
 
@@ -154,12 +158,7 @@ class AdService:
                 height=50,
                 on_error=lambda e: None,
             )
-            return ft.Container(
-                content=ad,
-                width=320,
-                height=50,
-                alignment=ft.Alignment.CENTER,
-            )
+            return self._create_ad_container(ad)
         except Exception:
             return None
 

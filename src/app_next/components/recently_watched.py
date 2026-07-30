@@ -13,6 +13,7 @@ from services.logo_cache import get_cached_logo
 
 def _display_name(url: str) -> str:
     import os
+
     name = os.path.splitext(os.path.basename(url))[0]
     return name if name else "Stream"
 

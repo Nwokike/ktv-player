@@ -10,6 +10,7 @@ from services.logo_cache import get_cached_logo
 
 def _display_name(url: str) -> str:
     import os
+
     name = os.path.splitext(os.path.basename(url))[0]
     return name if name else "Stream"
 
@@ -77,7 +78,9 @@ def RecentlyWatchedScreen(
             content=ft.Column(
                 controls=[
                     ft.Icon(ft.Icons.HISTORY, size=48, color=AppColors.grey_dim()),
-                    ft.Text("No watch history yet", size=14, color=AppColors.grey_dim()),
+                    ft.Text(
+                        "No watch history yet", size=14, color=AppColors.grey_dim()
+                    ),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 spacing=8,

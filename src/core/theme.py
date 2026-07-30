@@ -148,7 +148,9 @@ class AppTheme:
                 bgcolor=AppColors.DARK_SURFACE,
                 indicator_color=AppColors.PRIMARY,
                 elevation=4.0,
+                label_behavior=ft.NavigationBarLabelBehavior.ONLY_SHOW_SELECTED,
             ),
+            appbar_theme=ft.AppBarTheme(),
             search_bar_theme=ft.SearchBarTheme(
                 bgcolor=AppColors.DARK_SURFACE_VARIANT,
                 elevation=1.0,
@@ -187,7 +189,9 @@ class AppTheme:
                 bgcolor=AppColors.LIGHT_SURFACE,
                 indicator_color=AppColors.PRIMARY_LIGHT,
                 elevation=4.0,
+                label_behavior=ft.NavigationBarLabelBehavior.ONLY_SHOW_SELECTED,
             ),
+            appbar_theme=ft.AppBarTheme(),
             search_bar_theme=ft.SearchBarTheme(
                 bgcolor=AppColors.LIGHT_SURFACE_VARIANT,
                 elevation=1.0,
