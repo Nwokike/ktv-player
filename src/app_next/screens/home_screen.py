@@ -19,6 +19,7 @@ from app_next.components.header import Header
 from app_next.components.loading_state import LoadingState
 from app_next.components.recently_watched import RecentlyWatched
 from app_next.hooks.apply_filters import _default_filters, apply_filters
+from app_next.hooks.use_debounce import use_debounce
 from app_next.state.app_state import AppStateCtx
 from app_next.state.controller_ctx import ControllerMethodsCtx
 from app_next.utils.channels import (
@@ -151,6 +152,19 @@ def HomeScreen() -> Control:
         updated = {**filters, **new_filters}
         set_filters(updated)
 
+    # Buffer the Header search input; commit to filters dict only after
+    # 250ms of no keystrokes. Caches 1929 channels rebuilding on every
+    # character. Source: src/app_next/hooks/use_debounce.py.
+    search_input, set_search_input = ft.use_state(filters.get("search", ""))
+    debounced_search = use_debounce(search_input, 250)
+
+    async def _commit_search():
+        new_search = debounced_search
+        if filters.get("search") != new_search:
+            set_filters({**filters, "search": new_search})
+
+    ft.use_effect(_commit_search, [debounced_search])
+
     async def on_add_content_complete():
         set_add_dialog_open(False)
         await controller.refresh_channels()
@@ -163,8 +177,8 @@ def HomeScreen() -> Control:
         asyncio.create_task(controller.refresh_channels())
 
     header = Header(
-        search_value=filters.get("search", ""),
-        on_search_change=lambda q: on_filters_updated({"search": q}),
+        search_value=search_input,
+        on_search_change=lambda q: set_search_input(q),
         on_add_content=lambda: set_add_dialog_open(True),
         on_refresh=on_refresh_home,
     )
