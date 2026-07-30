@@ -6,7 +6,7 @@ HomeScreen and other views. The filter dict contract:
     {
         "country": "all" | <name>,
         "category": "all" | <name>,
-        "custom": "none" | "all" | "single" | <playlist_name>,
+        "custom": "none" | "all" | "single" | <m3u_group>,
         "fav_only": False,
         "search": "",
     }
@@ -47,8 +47,11 @@ def _matches(c: dict, filters: dict, favorites_set: set[str]) -> bool:
         if custom_sel == "single":
             if not c.get("is_single_custom", False):
                 return False
-        elif custom_sel != "all" and c.get("playlist_name") != custom_sel:
-            return False
+        elif custom_sel != "all":
+            # Match against M3U group-title (supports multi-group like "Kids;Religious")
+            groups = [g.strip() for g in c.get("group", "").split(";")]
+            if custom_sel not in groups:
+                return False
     else:
         # 4. Built-in Country & Category Filters (applies to built-in channels)
         country = filters.get("country", "all")

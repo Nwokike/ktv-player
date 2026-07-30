@@ -22,6 +22,7 @@ from app_next.utils.channels import (
     build_favorites_set,
     extract_category_counts,
     extract_country_counts,
+    extract_custom_groups,
 )
 from app_next.utils.favorites import toggle_favorite
 from core.constants import (
@@ -76,9 +77,7 @@ def HomeScreen() -> Control:
         [state.channels_hash],
     )
     custom_playlists = ft.use_memo(
-        lambda: sorted(
-            {c["playlist_name"] for c in state.channels if c.get("playlist_name")}
-        ),
+        lambda: extract_custom_groups(state.channels),
         [state.channels_hash],
     )
 

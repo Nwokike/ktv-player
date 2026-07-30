@@ -104,3 +104,40 @@ def extract_category_counts(channels: list[dict]) -> dict[str, int]:
         if category and category.lower() != "general":
             counts[category] += 1
     return dict(counts)
+
+
+def extract_custom_groups(channels: list[dict]) -> list[str]:
+    """Derive sorted unique groups from custom channels (M3U group-title)."""
+    from collections import Counter
+
+    counts: Counter[str] = Counter()
+    for c in channels:
+        if not c.get("is_custom"):
+            continue
+        group = c.get("group", "")
+        if not group or group.lower() == "custom":
+            continue
+        # Split on ; to handle multi-group titles like "Entertainment;Kids"
+        for part in group.split(";"):
+            g = part.strip()
+            if g and g.lower() not in ("general", "undefined"):
+                counts[g] += 1
+    return [g for g, _ in counts.most_common()]
+
+
+def extract_custom_group_counts(channels: list[dict]) -> dict[str, int]:
+    """Derive mapping of custom group names to channel counts from M3U group-title."""
+    from collections import Counter
+
+    counts: Counter[str] = Counter()
+    for c in channels:
+        if not c.get("is_custom"):
+            continue
+        group = c.get("group", "")
+        if not group or group.lower() == "custom":
+            continue
+        for part in group.split(";"):
+            g = part.strip()
+            if g and g.lower() not in ("general", "undefined"):
+                counts[g] += 1
+    return dict(counts)

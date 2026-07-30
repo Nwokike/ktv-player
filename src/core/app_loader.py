@@ -38,7 +38,7 @@ async def load_all_channels(page_obj, loading_lock):
                 if url:
                     seen_urls.add(url)
 
-            # Merge playlists
+            # Merge playlists — M3U group-title is preserved as-is
             playlists = await db_manager.get_playlists()
             for pl in playlists:
                 if pl.get("is_active"):
@@ -46,13 +46,11 @@ async def load_all_channels(page_obj, loading_lock):
                         playlist_channels = await iptv_service.fetch_playlist(
                             pl["url"],
                         )
-                        pl_name = pl.get("name", "Custom Playlist")
                         for pc in playlist_channels:
                             pc_url = pc.get("url", "")
                             if pc_url and pc_url in seen_urls:
                                 continue
                             pc["is_custom"] = True
-                            pc["playlist_name"] = pl_name
                             merged.append(pc)
                             if pc_url:
                                 seen_urls.add(pc_url)

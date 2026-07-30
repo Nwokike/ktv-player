@@ -10,7 +10,6 @@ def _ch(
     is_custom=False,
     country_code="M3U",
     is_single_custom=False,
-    playlist_name=None,
 ):
     return {
         "name": name,
@@ -18,7 +17,6 @@ def _ch(
         "group": group,
         "is_custom": is_custom,
         "is_single_custom": is_single_custom,
-        "playlist_name": playlist_name,
         "country_code": country_code,
     }
 
@@ -93,21 +91,17 @@ def test_custom_all_keeps_only_custom():
 
 def test_custom_single_keeps_only_single():
     channels = [
-        _ch(
-            "A", "http://a", is_custom=True, is_single_custom=False, playlist_name="P1"
-        ),
+        _ch("A", "http://a", group="Sports", is_custom=True, is_single_custom=False),
         _ch("B", "http://b", is_custom=True, is_single_custom=True),
     ]
     out = apply_filters(channels, {**_default_filters(), "custom": "single"}, set())
     assert [c["name"] for c in out] == ["B"]
 
 
-def test_custom_playlist_keeps_matching_playlist():
+def test_custom_group_keeps_matching_group():
     channels = [
-        _ch("A", "http://a", is_custom=True, playlist_name="My Playlist"),
-        _ch("B", "http://b", is_custom=True, playlist_name="Other Playlist"),
+        _ch("A", "http://a", group="Sports", is_custom=True),
+        _ch("B", "http://b", group="News", is_custom=True),
     ]
-    out = apply_filters(
-        channels, {**_default_filters(), "custom": "My Playlist"}, set()
-    )
+    out = apply_filters(channels, {**_default_filters(), "custom": "Sports"}, set())
     assert [c["name"] for c in out] == ["A"]

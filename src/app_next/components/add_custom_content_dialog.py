@@ -23,8 +23,6 @@ from core.constants import (
     MAX_NAME_LENGTH,
 )
 
-# --- pure helpers (exported for unit tests) ---
-
 
 def _is_valid_url(url: str) -> bool:
     stripped = url.strip()
@@ -35,10 +33,6 @@ def _is_valid_url(url: str) -> bool:
 
 
 def _can_add(name: str, url: str, last_add_time: float) -> bool:
-    if not name.strip():
-        return False
-    if len(name.strip()) > MAX_NAME_LENGTH:
-        return False
     if not _is_valid_url(url):
         return False
     if last_add_time > 0:
@@ -49,7 +43,7 @@ def _can_add(name: str, url: str, last_add_time: float) -> bool:
 def _format_name(name: str, add_type: str) -> str:
     stripped = name.strip()
     if not stripped:
-        return "Unnamed Playlist" if add_type == "playlist" else "Unnamed Channel"
+        return "Unnamed Channel" if add_type == "channel" else "Playlist"
     return stripped
 
 
@@ -59,13 +53,6 @@ def AddCustomContentDialog(
     on_close: Callable[[], None],
     on_added: Callable[[], Awaitable[None] | None],
 ) -> Control:
-    """Render a dialog for adding custom content when `open` is True.
-
-    The `ft.AlertDialog` is built fresh every render so its `disabled`
-    prop tracks current `name`/`url` state, then portaled into the
-    page overlay via `use_dialog(dialog)`. Verified against
-    .venv/lib/python3.14/site-packages/flet/components/hooks/use_dialog.py:38-136.
-    """
     add_type, set_add_type = ft.use_state("playlist")
     name, set_name = ft.use_state("")
     url, set_url = ft.use_state("")
@@ -107,10 +94,23 @@ def AddCustomContentDialog(
         _reset()
         on_close()
 
-    # Build the dialog fresh every render. None when not open so
-    # use_dialog can dismiss the overlay.
     dialog: Control | None = None
     if open:
+        # Name field only shown for single channels — playlists get M3U groups automatically
+        name_field = (
+            [
+                ft.TextField(
+                    label=LBL_NAME,
+                    hint_text=LBL_NAME_HINT,
+                    value=name,
+                    on_change=lambda e: set_name(e.control.value),
+                    max_length=MAX_NAME_LENGTH,
+                ),
+            ]
+            if add_type == "channel"
+            else []
+        )
+
         dialog = ft.AlertDialog(
             modal=True,
             title=ft.Text("Add Custom Content"),
@@ -127,14 +127,7 @@ def AddCustomContentDialog(
                             ),
                         ],
                     ),
-                    ft.TextField(
-                        label=LBL_NAME,
-                        hint_text=LBL_NAME_HINT,
-                        value=name,
-                        on_change=lambda e: set_name(e.control.value),
-                        max_length=MAX_NAME_LENGTH,
-                        autofocus=True,
-                    ),
+                    *name_field,
                     ft.TextField(
                         label=LBL_URL,
                         hint_text=LBL_URL_HINT,
@@ -159,8 +152,6 @@ def AddCustomContentDialog(
 
     use_dialog(dialog)
 
-    # Modal-stack accounting reflects the current open state. Run on
-    # every render so a stale push/pop on the controller is impossible.
     has_pushed, set_has_pushed = ft.use_state(False)
 
     async def _sync_modal_stack():

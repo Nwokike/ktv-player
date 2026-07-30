@@ -7,7 +7,7 @@ from flet import Control
 
 from app_next.components.channel_card import ChannelCard
 from app_next.components.empty_state import EmptyState
-from core.constants import AD_ROW_INTERVAL, LOAD_MORE_SIZE, PAGE_SIZE
+from core.constants import AD_ROW_INTERVAL, PAGE_SIZE
 
 # Grid layout
 _RUNS_COUNT = 3
@@ -15,7 +15,6 @@ _MAX_EXTENT = 160
 _CHILD_ASPECT = 0.75
 _SPACING = 12
 _RUN_SPACING = 12
-_ROW_HEIGHT = int(_MAX_EXTENT * _CHILD_ASPECT) + _RUN_SPACING
 
 
 def _build_channel_card(ch, favorites_set, on_play, on_toggle_favorite):
@@ -44,23 +43,16 @@ def ChannelGrid(
     on_toggle_favorite: Callable[[str], None],
     ad_service=None,
 ) -> Control:
-    displayed_count, set_displayed_count = ft.use_state(PAGE_SIZE)
-    has_more = displayed_count < len(channels)
+    current_page, set_current_page = ft.use_state(0)
 
-    def _on_scroll(e):
-        if not has_more:
-            return
-        remaining = e.extent_after if hasattr(e, "extent_after") else 0
-        if remaining < 200:
-            new_count = min(displayed_count + LOAD_MORE_SIZE, len(channels))
-            if new_count != displayed_count:
-                set_displayed_count(new_count)
+    total_pages = max(1, (len(channels) + PAGE_SIZE - 1) // PAGE_SIZE)
+    # Clamp page if channels changed (filter switched)
+    if current_page >= total_pages:
+        current_page = total_pages - 1
 
-    def _load_more(e=None):
-        new_count = min(displayed_count + LOAD_MORE_SIZE, len(channels))
-        set_displayed_count(new_count)
-
-    visible = channels[:displayed_count]
+    start = current_page * PAGE_SIZE
+    end = min(start + PAGE_SIZE, len(channels))
+    visible = channels[start:end]
 
     if not visible:
         return EmptyState(
@@ -69,12 +61,11 @@ def ChannelGrid(
             action_label=None,
         )
 
-    # Build sections: groups of AD_ROW_INTERVAL channels, with ad between groups
+    # Build grid sections with ads between chunks
     sections: list[Control] = []
     for chunk_start in range(0, len(visible), AD_ROW_INTERVAL):
         chunk = visible[chunk_start : chunk_start + AD_ROW_INTERVAL]
 
-        # Build grid for this chunk
         grid_controls = [
             _build_channel_card(ch, favorites_set, on_play, on_toggle_favorite)
             for ch in chunk
@@ -94,7 +85,7 @@ def ChannelGrid(
             )
         )
 
-        # Ad after this chunk (except after the last chunk)
+        # Ad after this chunk (except after the last)
         if chunk_start + AD_ROW_INTERVAL < len(visible) and ad_service:
             ad_slot = (
                 ad_service.get_standard_banner_ad()
@@ -106,24 +97,39 @@ def ChannelGrid(
             else:
                 sections.append(ft.Container(height=12))
 
-    # "Load More" button
-    if has_more:
-        remaining = len(channels) - displayed_count
-        sections.append(
-            ft.Container(
-                content=ft.FilledButton(
-                    content=ft.Text(f"Load More ({remaining} remaining)", size=13),
-                    icon=ft.Icons.ARROW_DOWNWARD_ROUNDED,
-                    on_click=_load_more,
-                ),
-                alignment=ft.Alignment.CENTER,
-                padding=ft.Padding(0, 12, 0, 12),
-            )
+    # Pagination controls
+    sections.append(
+        ft.Container(
+            content=ft.Row(
+                controls=[
+                    ft.OutlinedButton(
+                        content=ft.Text("← Previous"),
+                        icon=ft.Icons.CHEVRON_LEFT,
+                        on_click=lambda e: set_current_page(max(0, current_page - 1)),
+                        disabled=current_page == 0,
+                    ),
+                    ft.Text(
+                        f"Page {current_page + 1} of {total_pages}  ·  {len(channels)} channels",
+                        size=12,
+                        color=ft.Colors.with_opacity(0.6, ft.Colors.ON_SURFACE),
+                    ),
+                    ft.OutlinedButton(
+                        content=ft.Text("Next →"),
+                        on_click=lambda e: set_current_page(
+                            min(total_pages - 1, current_page + 1)
+                        ),
+                        disabled=current_page >= total_pages - 1,
+                    ),
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                spacing=16,
+            ),
+            padding=ft.Padding(0, 16, 0, 24),
         )
+    )
 
     return ft.Column(
         controls=sections,
         expand=True,
         scroll=ft.ScrollMode.AUTO,
-        on_scroll=_on_scroll,
     )
