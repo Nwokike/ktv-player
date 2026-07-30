@@ -9,12 +9,11 @@ from collections.abc import Callable
 import flet as ft
 from flet import Control
 
-from core.constants import LBL_ADD_CONTENT
+from core.constants import LBL_ADD_CONTENT, LBL_ADD_CONTENT_SHORT
 from core.tokens import FONT_MD, ICON_SM, SPACING_XS
 
-
 # Compact chip-like Dropdown styling
-_CHIP_DROPDOWN_STYLE = dict(
+_CHIP_DROPDOWN_STYLE = dict(  # noqa: C408
     border=ft.InputBorder.NONE,
     dense=True,
     filled=True,
@@ -184,6 +183,20 @@ def FilterBar(
     )
 
     controls_row = [country_dd, category_dd, custom_dd, fav_chip]
+
+    # 5th chip — + add action. Lives in the same Row as
+    # Country/Category/Custom/Fav. The header now omits the + entirely;
+    # this is the only add entry on the screen.
+    if callable(on_add_content):
+        controls_row = controls_row + [
+            ft.IconButton(
+                icon=ft.Icons.ADD,
+                tooltip=LBL_ADD_CONTENT_SHORT,
+                on_click=lambda e: on_add_content(),
+                icon_size=ICON_SM,
+                style=ft.ButtonStyle(padding=ft.Padding(8, 4, 8, 4)),
+            )
+        ]
 
     chips_row = ft.Row(
         controls=controls_row,

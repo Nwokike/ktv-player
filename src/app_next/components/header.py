@@ -1,7 +1,8 @@
 """Header — Top Material 3 AppBar: logo + search + actions.
 
 Built on Flet 0.86's ft.AppBar (verified .venv/.../material/app_bar.py):
-- leading slot for the logo (and add button if on_add_content is set)
+- leading slot: just the logo. The "+" add action lives in the
+  filter_bar chip row (see ChipRow below), not in the AppBar.
 - title slot for the search field
 - actions slot for refresh + theme toggle
 - toolbar_height=48 + elevation_on_scroll=4 for a tighter, native look
@@ -50,8 +51,8 @@ def Header(
     _compact_style = ft.ButtonStyle(padding=ft.Padding.all(4))
     _leading_width = 44
 
-    # Logo is the leading control. The "+" add action lives as the
-    # LAST item in the actions row so the row reads: [refresh?] [theme] [+].
+    # Logo is the leading control. The "+" add action lives in the
+    # filter_bar chip row (see add_to_chip_below), not the AppBar.
     leading_controls: list[Control] = [
         ft.Image(
             src="/icon.png",
@@ -89,16 +90,6 @@ def Header(
             style=_compact_style,
         )
     )
-    if callable(on_add_content):
-        actions.append(
-            ft.IconButton(
-                icon=ft.Icons.ADD_CIRCLE_OUTLINE,
-                tooltip=add_tooltip,
-                on_click=lambda e: on_add_content(),
-                icon_size=ICON_SM,
-                style=_compact_style,
-            )
-        )
 
     return ft.AppBar(
         leading=ft.Row(
