@@ -280,28 +280,15 @@ def HomeScreen() -> Control:
 
     return ft.Container(
         expand=True,
-        content=ft.Stack(
+        content=ft.Column(
             controls=[
-                ft.Column(
-                    controls=[
-                        header,
-                        recently,
-                        filter_bar,
-                        body,
-                    ],
-                    expand=True,
-                    spacing=0,
-                ),
-                ft.FloatingActionButton(
-                    content=ft.Icon(ft.Icons.ADD),
-                    mini=True,
-                    tooltip=LBL_ADD_CONTENT_SHORT,
-                    on_click=lambda e: set_add_dialog_open(True),
-                    bottom=80,
-                    right=12,
-                ),
+                header,
+                recently,
+                filter_bar,
+                body,
                 dialog,
             ],
             expand=True,
+            spacing=0,
         ),
     )

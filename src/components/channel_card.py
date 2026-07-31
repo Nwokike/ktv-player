@@ -49,12 +49,10 @@ def ChannelCard(
 
     top_row = ft.Row(
         controls=[
-            ft.IconButton(
-                icon=fav_icon_name,
-                icon_color=fav_icon_color,
-                icon_size=16,
-                tooltip="Favorite",
-                on_click=lambda e, u=url: on_toggle_favorite(u),
+            ft.Icon(
+                name=fav_icon_name,
+                color=fav_icon_color,
+                size=16,
             ),
             ft.Container(
                 width=STATUS_DOT_SIZE,
@@ -85,7 +83,7 @@ def ChannelCard(
         overflow=ft.TextOverflow.ELLIPSIS,
     )
 
-    return ft.FilledButton(
+    return ft.Container(
         key=ft.ValueKey(url),
         height=CARD_HEIGHT,
         content=ft.Column(
@@ -98,8 +96,10 @@ def ChannelCard(
             spacing=2,
         ),
         on_click=lambda e: on_play(url),
-        style=card_button_style(
-            padding=ft.Padding.symmetric(horizontal=10, vertical=8),
-            radius=CARD_BORDER_RADIUS,
-        ),
+        ink=True,
+        border=ft.Border.all(4, ft.Colors.TRANSPARENT),
+        border_radius=CARD_BORDER_RADIUS,
+        animate_scale=300,
+        animate=300,
+        padding=ft.Padding.symmetric(horizontal=10, vertical=8),
     )

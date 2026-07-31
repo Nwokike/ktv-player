@@ -105,11 +105,13 @@ def Header(
         alignment=ft.MainAxisAlignment.START,
     )
 
-    return ft.AppBar(
-        leading=brand_row,
-        leading_width=220,
-        title=None,
-        center_title=False,
-        elevation_on_scroll=4,
-        actions=actions,
+    return ft.Container(
+        padding=ft.Padding.only(left=24, right=24, top=24, bottom=8),
+        content=ft.Row(
+            controls=[
+                brand_row,
+                ft.Row(controls=actions),
+            ],
+            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+        ),
     )
