@@ -1,6 +1,6 @@
 """Tests for FolderExpansionTile component."""
 
-from app_next.components.folder_expansion_tile import FolderExpansionTile
+from components.folder_expansion_tile import FolderExpansionTile
 from services.local_scanner import LocalVideo, VideoFolder
 
 

@@ -5,7 +5,7 @@ logic via _debounced_value helper (it's identity for single input).
 Full hook exercise is in manual smoke.
 """
 
-from app_next.hooks.use_debounce import use_debounce
+from hooks.use_debounce import use_debounce
 
 
 def test_use_debounce_marked_as_hook():

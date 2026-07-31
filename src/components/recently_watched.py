@@ -5,7 +5,7 @@ from collections.abc import Callable
 import flet as ft
 from flet import Control
 
-from app_next.components.focus_styles import card_button_style
+from components.focus_styles import card_button_style
 from core.constants import LBL_RECENTLY_WATCHED
 from core.theme import AppColors
 from services.logo_cache import get_cached_logo

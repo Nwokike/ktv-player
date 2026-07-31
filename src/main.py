@@ -9,7 +9,6 @@ import urllib.parse
 import flet as ft
 
 import core.logger_handler  # noqa: F401
-from app_next.hooks.use_focus_scope import FocusScope
 from components.player.immersive_player import ImmersivePlayer
 from core.constants import (
     APP_NAME,
@@ -21,6 +20,7 @@ from core.logging_config import setup_logging
 from core.state import state
 from core.theme import AppTheme
 from database.manager import db_manager
+from hooks.use_focus_scope import FocusScope
 from services.ad_service import AdService
 from services.liveliness_checker import LivelinessChecker
 
@@ -125,8 +125,8 @@ class AppController:
         liveliness_cache.load_from_db(cached_entries)
 
         # Mount component frontend — AppShell manages routing, theme, nav.
-        from app_next import AppShell
-        from app_next.state.controller_ctx import (
+        from app_shell import AppShell
+        from state.controller_ctx import (
             ControllerMethods,
             ControllerMethodsCtx,
         )
@@ -154,7 +154,7 @@ class AppController:
             return
         logger.error("Global error: %s", err_data)
         try:
-            from app_next.utils.notifications import notify_warning
+            from utils.notifications import notify_warning
 
             notify_warning(ERR_NETWORK)
         except Exception:
@@ -212,7 +212,7 @@ class AppController:
             return
 
         if not _is_valid_play_url(url):
-            from app_next.utils.notifications import notify_error
+            from utils.notifications import notify_error
 
             notify_error("Invalid or blocked URL.")
             return
@@ -375,7 +375,7 @@ class AppController:
         except Exception:
             logger.exception("Failed to start playback")
             try:
-                from app_next.utils.notifications import notify_error
+                from utils.notifications import notify_error
 
                 notify_error("Playback failed")
             except Exception:

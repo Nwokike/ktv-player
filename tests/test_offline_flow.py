@@ -5,7 +5,7 @@ from unittest import mock
 import flet as ft
 from flet_tree import button_label, find_button_by_label, walk_buttons
 
-from app_next.components.offline_flow import OfflineFlow
+from components.offline_flow import OfflineFlow
 
 
 def test_offline_flow_renders_two_buttons():

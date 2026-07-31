@@ -5,7 +5,7 @@ from unittest import mock
 import flet as ft
 import pytest
 
-from app_next.hooks.use_focus_scope import FocusScope
+from hooks.use_focus_scope import FocusScope
 
 
 def test_focus_scope_returns_container_with_keyboard_listener():

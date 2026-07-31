@@ -3,7 +3,7 @@
 import flet as ft
 from flet_tree import walk_buttons, walk_texts
 
-from app_next.components.empty_state import EmptyState
+from components.empty_state import EmptyState
 
 
 def test_empty_state_is_container():

@@ -2,12 +2,7 @@
 
 
 def escape_html(text: str) -> str:
-    """Escape HTML special characters.
-
-    Primarily for defense-in-depth when user-generated names pass through
-    systems that may render HTML. In Flet (Flutter) context this is not
-    needed for ft.Text, but is applied for consistency and safety.
-    """
+    """Escape HTML special characters."""
     return (
         text.replace("&", "&amp;")
         .replace("<", "&lt;")
@@ -15,3 +10,11 @@ def escape_html(text: str) -> str:
         .replace('"', "&quot;")
         .replace("'", "&#x27;")
     )
+
+
+def country_code_to_flag(code: str) -> str:
+    """Convert 2-letter ISO country code (e.g. 'US', 'GB', 'NG', 'AL') into Unicode flag emoji."""
+    if not code or len(code) != 2 or not code.isalpha():
+        return ""
+    code = code.upper()
+    return chr(127397 + ord(code[0])) + chr(127397 + ord(code[1]))

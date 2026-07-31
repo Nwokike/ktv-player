@@ -225,12 +225,15 @@ def FilterBar(
         ),
     ]
     if custom_playlists:
-        for pl in custom_playlists:
+        is_custom_dict = isinstance(custom_playlists, dict)
+        playlists_keys = custom_playlists.keys() if is_custom_dict else custom_playlists
+        for pl in playlists_keys:
+            label_text = f"{pl} ({custom_playlists[pl]})" if is_custom_dict else pl
             custom_items.append(
                 ft.PopupMenuItem(
-                    content=ft.Text(pl, size=FONT_MD),
-                    on_click=lambda e, name=pl: _fire(
-                        {"custom": name, "country": "all", "category": "all", **_RESET}
+                    content=ft.Text(label_text, size=FONT_MD),
+                    on_click=lambda e, g=pl: _fire(
+                        {"custom": g, "country": "all", "category": "all", **_RESET}
                     ),
                 )
             )

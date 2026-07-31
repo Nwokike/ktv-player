@@ -2,27 +2,27 @@ import flet as ft
 
 
 class AppColors:
-    PRIMARY = "#7C4DFF"
-    PRIMARY_LIGHT = "#B388FF"
-    PRIMARY_DARK = "#651FFF"
-    SECONDARY = "#00E5FF"
-    SUCCESS = "#4CAF50"
-    WARNING = "#F44336"
-    ERROR = "#FF5252"
+    PRIMARY = "#0EA5E9"
+    PRIMARY_LIGHT = "#38BDF8"
+    PRIMARY_DARK = "#0284C7"
+    SECONDARY = "#0284C7"
+    SUCCESS = "#22C55E"
+    WARNING = "#F59E0B"
+    ERROR = "#EF4444"
 
-    # --- Dark Mode Colors (Untouched) ---
-    DARK_BG = "#0D0F1A"
-    DARK_SURFACE = "#151828"
-    DARK_SURFACE_VARIANT = "#1E2235"
-    DARK_TEXT = "#F0F2FF"
-    DARK_TEXT_DIM = "#8E94A5"
-    DARK_TEXT_MUTED = "#5A6078"
+    # --- Dark Mode Colors (nkiri-tv cinematic theme) ---
+    DARK_BG = "#0A0E14"
+    DARK_SURFACE = "#0F1520"
+    DARK_SURFACE_VARIANT = "#162030"
+    DARK_TEXT = "#F0F7FF"
+    DARK_TEXT_DIM = "#A7C4E2"
+    DARK_TEXT_MUTED = "#6B8AB5"
 
-    # --- Light Mode Colors (Tweaked for better contrast) ---
-    LIGHT_BG = "#F5F7FB"
+    # --- Light Mode Colors ---
+    LIGHT_BG = "#F0F7FF"
     LIGHT_SURFACE = "#FFFFFF"
-    LIGHT_SURFACE_VARIANT = "#F0F2F8"
-    LIGHT_TEXT = "#1A1D2D"
+    LIGHT_SURFACE_VARIANT = "#ECF5FF"
+    LIGHT_TEXT = "#021828"
 
     # Changed from #64748B to #334155 to make "ash" text much darker and legible
     LIGHT_TEXT_DIM = "#334155"

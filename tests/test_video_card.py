@@ -3,7 +3,7 @@
 import flet as ft
 from flet_tree import walk_texts
 
-from app_next.components.video_card import VideoCard
+from components.video_card import VideoCard
 from services.local_scanner import LocalVideo
 
 

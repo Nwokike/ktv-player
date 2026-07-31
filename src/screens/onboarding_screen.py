@@ -6,11 +6,7 @@ from typing import Any
 import flet as ft
 from flet import Control
 
-from app_next.components.loading_state import LoadingState
-from app_next.hooks.use_storage import Storage, use_storage
-from app_next.state.app_state import AppStateCtx
-from app_next.utils.channels import extract_country_dicts
-from app_next.utils.notifications import notify_warning
+from components.loading_state import LoadingState
 from core.constants import (
     LBL_CONNECTING,
     LBL_PLEASE_ACCEPT_TERMS,
@@ -24,6 +20,10 @@ from core.constants import (
     TERMS_TEXT,
 )
 from core.theme import AppColors
+from hooks.use_storage import Storage, use_storage
+from state.app_state import AppStateCtx
+from utils.channels import extract_country_dicts
+from utils.notifications import notify_warning
 
 
 def can_submit(country: str, terms: bool) -> bool:
@@ -125,7 +125,7 @@ def OnboardingScreen(
         return LoadingState(label=LBL_CONNECTING)
 
     if is_offline:
-        from app_next.components.offline_flow import OfflineFlow as _OfflineFlow
+        from components.offline_flow import OfflineFlow as _OfflineFlow
 
         return _OfflineFlow(on_retry=_on_retry, on_skip=_on_skip)
 

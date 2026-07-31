@@ -1,4 +1,4 @@
-"""Shared fixtures for app_next tests."""
+"""Shared fixtures for components tests."""
 
 from collections import deque
 from typing import Any

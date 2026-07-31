@@ -1,6 +1,6 @@
 """Tests for the pure apply_filters helper."""
 
-from app_next.hooks.apply_filters import _default_filters, apply_filters
+from hooks.apply_filters import _default_filters, apply_filters
 
 
 def _ch(

@@ -3,7 +3,7 @@
 import flet as ft
 from flet_tree import find_icon, walk
 
-from app_next.components.channel_card import ChannelCard
+from components.channel_card import ChannelCard
 from core.constants import CARD_HEIGHT, STATUS_DOT_SIZE
 
 
@@ -52,7 +52,7 @@ def test_channel_card_favorite_icon_reflects_is_favorite():
         on_toggle_favorite=lambda u: None,
         liveliness_status=None,
     )
-    ico = find_icon(fav_card, ft.Icons.FAVORITE)
+    ico = find_icon(fav_card, ft.Icons.STAR_ROUNDED)
     assert ico is not None
 
     unfav_card = ChannelCard(
@@ -62,7 +62,7 @@ def test_channel_card_favorite_icon_reflects_is_favorite():
         on_toggle_favorite=lambda u: None,
         liveliness_status=None,
     )
-    ico2 = find_icon(unfav_card, ft.Icons.FAVORITE_BORDER)
+    ico2 = find_icon(unfav_card, ft.Icons.STAR_BORDER_ROUNDED)
     assert ico2 is not None
 
 

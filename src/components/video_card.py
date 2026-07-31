@@ -5,7 +5,7 @@ from collections.abc import Callable
 import flet as ft
 from flet import Control
 
-from app_next.components.focus_styles import card_button_style
+from components.focus_styles import card_button_style
 from services.local_scanner import LocalVideo
 
 

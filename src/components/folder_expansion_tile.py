@@ -10,7 +10,7 @@ from collections.abc import Callable
 import flet as ft
 from flet import Control
 
-from app_next.components.video_card import VideoCard
+from components.video_card import VideoCard
 from core.constants import PAGE_SIZE
 from services.local_scanner import VideoFolder
 

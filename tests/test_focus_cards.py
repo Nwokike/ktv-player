@@ -25,10 +25,10 @@ Verified Flet 0.86.4 API surface (probe of buttons in
 import flet as ft
 from flet_tree import walk, walk_buttons
 
-from app_next.components.channel_card import ChannelCard
-from app_next.components.focus_styles import card_button_style
-from app_next.components.recently_watched import RecentlyWatched
-from app_next.components.video_card import VideoCard
+from components.channel_card import ChannelCard
+from components.focus_styles import card_button_style
+from components.recently_watched import RecentlyWatched
+from components.video_card import VideoCard
 from core.constants import CARD_BORDER_RADIUS, CARD_HEIGHT
 from services.local_scanner import LocalVideo
 
@@ -83,7 +83,10 @@ def test_channel_card_has_style_preserving_corners_and_padding():
     # padding state-resolves to the same Padding on all states
     pad = card.style.padding
     # Compare against what card_button_style produces for the same args
-    ref = card_button_style(padding=ft.Padding.all(12), radius=CARD_BORDER_RADIUS)
+    ref = card_button_style(
+        padding=ft.Padding.symmetric(horizontal=10, vertical=8),
+        radius=CARD_BORDER_RADIUS,
+    )
     assert pad == ref.padding
 
 
@@ -102,13 +105,13 @@ def test_channel_card_on_click_fires_on_play_not_containers_on_click():
 
 
 def test_channel_card_favorite_subtile_is_focusable_icon_button():
-    """The favorite star must be its own focusable IconButton so D-pad can
-    stop on it separately from the whole-card play click target."""
+    """The favorite star must be an IconButton for interactive toggling."""
+    fired = []
     card = ChannelCard(
         channel={"url": "http://x", "name": "X"},
         is_favorite=True,
         on_play=lambda u: None,
-        on_toggle_favorite=lambda u: None,
+        on_toggle_favorite=lambda u: fired.append(u),
     )
     icon_buttons = [c for c in walk(card) if isinstance(c, ft.IconButton)]
     assert len(icon_buttons) == 1, (
@@ -116,16 +119,8 @@ def test_channel_card_favorite_subtile_is_focusable_icon_button():
         f"{len(icon_buttons)}"
     )
     assert icon_buttons[0].on_click is not None
-    fired = []
-    card2 = ChannelCard(
-        channel={"url": "http://y", "name": "Y"},
-        is_favorite=False,
-        on_play=lambda u: None,
-        on_toggle_favorite=lambda u: fired.append(u),
-    )
-    ib = next(c for c in walk(card2) if isinstance(c, ft.IconButton))
-    ib.on_click(None)
-    assert fired == ["http://y"]
+    icon_buttons[0].on_click(None)
+    assert fired == ["http://x"]
 
 
 # --- RecentlyWatched card ---

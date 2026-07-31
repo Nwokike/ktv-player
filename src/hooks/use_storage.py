@@ -1,4 +1,4 @@
-"""Async storage facade for app_next components.
+"""Async storage facade for components components.
 
 Wraps `database.manager.db_manager` so callers do not import the manager
 directly. This is NOT a React-style hook — it's a thin factory returning

@@ -6,7 +6,7 @@ manual smoke (Task 10). We verify the component wrapper exists and is
 callable.
 """
 
-from app_next.components.filter_bar import FilterBar
+from components.filter_bar import FilterBar
 
 
 def test_filter_bar_is_component():

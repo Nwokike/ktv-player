@@ -12,7 +12,7 @@ but properly uninstalled on unmount.
 
 Usage in AppShell (dashboard branch):
 
-    from app_next.hooks.use_keyboard_shortcuts import use_keyboard_shortcuts
+    from hooks.use_keyboard_shortcuts import use_keyboard_shortcuts
 
     controller = ft.use_context(ControllerMethodsCtx)
     use_keyboard_shortcuts(

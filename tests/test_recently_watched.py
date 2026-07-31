@@ -3,7 +3,7 @@
 import flet as ft
 from flet_tree import walk
 
-from app_next.components.recently_watched import RecentlyWatched
+from components.recently_watched import RecentlyWatched
 
 
 def _make_ch(name, url):

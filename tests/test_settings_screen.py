@@ -1,6 +1,6 @@
 """Tests for SettingsScreen component."""
 
-from app_next.screens.settings_screen import _SECTIONS, SettingsScreen
+from screens.settings_screen import _SECTIONS, SettingsScreen
 
 
 def test_settings_screen_marked_as_component():

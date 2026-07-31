@@ -6,10 +6,6 @@ import logging
 import flet as ft
 from flet import Control
 
-from app_next.state.app_state import AppStateCtx
-from app_next.state.controller_ctx import ControllerMethodsCtx
-from app_next.utils.notifications import notify, notify_warning
-from app_next.utils.theme_utils import toggle_theme as _toggle_theme_util
 from channels.provider import channel_provider
 from core.constants import (
     APP_NAME,
@@ -47,8 +43,20 @@ from core.logger_handler import MemoryLogHandler
 from core.state import state as core_state
 from core.theme import AppColors
 from database.manager import db_manager
+from state.app_state import AppStateCtx
+from state.controller_ctx import ControllerMethodsCtx
+from utils.notifications import notify, notify_warning
+from utils.theme_utils import toggle_theme as _toggle_theme_util
 
 logger = logging.getLogger("SettingsScreen")
+
+_SECTIONS = [
+    {"key": "appearance", "title": "Appearance", "icon": ft.Icons.PALETTE},
+    {"key": "localization", "title": "Localization", "icon": ft.Icons.PUBLIC},
+    {"key": "data_management", "title": "Data Management", "icon": ft.Icons.STORAGE},
+    {"key": "custom_content", "title": "Development", "icon": ft.Icons.TERMINAL},
+    {"key": "about", "title": "About", "icon": ft.Icons.INFO},
+]
 
 
 # ---------------------------------------------------------------------------
@@ -205,9 +213,11 @@ def _section_card(title: str, icon: str, items: list[Control]) -> ft.Container:
 def SettingsScreen() -> Control:
     state = ft.use_context(AppStateCtx)
     controller = ft.use_context(ControllerMethodsCtx)
-
     is_clearing, set_is_clearing = ft.use_state(False)
     is_resetting, set_is_resetting = ft.use_state(False)
+    _theme_mode, set_theme_mode = ft.use_state(
+        lambda: AppColors._is_dark(ft.context.page)
+    )
 
     # -- handlers --
 
@@ -220,6 +230,7 @@ def SettingsScreen() -> Control:
         from flet import context
 
         _toggle_theme_util(context.page)
+        set_theme_mode(AppColors._is_dark(context.page))
 
     def _on_country_select(e):
         if e.control.value:
@@ -289,7 +300,9 @@ def SettingsScreen() -> Control:
                 leading=ft.Icon(ft.Icons.DARK_MODE, size=18, color=AppColors.PRIMARY),
                 title=LBL_DARK_MODE,
                 subtitle=LBL_DARK_MODE_DESC,
-                trailing=ft.Switch(value=_is_dark(), on_change=_toggle_theme),
+                trailing=ft.Switch(
+                    value=_is_dark(), on_change=_toggle_theme, autofocus=True
+                ),
             ),
         ],
     )

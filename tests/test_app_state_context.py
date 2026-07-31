@@ -1,7 +1,7 @@
 """Tests for the AppStateCtx adapter."""
 
-from app_next.state.app_state import AppStateCtx
 from core.state import state as core_singleton
+from state.app_state import AppStateCtx
 
 
 def test_app_state_context_resolves_to_core_singleton():

@@ -7,17 +7,17 @@ delegates to, end-to-end, covering both branches and the context wiring.
 
 import flet as ft
 
-from app_next.app_shell import (
+from app_shell import (
     AppShell,
     _dashboard_scaffold,
     _should_show_onboarding,
 )
-from app_next.state.app_state import state
-from app_next.state.controller_ctx import (
+from core.state import state as core_singleton
+from state.app_state import state
+from state.controller_ctx import (
     ControllerMethods,
     ControllerMethodsCtx,
 )
-from core.state import state as core_singleton
 
 
 def test_should_show_onboarding_false_when_returning_user():
@@ -63,7 +63,7 @@ def test_app_shell_is_marked_as_component():
 
 def test_app_shell_source_uses_use_context_for_state_and_import():
     """Regression guard: AppShell must use use_context(AppStateCtx) for state,
-    NOT a plain `from app_next.state.app_state import state` import.
+    NOT a plain `from state.app_state import state` import.
 
     The plain import does NOT auto-subscribe to observable changes (verified
     at .venv/lib/python3.13/site-packages/flet/components/hooks/use_context.py
@@ -73,7 +73,7 @@ def test_app_shell_source_uses_use_context_for_state_and_import():
     """
     import inspect
 
-    from app_next import app_shell
+    import app_shell
 
     source = inspect.getsource(app_shell)
     assert "use_context(AppStateCtx)" in source, (
@@ -86,4 +86,4 @@ def test_app_shell_source_uses_use_context_for_state_and_import():
         if not line.strip().startswith(("#", '"""', "'''"))
     ]
     code = "\n".join(code_lines)
-    assert "from app_next.state.app_state import state" not in code
+    assert "from state.app_state import state" not in code

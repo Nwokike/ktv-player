@@ -6,31 +6,31 @@ import logging
 import flet as ft
 from flet import Control, use_ref
 
-from app_next.components.add_custom_content_dialog import AddCustomContentDialog
-from app_next.components.channel_grid import ChannelGrid
-from app_next.components.empty_state import EmptyState
-from app_next.components.filter_bar import FilterBar
-from app_next.components.header import Header
-from app_next.components.loading_state import LoadingState
-from app_next.components.recently_watched import RecentlyWatched
-from app_next.hooks.apply_filters import _default_filters, apply_filters
-from app_next.hooks.use_debounce import use_debounce
-from app_next.state.app_state import AppStateCtx
-from app_next.state.controller_ctx import ControllerMethodsCtx
-from app_next.utils.channels import (
-    build_channels_map,
-    build_favorites_set,
-    extract_category_counts,
-    extract_country_counts,
-    extract_custom_groups,
-)
-from app_next.utils.favorites import toggle_favorite
+from components.add_custom_content_dialog import AddCustomContentDialog
+from components.channel_grid import ChannelGrid
+from components.empty_state import EmptyState
+from components.filter_bar import FilterBar
+from components.header import Header
+from components.loading_state import LoadingState
+from components.recently_watched import RecentlyWatched
 from core.constants import (
     ERR_PLAYBACK_FAILED,
     LBL_ADD_CONTENT_SHORT,
     LBL_NO_CHANNELS_FOUND,
     LBL_NO_CHANNELS_HINT,
 )
+from hooks.apply_filters import _default_filters, apply_filters
+from hooks.use_debounce import use_debounce
+from state.app_state import AppStateCtx
+from state.controller_ctx import ControllerMethodsCtx
+from utils.channels import (
+    build_channels_map,
+    build_favorites_set,
+    extract_category_counts,
+    extract_country_counts,
+    extract_custom_group_counts,
+)
+from utils.favorites import toggle_favorite
 
 logger = logging.getLogger("HomeScreen")
 
@@ -77,7 +77,7 @@ def HomeScreen() -> Control:
         [state.channels_hash],
     )
     custom_playlists = ft.use_memo(
-        lambda: extract_custom_groups(state.channels),
+        lambda: extract_custom_group_counts(state.channels),
         [state.channels_hash],
     )
 
@@ -142,7 +142,7 @@ def HomeScreen() -> Control:
             try:
                 await controller.play_stream(url, None)
             except Exception:
-                from app_next.utils.notifications import notify_error
+                from utils.notifications import notify_error
 
                 notify_error(ERR_PLAYBACK_FAILED)
 
@@ -190,17 +190,25 @@ def HomeScreen() -> Control:
     def on_refresh_home():
         asyncio.create_task(controller.refresh_channels())
 
+    def _open_search():
+        if callable(getattr(controller, "open_search", None)):
+            controller.open_search("tv")
+
+    def _toggle_favorites_filter():
+        set_filters({**filters, "fav_only": not filters.get("fav_only", False)})
+
     header = Header(
-        search_value=search_input,
-        on_search_change=lambda q: set_search_input(q),
+        on_search_click=_open_search,
+        on_favorites_toggle=_toggle_favorites_filter,
         on_add_content=lambda: set_add_dialog_open(True),
         on_refresh=on_refresh_home,
+        fav_active=filters.get("fav_only", False),
     )
 
     def _open_recently_watched():
         from flet import context
 
-        from app_next.screens.recently_watched_screen import RecentlyWatchedScreen
+        from screens.recently_watched_screen import RecentlyWatchedScreen
 
         page = context.page
         page.views.append(
@@ -235,9 +243,20 @@ def HomeScreen() -> Control:
         on_add_content=lambda: set_add_dialog_open(True),
     )
 
-    if not state.channels and state.is_loading:
-        body = LoadingState()
-    elif not visible:
+    if not state.channels:
+        return ft.Container(
+            expand=True,
+            content=ft.Column(
+                controls=[
+                    header,
+                    LoadingState(label="Loading channels..."),
+                ],
+                expand=True,
+                spacing=0,
+            ),
+        )
+
+    if not visible:
         body = EmptyState(
             title=LBL_NO_CHANNELS_FOUND,
             message=LBL_NO_CHANNELS_HINT,

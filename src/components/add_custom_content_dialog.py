@@ -7,12 +7,8 @@ from collections.abc import Awaitable, Callable
 import flet as ft
 from flet import Control, use_dialog
 
-from app_next.hooks.use_storage import use_storage
-from app_next.state.controller_ctx import ControllerMethodsCtx
-from app_next.utils.notifications import notify, notify_warning
 from core.constants import (
     ADD_CONTENT_COOLDOWN,
-    LBL_ADDED_SUCCESS,
     LBL_NAME,
     LBL_NAME_HINT,
     LBL_PLAYLIST,
@@ -22,6 +18,9 @@ from core.constants import (
     LBL_URL_HINT,
     MAX_NAME_LENGTH,
 )
+from hooks.use_storage import use_storage
+from state.controller_ctx import ControllerMethodsCtx
+from utils.notifications import notify, notify_warning
 
 
 def _is_valid_url(url: str) -> bool:
@@ -33,6 +32,9 @@ def _is_valid_url(url: str) -> bool:
 
 
 def _can_add(name: str, url: str, last_add_time: float) -> bool:
+    stripped_name = name.strip()
+    if not stripped_name or len(stripped_name) > 200:
+        return False
     if not _is_valid_url(url):
         return False
     if last_add_time > 0:
@@ -43,7 +45,7 @@ def _can_add(name: str, url: str, last_add_time: float) -> bool:
 def _format_name(name: str, add_type: str) -> str:
     stripped = name.strip()
     if not stripped:
-        return "Unnamed Channel" if add_type == "channel" else "Playlist"
+        return "Unnamed Playlist" if add_type == "playlist" else "Unnamed Channel"
     return stripped
 
 
@@ -78,7 +80,9 @@ def AddCustomContentDialog(
                 await storage.add_playlist(final_name, final_url)
             else:
                 await storage.add_custom_channel(final_name, final_url)
-            _notify_success(LBL_ADDED_SUCCESS.format(name=final_name))
+            _notify_success(
+                f"🎉 '{final_name}' added! Select 'Custom' in the filter bar to view your channels."
+            )
             set_last_add(time.time())
             _reset()
             on_close()

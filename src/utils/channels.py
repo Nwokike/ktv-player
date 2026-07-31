@@ -1,4 +1,4 @@
-"""Channel utility functions for app_next components."""
+"""Channel utility functions for components components."""
 
 
 def extract_countries(channels: list[dict]) -> list[str]:

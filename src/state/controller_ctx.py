@@ -54,6 +54,7 @@ class ControllerMethods:
     push_modal: Callable[[str], Awaitable[None]] = _noop_async_modal
     pop_modal: Callable[[], Awaitable[None]] = _noop_async_close_modal
     close_modal: Callable[[], Awaitable[None]] = _noop_async_close_modal
+    open_search: Callable[[str], None] = lambda mode="tv": None
 
 
 ControllerMethodsCtx = ft.create_context(ControllerMethods())

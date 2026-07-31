@@ -64,7 +64,7 @@ async def load_all_channels(page_obj, loading_lock):
         except Exception:
             logger.exception("Failed to load channels")
             try:
-                from app_next.utils.notifications import notify_error
+                from utils.notifications import notify_error
 
                 notify_error("Failed to load channels. Check your connection.")
             except Exception:

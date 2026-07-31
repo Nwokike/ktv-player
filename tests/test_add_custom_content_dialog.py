@@ -2,7 +2,7 @@
 
 import time
 
-from app_next.components.add_custom_content_dialog import (
+from components.add_custom_content_dialog import (
     ADD_CONTENT_COOLDOWN,
     _can_add,
     _format_name,

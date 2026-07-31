@@ -10,7 +10,7 @@ from unittest import mock
 
 import pytest
 
-from app_next.screens.onboarding_screen import (
+from screens.onboarding_screen import (
     OnboardingScreen,
     _persist_offline_defaults,
     _persist_terms_and_country,

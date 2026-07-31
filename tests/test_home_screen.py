@@ -1,16 +1,16 @@
 """Tests for HomeScreen component — pure helpers."""
 
-from app_next.screens.home_screen import HomeScreen
-from app_next.utils.channels import (
+from screens.home_screen import HomeScreen
+from utils.channels import (
     build_channels_map as _build_channels_map,
 )
-from app_next.utils.channels import (
+from utils.channels import (
     build_favorites_set as _build_favorites_set,
 )
-from app_next.utils.channels import (
+from utils.channels import (
     extract_categories as _extract_categories,
 )
-from app_next.utils.channels import (
+from utils.channels import (
     extract_countries as _extract_countries,
 )
 
@@ -80,7 +80,7 @@ def test_extract_categories_deduplicates():
 
 
 def test_extract_country_counts():
-    from app_next.utils.channels import extract_country_counts
+    from utils.channels import extract_country_counts
 
     channels = [
         {"url": "http://a", "group": "Nigeria;Sports", "country_code": "M3U"},
@@ -92,7 +92,7 @@ def test_extract_country_counts():
 
 
 def test_extract_category_counts():
-    from app_next.utils.channels import extract_category_counts
+    from utils.channels import extract_category_counts
 
     channels = [
         {"url": "http://a", "group": "Nigeria;Sports"},

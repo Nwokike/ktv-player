@@ -106,7 +106,7 @@ def test_controller_methods_exposes_modal_methods():
     """ControllerMethods dataclass must carry the new modal
     methods so components can call controller.push_modal(...)
     inside the same protocol."""
-    from app_next.state.controller_ctx import ControllerMethods
+    from state.controller_ctx import ControllerMethods
 
     methods = ControllerMethods()
     assert hasattr(methods, "push_modal")

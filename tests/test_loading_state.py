@@ -2,7 +2,7 @@
 
 import flet as ft
 
-from app_next.components.loading_state import LoadingState
+from components.loading_state import LoadingState
 
 
 def test_loading_state_is_a_container():

@@ -8,22 +8,21 @@ from flet import Control
 
 logger = logging.getLogger("LocalScreen")
 
-from app_next.components.empty_state import EmptyState
-from app_next.components.folder_expansion_tile import FolderExpansionTile
-from app_next.components.header import Header
-from app_next.components.loading_state import LoadingState
-from app_next.state.controller_ctx import ControllerMethodsCtx
+from components.empty_state import EmptyState
+from components.folder_expansion_tile import FolderExpansionTile
+from components.header import Header
+from components.loading_state import LoadingState
 from core.constants import (
     ERR_FOLDER_PICK_FAILED,
     LBL_ADD_FOLDER,
     LBL_LOCAL_FOOTER_HINT,
-    LBL_LOCAL_SEARCH_HINT,
     LBL_NO_LOCAL_VIDEOS,
     LBL_NO_LOCAL_VIDEOS_HINT,
     LBL_SCAN_AGAIN,
     LBL_SCANNING_DEVICE,
 )
 from services.local_scanner import get_default_scan_paths, scan_videos
+from state.controller_ctx import ControllerMethodsCtx
 
 
 async def _get_storage_paths() -> list[str]:
@@ -76,7 +75,6 @@ def LocalScreen() -> Control:
 
     folders, set_folders = ft.use_state([])
     is_scanning, set_is_scanning = ft.use_state(True)
-    search_query, set_search_query = ft.use_state("")
 
     async def _get_custom_paths() -> list[str]:
         """Load custom paths from SharedPreferences."""
@@ -155,7 +153,7 @@ def LocalScreen() -> Control:
             return
         except Exception:
             logger.exception("Directory picker failed")
-            from app_next.utils.notifications import notify_warning
+            from utils.notifications import notify_warning
 
             notify_warning(ERR_FOLDER_PICK_FAILED)
             return
@@ -169,10 +167,13 @@ def LocalScreen() -> Control:
     def on_play(path: str):
         asyncio.create_task(controller.play_stream(path, None))
 
+    def _open_search():
+        if callable(getattr(controller, "open_search", None)):
+            controller.open_search("local")
+
     header = Header(
-        search_value=search_query,
-        search_hint=LBL_LOCAL_SEARCH_HINT,
-        on_search_change=set_search_query,
+        title="Local Videos",
+        on_search_click=_open_search,
         on_add_content=_pick_folder,
         on_refresh=_refresh,
     )
@@ -184,26 +185,7 @@ def LocalScreen() -> Control:
             spacing=0,
         )
 
-    # Filter folders and files based on search query
-    from services.local_scanner import VideoFolder
-
-    filtered_folders = []
-    q = search_query.strip().lower()
-    if not q:
-        filtered_folders = folders
-    else:
-        for f in folders:
-            matching_files = [
-                v for v in f.videos if q in v.name.lower() or q in v.path.lower()
-            ]
-            if q in f.name.lower() or matching_files:
-                filtered_folders.append(
-                    VideoFolder(
-                        name=f.name,
-                        path=f.path,
-                        videos=matching_files if not q in f.name.lower() else f.videos,
-                    )
-                )
+    filtered_folders = folders
 
     if not filtered_folders:
         body = ft.Container(

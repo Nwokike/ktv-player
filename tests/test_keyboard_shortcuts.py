@@ -12,7 +12,7 @@ from unittest import mock
 
 import flet.controls.context as _flet_ctx
 
-from app_next.hooks.use_keyboard_shortcuts import use_keyboard_shortcuts
+from hooks.use_keyboard_shortcuts import use_keyboard_shortcuts
 
 
 def test_use_keyboard_shortcuts_is_callable():

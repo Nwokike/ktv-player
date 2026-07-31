@@ -8,8 +8,8 @@ import inspect
 
 import flet as ft
 
-from app_next.components.empty_state import EmptyState
-from app_next.hooks.use_autofocus import use_autofocus
+from components.empty_state import EmptyState
+from hooks.use_autofocus import use_autofocus
 
 
 def _source(obj) -> str:
@@ -28,7 +28,7 @@ def _has_autofocus(source: str, control_name: str) -> bool:
 
 
 def test_onboarding_terms_checkbox_autofocused():
-    from app_next.screens import onboarding_screen
+    from screens import onboarding_screen
 
     source = _source(onboarding_screen)
     assert "ft.Checkbox(" in source
@@ -38,14 +38,14 @@ def test_onboarding_terms_checkbox_autofocused():
 
 
 def test_home_add_content_iconbutton_autofocused():
-    from app_next.components import header
+    from components import header
 
     source = _source(header)
     assert "ft.IconButton(" in source, "Header must render IconButton controls"
 
 
 def test_local_scan_again_autofocused():
-    from app_next.screens import local_screen
+    from screens import local_screen
 
     source = _source(local_screen)
     assert "on_refresh=_refresh" in source, (
@@ -54,7 +54,7 @@ def test_local_scan_again_autofocused():
 
 
 def test_settings_switch_autofocused():
-    from app_next.screens import settings_screen
+    from screens import settings_screen
 
     source = _source(settings_screen)
     assert _has_autofocus(source, "ft.Switch"), (
@@ -63,10 +63,13 @@ def test_settings_switch_autofocused():
 
 
 def test_header_search_textfield_autofocused():
-    from app_next.components import header
+    from screens import search_screen
 
-    source = _source(header)
-    assert "ft.TextField(" in source, "Header must render search TextField"
+    source = _source(search_screen)
+    assert "ft.TextField(" in source, "SearchScreen must render search TextField"
+    assert _has_autofocus(source, "ft.TextField"), (
+        "SearchScreen TextField must carry autofocus=True"
+    )
 
 
 def test_empty_state_autofocus_action_propagates():
