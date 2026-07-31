@@ -50,7 +50,7 @@ def ChannelCard(
     top_row = ft.Row(
         controls=[
             ft.Icon(
-                name=fav_icon_name,
+                icon=fav_icon_name,
                 color=fav_icon_color,
                 size=16,
             ),
