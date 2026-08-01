@@ -19,6 +19,8 @@ from services.local_scanner import VideoFolder
 def FolderExpansionTile(
     folder: VideoFolder,
     on_play: Callable[[str], None],
+    is_custom: bool = False,
+    on_remove_custom: Callable[[str], None] | None = None,
 ) -> Control:
     expanded, set_expanded = ft.use_state(False)
     count, set_count = ft.use_state(PAGE_SIZE)
@@ -34,8 +36,10 @@ def FolderExpansionTile(
     visible_videos = folder.videos[:count]
     total = len(folder.videos)
 
+    header_subtitle = folder.path if is_custom else f"{total} videos"
     header = ft.ListTile(
         title=ft.Text(f"{folder.name} ({folder.count})", weight=ft.FontWeight.W_600),
+        subtitle=ft.Text(header_subtitle, size=11, color=ft.Colors.GREY_400),
         trailing=ft.Icon(
             ft.Icons.EXPAND_MORE if not expanded else ft.Icons.EXPAND_LESS
         ),
@@ -44,6 +48,21 @@ def FolderExpansionTile(
 
     if not expanded:
         return ft.Container(content=header, padding=ft.Padding.symmetric(horizontal=8))
+
+    items = [header]
+
+    if is_custom and on_remove_custom:
+        remove_btn = ft.Container(
+            content=ft.TextButton(
+                "Remove Custom Folder",
+                icon=ft.Icons.DELETE_OUTLINE,
+                icon_color=ft.Colors.RED_400,
+                style=ft.ButtonStyle(color=ft.Colors.RED_400),
+                on_click=lambda _: on_remove_custom(folder.path),
+            ),
+            padding=ft.Padding.symmetric(horizontal=12),
+        )
+        items.append(remove_btn)
 
     cards = [VideoCard(v, on_play=on_play) for v in visible_videos]
     grid = ft.GridView(
@@ -61,8 +80,7 @@ def FolderExpansionTile(
         expand=True,
         build_controls_on_demand=True,
     )
-
-    items = [header, grid]
+    items.append(grid)
 
     if count < total:
         remaining = total - count

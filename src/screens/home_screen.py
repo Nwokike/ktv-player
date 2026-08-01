@@ -280,17 +280,27 @@ def HomeScreen() -> Control:
         on_added=on_add_content_complete,
     )
 
-    return ft.Container(
+    return ft.Stack(
+        controls=[
+            ft.Column(
+                controls=[
+                    header,
+                    recently,
+                    filter_bar,
+                    body,
+                    dialog,
+                ],
+                expand=True,
+                spacing=0,
+            ),
+            ft.FloatingActionButton(
+                content=ft.Icon(ft.Icons.ADD),
+                mini=True,
+                tooltip="Add Custom Content",
+                on_click=lambda e: set_add_dialog_open(True),
+                bottom=80,
+                right=12,
+            ),
+        ],
         expand=True,
-        content=ft.Column(
-            controls=[
-                header,
-                recently,
-                filter_bar,
-                body,
-                dialog,
-            ],
-            expand=True,
-            spacing=0,
-        ),
     )

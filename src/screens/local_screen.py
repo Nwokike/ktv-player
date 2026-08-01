@@ -17,8 +17,6 @@ from core.constants import (
     LBL_ADD_FOLDER,
     LBL_LOCAL_FOOTER_HINT,
     LBL_NO_LOCAL_VIDEOS,
-    LBL_NO_LOCAL_VIDEOS_HINT,
-    LBL_SCAN_AGAIN,
     LBL_SCANNING_DEVICE,
 )
 from services.local_scanner import get_default_scan_paths, scan_videos
@@ -74,6 +72,7 @@ def LocalScreen() -> Control:
     controller = ft.use_context(ControllerMethodsCtx)
 
     folders, set_folders = ft.use_state([])
+    custom_paths, set_custom_paths = ft.use_state([])
     is_scanning, set_is_scanning = ft.use_state(True)
 
     async def _get_custom_paths() -> list[str]:
@@ -108,6 +107,7 @@ def LocalScreen() -> Control:
         try:
             paths = list(await _get_storage_paths())
             custom = await _get_custom_paths()
+            set_custom_paths(custom)
             for p in custom:
                 if p not in paths:
                     paths.append(p)
@@ -151,7 +151,9 @@ def LocalScreen() -> Control:
             path = await picker.get_directory_path(dialog_title="Select Video Folder")
         except asyncio.CancelledError:
             return
-        except Exception:
+        except Exception as ex:
+            if "session closed" in str(ex).lower():
+                return  # App window was closed while picker dialog was open
             logger.exception("Directory picker failed")
             from utils.notifications import notify_warning
 
@@ -184,6 +186,13 @@ def LocalScreen() -> Control:
             spacing=0,
         )
 
+    async def _remove_custom_path(path_to_remove: str):
+        custom = await _get_custom_paths()
+        if path_to_remove in custom:
+            custom.remove(path_to_remove)
+            await _save_custom_paths(custom)
+            await _scan()
+
     filtered_folders = folders
 
     if not filtered_folders:
@@ -193,18 +202,31 @@ def LocalScreen() -> Control:
                 controls=[
                     EmptyState(
                         title=LBL_NO_LOCAL_VIDEOS,
-                        message=LBL_NO_LOCAL_VIDEOS_HINT,
-                        action_label=LBL_SCAN_AGAIN,
-                        on_action=_refresh,
+                        message="No video folders found. Tap the '+' icon above to add a custom video folder from your device.",
+                        action_label="Add Video Folder",
+                        on_action=_pick_folder,
                     ),
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
             ),
         )
     else:
-        tiles: list[Control] = [
-            FolderExpansionTile(folder=f, on_play=on_play) for f in filtered_folders
-        ]
+
+        async def _async_remove(p: str):
+            await _remove_custom_path(p)
+
+        tiles: list[Control] = []
+        for f in filtered_folders:
+            is_c = f.path in custom_paths
+            tiles.append(
+                FolderExpansionTile(
+                    folder=f,
+                    on_play=on_play,
+                    is_custom=is_c,
+                    on_remove_custom=lambda p: asyncio.create_task(_async_remove(p)),
+                )
+            )
+
         footer_hint = ft.Container(
             content=ft.Text(
                 LBL_LOCAL_FOOTER_HINT,

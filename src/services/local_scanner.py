@@ -162,10 +162,72 @@ def scan_videos(
                     )
                 folder_map[folder_key].videos.extend(video_files)
 
+    # Integrate Android MediaStore native discovery via PyJNIus on Android
+    mediastore_videos = scan_android_mediastore()
+    for vid in mediastore_videos:
+        folder_key = str(Path(vid.path).parent)
+        folder_name = Path(folder_key).name or folder_key
+        if folder_key not in folder_map:
+            folder_map[folder_key] = VideoFolder(
+                name=folder_name,
+                path=folder_key,
+            )
+        # Avoid duplicate video paths
+        if not any(v.path == vid.path for v in folder_map[folder_key].videos):
+            folder_map[folder_key].videos.append(vid)
+
     result = sorted(folder_map.values(), key=lambda f: f.name.lower())
     for folder in result:
         folder.videos.sort(key=lambda v: v.name.lower())
     return result
+
+
+def scan_android_mediastore() -> list[LocalVideo]:
+    """Scan Android MediaStore database via PyJNIus if running on Android."""
+    videos: list[LocalVideo] = []
+    try:
+        activity_host_class = os.getenv("MAIN_ACTIVITY_HOST_CLASS_NAME")
+        if not activity_host_class:
+            return videos
+
+        from jnius import autoclass  # type: ignore[import-not-found]
+
+        activity_host = autoclass(activity_host_class)
+        activity = activity_host.mActivity
+        content_resolver = activity.getContentResolver()
+
+        MediaStoreVideo = autoclass("android.provider.MediaStore$Video$Media")
+        EXTERNAL_URI = MediaStoreVideo.EXTERNAL_CONTENT_URI
+
+        projection = [
+            MediaStoreVideo.MediaColumns.DATA,
+            MediaStoreVideo.MediaColumns.DISPLAY_NAME,
+            MediaStoreVideo.MediaColumns.SIZE,
+            MediaStoreVideo.MediaColumns.DATE_MODIFIED,
+        ]
+
+        cursor = content_resolver.query(EXTERNAL_URI, projection, None, None, None)
+        if cursor is not None:
+            while cursor.moveToNext():
+                path = cursor.getString(0)
+                name = cursor.getString(1) or os.path.basename(path)
+                size = cursor.getLong(2)
+                mtime = cursor.getLong(3)
+                if path and os.path.exists(path):
+                    videos.append(
+                        LocalVideo(
+                            name=name,
+                            path=path,
+                            size=size,
+                            modified=mtime,
+                        )
+                    )
+            cursor.close()
+            logger.info("MediaStore via pyjnius returned %d videos", len(videos))
+    except Exception as ex:
+        logger.debug("MediaStore scan via pyjnius skipped/failed: %s", ex)
+
+    return videos
 
 
 # --- Platform helpers (extracted from local_tab.py) ---
