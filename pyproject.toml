@@ -15,7 +15,7 @@ dependencies = [
 [tool.flet]
 org = "ng.kiri"
 product = "KTV Player"
-build_number = 9
+build_number = 10
 desktop_flavor = "full"
 
 [tool.flet.app]
