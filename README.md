@@ -10,6 +10,7 @@
 
 <p align="center">
   <a href="https://github.com/Nwokike/ktv-player/releases/latest"><img src="https://img.shields.io/badge/Download_Windows_EXE-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows EXE" /></a>
+  <a href="https://github.com/Nwokike/ktv-player/releases/latest"><img src="https://img.shields.io/badge/Download_Linux_DEB-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux DEB" /></a>
   <a href="https://github.com/Nwokike/ktv-player/releases/latest"><img src="https://img.shields.io/badge/Download_Android_APK-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK" /></a>
   <img src="https://img.shields.io/badge/Built_with-Flet_0.86-00B0FF?style=for-the-badge&logo=flutter&logoColor=white" alt="Flet" />
   <img src="https://img.shields.io/badge/Python-3.14-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
@@ -25,7 +26,10 @@
 | 🤖 **Android (ARM64)** | [**ktv-arm64-v8a.apk**](https://github.com/Nwokike/ktv-player/releases/latest/download/ktv-arm64-v8a.apk) | For modern 64-bit Android devices |
 | 🤖 **Android (ARM32)** | [**ktv-armeabi-v7a.apk**](https://github.com/Nwokike/ktv-player/releases/latest/download/ktv-armeabi-v7a.apk) | For older 32-bit Android devices |
 | 🤖 **Android (x86_64)** | [**ktv-x86_64.apk**](https://github.com/Nwokike/ktv-player/releases/latest/download/ktv-x86_64.apk) | For Android emulators / ChromeOS |
-| 🪟 **Windows** | [**KTV_Player_Setup.exe**](https://github.com/Nwokike/ktv-player/releases/latest/download/KTV_Player_Setup.exe) | Windows 10/11 Installer (64-bit) |
+| 🪟 **Windows** | [**KTV_Player_Setup.exe**](https://github.com/Nwokike/ktv-player/releases/latest/download/KTV_Player_Setup.exe) | Windows 10/11 Installer (`.exe`) |
+| 🐧 **Linux (.deb)** | [**KTV_Player_2.0.0_amd64.deb**](https://github.com/Nwokike/ktv-player/releases/latest/download/KTV_Player_2.0.0_amd64.deb) | Debian / Ubuntu / Linux Mint Package |
+| 🐧 **Linux (.rpm)** | [**KTV_Player_2.0.0_x86_64.rpm**](https://github.com/Nwokike/ktv-player/releases/latest/download/KTV_Player_2.0.0_x86_64.rpm) | Fedora / RHEL / openSUSE Package |
+| 🐧 **Linux (.tar.gz)** | [**KTV_Player_2.0.0_linux_x86_64.tar.gz**](https://github.com/Nwokike/ktv-player/releases/latest/download/KTV_Player_2.0.0_linux_x86_64.tar.gz) | Universal Portable Linux Archive |
 
 ---
 

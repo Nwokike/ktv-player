@@ -218,3 +218,104 @@ jobs:
           files: build/aab/*.aab
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ─── 5. Linux (.deb, .rpm & Universal .tar.gz) ────────────────
+  build-linux:
+    needs: [prepare-release]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Install Linux Build Dependencies & Packaging Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev rpm ruby ruby-dev
+          sudo gem install --no-document fpm
+      - name: Build Linux Bundle
+        run: uv run flet build linux --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
+      - name: Create Linux Packages (.deb, .rpm, .tar.gz)
+        run: |
+          mkdir -p build/dist
+
+          # 1. Universal Portable .tar.gz
+          tar -czf build/dist/KTV_Player_${{ env.BUILD_VERSION }}_linux_x86_64.tar.gz -C build/linux .
+
+          # 2. Stage filesystem tree for rich .deb and .rpm packages
+          mkdir -p pkg_root/usr/lib/ktvplayer pkg_root/usr/bin pkg_root/usr/share/applications pkg_root/usr/share/icons/hicolor/256x256/apps pkg_root/usr/share/pixmaps pkg_root/usr/share/metainfo
+          cp -a build/linux/* pkg_root/usr/lib/ktvplayer/
+          chmod +x pkg_root/usr/lib/ktvplayer/ktv
+          ln -s /usr/lib/ktvplayer/ktv pkg_root/usr/bin/ktvplayer
+
+          # Icons
+          cp src/assets/icon.png pkg_root/usr/share/icons/hicolor/256x256/apps/ktvplayer.png
+          cp src/assets/icon.png pkg_root/usr/share/pixmaps/ktvplayer.png
+
+          # Desktop entry
+          cat <<EOF > pkg_root/usr/share/applications/ktvplayer.desktop
+          [Desktop Entry]
+          Version=1.0
+          Name=KTV Player
+          GenericName=IPTV & Local Media Player
+          Comment=High-performance IPTV rendering engine and local video player
+          Exec=/usr/bin/ktvplayer
+          Icon=ktvplayer
+          Terminal=false
+          Type=Application
+          Categories=AudioVideo;Player;TV;
+          Keywords=IPTV;Player;Video;Stream;M3U;TV;
+          StartupNotify=true
+          StartupWMClass=ktv
+          EOF
+
+          # AppStream / AppData metainfo XML
+          cat <<EOF > pkg_root/usr/share/metainfo/ng.kiri.ktvplayer.metainfo.xml
+          <?xml version="1.0" encoding="UTF-8"?>
+          <component type="desktop-application">
+            <id>ng.kiri.ktvplayer</id>
+            <metadata_license>MIT</metadata_license>
+            <project_license>MIT</project_license>
+            <name>KTV Player</name>
+            <summary>High-performance IPTV rendering engine and local video player</summary>
+            <description>
+              <p>KTV Player delivers a rich multi-platform media experience:</p>
+              <ul>
+                <li>Live IPTV streaming with real-time liveliness validation</li>
+                <li>Local video library discovery with SAF and intent resolution</li>
+                <li>Custom M3U/M3U8 playlist management and stealth shortcodes</li>
+                <li>Budget Smart TV and desktop performance optimization</li>
+              </ul>
+            </description>
+            <launchable type="desktop-id">ktvplayer.desktop</launchable>
+            <url type="homepage">https://kiri.ng</url>
+            <developer_name>Kiri</developer_name>
+          </component>
+          EOF
+
+          # Build rich .deb using fpm
+          fpm -s dir -t deb -n ktvplayer -v ${{ env.BUILD_VERSION }} --iteration ${{ env.BUILD_NUMBER }} \
+              --architecture amd64 \
+              --description "High-performance IPTV rendering engine and local video player." \
+              --maintainer "Kiri <support@kiri.ng>" \
+              --url "https://kiri.ng" \
+              --category "video" \
+              -p build/dist/KTV_Player_${{ env.BUILD_VERSION }}_amd64.deb \
+              -C pkg_root .
+
+          # Build rich .rpm using fpm
+          fpm -s dir -t rpm -n ktvplayer -v ${{ env.BUILD_VERSION }} --iteration ${{ env.BUILD_NUMBER }} \
+              --architecture x86_64 \
+              --description "High-performance IPTV rendering engine and local video player." \
+              --maintainer "Kiri <support@kiri.ng>" \
+              --url "https://kiri.ng" \
+              --category "Video" \
+              -p build/dist/KTV_Player_${{ env.BUILD_VERSION }}_x86_64.rpm \
+              -C pkg_root .
+
+      - name: Upload directly to GitHub Release
+        if: github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare-release.outputs.TAG_NAME }}
+          files: build/dist/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
