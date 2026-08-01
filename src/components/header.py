@@ -36,6 +36,7 @@ def Header(
     on_favorites_toggle: Callable[[], None] | None = None,
     on_add_content: Callable[[], None] | None = None,
     on_refresh: Callable[[], None] | None = None,
+    refresh_tooltip: str = "Refresh",
     fav_active: bool = False,
 ) -> Control:
 
@@ -85,7 +86,7 @@ def Header(
             _make_icon_btn(
                 icon=ft.Icons.REFRESH_ROUNDED,
                 on_click=on_refresh,
-                tooltip="Refresh",
+                tooltip=refresh_tooltip,
             )
         )
 

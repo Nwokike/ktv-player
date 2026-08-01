@@ -10,10 +10,12 @@ from services.iptv_service import iptv_service
 logger = logging.getLogger(__name__)
 
 
-async def load_all_channels(page_obj, loading_lock):
+async def load_all_channels(page_obj, loading_lock, force: bool = False):
     """Fetch and merge built-in, custom, and playlist channels into global state."""
     async with loading_lock:
         try:
+            if force:
+                channel_provider._channels = []
             built_in = await channel_provider.get_all_channels()
 
             # Build merged list from scratch with URL-based deduplication

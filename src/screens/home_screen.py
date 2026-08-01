@@ -190,7 +190,10 @@ def HomeScreen() -> Control:
     # --- Build tree ---
 
     def on_refresh_home():
-        asyncio.create_task(controller.refresh_channels())
+        from utils.notifications import notify
+
+        notify("Refreshing channels...")
+        asyncio.create_task(controller.refresh_channels(force=True))
 
     def _open_search():
         if callable(getattr(controller, "open_search", None)):
@@ -204,6 +207,7 @@ def HomeScreen() -> Control:
         on_favorites_toggle=_toggle_favorites_filter,
         on_add_content=lambda: set_add_dialog_open(True),
         on_refresh=on_refresh_home,
+        refresh_tooltip="Refresh Channels",
         fav_active=filters.get("fav_only", False),
     )
 

@@ -124,6 +124,9 @@ def LocalScreen() -> Control:
     ft.on_mounted(_scan)
 
     def _refresh(e=None):
+        from utils.notifications import notify
+
+        notify("Rescanning device videos...")
         asyncio.create_task(_scan())
 
     def _pick_folder(e=None):
@@ -177,6 +180,7 @@ def LocalScreen() -> Control:
         on_search_click=_open_search,
         on_add_content=_pick_folder,
         on_refresh=_refresh,
+        refresh_tooltip="Rescan Local Videos",
     )
 
     if is_scanning:
