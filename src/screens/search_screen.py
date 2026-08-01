@@ -5,7 +5,7 @@ from collections.abc import Callable
 import flet as ft
 from flet import Control
 
-from components.channel_card import ChannelCard
+from components.channel_grid import ChannelGrid
 from components.empty_state import EmptyState
 from core.theme import AppColors
 from hooks.use_debounce import use_debounce
@@ -29,8 +29,12 @@ def SearchScreen(
     scanned_folders, set_scanned_folders = ft.use_state(local_folders or [])
     channels_list = channels or []
     fav_set = favorites_set or set()
+    local_page, set_local_page = ft.use_state(0)
     _liveliness_version, set_liveliness_version = ft.use_state(0)
     pending_render = ft.use_ref(False)
+
+    # Reset local page when query or mode changes
+    ft.use_effect(lambda: set_local_page(0), [debounced_query, mode])
 
     def _on_liveliness_change():
         if pending_render.current:
@@ -201,35 +205,15 @@ def SearchScreen(
 
     if mode == "tv":
         if not q:
-            filtered_tv = channels_list[:24]
+            filtered_tv = channels_list
         else:
-            matches = [
+            filtered_tv = [
                 c
                 for c in channels_list
                 if q in c.get("name", "").lower()
                 or q in c.get("group", "").lower()
                 or q in c.get("country_code", "").lower()
             ]
-            filtered_tv = matches[:24]
-
-        def _seed_search_liveliness():
-            if mode == "tv" and filtered_tv:
-                from services.liveliness_checker import (
-                    drain_queue,
-                    enqueue_liveliness_check,
-                )
-                from services.logo_cache import enqueue_logo_download
-
-                drain_queue()
-                for ch in filtered_tv:
-                    url = ch.get("url", "")
-                    if url:
-                        enqueue_liveliness_check(url)
-                    logo = ch.get("logo") or ""
-                    if logo and not logo.startswith("/"):
-                        enqueue_logo_download(logo)
-
-        ft.use_effect(_seed_search_liveliness, [debounced_query, mode])
 
         if not filtered_tv:
             body = EmptyState(
@@ -240,32 +224,13 @@ def SearchScreen(
                 action_label=None,
             )
         else:
-            grid_cards = [
-                ft.Container(
-                    content=ChannelCard(
-                        channel=ch,
-                        is_favorite=ch.get("url", "") in fav_set,
-                        liveliness_status=liveliness_cache.get(ch.get("url", "")),
-                        on_play=on_play if callable(on_play) else (lambda u: None),
-                        on_toggle_favorite=on_toggle_favorite
-                        if callable(on_toggle_favorite)
-                        else (lambda u: None),
-                    ),
-                    col={"xs": 6, "sm": 4, "md": 3, "lg": 2, "xl": 2},
-                    padding=4,
-                )
-                for ch in filtered_tv
-            ]
-            body = ft.ListView(
-                controls=[
-                    ft.ResponsiveRow(
-                        controls=grid_cards,
-                        spacing=12,
-                        run_spacing=12,
-                    )
-                ],
-                expand=True,
-                padding=ft.Padding(16, 8, 16, 24),
+            body = ChannelGrid(
+                channels=filtered_tv,
+                favorites_set=fav_set,
+                on_play=on_play if callable(on_play) else (lambda u: None),
+                on_toggle_favorite=on_toggle_favorite
+                if callable(on_toggle_favorite)
+                else (lambda u: None),
             )
     else:  # Local Files
         filtered_files = []
@@ -286,6 +251,16 @@ def SearchScreen(
                 action_label=None,
             )
         else:
+            PAGE_SIZE = 24
+            total_local_pages = max(
+                1, (len(filtered_files) + PAGE_SIZE - 1) // PAGE_SIZE
+            )
+            current_local_page = min(local_page, total_local_pages - 1)
+
+            start_idx = current_local_page * PAGE_SIZE
+            end_idx = min(start_idx + PAGE_SIZE, len(filtered_files))
+            visible_local_files = filtered_files[start_idx:end_idx]
+
             list_tiles = [
                 ft.ListTile(
                     leading=ft.Icon(
@@ -303,12 +278,124 @@ def SearchScreen(
                         on_play(p) if callable(on_play) else None
                     ),
                 )
-                for name, path in filtered_files[:24]
+                for name, path in visible_local_files
             ]
-            body = ft.ListView(
-                controls=list_tiles,
+
+            local_controls: list[Control] = [
+                ft.ListView(
+                    controls=list_tiles,
+                    shrink_wrap=True,
+                )
+            ]
+
+            if total_local_pages > 1:
+                prev_disabled = current_local_page == 0
+                next_disabled = current_local_page >= total_local_pages - 1
+
+                prev_btn = ft.Container(
+                    content=ft.Row(
+                        [
+                            ft.Icon(
+                                ft.Icons.ARROW_BACK_IOS_NEW_ROUNDED,
+                                size=14,
+                                color=AppColors.grey_dim()
+                                if prev_disabled
+                                else AppColors.PRIMARY,
+                            ),
+                            ft.Text(
+                                "Previous",
+                                size=12,
+                                weight=ft.FontWeight.BOLD,
+                                color=AppColors.grey_dim()
+                                if prev_disabled
+                                else AppColors.PRIMARY,
+                            ),
+                        ],
+                        spacing=6,
+                    ),
+                    padding=ft.Padding(14, 8, 14, 8),
+                    border_radius=10,
+                    border=ft.Border.all(
+                        1.5,
+                        AppColors.grey_dim() if prev_disabled else AppColors.PRIMARY,
+                    ),
+                    bgcolor=ft.Colors.with_opacity(0.05, AppColors.PRIMARY)
+                    if not prev_disabled
+                    else ft.Colors.TRANSPARENT,
+                    ink=not prev_disabled,
+                    on_click=lambda e: (
+                        set_local_page(max(0, current_local_page - 1))
+                        if not prev_disabled
+                        else None
+                    ),
+                )
+
+                next_btn = ft.Container(
+                    content=ft.Row(
+                        [
+                            ft.Text(
+                                "Next",
+                                size=12,
+                                weight=ft.FontWeight.BOLD,
+                                color=AppColors.grey_dim()
+                                if next_disabled
+                                else AppColors.PRIMARY,
+                            ),
+                            ft.Icon(
+                                ft.Icons.ARROW_FORWARD_IOS_ROUNDED,
+                                size=14,
+                                color=AppColors.grey_dim()
+                                if next_disabled
+                                else AppColors.PRIMARY,
+                            ),
+                        ],
+                        spacing=6,
+                    ),
+                    padding=ft.Padding(14, 8, 14, 8),
+                    border_radius=10,
+                    border=ft.Border.all(
+                        1.5,
+                        AppColors.grey_dim() if next_disabled else AppColors.PRIMARY,
+                    ),
+                    bgcolor=ft.Colors.with_opacity(0.05, AppColors.PRIMARY)
+                    if not next_disabled
+                    else ft.Colors.TRANSPARENT,
+                    ink=not next_disabled,
+                    on_click=lambda e: (
+                        set_local_page(
+                            min(total_local_pages - 1, current_local_page + 1)
+                        )
+                        if not next_disabled
+                        else None
+                    ),
+                )
+
+                local_controls.append(
+                    ft.Container(
+                        content=ft.Row(
+                            controls=[
+                                prev_btn,
+                                ft.Text(
+                                    f"Page {current_local_page + 1} of {total_local_pages}  ·  {len(filtered_files)} files",
+                                    size=12,
+                                    weight=ft.FontWeight.BOLD,
+                                    color=ft.Colors.with_opacity(
+                                        0.8, ft.Colors.ON_SURFACE
+                                    ),
+                                ),
+                                next_btn,
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                            spacing=16,
+                        ),
+                        padding=ft.Padding(0, 16, 0, 24),
+                    )
+                )
+
+            body = ft.Column(
+                controls=local_controls,
                 expand=True,
-                padding=ft.Padding(16, 8, 16, 24),
+                scroll=ft.ScrollMode.AUTO,
             )
 
     from components.banner_ad import build_banner_ad
