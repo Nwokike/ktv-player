@@ -95,14 +95,23 @@ def RecentlyWatchedScreen(
             padding=ft.Padding(16, 8, 16, 16),
         )
 
+    from components.banner_ad import build_banner_ad
+
+    page_obj = ft.context.page
+    rw_banner = build_banner_ad(page_obj)
+
+    controls = [
+        ft.AppBar(
+            title=ft.Text(LBL_RECENTLY_WATCHED, weight=ft.FontWeight.BOLD),
+            center_title=False,
+        ),
+    ]
+    if rw_banner:
+        controls.append(rw_banner)
+    controls.append(body)
+
     return ft.Column(
-        controls=[
-            ft.AppBar(
-                title=ft.Text(LBL_RECENTLY_WATCHED, weight=ft.FontWeight.BOLD),
-                center_title=False,
-            ),
-            body,
-        ],
+        controls=controls,
         expand=True,
         spacing=0,
     )

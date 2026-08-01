@@ -311,10 +311,20 @@ def SearchScreen(
                 padding=ft.Padding(16, 8, 16, 24),
             )
 
+    from components.banner_ad import build_banner_ad
+
+    page_obj = ft.context.page
+    search_banner = build_banner_ad(page_obj)
+
+    column_controls = [header]
+    if search_banner:
+        column_controls.append(search_banner)
+    column_controls.append(body)
+
     return ft.Container(
         expand=True,
         content=ft.Column(
-            controls=[header, body],
+            controls=column_controls,
             expand=True,
             spacing=0,
         ),
