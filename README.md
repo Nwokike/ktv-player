@@ -9,9 +9,9 @@
 </p>
 
 <p align="center">
+  <a href="https://play.google.com/store/apps/details?id=ng.kiri.ktvplayer"><img src="https://img.shields.io/badge/Google_Play-Android-3DDC84?style=for-the-badge&logo=google-play&logoColor=white" alt="Google Play Store" /></a>
   <a href="https://github.com/Nwokike/ktv-player/releases/latest"><img src="https://img.shields.io/badge/Download_Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows" /></a>
   <a href="https://github.com/Nwokike/ktv-player/releases/latest"><img src="https://img.shields.io/badge/Download_Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux" /></a>
-  <a href="https://github.com/Nwokike/ktv-player/releases/latest"><img src="https://img.shields.io/badge/Download_Android-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android" /></a>
   <img src="https://img.shields.io/badge/Built_with-Flet_0.86-00B0FF?style=for-the-badge&logo=flutter&logoColor=white" alt="Flet" />
   <img src="https://img.shields.io/badge/Python-3.14-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
 </p>
@@ -22,7 +22,7 @@
 
 | Platform | Download | Notes |
 | :---: | :---: | :--- |
-| 🤖 **Android** | [![Android APK](https://img.shields.io/badge/Download_Android_APK-3DDC84?style=flat-square&logo=android&logoColor=white)](https://github.com/Nwokike/ktv-player/releases/latest/download/ktv.apk) | Universal APK for phones, tablets & Android TV |
+| 🤖 **Android** | [![Play Store](https://img.shields.io/badge/Google_Play-414141?style=flat-square&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=ng.kiri.ktvplayer) | Recommended for Android mobile users |
 | 🪟 **Windows** | [![Windows Release](https://img.shields.io/badge/Download_Windows_Release-0078D6?style=flat-square&logo=windows&logoColor=white)](https://github.com/Nwokike/ktv-player/releases/latest/download/KTV_Player_Setup.exe) | Automated standalone setup installer with desktop shortcut integration |
 | 🐧 **Linux (Debian/Ubuntu)** | [![Linux DEB](https://img.shields.io/badge/Download_Linux_DEB-FCC624?style=flat-square&logo=linux&logoColor=black)](https://github.com/Nwokike/ktv-player/releases/latest/download/KTV_Player_2.0.0_amd64.deb) | Desktop package tailored for Ubuntu, Debian, Linux Mint & Pop!_OS |
 | 🎩 **Linux (Fedora/RHEL)** | [![Linux RPM](https://img.shields.io/badge/Download_Linux_RPM-E91E63?style=flat-square&logo=redhat&logoColor=white)](https://github.com/Nwokike/ktv-player/releases/latest/download/KTV_Player_2.0.0_x86_64.rpm) | Desktop package tailored for Fedora, openSUSE, RHEL & CentOS |
