@@ -143,23 +143,64 @@ class ImmersivePlayer(ft.Stack):
                 include_libass_subtitles=inc_subs,
             )
             if img_bytes:
-                from database.manager import db_manager
+                # Save to public Pictures/KTVPlayer directory on mobile/desktop
+                if os.path.exists("/storage/emulated/0"):
+                    pictures_dir = "/storage/emulated/0/Pictures/KTVPlayer"
+                else:
+                    user_home = os.path.expanduser("~")
+                    pictures_dir = os.path.join(user_home, "Pictures", "KTVPlayer")
 
-                storage_dir = getattr(db_manager, "storage_dir", os.getcwd())
-                screenshots_dir = os.path.join(storage_dir, "screenshots")
-                os.makedirs(screenshots_dir, exist_ok=True)
+                os.makedirs(pictures_dir, exist_ok=True)
 
                 ext = "jpg" if fmt == "image/jpeg" else "png"
                 filename = f"ktv_snap_{int(time.time())}.{ext}"
-                filepath = os.path.join(screenshots_dir, filename)
+                filepath = os.path.join(pictures_dir, filename)
 
-                def _write():
+                def _write_and_scan():
                     with open(filepath, "wb") as f:
                         f.write(img_bytes)
 
-                await asyncio.to_thread(_write)
+                    # Scan file so Android Gallery / Google Photos indexes it immediately
+                    try:
+                        from jnius import autoclass  # type: ignore[import-not-found]
 
-                notify(f"📸 Snapshot saved: {filename}")
+                        candidate_classes = [
+                            os.getenv("MAIN_ACTIVITY_HOST_CLASS_NAME"),
+                            "ng.kiri.ktvplayer.MainActivity",
+                            "net.flet.MainActivity",
+                            "com.flet.flet_android.MainActivity",
+                        ]
+                        activity = None
+                        for cls_name in candidate_classes:
+                            if not cls_name:
+                                continue
+                            try:
+                                host = autoclass(cls_name)
+                                activity = getattr(host, "mActivity", None) or getattr(
+                                    host, "mCurrentActivity", None
+                                )
+                                if activity:
+                                    break
+                            except Exception as ex:
+                                logger.debug(
+                                    "Candidate activity %s unavailable for MediaScanner: %s",
+                                    cls_name,
+                                    ex,
+                                )
+
+                        if activity:
+                            MediaScannerConnection = autoclass(
+                                "android.media.MediaScannerConnection"
+                            )
+                            MediaScannerConnection.scanFile(
+                                activity, [filepath], None, None
+                            )
+                    except Exception as ex:
+                        logger.debug("MediaScannerConnection scan failed: %s", ex)
+
+                await asyncio.to_thread(_write_and_scan)
+
+                notify(f"📸 Snapshot saved to Pictures/KTVPlayer: {filename}")
             else:
                 notify_warning("Unable to capture video snapshot.")
         except Exception as ex:

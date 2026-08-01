@@ -50,6 +50,8 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
     )
 
     def _on_toggle_fav(e):
+        from utils.notifications import notify
+
         toggle_favorite(player_inst.resource, state)
         new_fav = player_inst.resource in (state.favorites or [])
 
@@ -58,6 +60,12 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
         )
         fav_btn.icon_color = AppColors.PRIMARY if new_fav else ft.Colors.WHITE
         fav_btn.tooltip = "Remove from Favorites" if new_fav else "Add to Favorites"
+
+        if new_fav:
+            notify("⭐ Added to Favorites")
+        else:
+            notify("Removed from Favorites")
+
         try:
             fav_btn.update()
         except Exception:
@@ -118,7 +126,6 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
                 camera_btn,
                 sub_btn,
                 settings_btn,
-                fv.VideoFullscreenButton(icon_color=ft.Colors.WHITE),
             ],
             bottom_button_bar=[
                 fv.VideoPositionIndicator(
@@ -126,6 +133,7 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
                 ),
                 fv.VideoSpacer(),
                 speed_container,
+                fv.VideoFullscreenButton(icon_color=ft.Colors.WHITE),
             ],
         ),
         # --- Desktop / TV (keyboard + D-pad) ---
@@ -148,7 +156,6 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
                 camera_btn,
                 sub_btn,
                 settings_btn,
-                fv.VideoFullscreenButton(icon_color=ft.Colors.WHITE),
             ],
             bottom_button_bar=[
                 fv.VideoVolumeButton(slider_width=80, icon_color=ft.Colors.WHITE),
@@ -158,6 +165,7 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
                 ),
                 fv.VideoSpacer(),
                 speed_container,
+                fv.VideoFullscreenButton(icon_color=ft.Colors.WHITE),
             ],
             seek_bar_position_color=AppColors.PRIMARY,
             seek_bar_buffer_color=ft.Colors.with_opacity(0.5, ft.Colors.WHITE),

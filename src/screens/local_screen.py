@@ -228,8 +228,14 @@ def LocalScreen() -> Control:
         async def _async_remove(p: str):
             await _remove_custom_path(p)
 
+        from flet import context
+
+        from components.banner_ad import build_banner_ad
+
+        page = context.page
+
         tiles: list[Control] = []
-        for f in filtered_folders:
+        for idx, f in enumerate(filtered_folders):
             is_c = f.path in custom_paths
             tiles.append(
                 FolderExpansionTile(
@@ -239,6 +245,11 @@ def LocalScreen() -> Control:
                     on_remove_custom=lambda p: asyncio.create_task(_async_remove(p)),
                 )
             )
+            # Insert banner ad after the 5th folder (index 4)
+            if idx == 4 and len(filtered_folders) > 5:
+                mid_banner = build_banner_ad(page)
+                if mid_banner:
+                    tiles.append(mid_banner)
 
         footer_hint = ft.Container(
             content=ft.Text(
@@ -250,11 +261,7 @@ def LocalScreen() -> Control:
             padding=ft.Padding(16, 16, 16, 24),
             alignment=ft.Alignment.CENTER,
         )
-        from flet import context
 
-        from components.banner_ad import build_banner_ad
-
-        page = context.page
         banner = build_banner_ad(page)
         if banner:
             tiles.append(banner)
