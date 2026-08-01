@@ -14,7 +14,6 @@ from core.constants import (
     APP_NAME,
     CDN_HEADER_OVERRIDES,
     ERR_NETWORK,
-    VALID_STREAM_SCHEMES,
 )
 from core.logging_config import setup_logging
 from core.state import state
@@ -247,14 +246,31 @@ class AppController:
             await db_manager.save_history(url)
 
         # Determine title
-        if not title:
+        if not title or title.strip() == "Stream":
             channel = next((c for c in state.channels if c.get("url") == url), None)
-            if channel:
-                title = channel.get("name", "Stream")
-            elif not url.startswith(VALID_STREAM_SCHEMES):
-                title = os.path.splitext(os.path.basename(url))[0]
+            if channel and channel.get("name"):
+                title = channel.get("name")
             else:
-                title = "Stream"
+                parsed_url = urllib.parse.urlparse(url)
+                path_segment = parsed_url.path or ""
+                base_name = (
+                    os.path.splitext(os.path.basename(path_segment))[0]
+                    if path_segment
+                    else ""
+                )
+                if base_name and base_name.lower() not in (
+                    "playlist",
+                    "index",
+                    "manifest",
+                    "master",
+                    "live",
+                    "stream",
+                ):
+                    title = urllib.parse.unquote(base_name)
+                elif parsed_url.netloc:
+                    title = parsed_url.netloc
+                else:
+                    title = "Stream"
 
         headers = {}
         for pattern, hdrs in CDN_HEADER_OVERRIDES.items():

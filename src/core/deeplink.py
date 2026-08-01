@@ -28,14 +28,14 @@ def parse_deep_link(route: str) -> tuple[str | None, str | None]:
             return None, None
 
         title = None
-        encoded_title = query.get("title", [None])[0]
-        if encoded_title:
+        raw_title = query.get("title", [None])[0]
+        if raw_title:
             try:
-                padding_needed = (4 - len(encoded_title) % 4) % 4
-                encoded_padded = encoded_title + ("=" * padding_needed)
+                padding_needed = (4 - len(raw_title) % 4) % 4
+                encoded_padded = raw_title + ("=" * padding_needed)
                 title = base64.urlsafe_b64decode(encoded_padded).decode("utf-8")
             except Exception:
-                logger.warning("Failed to decode deep link title")
+                logger.warning("Deep link title decode failed: %s", raw_title)
 
         return decoded, title
     except Exception:

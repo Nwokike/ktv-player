@@ -75,7 +75,6 @@ class ImmersivePlayer(ft.Stack):
             weight=ft.FontWeight.W_600,
         )
 
-        # Video player
         self.video = fv.Video(
             autoplay=autoplay,
             expand=True,
@@ -119,6 +118,36 @@ class ImmersivePlayer(ft.Stack):
 
     # --- Controls ---
 
+    def did_mount(self):
+        super().did_mount()
+        self._update_title_width()
+        if self.page:
+            try:
+                self.page.on("resize", self._on_resize)
+            except Exception:
+                pass
+
+    def will_unmount(self):
+        super().will_unmount()
+        if self.page:
+            try:
+                self.page.off("resize", self._on_resize)
+            except Exception:
+                pass
+
+    def _on_resize(self, e):
+        self._update_title_width()
+
+    def _update_title_width(self):
+        if hasattr(self, "title_container") and self.page:
+            new_width = max(100, self.page.width - 80)
+            if self.title_container.width != new_width:
+                self.title_container.width = new_width
+                try:
+                    self.title_container.update()
+                except Exception:
+                    pass
+
     def _build_controls(self) -> fv.AdaptiveVideoControls:
         from components.player.controls import build_player_controls
 
@@ -131,7 +160,6 @@ class ImmersivePlayer(ft.Stack):
 
     async def _take_screenshot(self):
         import os
-        import time
 
         from utils.notifications import notify, notify_warning
 
@@ -152,8 +180,18 @@ class ImmersivePlayer(ft.Stack):
 
                 os.makedirs(pictures_dir, exist_ok=True)
 
+                import datetime
+                import re
+
+                raw_title = self.title or "KTV_Player"
+                safe_title = re.sub(r"[^\w\s-]", "", raw_title).strip()
+                safe_title = re.sub(r"[-\s]+", "_", safe_title) or "KTV_Player"
+                timestamp = datetime.datetime.now(tz=datetime.UTC).strftime(
+                    "%Y-%m-%d_%H-%M-%S"
+                )
+
                 ext = "jpg" if fmt == "image/jpeg" else "png"
-                filename = f"ktv_snap_{int(time.time())}.{ext}"
+                filename = f"{safe_title}_{timestamp}.{ext}"
                 filepath = os.path.join(pictures_dir, filename)
 
                 def _write_and_scan():

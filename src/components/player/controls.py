@@ -29,14 +29,13 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
         player_inst.title or "Now Playing",
         color=ft.Colors.WHITE,
         weight=ft.FontWeight.W_500,
-        max_lines=1,
-        overflow=ft.TextOverflow.ELLIPSIS,
     )
-    title_container = ft.Container(
-        content=title_text,
+    title_container = ft.Row(
+        controls=[title_text],
+        scroll=ft.ScrollMode.ADAPTIVE,
         expand=True,
-        padding=ft.Padding(4, 0, 8, 0),
     )
+    player_inst.title_container = title_container
 
     # In-player Favorite Star Button
     is_fav = player_inst.resource in (state.favorites or [])
@@ -47,13 +46,15 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
         icon=fav_icon,
         icon_color=fav_color,
         tooltip="Remove from Favorites" if is_fav else "Add to Favorites",
+        data=is_fav,
     )
 
     def _on_toggle_fav(e):
         from utils.notifications import notify
 
-        toggle_favorite(player_inst.resource, state)
-        new_fav = player_inst.resource in (state.favorites or [])
+        # Toggle state synchronously for UI
+        new_fav = not fav_btn.data
+        fav_btn.data = new_fav
 
         fav_btn.icon = (
             ft.Icons.STAR_ROUNDED if new_fav else ft.Icons.STAR_BORDER_ROUNDED
@@ -65,6 +66,9 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
             notify("⭐ Added to Favorites")
         else:
             notify("Removed from Favorites")
+
+        # Call the async db save in background
+        toggle_favorite(player_inst.resource, state)
 
         try:
             fav_btn.update()
@@ -122,16 +126,16 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
             top_button_bar=[
                 back_btn,
                 title_container,
-                fav_btn,
-                camera_btn,
-                sub_btn,
-                settings_btn,
             ],
             bottom_button_bar=[
                 fv.VideoPositionIndicator(
                     text_style=ft.TextStyle(size=12, color=ft.Colors.WHITE),
                 ),
                 fv.VideoSpacer(),
+                fav_btn,
+                camera_btn,
+                sub_btn,
+                settings_btn,
                 speed_container,
                 fv.VideoFullscreenButton(icon_color=ft.Colors.WHITE),
             ],
@@ -152,10 +156,6 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
             top_button_bar=[
                 back_btn,
                 title_container,
-                fav_btn,
-                camera_btn,
-                sub_btn,
-                settings_btn,
             ],
             bottom_button_bar=[
                 fv.VideoVolumeButton(slider_width=80, icon_color=ft.Colors.WHITE),
@@ -164,6 +164,10 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
                     text_style=ft.TextStyle(size=12, color=ft.Colors.WHITE),
                 ),
                 fv.VideoSpacer(),
+                fav_btn,
+                camera_btn,
+                sub_btn,
+                settings_btn,
                 speed_container,
                 fv.VideoFullscreenButton(icon_color=ft.Colors.WHITE),
             ],

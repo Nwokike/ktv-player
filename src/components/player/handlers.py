@@ -29,7 +29,15 @@ async def pick_subtitles(player_inst):
     from flet import FilePicker, FilePickerFileType
     from flet_video import VideoSubtitleTrack
 
+    from core.theme import AppColors
+
+    if not hasattr(player_inst, "selected_subtitle"):
+        player_inst.selected_subtitle = "auto"
+
+    active_sub = player_inst.selected_subtitle
+
     async def _select_auto(e=None):
+        player_inst.selected_subtitle = "auto"
         try:
             player_inst.video.subtitle_track = VideoSubtitleTrack.auto()
             player_inst.video.update()
@@ -38,6 +46,7 @@ async def pick_subtitles(player_inst):
         _close_dialog()
 
     async def _select_off(e=None):
+        player_inst.selected_subtitle = "off"
         try:
             player_inst.video.subtitle_track = VideoSubtitleTrack.none()
             player_inst.video.update()
@@ -56,6 +65,7 @@ async def pick_subtitles(player_inst):
                 allow_multiple=False,
             )
             if files and files[0].path:
+                player_inst.selected_subtitle = "local"
                 sub_path = files[0].path
                 custom_track = VideoSubtitleTrack(
                     src=sub_path,
@@ -73,6 +83,13 @@ async def pick_subtitles(player_inst):
         except Exception:
             pass
 
+    def _check_icon(is_active: bool):
+        return (
+            ft.Icon(ft.Icons.CHECK_ROUNDED, color=AppColors.PRIMARY)
+            if is_active
+            else None
+        )
+
     dialog = ft.AlertDialog(
         title=ft.Text("Subtitle Options", size=16, weight=ft.FontWeight.BOLD),
         content=ft.Column(
@@ -81,18 +98,21 @@ async def pick_subtitles(player_inst):
                     leading=ft.Icon(ft.Icons.SUBTITLES_ROUNDED),
                     title=ft.Text("Auto (Embedded Track)"),
                     subtitle=ft.Text("Detect automatically from stream"),
+                    trailing=_check_icon(active_sub == "auto"),
                     on_click=_select_auto,
                 ),
                 ft.ListTile(
                     leading=ft.Icon(ft.Icons.SUBTITLES_OFF_ROUNDED),
                     title=ft.Text("Off"),
                     subtitle=ft.Text("Disable subtitles"),
+                    trailing=_check_icon(active_sub == "off"),
                     on_click=_select_off,
                 ),
                 ft.ListTile(
                     leading=ft.Icon(ft.Icons.FOLDER_OPEN_ROUNDED),
                     title=ft.Text("Load Local Subtitle File..."),
                     subtitle=ft.Text("Select .srt or .vtt file"),
+                    trailing=_check_icon(active_sub == "local"),
                     on_click=_pick_local,
                 ),
             ],
