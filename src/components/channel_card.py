@@ -64,13 +64,21 @@ def ChannelCard(
         vertical_alignment=ft.CrossAxisAlignment.CENTER,
     )
 
-    logo_widget = ft.Image(
-        src=resolved_logo,
+    logo_widget = ft.Container(
+        content=ft.Image(
+            src=resolved_logo,
+            width=LOGO_SIZE - 12,
+            height=LOGO_SIZE - 12,
+            fit=ft.BoxFit.CONTAIN,
+            error_content=ft.Icon(ft.Icons.TV, size=30),
+        ),
         width=LOGO_SIZE,
         height=LOGO_SIZE,
-        fit=ft.BoxFit.CONTAIN,
+        bgcolor=ft.Colors.with_opacity(0.18, ft.Colors.ON_SURFACE),
+        border=ft.Border.all(1, ft.Colors.with_opacity(0.25, ft.Colors.ON_SURFACE)),
         border_radius=LOGO_BORDER_RADIUS,
-        error_content=ft.Icon(ft.Icons.TV, size=30),
+        alignment=ft.Alignment.CENTER,
+        padding=6,
     )
 
     title_widget = ft.Text(
