@@ -5,6 +5,7 @@ from collections.abc import Callable
 import flet as ft
 from flet import Control
 
+from components.focus_styles import card_button_style
 from core.constants import (
     CARD_BORDER_RADIUS,
     CARD_HEIGHT,
@@ -48,10 +49,12 @@ def ChannelCard(
 
     top_row = ft.Row(
         controls=[
-            ft.Icon(
+            ft.IconButton(
                 icon=fav_icon_name,
-                color=fav_icon_color,
-                size=16,
+                icon_color=fav_icon_color,
+                icon_size=16,
+                tooltip="Favorite",
+                on_click=lambda e, u=url: on_toggle_favorite(u),
             ),
             ft.Container(
                 width=STATUS_DOT_SIZE,
@@ -64,21 +67,13 @@ def ChannelCard(
         vertical_alignment=ft.CrossAxisAlignment.CENTER,
     )
 
-    logo_widget = ft.Container(
-        content=ft.Image(
-            src=resolved_logo,
-            width=LOGO_SIZE - 12,
-            height=LOGO_SIZE - 12,
-            fit=ft.BoxFit.CONTAIN,
-            error_content=ft.Icon(ft.Icons.TV, size=30),
-        ),
+    logo_widget = ft.Image(
+        src=resolved_logo,
         width=LOGO_SIZE,
         height=LOGO_SIZE,
-        bgcolor=ft.Colors.with_opacity(0.18, ft.Colors.ON_SURFACE),
-        border=ft.Border.all(1, ft.Colors.with_opacity(0.25, ft.Colors.ON_SURFACE)),
+        fit=ft.BoxFit.CONTAIN,
         border_radius=LOGO_BORDER_RADIUS,
-        alignment=ft.Alignment.CENTER,
-        padding=6,
+        error_content=ft.Icon(ft.Icons.TV, size=30),
     )
 
     title_widget = ft.Text(
@@ -90,7 +85,7 @@ def ChannelCard(
         overflow=ft.TextOverflow.ELLIPSIS,
     )
 
-    return ft.Container(
+    return ft.FilledButton(
         key=ft.ValueKey(url),
         height=CARD_HEIGHT,
         content=ft.Column(
@@ -103,10 +98,8 @@ def ChannelCard(
             spacing=2,
         ),
         on_click=lambda e: on_play(url),
-        ink=True,
-        border=ft.Border.all(4, ft.Colors.TRANSPARENT),
-        border_radius=CARD_BORDER_RADIUS,
-        animate_scale=300,
-        animate=300,
-        padding=ft.Padding.symmetric(horizontal=10, vertical=8),
+        style=card_button_style(
+            padding=ft.Padding.symmetric(horizontal=10, vertical=8),
+            radius=CARD_BORDER_RADIUS,
+        ),
     )

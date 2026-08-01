@@ -29,6 +29,33 @@ def SearchScreen(
     scanned_folders, set_scanned_folders = ft.use_state(local_folders or [])
     channels_list = channels or []
     fav_set = favorites_set or set()
+    liveliness_version, set_liveliness_version = ft.use_state(0)
+    pending_render = ft.use_ref(False)
+
+    def _on_liveliness_change():
+        if pending_render.current:
+            return
+        pending_render.current = True
+
+        async def _flush():
+            import asyncio
+
+            await asyncio.sleep(0.5)
+            pending_render.current = False
+            set_liveliness_version(lambda v: v + 1)
+
+        try:
+            import asyncio
+
+            loop = asyncio.get_running_loop()
+            loop.create_task(_flush())
+        except RuntimeError:
+            pending_render.current = False
+            set_liveliness_version(lambda v: v + 1)
+
+    from services.liveliness import liveliness_cache
+
+    ft.use_effect(lambda: liveliness_cache.set_on_change(_on_liveliness_change), [])
 
     def _auto_scan_local():
         if not scanned_folders:
@@ -185,6 +212,25 @@ def SearchScreen(
             ]
             filtered_tv = matches[:24]
 
+        def _seed_search_liveliness():
+            if mode == "tv" and filtered_tv:
+                from services.liveliness_checker import (
+                    drain_queue,
+                    enqueue_liveliness_check,
+                )
+                from services.logo_cache import enqueue_logo_download
+
+                drain_queue()
+                for ch in filtered_tv:
+                    url = ch.get("url", "")
+                    if url:
+                        enqueue_liveliness_check(url)
+                    logo = ch.get("logo") or ""
+                    if logo and not logo.startswith("/"):
+                        enqueue_logo_download(logo)
+
+        ft.use_effect(_seed_search_liveliness, [debounced_query, mode])
+
         if not filtered_tv:
             body = EmptyState(
                 title="No channels found",
@@ -199,6 +245,7 @@ def SearchScreen(
                     content=ChannelCard(
                         channel=ch,
                         is_favorite=ch.get("url", "") in fav_set,
+                        liveliness_status=liveliness_cache.get(ch.get("url", "")),
                         on_play=on_play if callable(on_play) else (lambda u: None),
                         on_toggle_favorite=on_toggle_favorite
                         if callable(on_toggle_favorite)

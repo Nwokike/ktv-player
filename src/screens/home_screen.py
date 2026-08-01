@@ -107,7 +107,7 @@ def HomeScreen() -> Control:
             if logo and not logo.startswith("/"):
                 enqueue_logo_download(logo)
 
-    ft.use_effect(_seed_visible, [filters])
+    ft.use_effect(_seed_visible, [filters, state.channels_hash])
 
     # Wire liveliness cache → debounced re-render (500ms coalesce)
     def _on_liveliness_change():
