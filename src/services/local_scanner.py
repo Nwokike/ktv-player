@@ -106,10 +106,48 @@ def scan_videos(
 
     for root_str in root_paths:
         root = Path(root_str)
-        if not root.exists() or not root.is_dir():
-            continue
 
-        for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
+        # Fallback to direct os.listdir if root.exists() fails due to Android permissions
+        filenames_list = []
+        try:
+            if root.exists() and root.is_dir():
+                walk_iter = os.walk(root, followlinks=False)
+            else:
+                walk_iter = []
+                if os.path.exists(root_str):
+                    filenames_list = os.listdir(root_str)
+        except Exception:
+            walk_iter = []
+
+        if filenames_list:
+            v_files = []
+            for fname in filenames_list:
+                fpath = root / fname
+                if _is_video_file(fpath):
+                    try:
+                        stat = fpath.stat()
+                        v_files.append(
+                            LocalVideo(
+                                name=fname,
+                                path=str(fpath),
+                                size=stat.st_size,
+                                modified=stat.st_mtime,
+                            )
+                        )
+                    except OSError, PermissionError:
+                        continue
+            folder_key = str(root)
+            folder_name = root.name or str(root)
+            if folder_key not in folder_map:
+                folder_map[folder_key] = VideoFolder(
+                    name=folder_name,
+                    path=folder_key,
+                )
+            for vf in v_files:
+                if not any(v.path == vf.path for v in folder_map[folder_key].videos):
+                    folder_map[folder_key].videos.append(vf)
+
+        for dirpath, dirnames, filenames in walk_iter:
             current = Path(dirpath)
 
             # Depth calculation
@@ -152,7 +190,7 @@ def scan_videos(
                     except OSError, PermissionError:
                         continue
 
-            if video_files:
+            if video_files or str(current) == root_str:
                 folder_name = current.name or str(current)
                 folder_key = str(current)
                 if folder_key not in folder_map:
@@ -160,7 +198,11 @@ def scan_videos(
                         name=folder_name,
                         path=folder_key,
                     )
-                folder_map[folder_key].videos.extend(video_files)
+                for vf in video_files:
+                    if not any(
+                        v.path == vf.path for v in folder_map[folder_key].videos
+                    ):
+                        folder_map[folder_key].videos.append(vf)
 
     # Integrate Android MediaStore native discovery via PyJNIus on Android
     mediastore_videos = scan_android_mediastore()
@@ -182,28 +224,62 @@ def scan_videos(
     return result
 
 
+import urllib.parse
+
+
+def resolve_saf_path(path_str: str) -> str:
+    """Convert Android SAF content URIs (e.g. content://...tree/primary%3ADownloads) to POSIX paths."""
+    if not path_str:
+        return ""
+    if path_str.startswith("content://"):
+        unquoted = urllib.parse.unquote(path_str)
+        if "primary:" in unquoted:
+            rel_part = unquoted.split("primary:")[-1]
+            return os.path.join("/storage/emulated/0", rel_part.lstrip("/"))
+    return path_str
+
+
 def scan_android_mediastore() -> list[LocalVideo]:
     """Scan Android MediaStore database via PyJNIus if running on Android."""
     videos: list[LocalVideo] = []
     try:
-        activity_host_class = os.getenv("MAIN_ACTIVITY_HOST_CLASS_NAME")
-        if not activity_host_class:
-            return videos
-
         from jnius import autoclass  # type: ignore[import-not-found]
 
-        activity_host = autoclass(activity_host_class)
-        activity = activity_host.mActivity
+        candidate_classes = [
+            os.getenv("MAIN_ACTIVITY_HOST_CLASS_NAME"),
+            "ng.kiri.ktvplayer.MainActivity",
+            "net.flet.MainActivity",
+            "com.flet.flet_android.MainActivity",
+            "org.kivy.android.PythonActivity",
+        ]
+
+        activity = None
+        for cls_name in candidate_classes:
+            if not cls_name:
+                continue
+            try:
+                activity_host = autoclass(cls_name)
+                activity = getattr(activity_host, "mActivity", None) or getattr(
+                    activity_host, "mCurrentActivity", None
+                )
+                if activity:
+                    break
+            except Exception as ex:
+                logger.debug("Candidate activity %s unavailable: %s", cls_name, ex)
+
+        if not activity:
+            return videos
+
         content_resolver = activity.getContentResolver()
 
         MediaStoreVideo = autoclass("android.provider.MediaStore$Video$Media")
         EXTERNAL_URI = MediaStoreVideo.EXTERNAL_CONTENT_URI
 
         projection = [
-            MediaStoreVideo.MediaColumns.DATA,
-            MediaStoreVideo.MediaColumns.DISPLAY_NAME,
-            MediaStoreVideo.MediaColumns.SIZE,
-            MediaStoreVideo.MediaColumns.DATE_MODIFIED,
+            "_data",
+            "_display_name",
+            "_size",
+            "date_modified",
         ]
 
         cursor = content_resolver.query(EXTERNAL_URI, projection, None, None, None)

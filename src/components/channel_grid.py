@@ -54,6 +54,25 @@ def ChannelGrid(
     end = min(start + PAGE_SIZE, len(channels))
     visible = channels[start:end]
 
+    def _seed_page_liveliness():
+        if visible:
+            from services.liveliness_checker import (
+                drain_queue,
+                enqueue_liveliness_check,
+            )
+            from services.logo_cache import enqueue_logo_download
+
+            drain_queue()
+            for ch in visible:
+                url = ch.get("url", "")
+                if url:
+                    enqueue_liveliness_check(url)
+                logo = ch.get("logo") or ""
+                if logo and not logo.startswith("/"):
+                    enqueue_logo_download(logo)
+
+    ft.use_effect(_seed_page_liveliness, [current_page, len(channels)])
+
     if not visible:
         return EmptyState(
             title="No channels found",
@@ -171,6 +190,15 @@ def ChannelGrid(
                 else None
             ),
         )
+
+        from flet import context
+
+        from components.banner_ad import build_banner_ad
+
+        page = context.page
+        bot_ad = build_banner_ad(page)
+        if bot_ad:
+            sections.append(bot_ad)
 
         sections.append(
             ft.Container(

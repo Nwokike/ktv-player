@@ -486,8 +486,22 @@ def SettingsScreen() -> Control:
         ],
     )
 
+    from components.banner_ad import build_banner_ad
+
+    page_obj = ft.context.page
+    banner_1 = build_banner_ad(page_obj)
+    banner_2 = build_banner_ad(page_obj)
+
+    controls = [appearance]
+    if banner_1:
+        controls.append(banner_1)
+    controls.extend([localization, data_mgmt, terminal])
+    if banner_2:
+        controls.append(banner_2)
+    controls.append(about)
+
     return ft.ListView(
-        controls=[appearance, localization, data_mgmt, terminal, about],
+        controls=controls,
         expand=True,
         spacing=12,
         padding=ft.Padding(16, 16, 16, 24),

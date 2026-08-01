@@ -55,6 +55,44 @@ def AppShell() -> Control:
 
     state = ft.use_context(AppStateCtx)
 
+    from flet import context
+
+    def _sync_navigation_bar():
+        page = context.page
+        if not page or not page.views:
+            return
+        if _should_show_onboarding(state):
+            if page.views[0].navigation_bar is not None:
+                page.views[0].navigation_bar = None
+                try:
+                    page.update()
+                except Exception:
+                    pass
+            return
+
+        def _on_tab_change(e):
+            idx = e.control.selected_index
+            logger.info("Navigated to tab '%s' (index %d)", _TAB_NAMES[idx], idx)
+            set_selected_tab(idx)
+
+        destinations = [
+            ft.NavigationBarDestination(icon=icon, label=label)
+            for icon, label in zip(_TAB_ICONS, _TAB_NAMES, strict=True)
+        ]
+        page.views[0].navigation_bar = ft.NavigationBar(
+            destinations=destinations,
+            selected_index=selected_tab,
+            on_change=_on_tab_change,
+        )
+        try:
+            page.update()
+        except Exception:
+            pass
+
+    ft.use_effect(
+        _sync_navigation_bar, [selected_tab, state.has_accepted_terms, search_mode]
+    )
+
     if _should_show_onboarding(state):
         screen = OnboardingScreen(
             countries=channel_provider.get_countries(),
@@ -99,32 +137,5 @@ def AppShell() -> Control:
         else:
             tab_body = HomeScreen(key=ft.ValueKey("home"))
         screen = _dashboard_scaffold(body=tab_body)
-
-        from flet import context
-
-        page = context.page
-
-        def _sync_navigation_bar():
-            if page and page.views:
-
-                def _on_tab_change(e):
-                    idx = e.control.selected_index
-                    logger.info(
-                        "Navigated to tab '%s' (index %d)", _TAB_NAMES[idx], idx
-                    )
-                    set_selected_tab(idx)
-
-                destinations = [
-                    ft.NavigationBarDestination(icon=icon, label=label)
-                    for icon, label in zip(_TAB_ICONS, _TAB_NAMES, strict=True)
-                ]
-                page.views[0].navigation_bar = ft.NavigationBar(
-                    destinations=destinations,
-                    selected_index=selected_tab,
-                    on_change=_on_tab_change,
-                )
-                page.update()
-
-        ft.use_effect(_sync_navigation_bar, [selected_tab])
 
     return ft.SafeArea(content=screen, expand=True)

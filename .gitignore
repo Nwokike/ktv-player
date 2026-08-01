@@ -31,4 +31,5 @@ Thumbs.db
 *.log
 
 release_notes.md
+log.txt
 .zcode/

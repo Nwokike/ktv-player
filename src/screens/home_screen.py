@@ -231,12 +231,20 @@ def HomeScreen() -> Control:
         )
         page.update()
 
+    from flet import context
+
+    from components.banner_ad import build_banner_ad
+
+    page = context.page
+
     recently = RecentlyWatched(
         history=state.history,
         channels_map=channels_map,
         on_play=on_play,
         on_view_all=_open_recently_watched,
     )
+
+    top_banner_ad = build_banner_ad(page)
 
     filter_bar = FilterBar(
         filters=filters,
@@ -290,6 +298,7 @@ def HomeScreen() -> Control:
                 controls=[
                     header,
                     recently,
+                    top_banner_ad,
                     filter_bar,
                     body,
                     dialog,

@@ -121,7 +121,15 @@ def LocalScreen() -> Control:
         finally:
             set_is_scanning(False)
 
-    ft.on_mounted(_scan)
+    async def _on_mount():
+        from flet import context
+
+        from services.permission_service import request_storage_permission
+
+        await request_storage_permission(context.page)
+        await _scan()
+
+    ft.on_mounted(_on_mount)
 
     def _refresh(e=None):
         from utils.notifications import notify
@@ -133,13 +141,11 @@ def LocalScreen() -> Control:
         asyncio.create_task(_pick_folder_async())
 
     async def _pick_folder_async():
-        # Use the singleton FilePicker registered in AppController.init()
-        # so it works on Android (where inline FilePicker() loses the
-        # Service registration). Verified:
-        # .venv/controls/services/file_picker.py:215 — async def
-        # get_directory_path(dialog_title=None, initial_directory=None)
-        # -> Optional[str].
         from flet import context
+
+        from services.permission_service import request_storage_permission
+
+        await request_storage_permission(context.page)
 
         picker = getattr(context.page, "file_picker", None)
         if picker is None:
@@ -163,9 +169,12 @@ def LocalScreen() -> Control:
             notify_warning(ERR_FOLDER_PICK_FAILED)
             return
         if path:
+            from services.local_scanner import resolve_saf_path
+
+            resolved_path = resolve_saf_path(path)
             paths = await _get_custom_paths()
-            if path not in paths:
-                paths.append(path)
+            if resolved_path not in paths:
+                paths.append(resolved_path)
                 await _save_custom_paths(paths)
             await _scan()
 
@@ -241,6 +250,15 @@ def LocalScreen() -> Control:
             padding=ft.Padding(16, 16, 16, 24),
             alignment=ft.Alignment.CENTER,
         )
+        from flet import context
+
+        from components.banner_ad import build_banner_ad
+
+        page = context.page
+        banner = build_banner_ad(page)
+        if banner:
+            tiles.append(banner)
+
         tiles.append(footer_hint)
 
         body = ft.Column(

@@ -38,6 +38,7 @@ def Header(
     on_refresh: Callable[[], None] | None = None,
     refresh_tooltip: str = "Refresh",
     fav_active: bool = False,
+    show_search: bool = True,
 ) -> Control:
 
     _current_theme, set_current_theme = ft.use_state(
@@ -50,7 +51,7 @@ def Header(
 
     actions: list[Control] = []
 
-    if callable(on_search_click):
+    if show_search and callable(on_search_click):
         actions.append(
             _make_icon_btn(
                 icon=ft.Icons.SEARCH_ROUNDED,

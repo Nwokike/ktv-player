@@ -29,7 +29,7 @@ def SearchScreen(
     scanned_folders, set_scanned_folders = ft.use_state(local_folders or [])
     channels_list = channels or []
     fav_set = favorites_set or set()
-    liveliness_version, set_liveliness_version = ft.use_state(0)
+    _liveliness_version, set_liveliness_version = ft.use_state(0)
     pending_render = ft.use_ref(False)
 
     def _on_liveliness_change():
