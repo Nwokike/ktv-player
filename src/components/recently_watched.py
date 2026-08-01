@@ -67,7 +67,7 @@ def RecentlyWatched(
             )
         )
 
-    # Header row: title on left, arrow on right
+    # Header row: title on left, ink-enabled arrow on right
     header_controls: list[Control] = [
         ft.Text(
             LBL_RECENTLY_WATCHED,
@@ -79,13 +79,18 @@ def RecentlyWatched(
     if callable(on_view_all):
         header_controls.append(ft.Container(expand=True))
         header_controls.append(
-            ft.IconButton(
-                icon=ft.Icons.ARROW_FORWARD_ROUNDED,
-                icon_size=18,
-                icon_color=AppColors.grey_dim(),
+            ft.Container(
+                content=ft.Icon(
+                    ft.Icons.ARROW_FORWARD_ROUNDED,
+                    size=18,
+                    color=AppColors.grey_dim(),
+                ),
+                padding=6,
+                border_radius=8,
+                ink=True,
                 tooltip="View all",
                 on_click=lambda e: on_view_all(),
-            ),
+            )
         )
 
     return ft.Container(

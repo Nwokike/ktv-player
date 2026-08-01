@@ -111,6 +111,100 @@ async def pick_subtitles(player_inst):
         logger.warning("Failed to show subtitle options dialog: %s", ex)
 
 
+async def open_player_settings(player_inst):
+    """Open Player & Snapshot Settings dialog using page.show_dialog."""
+    from core.theme import AppColors
+
+    if not hasattr(player_inst, "include_subtitles_in_snapshot"):
+        player_inst.include_subtitles_in_snapshot = True
+    if not hasattr(player_inst, "snapshot_format"):
+        player_inst.snapshot_format = "image/png"
+
+    def _toggle_subtitles_snapshot(e):
+        player_inst.include_subtitles_in_snapshot = e.control.value
+
+    def _change_format(e):
+        player_inst.snapshot_format = e.control.value
+
+    def _change_fit(e):
+        fit_val = e.control.value.upper()
+        if hasattr(ft.BoxFit, fit_val):
+            player_inst.video.fit = getattr(ft.BoxFit, fit_val)
+            try:
+                player_inst.video.update()
+            except Exception:
+                pass
+
+    def _close_dialog(e=None):
+        try:
+            dialog.open = False
+            player_inst.page.update()
+        except Exception:
+            pass
+
+    dialog = ft.AlertDialog(
+        title=ft.Text(
+            "Player & Snapshot Settings",
+            size=16,
+            weight=ft.FontWeight.BOLD,
+        ),
+        content=ft.Column(
+            controls=[
+                ft.Text(
+                    "Snapshot Preferences",
+                    size=13,
+                    weight=ft.FontWeight.W_600,
+                    color=AppColors.PRIMARY,
+                ),
+                ft.Switch(
+                    label="Include Subtitles in Snapshot",
+                    value=player_inst.include_subtitles_in_snapshot,
+                    on_change=_toggle_subtitles_snapshot,
+                ),
+                ft.Dropdown(
+                    label="Image Format",
+                    value=player_inst.snapshot_format,
+                    options=[
+                        ft.dropdown.Option("image/png", "PNG (High Quality)"),
+                        ft.dropdown.Option("image/jpeg", "JPEG (Compressed)"),
+                    ],
+                    on_select=_change_format,
+                    width=240,
+                ),
+                ft.Divider(),
+                ft.Text(
+                    "Screen Aspect Ratio",
+                    size=13,
+                    weight=ft.FontWeight.W_600,
+                    color=AppColors.PRIMARY,
+                ),
+                ft.Dropdown(
+                    label="Video Fit",
+                    value=getattr(player_inst.video.fit, "name", "CONTAIN"),
+                    options=[
+                        ft.dropdown.Option("CONTAIN", "Fit to Screen (Contain)"),
+                        ft.dropdown.Option("COVER", "Crop to Fill (Cover)"),
+                        ft.dropdown.Option("FILL", "Stretch to Fill (Fill)"),
+                    ],
+                    on_select=_change_fit,
+                    width=240,
+                ),
+            ],
+            tight=True,
+            spacing=10,
+        ),
+        actions=[
+            ft.TextButton("Done", on_click=_close_dialog),
+        ],
+        actions_alignment=ft.MainAxisAlignment.END,
+    )
+
+    try:
+        player_inst.page.show_dialog(dialog)
+    except Exception as ex:
+        logger.warning("Failed to show player settings dialog: %s", ex)
+
+
 def handle_stream_complete(player_inst, e: ft.ControlEvent):
     """Handle stream completion / reconnection logic."""
     if re.match(r"https?://", player_inst.resource):

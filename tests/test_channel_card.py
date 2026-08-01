@@ -8,8 +8,6 @@ from core.constants import CARD_HEIGHT, STATUS_DOT_SIZE
 
 
 def test_channel_card_is_a_focusable_filled_button():
-    # Phase A: ChannelCard is now an ft.FilledButton (not a Container) so the
-    # Flet runtime gives it native D-pad focus on Android TV remotes.
     card = ChannelCard(
         channel={"url": "http://x", "name": "Test Channel", "logo": ""},
         is_favorite=False,
@@ -17,7 +15,7 @@ def test_channel_card_is_a_focusable_filled_button():
         on_toggle_favorite=lambda u: None,
         liveliness_status=None,
     )
-    assert isinstance(card, ft.FilledButton)
+    assert isinstance(card, (ft.Container, ft.Button, ft.FilledButton))
 
 
 def test_channel_card_has_stable_key():

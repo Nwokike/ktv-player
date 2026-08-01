@@ -1,4 +1,4 @@
-"""Header — Sleek cinematic top bar with branding and action icons."""
+"""Header — Sleek cinematic top bar with branding and ink-enabled action icons."""
 
 from collections.abc import Callable
 
@@ -6,7 +6,29 @@ import flet as ft
 from flet import Control, context
 
 from core.constants import APP_NAME
+from core.theme import AppColors
 from utils.theme_utils import toggle_theme as _toggle_theme_util
+
+
+def _make_icon_btn(
+    icon: str,
+    on_click: Callable[[], None],
+    tooltip: str = "",
+    icon_color: str | None = None,
+) -> Control:
+    """Helper to build an ink-enabled icon button with exact original design."""
+    return ft.Container(
+        content=ft.Icon(
+            icon,
+            size=20,
+            color=icon_color if icon_color else ft.Colors.ON_SURFACE,
+        ),
+        padding=8,
+        border_radius=8,
+        ink=True,
+        tooltip=tooltip,
+        on_click=lambda e: on_click(),
+    )
 
 
 @ft.component
@@ -23,7 +45,7 @@ def Header(
         lambda: getattr(context.page, "theme_mode", ft.ThemeMode.DARK)
     )
 
-    def _handle_toggle_theme(e):
+    def _handle_toggle_theme():
         _toggle_theme_util(context.page)
         set_current_theme(getattr(context.page, "theme_mode", ft.ThemeMode.DARK))
 
@@ -31,50 +53,45 @@ def Header(
 
     if callable(on_search_click):
         actions.append(
-            ft.IconButton(
+            _make_icon_btn(
                 icon=ft.Icons.SEARCH_ROUNDED,
+                on_click=on_search_click,
                 tooltip="Search",
-                autofocus=True,
-                on_click=lambda e: on_search_click(),
             )
         )
 
     if callable(on_favorites_toggle):
-        from core.theme import AppColors
-
-        fav_color = AppColors.PRIMARY if fav_active else AppColors.grey_dim()
+        fav_color = AppColors.PRIMARY if fav_active else None
         actions.append(
-            ft.IconButton(
+            _make_icon_btn(
                 icon=ft.Icons.STAR_ROUNDED
                 if fav_active
                 else ft.Icons.STAR_BORDER_ROUNDED,
-                icon_color=fav_color,
+                on_click=on_favorites_toggle,
                 tooltip="Favorites",
-                on_click=lambda e: on_favorites_toggle(),
+                icon_color=fav_color,
             )
         )
 
     if callable(on_add_content):
         actions.append(
-            ft.IconButton(
+            _make_icon_btn(
                 icon=ft.Icons.ADD_ROUNDED,
+                on_click=on_add_content,
                 tooltip="Add Content",
-                on_click=lambda e: on_add_content(),
             )
         )
 
     if callable(on_refresh):
         actions.append(
-            ft.IconButton(
+            _make_icon_btn(
                 icon=ft.Icons.REFRESH_ROUNDED,
+                on_click=on_refresh,
                 tooltip="Refresh",
-                on_click=lambda e: on_refresh(),
             )
         )
 
     try:
-        from core.theme import AppColors
-
         is_dark = AppColors._is_dark(context.page)
     except Exception:
         is_dark = True
@@ -84,10 +101,10 @@ def Header(
         "Dark Mode (click for Light)" if is_dark else "Light Mode (click for Dark)"
     )
     actions.append(
-        ft.IconButton(
+        _make_icon_btn(
             icon=theme_icon,
-            tooltip=tooltip_text,
             on_click=_handle_toggle_theme,
+            tooltip=tooltip_text,
         )
     )
 
@@ -110,7 +127,7 @@ def Header(
         content=ft.Row(
             controls=[
                 brand_row,
-                ft.Row(controls=actions),
+                ft.Row(controls=actions, spacing=4),
             ],
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
         ),

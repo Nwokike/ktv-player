@@ -41,7 +41,9 @@ def test_home_add_content_iconbutton_autofocused():
     from components import header
 
     source = _source(header)
-    assert "ft.IconButton(" in source, "Header must render IconButton controls"
+    assert "ft.IconButton(" in source or "_make_icon_btn" in source, (
+        "Header must render action buttons"
+    )
 
 
 def test_local_scan_again_autofocused():

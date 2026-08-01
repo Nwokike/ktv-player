@@ -97,17 +97,19 @@ class ImmersivePlayer(ft.Stack):
                 text_align=ft.TextAlign.CENTER,
                 visible=True,
             ),
+            configuration=fv.VideoConfiguration(
+                enable_hardware_acceleration=True,
+                
+            ),
             fill_color=ft.Colors.BLACK,
             fit=ft.BoxFit.CONTAIN,
             alignment=ft.Alignment.CENTER,
             title=self.title or "KTV Player",
             controls=self._build_controls(),
-            on_load=lambda e: logger.debug("on_load: %s", e.data),
+            on_load=lambda e: self._hide_overlay(),
+            on_position_change=self._on_pos_change,
             on_error=self._on_error,
             on_complete=self._on_complete,
-            on_position_change=lambda e: self._hide_overlay(),
-            on_enter_fullscreen=lambda e: logger.debug("Entered fullscreen"),
-            on_exit_fullscreen=lambda e: logger.debug("Exited fullscreen"),
         )
 
         self.controls = [
@@ -127,6 +129,43 @@ class ImmersivePlayer(ft.Stack):
         from components.player.handlers import pick_subtitles
 
         await pick_subtitles(self)
+
+    async def _take_screenshot(self):
+        import os
+        import time
+
+        from utils.notifications import notify, notify_warning
+
+        try:
+            fmt = getattr(self, "snapshot_format", "image/png")
+            inc_subs = getattr(self, "include_subtitles_in_snapshot", True)
+            img_bytes = await self.video.take_screenshot(
+                format=fmt,
+                include_libass_subtitles=inc_subs,
+            )
+            if img_bytes:
+                from database.manager import db_manager
+
+                storage_dir = getattr(db_manager, "storage_dir", os.getcwd())
+                screenshots_dir = os.path.join(storage_dir, "screenshots")
+                os.makedirs(screenshots_dir, exist_ok=True)
+
+                ext = "jpg" if fmt == "image/jpeg" else "png"
+                filename = f"ktv_snap_{int(time.time())}.{ext}"
+                filepath = os.path.join(screenshots_dir, filename)
+                with open(filepath, "wb") as f:
+                    f.write(img_bytes)
+
+                notify(f"📸 Snapshot saved: {filename}")
+            else:
+                notify_warning("Unable to capture video snapshot.")
+        except Exception as ex:
+            logger.warning("Screenshot capture failed: %s", ex)
+
+    async def _open_player_settings(self):
+        from components.player.handlers import open_player_settings
+
+        await open_player_settings(self)
 
     # --- Playback ---
 
@@ -174,8 +213,9 @@ class ImmersivePlayer(ft.Stack):
 
         await cycle_speed(self)
 
-    def _on_position_change(self, e: ft.ControlEvent | None = None):
-        self._hide_overlay()
+    def _on_pos_change(self, e: ft.ControlEvent | None = None):
+        if not self._overlay_hidden:
+            self._hide_overlay()
 
     def _hide_overlay(self):
         if not self._overlay_hidden:

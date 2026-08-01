@@ -128,10 +128,4 @@ def AppShell() -> Control:
 
         ft.use_effect(_sync_navigation_bar, [selected_tab])
 
-    async def _on_back(e):
-        if search_mode is not None:
-            set_search_mode(None)
-        else:
-            controller.pop_views()
-
-    return FocusScope(child=ft.SafeArea(content=screen, expand=True), on_back=_on_back)
+    return ft.SafeArea(content=screen, expand=True)

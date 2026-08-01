@@ -3,7 +3,9 @@
 import flet as ft
 import flet_video as fv
 
+from core.state import state
 from core.theme import AppColors
+from utils.favorites import toggle_favorite
 
 
 def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
@@ -31,11 +33,54 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
         overflow=ft.TextOverflow.ELLIPSIS,
     )
 
+    # In-player Favorite Star Button
+    is_fav = player_inst.resource in (state.favorites or [])
+    fav_color = AppColors.PRIMARY if is_fav else ft.Colors.WHITE
+    fav_icon = ft.Icons.STAR_ROUNDED if is_fav else ft.Icons.STAR_BORDER_ROUNDED
+
+    fav_btn = ft.IconButton(
+        icon=fav_icon,
+        icon_color=fav_color,
+        tooltip="Remove from Favorites" if is_fav else "Add to Favorites",
+    )
+
+    def _on_toggle_fav(e):
+        currently_fav = player_inst.resource in (state.favorites or [])
+        new_fav = not currently_fav
+
+        fav_btn.icon = (
+            ft.Icons.STAR_ROUNDED if new_fav else ft.Icons.STAR_BORDER_ROUNDED
+        )
+        fav_btn.icon_color = AppColors.PRIMARY if new_fav else ft.Colors.WHITE
+        fav_btn.tooltip = "Remove from Favorites" if new_fav else "Add to Favorites"
+        try:
+            fav_btn.update()
+        except Exception:
+            pass
+
+        toggle_favorite(player_inst.resource, state)
+
+    fav_btn.on_click = _on_toggle_fav
+
     sub_btn = ft.IconButton(
         icon=ft.Icons.SUBTITLES_ROUNDED,
         icon_color=ft.Colors.WHITE,
         tooltip="Subtitles",
         on_click=lambda e: player_inst.page.run_task(player_inst._pick_subtitles),
+    )
+
+    camera_btn = ft.IconButton(
+        icon=ft.Icons.CAMERA_ALT_ROUNDED,
+        icon_color=ft.Colors.WHITE,
+        tooltip="Take Snapshot",
+        on_click=lambda e: player_inst.page.run_task(player_inst._take_screenshot),
+    )
+
+    settings_btn = ft.IconButton(
+        icon=ft.Icons.SETTINGS_ROUNDED,
+        icon_color=ft.Colors.WHITE,
+        tooltip="Player & Snapshot Settings",
+        on_click=lambda e: player_inst.page.run_task(player_inst._open_player_settings),
     )
 
     return fv.AdaptiveVideoControls(
@@ -62,7 +107,10 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
                 back_btn,
                 title_text,
                 fv.VideoSpacer(),
+                fav_btn,
+                camera_btn,
                 sub_btn,
+                settings_btn,
                 fv.VideoFullscreenButton(icon_color=ft.Colors.WHITE),
             ],
             bottom_button_bar=[
@@ -90,7 +138,10 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
                 back_btn,
                 title_text,
                 fv.VideoSpacer(),
+                fav_btn,
+                camera_btn,
                 sub_btn,
+                settings_btn,
                 fv.VideoFullscreenButton(icon_color=ft.Colors.WHITE),
             ],
             bottom_button_bar=[
