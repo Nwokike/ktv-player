@@ -172,7 +172,6 @@ def LocalScreen() -> Control:
             controller.open_search("local")
 
     header = Header(
-        title="Local Videos",
         on_search_click=_open_search,
         on_add_content=_pick_folder,
         on_refresh=_refresh,

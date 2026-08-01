@@ -99,7 +99,6 @@ class ImmersivePlayer(ft.Stack):
             ),
             configuration=fv.VideoConfiguration(
                 enable_hardware_acceleration=True,
-                
             ),
             fill_color=ft.Colors.BLACK,
             fit=ft.BoxFit.CONTAIN,
@@ -153,8 +152,12 @@ class ImmersivePlayer(ft.Stack):
                 ext = "jpg" if fmt == "image/jpeg" else "png"
                 filename = f"ktv_snap_{int(time.time())}.{ext}"
                 filepath = os.path.join(screenshots_dir, filename)
-                with open(filepath, "wb") as f:
-                    f.write(img_bytes)
+
+                def _write():
+                    with open(filepath, "wb") as f:
+                        f.write(img_bytes)
+
+                await asyncio.to_thread(_write)
 
                 notify(f"📸 Snapshot saved: {filename}")
             else:

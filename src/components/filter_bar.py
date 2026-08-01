@@ -11,7 +11,7 @@ import flet as ft
 from flet import Control
 
 from core.constants import LBL_ADD_CONTENT_SHORT
-from core.tokens import FONT_MD, ICON_SM, SPACING_XS
+from core.tokens import FONT_LG, FONT_MD, ICON_MD, ICON_SM, SPACING_XS
 
 # Transparent wrapper so PopupMenuButton adds no visible chrome
 _TRIGGER_STYLE = ft.ButtonStyle(
@@ -32,7 +32,11 @@ _MENU_SHAPE = ft.RoundedRectangleBorder(radius=8)
 
 
 def _pill(
-    label: str, icon: str, is_selected: bool, show_arrow: bool = True
+    label: str,
+    icon: str,
+    is_selected: bool,
+    show_arrow: bool = True,
+    compact: bool = True,
 ) -> ft.Control:
     """Compact outlined pill: icon + text + chevron."""
     border_color = (
@@ -45,12 +49,16 @@ def _pill(
         if is_selected
         else ft.Colors.TRANSPARENT
     )
+    font_size = FONT_MD if compact else FONT_LG
+    icon_size = ICON_SM if compact else ICON_MD
+    pad = ft.Padding(8, 4, 8, 4) if compact else ft.Padding(12, 6, 12, 6)
+
     controls = [
-        ft.Icon(icon, size=ICON_SM),
-        ft.Text(label, size=FONT_MD, no_wrap=True),
+        ft.Icon(icon, size=icon_size),
+        ft.Text(label, size=font_size, no_wrap=True),
     ]
     if show_arrow:
-        controls.append(ft.Icon(ft.Icons.ARROW_DROP_DOWN, size=ICON_SM))
+        controls.append(ft.Icon(ft.Icons.ARROW_DROP_DOWN, size=icon_size))
 
     return ft.Container(
         content=ft.Row(
@@ -58,7 +66,7 @@ def _pill(
             spacing=2,
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
         ),
-        padding=ft.Padding(8, 4, 8, 4),
+        padding=pad,
         border=ft.Border.all(1, border_color),
         border_radius=8,
         bgcolor=bg,
@@ -82,6 +90,15 @@ def FilterBar(
         if callable(on_change):
             on_change(partial)
 
+    # Responsive: bigger pills on TV/widescreen (>600px)
+    try:
+        from flet import context
+
+        _page_width = context.page.width or 0
+    except Exception:
+        _page_width = 0
+    _compact = _page_width <= 600
+
     # ---- 1. Country ----
     current_country = filters.get("country", "all")
     country_label = current_country if current_country != "all" else "Country"
@@ -98,29 +115,25 @@ def FilterBar(
 
     _RESET = {"fav_only": False, "search": ""}
 
-    country_items: list[ft.PopupMenuItem] = [
-        ft.PopupMenuItem(
-            content=ft.Text("All Countries", size=FONT_MD),
-            on_click=lambda e: _fire(
-                {"country": "all", "category": "all", "custom": "none", **_RESET}
-            ),
-        ),
-    ]
-    if user_country and user_country != "Other" and user_country in sorted_countries:
+    # "Other" from onboarding maps to "Global" — the non-country display group
+    _default_country = "Global" if user_country == "Other" else user_country
+
+    country_items: list[ft.PopupMenuItem] = []
+    if _default_country and _default_country in sorted_countries:
         suffix = (
             " (Local)"
             if not is_dict
-            else f" ({available_countries[user_country]}) (Local)"
+            else f" ({available_countries[_default_country]}) (Local)"
         )
         country_items.append(
             ft.PopupMenuItem(
-                content=ft.Text(f"{user_country}{suffix}", size=FONT_MD),
-                on_click=lambda e, u=user_country: _fire(
+                content=ft.Text(f"{_default_country}{suffix}", size=FONT_MD),
+                on_click=lambda e, u=_default_country: _fire(
                     {"country": u, "category": "all", "custom": "none", **_RESET}
                 ),
             )
         )
-        sorted_countries.remove(user_country)
+        sorted_countries.remove(_default_country)
     for c_name in sorted_countries:
         country_items.append(
             ft.PopupMenuItem(
@@ -136,13 +149,23 @@ def FilterBar(
         ft.PopupMenuItem(
             content=ft.Text("Cancel", size=FONT_MD),
             on_click=lambda e: _fire(
-                {"country": "all", "category": "all", "custom": "none", **_RESET}
+                {
+                    "country": _default_country or "all",
+                    "category": "all",
+                    "custom": "none",
+                    **_RESET,
+                }
             ),
         ),
     )
 
     country_btn = ft.PopupMenuButton(
-        content=_pill(country_label, ft.Icons.PUBLIC, current_country != "all"),
+        content=_pill(
+            country_label,
+            ft.Icons.PUBLIC,
+            current_country != _default_country,
+            compact=_compact,
+        ),
         items=country_items,
         menu_position=ft.PopupMenuPosition.UNDER,
         style=_TRIGGER_STYLE,
@@ -157,14 +180,7 @@ def FilterBar(
     current_category = filters.get("category", "all")
     category_label = current_category if current_category != "all" else "Category"
 
-    category_items: list[ft.PopupMenuItem] = [
-        ft.PopupMenuItem(
-            content=ft.Text("All Categories", size=FONT_MD),
-            on_click=lambda e: _fire(
-                {"category": "all", "country": "all", "custom": "none", **_RESET}
-            ),
-        ),
-    ]
+    category_items: list[ft.PopupMenuItem] = []
     if isinstance(available_categories, dict):
         for cat, count in sorted(available_categories.items(), key=lambda x: x[0]):
             category_items.append(
@@ -190,14 +206,17 @@ def FilterBar(
         0,
         ft.PopupMenuItem(
             content=ft.Text("Cancel", size=FONT_MD),
-            on_click=lambda e: _fire(
-                {"category": "all", "country": "all", "custom": "none", **_RESET}
-            ),
+            on_click=lambda e: _fire({"category": "all", "custom": "none", **_RESET}),
         ),
     )
 
     category_btn = ft.PopupMenuButton(
-        content=_pill(category_label, ft.Icons.CATEGORY, current_category != "all"),
+        content=_pill(
+            category_label,
+            ft.Icons.CATEGORY,
+            current_category != "all",
+            compact=_compact,
+        ),
         items=category_items,
         menu_position=ft.PopupMenuPosition.UNDER,
         style=_TRIGGER_STYLE,
@@ -256,7 +275,12 @@ def FilterBar(
     )
 
     custom_btn = ft.PopupMenuButton(
-        content=_pill(custom_label, ft.Icons.FOLDER_SPECIAL, current_custom != "none"),
+        content=_pill(
+            custom_label,
+            ft.Icons.FOLDER_SPECIAL,
+            current_custom != "none",
+            compact=_compact,
+        ),
         items=custom_items,
         menu_position=ft.PopupMenuPosition.UNDER,
         style=_TRIGGER_STYLE,

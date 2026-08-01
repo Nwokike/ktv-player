@@ -46,6 +46,28 @@ async def load_all_channels(page_obj, loading_lock):
                         playlist_channels = await iptv_service.fetch_playlist(
                             pl["url"],
                         )
+                        # Auto-detect flat playlists: if ALL channels got
+                        # group="Custom" (no group-title in M3U), derive a
+                        # group name from the URL domain so they appear
+                        # as a named entry in the Custom dropdown.
+                        if playlist_channels and all(
+                            c.get("group", "Custom") == "Custom"
+                            for c in playlist_channels
+                        ):
+                            from pathlib import PurePosixPath
+                            from urllib.parse import urlparse
+
+                            parsed = urlparse(pl["url"])
+                            host = parsed.hostname or ""
+                            stem = PurePosixPath(parsed.path).stem
+                            name = (
+                                f"{host} — {stem}"
+                                if host and stem
+                                else host or stem or "Playlist"
+                            )
+                            for c in playlist_channels:
+                                c["group"] = name
+
                         for pc in playlist_channels:
                             pc_url = pc.get("url", "")
                             if pc_url and pc_url in seen_urls:

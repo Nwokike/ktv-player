@@ -232,16 +232,13 @@ def SettingsScreen() -> Control:
         _toggle_theme_util(context.page)
         set_theme_mode(AppColors._is_dark(context.page))
 
-    def _on_country_select(e):
-        if e.control.value:
-            name = e.control.value
+    def _on_country_select(name: str):
+        async def _do():
+            await db_manager.set_setting("user_country", name)
+            core_state.user_country = name
+            notify(LBL_COUNTRY_UPDATED.format(country=name))
 
-            async def _do():
-                await db_manager.set_setting("user_country", name)
-                core_state.user_country = name
-                notify(LBL_COUNTRY_UPDATED.format(country=name))
-
-            asyncio.create_task(_do())
+        asyncio.create_task(_do())
 
     async def _clear_history():
         set_is_clearing(True)
@@ -319,6 +316,53 @@ def SettingsScreen() -> Control:
         else (country_names[0] if country_names else None)
     )
 
+    country_dialog = ft.AlertDialog(
+        title=ft.Text("Select Country", size=16, weight=ft.FontWeight.BOLD),
+        content=ft.Column(
+            controls=[
+                ft.Container(
+                    content=ft.Row(
+                        controls=[
+                            ft.Icon(
+                                ft.Icons.CHECK_CIRCLE
+                                if c == default_country
+                                else ft.Icons.RADIO_BUTTON_UNCHECKED,
+                                size=16,
+                                color=AppColors.PRIMARY
+                                if c == default_country
+                                else AppColors.grey_dim(),
+                            ),
+                            ft.Text(c, size=13),
+                        ],
+                        spacing=8,
+                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                    ),
+                    padding=ft.Padding(8, 8, 8, 8),
+                    border_radius=8,
+                    ink=True,
+                    on_click=lambda e, c=c: (
+                        _on_country_select(c),
+                        _close_country_dialog(),
+                    ),
+                )
+                for c in country_names
+            ],
+            spacing=2,
+            scroll=ft.ScrollMode.AUTO,
+        ),
+        actions_alignment=ft.MainAxisAlignment.END,
+    )
+
+    def _open_country_dialog(e):
+        from flet import context
+
+        context.page.show_dialog(country_dialog)
+
+    def _close_country_dialog():
+        from flet import context
+
+        context.page.pop_dialog()
+
     localization = _section_card(
         "Localization",
         ft.Icons.PUBLIC,
@@ -328,14 +372,22 @@ def SettingsScreen() -> Control:
                 title=LBL_DEFAULT_REGION,
                 subtitle=LBL_FILTER_BY_COUNTRY,
                 trailing=ft.Container(
-                    content=ft.Dropdown(
-                        value=default_country,
-                        options=[
-                            ft.DropdownOption(key=c, text=c) for c in country_names
+                    content=ft.Row(
+                        controls=[
+                            ft.Text(default_country or "Select", size=13),
+                            ft.Icon(ft.Icons.ARROW_DROP_DOWN, size=16),
                         ],
-                        on_select=_on_country_select,
+                        spacing=4,
+                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                     ),
                     width=150,
+                    padding=ft.Padding(8, 6, 8, 6),
+                    border=ft.Border.all(
+                        1, ft.Colors.with_opacity(0.3, ft.Colors.OUTLINE_VARIANT)
+                    ),
+                    border_radius=8,
+                    ink=True,
+                    on_click=_open_country_dialog,
                 ),
             ),
         ],
@@ -385,8 +437,8 @@ def SettingsScreen() -> Control:
                 leading=ft.Icon(ft.Icons.TERMINAL, size=18, color=AppColors.PRIMARY),
                 title=LBL_ACTIVITY_TERMINAL,
                 subtitle=f"{logs_count} entries in memory",
-                trailing=ft.FilledButton(
-                    LBL_OPEN_TERMINAL,
+                trailing=ft.OutlinedButton(
+                    content=ft.Text(LBL_OPEN_TERMINAL, size=12),
                     icon=ft.Icons.TERMINAL,
                     on_click=_open_terminal,
                 ),

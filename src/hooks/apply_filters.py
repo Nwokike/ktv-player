@@ -13,8 +13,13 @@ HomeScreen and other views. The filter dict contract:
 """
 
 
-def _default_filters(user_country: str = "all") -> dict:
-    country_val = "all" if not user_country or user_country == "Other" else user_country
+def _default_filters(user_country: str = "") -> dict:
+    if not user_country:
+        country_val = "all"
+    elif user_country == "Other":
+        country_val = "Global"
+    else:
+        country_val = user_country
     return {
         "country": country_val,
         "category": "all",

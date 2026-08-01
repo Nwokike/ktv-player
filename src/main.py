@@ -142,6 +142,30 @@ class AppController:
         self.page.render(lambda: ControllerMethodsCtx(methods, lambda: AppShell()))
         logger.info("AppShell frontend mounted successfully")
 
+        # Startup connectivity check — detect offline on subsequent launches
+        async def _startup_connectivity_check():
+            try:
+                from services.http_client import get_http_client
+
+                client = get_http_client()
+                resp = await client.head(
+                    "https://www.google.com",
+                    timeout=3.0,
+                    follow_redirects=True,
+                )
+                state.is_online = resp.status_code < 400
+            except Exception:
+                state.is_online = False
+                logger.warning("Startup connectivity check: offline")
+                try:
+                    from utils.notifications import notify_warning
+
+                    notify_warning("You are offline. Some features may be unavailable.")
+                except Exception:
+                    pass
+
+        asyncio.create_task(_startup_connectivity_check())
+
     def _on_global_error(self, e):
         err_data = e.data if hasattr(e, "data") else str(e)
         # Suppress errors from the video player stopping (e.g., during back press)

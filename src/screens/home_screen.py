@@ -43,7 +43,9 @@ def HomeScreen() -> Control:
     def _init_filters():
         f = _default_filters()
         if getattr(state, "user_country", None):
-            f["country"] = state.user_country
+            f["country"] = (
+                "Global" if state.user_country == "Other" else state.user_country
+            )
         return f
 
     filters, set_filters = ft.use_state(_init_filters)

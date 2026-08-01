@@ -86,13 +86,16 @@ def enqueue_liveliness_check(url: str):
         return
 
     try:
-        loop = asyncio.get_running_loop()
+        asyncio.get_running_loop()
     except RuntimeError:
         return
 
     _ensure_queue()
     _in_flight.add(url)
-    loop.create_task(_liveliness_queue.put(url))
+    try:
+        _liveliness_queue.put_nowait(url)
+    except asyncio.QueueFull:
+        _in_flight.discard(url)
 
 
 class LivelinessChecker:

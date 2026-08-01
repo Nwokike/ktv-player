@@ -5,7 +5,6 @@ from collections.abc import Callable
 import flet as ft
 from flet import Control, context
 
-from core.constants import APP_NAME
 from core.theme import AppColors
 from utils.theme_utils import toggle_theme as _toggle_theme_util
 
@@ -33,7 +32,6 @@ def _make_icon_btn(
 
 @ft.component
 def Header(
-    title: str = APP_NAME,
     on_search_click: Callable[[], None] | None = None,
     on_favorites_toggle: Callable[[], None] | None = None,
     on_add_content: Callable[[], None] | None = None,
@@ -112,13 +110,11 @@ def Header(
         controls=[
             ft.Container(
                 content=ft.Image(
-                    src="/icon.png", width=32, height=32, fit=ft.BoxFit.CONTAIN
+                    src="/icon.png",
+                    width=38,
                 ),
-                border_radius=8,
             ),
-            ft.Text(title, size=20, weight=ft.FontWeight.BOLD),
         ],
-        spacing=10,
         alignment=ft.MainAxisAlignment.START,
     )
 

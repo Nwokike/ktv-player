@@ -31,22 +31,16 @@ def _is_valid_url(url: str) -> bool:
     )
 
 
-def _can_add(name: str, url: str, last_add_time: float) -> bool:
-    stripped_name = name.strip()
-    if not stripped_name or len(stripped_name) > 200:
+def _can_add(
+    url: str, last_add_time: float, name: str = "", add_type: str = "playlist"
+) -> bool:
+    if add_type == "channel" and not name.strip():
         return False
     if not _is_valid_url(url):
         return False
     if last_add_time > 0:
         return (time.time() - last_add_time) >= ADD_CONTENT_COOLDOWN
     return True
-
-
-def _format_name(name: str, add_type: str) -> str:
-    stripped = name.strip()
-    if not stripped:
-        return "Unnamed Playlist" if add_type == "playlist" else "Unnamed Channel"
-    return stripped
 
 
 @ft.component
@@ -70,19 +64,22 @@ def AddCustomContentDialog(
         set_last_add(0.0)
 
     async def _handle_add(e):
-        if is_adding or not _can_add(name, url, last_add):
+        if is_adding or not _can_add(url, last_add, name, add_type):
             return
         set_is_adding(True)
         try:
-            final_name = _format_name(name, add_type)
             final_url = url.strip()
             if add_type == "playlist":
-                await storage.add_playlist(final_name, final_url)
+                await storage.add_playlist("Playlist", final_url)
+                _notify_success(
+                    "✅ Playlist added! Select 'Custom' in the filter bar to view your channels."
+                )
             else:
+                final_name = name.strip() or "Channel"
                 await storage.add_custom_channel(final_name, final_url)
-            _notify_success(
-                f"🎉 '{final_name}' added! Select 'Custom' in the filter bar to view your channels."
-            )
+                _notify_success(
+                    "✅ Channel added! Select 'Custom' in the filter bar to view it."
+                )
             set_last_add(time.time())
             _reset()
             on_close()
@@ -100,20 +97,30 @@ def AddCustomContentDialog(
 
     dialog: Control | None = None
     if open:
-        # Name field only shown for single channels — playlists get M3U groups automatically
-        name_field = (
-            [
-                ft.TextField(
-                    label=LBL_NAME,
-                    hint_text=LBL_NAME_HINT,
-                    value=name,
-                    on_change=lambda e: set_name(e.control.value),
-                    max_length=MAX_NAME_LENGTH,
-                ),
-            ]
-            if add_type == "channel"
-            else []
+        # URL field — Enter submits the dialog
+        url_field = ft.TextField(
+            label=LBL_URL,
+            hint_text=LBL_URL_HINT,
+            value=url,
+            on_change=lambda e: set_url(e.control.value),
+            on_submit=_handle_add,
         )
+
+        # Name field — only for single channels; Enter moves focus to URL field
+        name_field = None
+        if add_type == "channel":
+
+            async def _on_name_submit(e):
+                await url_field.focus()
+
+            name_field = ft.TextField(
+                label=LBL_NAME,
+                hint_text=LBL_NAME_HINT,
+                value=name,
+                on_change=lambda e: set_name(e.control.value),
+                on_submit=_on_name_submit,
+                max_length=MAX_NAME_LENGTH,
+            )
 
         dialog = ft.AlertDialog(
             modal=True,
@@ -131,13 +138,8 @@ def AddCustomContentDialog(
                             ),
                         ],
                     ),
-                    *name_field,
-                    ft.TextField(
-                        label=LBL_URL,
-                        hint_text=LBL_URL_HINT,
-                        value=url,
-                        on_change=lambda e: set_url(e.control.value),
-                    ),
+                    *([name_field] if name_field else []),
+                    url_field,
                 ],
                 width=350,
                 spacing=8,
@@ -148,7 +150,7 @@ def AddCustomContentDialog(
                 ft.FilledButton(
                     content=ft.Text("Add Content"),
                     on_click=_handle_add,
-                    disabled=not _can_add(name, url, last_add) or is_adding,
+                    disabled=not _can_add(url, last_add, name, add_type) or is_adding,
                 ),
             ],
             on_dismiss=lambda: on_close(),

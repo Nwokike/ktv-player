@@ -5,7 +5,6 @@ from collections.abc import Callable
 import flet as ft
 from flet import Control
 
-from components.focus_styles import card_button_style
 from core.constants import (
     CARD_BORDER_RADIUS,
     CARD_HEIGHT,

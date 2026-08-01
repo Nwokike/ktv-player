@@ -23,13 +23,11 @@ Verified Flet 0.86.4 API surface (probe of buttons in
 """
 
 import flet as ft
-from flet_tree import walk, walk_buttons
+from flet_tree import walk_buttons
 
 from components.channel_card import ChannelCard
-from components.focus_styles import card_button_style
 from components.recently_watched import RecentlyWatched
 from components.video_card import VideoCard
-from core.constants import CARD_BORDER_RADIUS, CARD_HEIGHT
 from services.local_scanner import LocalVideo
 
 # --- ChannelCard ---

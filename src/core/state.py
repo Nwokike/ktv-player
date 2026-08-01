@@ -8,6 +8,7 @@ from core.constants import MAX_HISTORY_ITEMS
 @ft.observable
 class AppState:
     is_loading: bool = False
+    is_online: bool = True
     channels: list[dict] = field(default_factory=list)
     history: list[str] = field(default_factory=list)
     favorites: list[str] = field(default_factory=list)
@@ -44,6 +45,7 @@ class AppState:
     def reset(self):
         """Reset all state to defaults (for testing)."""
         self.is_loading = False
+        self.is_online = True
         self.channels = []
         self.history = []
         self.favorites = []

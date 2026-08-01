@@ -6,7 +6,6 @@ import flet as ft
 from flet import Control
 
 from channels.provider import channel_provider
-from hooks.use_focus_scope import FocusScope
 from hooks.use_keyboard_shortcuts import use_keyboard_shortcuts
 from screens.home_screen import HomeScreen
 from screens.local_screen import LocalScreen
