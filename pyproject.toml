@@ -42,7 +42,6 @@ requestLegacyExternalStorage = "true"
 "android.permission.READ_MEDIA_VISUAL_USER_SELECTED" = true
 "android.permission.READ_EXTERNAL_STORAGE" = true
 "android.permission.WRITE_EXTERNAL_STORAGE" = true
-"android.permission.MANAGE_EXTERNAL_STORAGE" = true
 
 [tool.flet.android.signing]
 key_store = "../../../../kiri_keystore.jks"

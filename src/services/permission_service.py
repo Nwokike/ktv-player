@@ -50,15 +50,6 @@ async def request_storage_permission(page: ft.Page) -> bool:
         except Exception as e:
             logger.debug("Permission.STORAGE request exception: %s", e)
 
-        # Try MANAGE_EXTERNAL_STORAGE for Android 11+
-        try:
-            status = await ph.request(Permission.MANAGE_EXTERNAL_STORAGE)
-            if status == PermissionStatus.GRANTED:
-                logger.info("Permission.MANAGE_EXTERNAL_STORAGE granted")
-                return True
-        except Exception as e:
-            logger.debug("Permission.MANAGE_EXTERNAL_STORAGE request exception: %s", e)
-
         return True
     except Exception as ex:
         logger.warning("Runtime permission request failed: %s", ex)
