@@ -200,7 +200,16 @@ def HomeScreen() -> Control:
             controller.open_search("tv")
 
     def _toggle_favorites_filter():
-        set_filters({**filters, "fav_only": not filters.get("fav_only", False)})
+        fav_selected = filters.get("fav_only", False)
+        set_filters(
+            {
+                "fav_only": not fav_selected,
+                "country": "all",
+                "category": "all",
+                "custom": "none",
+                "search": "",
+            }
+        )
 
     header = Header(
         on_search_click=_open_search,
