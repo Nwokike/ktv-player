@@ -82,7 +82,6 @@ pythonpath = ["src", "tests"]
 
 [dependency-groups]
 dev = [
-    "pyjnius>=1.7.0",
     "pytest>=9.0.3",
     "pytest-asyncio>=1.4.0",
     "ruff>=0.15.14",

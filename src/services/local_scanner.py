@@ -218,7 +218,8 @@ def scan_videos(
         if not any(v.path == vid.path for v in folder_map[folder_key].videos):
             folder_map[folder_key].videos.append(vid)
 
-    result = sorted(folder_map.values(), key=lambda f: f.name.lower())
+    valid_folders = [f for f in folder_map.values() if len(f.videos) > 0]
+    result = sorted(valid_folders, key=lambda f: f.name.lower())
     for folder in result:
         folder.videos.sort(key=lambda v: v.name.lower())
     return result

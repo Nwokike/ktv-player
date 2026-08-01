@@ -32,6 +32,11 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
         max_lines=1,
         overflow=ft.TextOverflow.ELLIPSIS,
     )
+    title_container = ft.Container(
+        content=title_text,
+        expand=True,
+        padding=ft.Padding(4, 0, 8, 0),
+    )
 
     # In-player Favorite Star Button
     is_fav = player_inst.resource in (state.favorites or [])
@@ -45,8 +50,8 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
     )
 
     def _on_toggle_fav(e):
-        currently_fav = player_inst.resource in (state.favorites or [])
-        new_fav = not currently_fav
+        toggle_favorite(player_inst.resource, state)
+        new_fav = player_inst.resource in (state.favorites or [])
 
         fav_btn.icon = (
             ft.Icons.STAR_ROUNDED if new_fav else ft.Icons.STAR_BORDER_ROUNDED
@@ -57,8 +62,11 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
             fav_btn.update()
         except Exception:
             pass
-
-        toggle_favorite(player_inst.resource, state)
+        try:
+            if hasattr(player_inst, "page") and player_inst.page:
+                player_inst.page.update()
+        except Exception:
+            pass
 
     fav_btn.on_click = _on_toggle_fav
 
@@ -105,8 +113,7 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
             top_button_bar_margin=ft.Margin(16, 35, 16, 0),
             top_button_bar=[
                 back_btn,
-                title_text,
-                fv.VideoSpacer(),
+                title_container,
                 fav_btn,
                 camera_btn,
                 sub_btn,
@@ -136,8 +143,7 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
             ],
             top_button_bar=[
                 back_btn,
-                title_text,
-                fv.VideoSpacer(),
+                title_container,
                 fav_btn,
                 camera_btn,
                 sub_btn,

@@ -97,7 +97,6 @@ def ChannelGrid(
             )
         )
 
-        # Ad after this chunk (except after the last)
         if chunk_start + AD_ROW_INTERVAL < len(visible) and ad_service:
             ad_slot = (
                 ad_service.get_standard_banner_ad()
@@ -108,6 +107,15 @@ def ChannelGrid(
                 sections.append(ad_slot)
             else:
                 sections.append(ft.Container(height=12))
+
+    from flet import context
+
+    from components.banner_ad import build_banner_ad
+
+    page = context.page
+    bot_ad = build_banner_ad(page)
+    if bot_ad:
+        sections.append(bot_ad)
 
     if total_pages > 1:
         from core.theme import AppColors
@@ -191,15 +199,6 @@ def ChannelGrid(
             ),
         )
 
-        from flet import context
-
-        from components.banner_ad import build_banner_ad
-
-        page = context.page
-        bot_ad = build_banner_ad(page)
-        if bot_ad:
-            sections.append(bot_ad)
-
         sections.append(
             ft.Container(
                 content=ft.Row(
@@ -208,7 +207,7 @@ def ChannelGrid(
                         ft.Text(
                             f"Page {current_page + 1} of {total_pages}  ·  {len(channels)} channels",
                             size=12,
-                            weight=ft.FontWeight.W_500,
+                            weight=ft.FontWeight.BOLD,
                             color=ft.Colors.with_opacity(0.8, ft.Colors.ON_SURFACE),
                         ),
                         next_btn,
