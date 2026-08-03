@@ -34,7 +34,7 @@ wheels = [
 
 [[package]]
 name = "flet"
-version = "0.86.4"
+version = "0.86.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx", marker = "sys_platform != 'emscripten'" },
@@ -42,45 +42,45 @@ dependencies = [
     { name = "oauthlib", marker = "sys_platform != 'emscripten'" },
     { name = "repath" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d2/11/e677be757a0d6459b89bc9c63bfcef89e7e96872782db447b753837aa842/flet-0.86.4.tar.gz", hash = "sha256:b5a66bd320196d3bed7d7fa5bb0ce79da734282de6a531cb2a73c06d5cbdb174", size = 543083, upload-time = "2026-07-27T20:58:55.979Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/97/91/173edaffb9135f4a0f2b92061b375f553327c38bbe4973a9b9f50b785f4a/flet-0.86.5.tar.gz", hash = "sha256:2ac87c7150686d64b61f0c014ec3415dc74ca3afe8f2fe1e6039c0a164738f90", size = 543099, upload-time = "2026-08-01T16:51:26.067Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/18/ec/446a9312c7c6ee03f91aa574fa6cd299719feba69db0528da24234ffb762/flet-0.86.4-py3-none-any.whl", hash = "sha256:985ad42bb4e050c3d2abde442db9cce9ee3b7c191a3fdcdc964ce3efda888edb", size = 622504, upload-time = "2026-07-27T20:58:54.651Z" },
+    { url = "https://files.pythonhosted.org/packages/20/c4/ae44a4b7f70c5010fda86634f15d32e4a57ad19a5663aadd6cc89b419fcb/flet-0.86.5-py3-none-any.whl", hash = "sha256:b0accfe78243611ab71c3a6adb0045a80f81a284d0cf037e38c7825c2fd45282", size = 622504, upload-time = "2026-08-01T16:51:24.563Z" },
 ]
 
 [[package]]
 name = "flet-ads"
-version = "0.86.4"
+version = "0.86.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "flet" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/cb/de/3435a92463d11405b677c88b980c096a5b0234291e54cf616e6eae572ff8/flet_ads-0.86.4.tar.gz", hash = "sha256:3165a6e32fdf3a3473a660015ceb6ad24b3c6445c99254712555564f393fe232", size = 16306, upload-time = "2026-07-27T20:59:11.25Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5f/19/6752bfe2dac7e6d2b40c15aa5c30890660ee6bc616c4b90635cb41fa1ff0/flet_ads-0.86.5.tar.gz", hash = "sha256:4b7af79d95f14ffa36e279ff342f8c15112dc56ba9c11ea790989050c5822df5", size = 16313, upload-time = "2026-08-01T16:51:43.19Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/82/a1/ff83c8bf53339fca0660455fa5ad12552f6b494d3bdab5dc93faf8202157/flet_ads-0.86.4-py3-none-any.whl", hash = "sha256:1768f0cfce874a3eef57f4902fdf6c48a0996caf7a8fe97c629103c0f5229523", size = 21398, upload-time = "2026-07-27T20:59:10.393Z" },
+    { url = "https://files.pythonhosted.org/packages/df/3e/5de6892e16d9a13053dc048c8de199db27f78d76f66987c336719d64f417/flet_ads-0.86.5-py3-none-any.whl", hash = "sha256:b56621262d93e4e4ddafea5ea900fbd7f9dd59b43ee6afca078e2b7423d06478", size = 21393, upload-time = "2026-08-01T16:51:42.207Z" },
 ]
 
 [[package]]
 name = "flet-permission-handler"
-version = "0.86.4"
+version = "0.86.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "flet" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/19/58/2dfd8bd93a1e56f32bf89695f0d89f857d5188cd709ca1989dfdd05ee844/flet_permission_handler-0.86.4.tar.gz", hash = "sha256:e38dd82a92f64e29c7e24285c14fb1ca24c7e99e04bdefdd4335e80c2b7cb78b", size = 12239, upload-time = "2026-07-27T20:59:47.103Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d3/90/78774ef57c1d5fe34267247714033829cd88d055d3a68a1ab7dbfe05415c/flet_permission_handler-0.86.5.tar.gz", hash = "sha256:e46889a0e702e6c3636abf5f7007d4426bc55e160a23ff8efeee9010a9397cdf", size = 12228, upload-time = "2026-08-01T16:52:22.049Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/45/ab/0e807c9531a8ddbc108ca57ff11092d402c4baaac99c3ae9709161f34e2e/flet_permission_handler-0.86.4-py3-none-any.whl", hash = "sha256:19ae44066754195d7de82058ac62c92541b3830ba5322501a0d1d03b20a5f2cb", size = 13552, upload-time = "2026-07-27T20:59:46.248Z" },
+    { url = "https://files.pythonhosted.org/packages/56/77/5fcbbb62141918463c3025c99394a96c3f0c47a02ed1ae82bf4251581085/flet_permission_handler-0.86.5-py3-none-any.whl", hash = "sha256:6e89e2b89ae1d62f4ae5cbf2ce312208db3250cb8c64421d523958d4ad2bdfef", size = 13554, upload-time = "2026-08-01T16:52:21.189Z" },
 ]
 
 [[package]]
 name = "flet-video"
-version = "0.86.4"
+version = "0.86.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "flet" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/45/c3/1f82c38c6bf73ddc8ede515f44baa2dfb93147ae443376fc1ea7fa3fcb7b/flet_video-0.86.4.tar.gz", hash = "sha256:5b75a70fa49045281f065ec2893acb9a111427ca62d6f923b1bb42853e622ad5", size = 24249, upload-time = "2026-07-27T20:59:58.488Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/3d/e9/6747186526088779ca5213ad3cf5c2b5e8ad3b6ca3fbb894fa0295d2792f/flet_video-0.86.5.tar.gz", hash = "sha256:560642643a0db0db73c79f5b797f05f24cac63bb67fb97048e48b0cc656be6d7", size = 24248, upload-time = "2026-08-01T16:52:34.821Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a4/6d/82f73dc7a910af3a8927641814c421051a9f339ab036be7292b94fab4ed2/flet_video-0.86.4-py3-none-any.whl", hash = "sha256:f3ba97ebb602a0b8c2cfa6ddb7a4895ca63171447c5b8a6cd4ce15c120a0bd34", size = 26163, upload-time = "2026-07-27T20:59:57.578Z" },
+    { url = "https://files.pythonhosted.org/packages/49/05/403a87621ff2ada7f82b7c102ba2c182719267ee0c506f93ed31e217984e/flet_video-0.86.5-py3-none-any.whl", hash = "sha256:162540a0ccea8ef15b3a9b0c588943f8ee04e37bda2c7df61a35b0643879ce17", size = 26166, upload-time = "2026-08-01T16:52:33.876Z" },
 ]
 
 [[package]]
@@ -159,10 +159,10 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "flet", specifier = ">=0.86.4" },
-    { name = "flet-ads", specifier = ">=0.86.4" },
-    { name = "flet-permission-handler", specifier = ">=0.86.4" },
-    { name = "flet-video", specifier = ">=0.86.4" },
+    { name = "flet", specifier = ">=0.86.5" },
+    { name = "flet-ads", specifier = ">=0.86.5" },
+    { name = "flet-permission-handler", specifier = ">=0.86.5" },
+    { name = "flet-video", specifier = ">=0.86.5" },
     { name = "httpx", specifier = ">=0.28.1" },
 ]
 

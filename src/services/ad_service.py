@@ -8,15 +8,14 @@ from core.constants import AD_PRELOAD_MAX_RETRIES, AD_PRELOAD_RETRY_DELAY
 
 try:
     import flet_ads as fta
-    from flet_ads import base_ad
+    from flet_ads.native_ad import NativeAd
+    from flet_ads.types import (
+        NativeAdTemplateStyle,
+        NativeAdTemplateTextStyle,
+        NativeAdTemplateType,
+        NativeTemplateFontStyle,
+    )
 
-    def _patched_init(self):
-        try:
-            super(base_ad.BaseAd, self).init()
-        except Exception:
-            pass
-
-    base_ad.BaseAd.init = _patched_init
     _HAS_FLET_ADS = True
 except ImportError:
     _HAS_FLET_ADS = False
@@ -27,6 +26,7 @@ logger = logging.getLogger(__name__)
 class AdService:
     BANNER_ID = "ca-app-pub-5679949845754640/5591770463"
     INTERSTITIAL_ID = "ca-app-pub-5679949845754640/8701238822"
+    NATIVE_ID = "ca-app-pub-5679949845754640/3451279517"
 
     def __init__(self, page: ft.Page):
         self.page = page
@@ -44,6 +44,9 @@ class AdService:
 
     def get_interstitial_unit_id(self) -> str:
         return self.INTERSTITIAL_ID
+
+    def get_native_unit_id(self) -> str:
+        return self.NATIVE_ID
 
     # ── Consent Management (UMP) ──────────────────────────────────────────────
 
@@ -108,7 +111,36 @@ class AdService:
             expand=True,
         )
 
-    def get_native_style_ad(self) -> ft.Control | None:
+    def _get_native_template_style(
+        self, template_type: NativeAdTemplateType
+    ) -> NativeAdTemplateStyle:
+        return NativeAdTemplateStyle(
+            template_type=template_type,
+            main_bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.ON_SURFACE),
+            corner_radius=12,
+            call_to_action_text_style=NativeAdTemplateTextStyle(
+                text_color=ft.Colors.WHITE,
+                bgcolor=ft.Colors.PRIMARY,
+                style=NativeTemplateFontStyle.BOLD,
+            ),
+            primary_text_style=NativeAdTemplateTextStyle(
+                text_color=ft.Colors.ON_SURFACE,
+                style=NativeTemplateFontStyle.BOLD,
+                size=13,
+            ),
+            secondary_text_style=NativeAdTemplateTextStyle(
+                text_color=ft.Colors.with_opacity(0.7, ft.Colors.ON_SURFACE),
+                size=11,
+            ),
+            tertiary_text_style=NativeAdTemplateTextStyle(
+                text_color=ft.Colors.PRIMARY,
+                size=10,
+            ),
+        )
+
+    def get_native_ad(
+        self, template_type: NativeAdTemplateType = NativeAdTemplateType.SMALL
+    ) -> ft.Control | None:
         if (
             not _HAS_FLET_ADS
             or not self.page.platform.is_mobile()
@@ -116,15 +148,21 @@ class AdService:
         ):
             return None
         try:
-            ad = fta.BannerAd(
-                unit_id=self.get_banner_unit_id(),
-                width=300,
-                height=250,
-                on_error=lambda e: None,
+            h_val = 250 if template_type == NativeAdTemplateType.MEDIUM else 90
+            ad = NativeAd(
+                unit_id=self.get_native_unit_id(),
+                template_style=self._get_native_template_style(template_type),
+                width=320,
+                height=h_val,
+                on_error=lambda e: logger.debug("Native ad error: %s", e),
             )
             return self._create_ad_container(ad)
-        except Exception:
+        except Exception as ex:
+            logger.debug("Failed to instantiate NativeAd: %s", ex)
             return None
+
+    def get_native_style_ad(self) -> ft.Control | None:
+        return self.get_native_ad(NativeAdTemplateType.MEDIUM)
 
     def get_standard_banner_ad(self) -> ft.Control | None:
         if (

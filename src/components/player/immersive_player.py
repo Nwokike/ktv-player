@@ -6,7 +6,6 @@ from typing import Any
 import flet as ft
 import flet_video as fv
 
-from core.constants import STREAM_RETRY_DELAY, STREAM_RETRY_MAX
 from core.theme import AppColors
 
 logger = logging.getLogger(__name__)
@@ -38,10 +37,10 @@ class ImmersivePlayer(ft.Stack):
         self._is_closing = False
         self._was_closed_during_ad = False
 
-        # Overlay
+        # Overlay Controls
         self.status_text = ft.Text(
             "Loading stream...",
-            size=16,
+            size=15,
             color=ft.Colors.WHITE,
             weight=ft.FontWeight.W_500,
             text_align=ft.TextAlign.CENTER,
@@ -52,13 +51,51 @@ class ImmersivePlayer(ft.Stack):
             stroke_width=4,
             color=AppColors.PRIMARY,
         )
+
+        # Error Overlay Action Buttons
+        self.retry_btn = ft.OutlinedButton(
+            content=ft.Row(
+                controls=[
+                    ft.Icon(ft.Icons.REFRESH_ROUNDED, size=18),
+                    ft.Text("Retry Stream", size=13),
+                ],
+                spacing=6,
+                alignment=ft.MainAxisAlignment.CENTER,
+            ),
+            on_click=lambda e: self.page.run_task(self._manual_retry),
+            visible=False,
+        )
+        self.back_error_btn = ft.FilledButton(
+            content=ft.Row(
+                controls=[
+                    ft.Icon(ft.Icons.ARROW_BACK_ROUNDED, size=18),
+                    ft.Text("Go Back", size=13),
+                ],
+                spacing=6,
+                alignment=ft.MainAxisAlignment.CENTER,
+            ),
+            on_click=lambda e: self.page.run_task(self._on_back),
+            visible=False,
+        )
+        self.error_actions_row = ft.Row(
+            controls=[self.retry_btn, self.back_error_btn],
+            alignment=ft.MainAxisAlignment.CENTER,
+            spacing=16,
+            visible=False,
+        )
+
         self.overlay = ft.Container(
             expand=True,
             bgcolor=ft.Colors.with_opacity(0.85, ft.Colors.BLACK),
             alignment=ft.Alignment.CENTER,
-            on_click=None,  # Will be bound only when tapping to close is allowed
             content=ft.Column(
-                [self.loading_ring, ft.Container(height=20), self.status_text],
+                [
+                    self.loading_ring,
+                    ft.Container(height=16),
+                    self.status_text,
+                    ft.Container(height=16),
+                    self.error_actions_row,
+                ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 alignment=ft.MainAxisAlignment.CENTER,
             ),
@@ -98,6 +135,15 @@ class ImmersivePlayer(ft.Stack):
             ),
             configuration=fv.VideoConfiguration(
                 enable_hardware_acceleration=True,
+                hardware_decoding_api="mediacodec",
+                mpv_properties={
+                    "cache": "yes",
+                    "cache-secs": 5,
+                    "demuxer-max-bytes": "50M",
+                    "demuxer-max-back-bytes": "10M",
+                    "framedrop": "vo",
+                    "hr-seek-framedrop": "yes",
+                },
             ),
             fill_color=ft.Colors.BLACK,
             fit=ft.BoxFit.CONTAIN,
@@ -325,46 +371,44 @@ class ImmersivePlayer(ft.Stack):
         if self._is_final_error:
             return
 
-        self._retry_count += 1
-        if self._retry_count <= STREAM_RETRY_MAX and self.resource.startswith("http"):
-            self.status_text.value = (
-                f"Stream error, retrying ({self._retry_count}/{STREAM_RETRY_MAX})..."
-            )
-            self._overlay_hidden = False
-            self.loading_ring.visible = True
-            self.overlay.visible = True
-            self._enable_tap_to_close()
-            self.update()
-            self.page.run_task(self._retry_playback)
-        else:
-            self._show_final_error()
+        self._show_final_error(
+            "Unable to load stream. Please check connection or retry."
+        )
 
-    def _show_final_error(self):
+    def _show_final_error(self, message: str = "Playback failed."):
         self._is_final_error = True
         self._overlay_hidden = False
-        self.status_text.value = "Failed to load. Tap to go back."
+        self.status_text.value = message
         self.loading_ring.visible = False
+        self.error_actions_row.visible = True
+        self.retry_btn.visible = True
+        self.back_error_btn.visible = True
         self.overlay.visible = True
-        self._enable_tap_to_close()
         self.update()
 
-    async def _retry_playback(self):
+    async def _manual_retry(self):
+        if self._is_closing:
+            return
+        self._is_final_error = False
+        self._overlay_hidden = False
+        self.status_text.value = "Reconnecting stream..."
+        self.loading_ring.visible = True
+        self.error_actions_row.visible = False
+        self.retry_btn.visible = False
+        self.back_error_btn.visible = False
+        self.overlay.visible = True
+        self.update()
+
         try:
-            await asyncio.sleep(STREAM_RETRY_DELAY)
-
-            # Prevent retrying if player was closed during sleep
-            if self._is_closing:
-                return
-
-            if self.video and not self._is_final_error:
+            if self.video:
                 self.video.playlist = [
                     fv.VideoMedia(self.resource, http_headers=self.http_headers),
                 ]
                 self.video.update()
                 await self.video.play()
         except Exception as ex:
-            logger.error("Retry playback failed: %s", ex)
-            self._show_final_error()
+            logger.error("Manual retry playback failed: %s", ex)
+            self._show_final_error("Retry failed. Stream may be offline.")
 
     def _on_complete(self, e: ft.ControlEvent):
         from components.player.handlers import handle_stream_complete

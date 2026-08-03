@@ -87,7 +87,7 @@ def RecentlyWatchedScreen(
             ),
         )
     else:
-        cards = [_make_card(url) for url in reversed(history)]
+        cards = [_make_card(url) for url in history]
         body = ft.ListView(
             controls=cards,
             expand=True,

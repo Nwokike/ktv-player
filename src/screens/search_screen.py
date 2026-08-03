@@ -284,7 +284,8 @@ def SearchScreen(
             local_controls: list[Control] = [
                 ft.ListView(
                     controls=list_tiles,
-                    shrink_wrap=True,
+                    expand=True,
+                    spacing=4,
                 )
             ]
 
