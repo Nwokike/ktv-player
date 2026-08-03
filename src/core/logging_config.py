@@ -37,5 +37,8 @@ def setup_logging(level: int = logging.DEBUG) -> None:
 
     logging.captureWarnings(True)
 
+    logging.getLogger("flet").setLevel(logging.INFO)
+    logging.getLogger("flet_controls").setLevel(logging.WARNING)
+    logging.getLogger("flet_transport").setLevel(logging.WARNING)
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)

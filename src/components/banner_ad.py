@@ -20,19 +20,36 @@ def build_banner_ad(page: ft.Page | None, unit_id: str | None = None) -> Control
         return ft.Container(width=0, height=0)
 
     try:
-        from flet_ads.types import NativeAdTemplateType
+        import flet_ads as fta
 
         from services.ad_service import AdService
 
-        ad_service = AdService(page)
-        ad_control = ad_service.get_native_ad(template_type=NativeAdTemplateType.SMALL)
-        if ad_control:
-            return ad_control
-        # Fallback to standard banner if native ad is unavailable
-        fallback_ad = ad_service.get_standard_banner_ad()
-        if fallback_ad:
-            return fallback_ad
-        return ft.Container(width=0, height=0)
+        if not unit_id:
+            ad_service = AdService(page)
+            unit_id = ad_service.get_banner_unit_id()
+
+        ad = fta.BannerAd(
+            unit_id=unit_id,
+            width=320,
+            height=50,
+            on_error=lambda e: logger.debug("Banner ad error: %s", e),
+        )
     except Exception as e:
-        logger.debug("Failed to load ad: %s", e)
+        logger.debug("Failed to load BannerAd: %s", e)
         return ft.Container(width=0, height=0)
+
+    return ft.Container(
+        content=ft.Column(
+            [
+                ad,
+            ],
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            spacing=4,
+        ),
+        alignment=ft.Alignment.CENTER,
+        padding=6,
+        border_radius=12,
+        bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.ON_SURFACE),
+        border=ft.Border.all(1, ft.Colors.with_opacity(0.1, ft.Colors.ON_SURFACE)),
+        margin=ft.Margin(12, 4, 12, 4),
+    )
