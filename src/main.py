@@ -241,15 +241,11 @@ class AppController:
         referer: str | None = None,
         headers: dict | None = None,
     ):
-        if not self._loading_lock:
-            self._loading_lock = asyncio.Lock()
-
-        if self._loading_lock.locked():
-            logger.info("play_stream locked, ignoring duplicate request")
+        if self.page.views and any(v.route == "/play" for v in self.page.views):
+            logger.warning("Player already active, ignoring duplicate play_stream call")
             return
 
-        async with self._loading_lock:
-            await self._do_play_stream(url, title, referer, headers)
+        await self._do_play_stream(url, title, referer, headers)
 
     async def _do_play_stream(
         self,
