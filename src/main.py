@@ -21,6 +21,7 @@ from core.theme import AppTheme
 from database.manager import db_manager
 from hooks.use_focus_scope import FocusScope
 from services.ad_service import AdService
+from services.hls_proxy import HLSProxy
 from services.liveliness_checker import LivelinessChecker
 
 logger = logging.getLogger(__name__)
@@ -35,6 +36,7 @@ class AppController:
         self.liveliness: LivelinessChecker | None = None
         self._loading_lock: asyncio.Lock | None = None
         self._is_player_closing: bool = False
+        self.hls_proxy: HLSProxy | None = None
         # Explicit modal name stack so _handle_back can pop the
         # topmost dialog before popping a view.
         self._modal_stack: list[str] = []
@@ -51,6 +53,9 @@ class AppController:
             sys.version.split()[0],
             ft.__version__,
         )
+
+        self.hls_proxy = HLSProxy()
+        await self.hls_proxy.start()
 
         self.page.title = APP_NAME
         self.page.padding = 0
@@ -229,13 +234,33 @@ class AppController:
 
     # --- Playback ---
 
-    async def play_stream(self, url: str, title: str | None = None):
-        if self.page.views and any(v.route == "/play" for v in self.page.views):
-            logger.warning("Player already active, ignoring duplicate play_stream call")
+    async def play_stream(
+        self,
+        url: str,
+        title: str | None = None,
+        referer: str | None = None,
+        headers: dict | None = None,
+    ):
+        if not self._loading_lock:
+            self._loading_lock = asyncio.Lock()
+
+        if self._loading_lock.locked():
+            logger.info("play_stream locked, ignoring duplicate request")
             return
 
+        async with self._loading_lock:
+            await self._do_play_stream(url, title, referer, headers)
+
+    async def _do_play_stream(
+        self,
+        url: str,
+        title: str | None = None,
+        referer: str | None = None,
+        headers: dict | None = None,
+    ):
         if not _is_valid_play_url(url):
-            from utils.notifications import notify_error
+            logger.warning("play_stream called with invalid URL: %s", url)
+            from components.common.snackbar import notify_error
 
             notify_error("Invalid or blocked URL.")
             return
@@ -272,11 +297,26 @@ class AppController:
                 else:
                     title = "Stream"
 
-        headers = {}
+        headers = headers or {}
+        referer_header = referer or headers.get("Referer")
+
         for pattern, hdrs in CDN_HEADER_OVERRIDES.items():
             if pattern in url:
-                headers = hdrs
+                if not headers:
+                    headers = hdrs
+                if not referer_header:
+                    referer_header = hdrs.get("Referer")
                 break
+
+        resource_url = url
+        if self.hls_proxy and (
+            referer_header or headers or any(p in url for p in CDN_HEADER_OVERRIDES)
+        ):
+            resource_url = self.hls_proxy.get_proxy_url(
+                target_url=url,
+                referer=referer_header,
+                headers=headers,
+            )
 
         # Create player view immediately so the screen isn't blank.
         # Wrap ImmersivePlayer in a FocusScope so Escape/Back while
@@ -288,7 +328,7 @@ class AppController:
             await self._close_player()
 
         player = ImmersivePlayer(
-            resource=url,
+            resource=resource_url,
             title=title,
             http_headers=headers,
             on_close=lambda: self._close_player(),
@@ -322,10 +362,10 @@ class AppController:
     def _handle_deep_link(self, route: str):
         from core.deeplink import parse_deep_link
 
-        url, title = parse_deep_link(route)
+        url, title, referer, headers = parse_deep_link(route)
         if url:
             logger.info("Deep link URL valid, launching play_stream")
-            self.page.run_task(self.play_stream, url, title)
+            self.page.run_task(self.play_stream, url, title, referer, headers)
 
     # --- Routing ---
 
@@ -334,7 +374,7 @@ class AppController:
         logger.info("Route changed: %s", route)
         parsed = urllib.parse.urlparse(route)
 
-        # 1. Deep Link from other apps (e.g., AnimePahe TV ktv://)
+        # 1. Deep Link from external apps or web browsers (ktv://)
         if parsed.scheme == "ktv":
             logger.info("KTV deep link detected, clearing views")
             state.is_deep_link_launch = True
