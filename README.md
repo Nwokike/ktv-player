@@ -22,7 +22,7 @@
 
 | Platform | Download | Notes |
 | :---: | :---: | :--- |
-| 🤖 **Android** | [![Play Store](https://img.shields.io/badge/Google_Play-414141?style=flat-square&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=ng.kiri.ktvplayer) | Recommended for Android mobile users |
+| 🤖 **Android** | [![Play Store](https://img.shields.io/badge/Google_Play-414141?style=flat-square&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=ng.kiri.ktvplayer) [![Uptodown](https://img.shields.io/badge/Uptodown-Download-brightgreen?style=flat-square&logo=uptodown&logoColor=white)](https://ktv-player.en.uptodown.com/android) | Recommended for Android mobile users |
 | 🪟 **Windows** | [![Windows Release](https://img.shields.io/badge/Download_Windows_Release-0078D6?style=flat-square&logo=windows&logoColor=white)](https://github.com/Nwokike/ktv-player/releases/latest/download/KTV_Player_Setup.exe) | Automated standalone setup installer with desktop shortcut integration |
 | 🐧 **Linux (Debian/Ubuntu)** | [![Linux DEB](https://img.shields.io/badge/Download_Linux_DEB-FCC624?style=flat-square&logo=linux&logoColor=black)](https://github.com/Nwokike/ktv-player/releases/latest/download/KTV_Player_amd64.deb) | Desktop package tailored for Ubuntu, Debian, Linux Mint & Pop!_OS |
 | 🎩 **Linux (Fedora/RHEL)** | [![Linux RPM](https://img.shields.io/badge/Download_Linux_RPM-E91E63?style=flat-square&logo=redhat&logoColor=white)](https://github.com/Nwokike/ktv-player/releases/latest/download/KTV_Player_x86_64.rpm) | Desktop package tailored for Fedora, openSUSE, RHEL & CentOS |
