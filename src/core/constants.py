@@ -1,5 +1,5 @@
 APP_NAME = "KTV Player"
-APP_VERSION = "2.0.2"
+APP_VERSION = "2.0.3"
 
 # Error messages
 ERR_NETWORK = "Stream unavailable or network timeout."

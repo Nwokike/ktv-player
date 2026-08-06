@@ -35,9 +35,14 @@ def parse_deep_link(
             try:
                 padding_needed = (4 - len(raw_title) % 4) % 4
                 encoded_padded = raw_title + ("=" * padding_needed)
-                title = base64.urlsafe_b64decode(encoded_padded).decode("utf-8")
+                decoded_title = base64.urlsafe_b64decode(encoded_padded).decode("utf-8")
+                # Prefer base64 decoded title if valid printable text, otherwise use raw title
+                if decoded_title and decoded_title.isprintable():
+                    title = decoded_title
+                else:
+                    title = raw_title
             except Exception:
-                logger.warning("Deep link title decode failed: %s", raw_title)
+                title = raw_title
 
         referer = None
         raw_referer = query.get("referer", [None])[0]
@@ -47,7 +52,7 @@ def parse_deep_link(
                 encoded_padded = raw_referer + ("=" * padding_needed)
                 referer = base64.urlsafe_b64decode(encoded_padded).decode("utf-8")
             except Exception:
-                logger.warning("Deep link referer decode failed: %s", raw_referer)
+                referer = raw_referer
 
         headers = None
         raw_headers = query.get("headers", [None])[0]
@@ -61,7 +66,12 @@ def parse_deep_link(
                     base64.urlsafe_b64decode(encoded_padded).decode("utf-8")
                 )
             except Exception:
-                logger.warning("Deep link headers decode failed: %s", raw_headers)
+                try:
+                    import json
+
+                    headers = json.loads(raw_headers)
+                except Exception:
+                    pass
 
         return decoded, title, referer, headers
     except Exception:

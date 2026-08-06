@@ -68,3 +68,16 @@ def test_parse_deep_link_with_referer_and_headers():
     assert title == "Test"
     assert referer == referer_url
     assert headers == custom_headers
+
+
+def test_parse_deep_link_plaintext_title():
+    import base64
+
+    target_url = "https://vault-16.owocdn.top/stream/16/06/f710e15c/uwu.m3u8"
+    b64_url = base64.urlsafe_b64encode(target_url.encode()).decode().rstrip("=")
+
+    route = f"ktv://play?url={b64_url}&title=BanG%20Dream%21%20Yume%E2%88%9EMita%20-%20Episode%202%20-%20%28720p%29"
+    url, title, _referer, _headers = parse_deep_link(route)
+
+    assert url == target_url
+    assert title == "BanG Dream! Yume∞Mita - Episode 2 - (720p)"
