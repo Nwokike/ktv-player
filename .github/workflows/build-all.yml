@@ -154,6 +154,7 @@ jobs:
           FLET_ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          SERIOUS_PYTHON_SITE_PACKAGES: ${{ github.workspace }}/build/site-packages
         run: |
           MANIFEST=build/flutter/android/app/src/main/AndroidManifest.xml
           RES=build/flutter/android/app/src/main/res
@@ -202,6 +203,7 @@ jobs:
           FLET_ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          SERIOUS_PYTHON_SITE_PACKAGES: ${{ github.workspace }}/build/site-packages
         run: |
           MANIFEST=build/flutter/android/app/src/main/AndroidManifest.xml
           RES=build/flutter/android/app/src/main/res
@@ -250,6 +252,7 @@ jobs:
           FLET_ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          SERIOUS_PYTHON_SITE_PACKAGES: ${{ github.workspace }}/build/site-packages
         run: |
           MANIFEST=build/flutter/android/app/src/main/AndroidManifest.xml
           RES=build/flutter/android/app/src/main/res
