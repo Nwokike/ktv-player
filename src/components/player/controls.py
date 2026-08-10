@@ -29,11 +29,15 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
         player_inst.title or "Now Playing",
         color=ft.Colors.WHITE,
         weight=ft.FontWeight.W_500,
+        overflow=ft.TextOverflow.ELLIPSIS,
+        max_lines=1,
     )
-    title_container = ft.Row(
-        controls=[title_text],
-        scroll=ft.ScrollMode.ADAPTIVE,
-        expand=True,
+    # Container clips the text; width is set dynamically in _update_title_width
+    title_container = ft.Container(
+        content=title_text,
+        width=300,
+        clip_behavior=ft.ClipBehavior.HARD_EDGE,
+        alignment=ft.Alignment.CENTER_LEFT,
     )
     player_inst.title_container = title_container
 

@@ -374,6 +374,22 @@ class AppController:
         logger.info("Route changed: %s", route)
         parsed = urllib.parse.urlparse(route)
 
+        # Stop any active player when navigating away from /play
+        if route != "/play" and self.page.views:
+            for v in self.page.views:
+                if v.route == "/play":
+                    for ctrl in v.controls:
+                        player = self._find_immersive_player(ctrl)
+                        if player and not player._is_closing:
+                            player._is_closing = True
+                            player._is_final_error = True
+                            try:
+                                player.video.playlist = []
+                                player.video.update()
+                            except Exception:
+                                pass
+                    break
+
         # 1. Deep Link from external apps or web browsers (ktv://)
         if parsed.scheme == "ktv":
             logger.info("KTV deep link detected, clearing views")
@@ -433,7 +449,21 @@ class AppController:
                 break
 
         if player:
-            self.page.run_task(self._close_and_pop, player)
+            # Stop synchronously: clear playlist + update() queues a
+            # platform channel message that halts native playback immediately.
+            if not player._is_closing:
+                player._is_closing = True
+                player._is_final_error = True
+                try:
+                    player.video.playlist = []
+                    player.video.update()
+                except Exception:
+                    pass
+            # Pop view immediately — will_unmount handles final cleanup
+            if len(self.page.views) > 1:
+                self._is_player_closing = True
+                self.page.views.pop()
+                self.page.update()
             return
 
         if len(self.page.views) > 1:
@@ -475,6 +505,17 @@ async def main(page: ft.Page):
     async def _on_close(e=None):
         from services.liveliness_checker import shutdown_workers as shutdown_liveliness
         from services.logo_cache import shutdown_workers as shutdown_logos
+
+        # Stop any active video player before tearing down services
+        with contextlib.suppress(Exception):
+            if controller.page.views:
+                for v in controller.page.views:
+                    for ctrl in v.controls:
+                        player = controller._find_immersive_player(ctrl)
+                        if player:
+                            player._is_closing = True
+                            player.video.playlist = []
+                            player.video.update()
 
         shutdown_liveliness()
         shutdown_logos()

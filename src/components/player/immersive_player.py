@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import logging
 from collections.abc import Callable
 from typing import Any
@@ -175,6 +176,15 @@ class ImmersivePlayer(ft.Stack):
 
     def will_unmount(self):
         super().will_unmount()
+        # Sync stop: clear playlist + update() queues a platform channel
+        # message that stops native playback immediately. No await needed.
+        if self.video and not self._is_closing:
+            self._is_closing = True
+            try:
+                self.video.playlist = []
+                self.video.update()
+            except Exception:
+                pass
         if self.page:
             try:
                 self.page.off("resize", self._on_resize)
@@ -186,11 +196,12 @@ class ImmersivePlayer(ft.Stack):
 
     def _update_title_width(self):
         if hasattr(self, "title_container") and self.page:
-            new_width = max(100, self.page.width - 80)
+            # 48px back button + 32px horizontal margins = 80px
+            new_width = max(100, int(self.page.width) - 80)
             if self.title_container.width != new_width:
                 self.title_container.width = new_width
                 try:
-                    self.title_container.update()
+                    self.update()
                 except Exception:
                     pass
 
@@ -424,9 +435,13 @@ class ImmersivePlayer(ft.Stack):
         self._is_final_error = True
         try:
             if self.video:
+                # 1. Clear playlist + update() — synchronous platform channel
+                #    message that stops native playback immediately.
                 self.video.playlist = []
                 self.video.update()
-                await self.video.stop()
+                # 2. Async stop for full cleanup (best-effort)
+                with contextlib.suppress(Exception):
+                    await self.video.stop()
         except Exception as ex:
             logger.debug("Ignored error while stopping video on close: %s", ex)
 

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="src/assets/icon.png" alt="KTV Player" width="140" />
+  <img src="src/assets/icon.svg" alt="KTV Player" width="140" />
 </p>
 
 <h1 align="center">KTV Player</h1>

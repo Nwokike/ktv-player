@@ -112,8 +112,10 @@ def Header(
         controls=[
             ft.Container(
                 content=ft.Image(
-                    src="/icon.png",
+                    src="/icon.svg",
                     width=38,
+                    height=38,
+                    color=ft.Colors.ON_SURFACE,
                 ),
             ),
         ],

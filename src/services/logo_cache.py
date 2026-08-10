@@ -11,7 +11,8 @@ logger = logging.getLogger(__name__)
 
 from core.constants import LOGO_CACHE_MAX_FILES, LOGO_DOWNLOAD_TIMEOUT
 
-LOGO_CACHE_DIR = os.path.join("storage", "logos")
+_cache_env = os.getenv("FLET_APP_STORAGE_CACHE")
+LOGO_CACHE_DIR = os.path.join(_cache_env, "logos") if _cache_env else os.path.join("storage", "logos")
 LOGO_CACHE_TTL = 7 * 24 * 60 * 60
 _LOGO_QUEUE_MAX = 200
 _LOGO_WORKERS = 4

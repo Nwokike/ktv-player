@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <!-- Code Symbols Group -->
+  <g fill="none" stroke="#00A2FF" stroke-width="22" stroke-linecap="round" stroke-linejoin="round">
+    
+    <!-- Left Curly Brace: { -->
+    <path d="M 90 178 
+             Q 65 178 65 210 
+             L 65 230 
+             Q 65 256 40 256 
+             Q 65 256 65 282 
+             L 65 302 
+             Q 65 334 90 334" />
+    
+    <!-- Left Angle Bracket: < -->
+    <path d="M 190 181 L 115 256 L 190 331" />
+    
+    <!-- Right Angle Bracket: > -->
+    <path d="M 320 181 L 395 256 L 320 331" />
+    
+    <!-- Underscore: _ -->
+    <line x1="422" y1="315" x2="472" y2="315" />
+    
+  </g>
+  
+  <!-- Center Play Button -->
+  <polygon points="232,212 232,300 292,256" fill="#00A2FF" stroke="#00A2FF" stroke-width="16" stroke-linejoin="round" />
+  
+</svg>

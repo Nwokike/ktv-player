@@ -10,7 +10,8 @@ from services.m3u_parser import parse_m3u_text
 
 logger = logging.getLogger(__name__)
 
-_CACHE_DIR = os.path.join("storage", "data")
+_cache_env = os.getenv("FLET_APP_STORAGE_CACHE")
+_CACHE_DIR = os.path.join(_cache_env, "data") if _cache_env else os.path.join("storage", "data")
 _CACHE_FILE = os.path.join(_CACHE_DIR, "cached_playlist.m3u8")
 
 

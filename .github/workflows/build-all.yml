@@ -9,11 +9,11 @@ on:
       build_version:
         description: "Build version"
         required: true
-        default: "2.0.3"
+        default: "2.0.4"
       build_number:
         description: "Build number"
         required: true
-        default: "14"
+        default: "15"
 
 permissions:
   contents: write
@@ -22,8 +22,8 @@ env:
   PYTHONUTF8: "1"
   FLET_CLI_NO_RICH_OUTPUT: "1"
   UV_PYTHON: "3.14"
-  BUILD_VERSION: ${{ inputs.build_version || '2.0.3' }}
-  BUILD_NUMBER: ${{ inputs.build_number || '14' }}
+  BUILD_VERSION: ${{ inputs.build_version || '2.0.4' }}
+  BUILD_NUMBER: ${{ inputs.build_number || '15' }}
 
 jobs:
   # ─── 0. Create Release Tag & Placeholder ───────────────
@@ -148,6 +148,13 @@ jobs:
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} --deep-linking-scheme "ktv" --deep-linking-host "play" -v
+      - name: Inject TV banner & icon into Android resources
+        run: |
+          mkdir -p build/flutter/android/app/src/main/res/drawable-xhdpi
+          mkdir -p build/flutter/android/app/src/main/res/mipmap-xxxhdpi
+          cp src/assets/tv_banner.png build/flutter/android/app/src/main/res/drawable-xhdpi/banner.png
+          cp src/assets/icon.png build/flutter/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          echo "Injected TV banner (320x180) and icon (512x512)"
       - name: Upload directly to GitHub Release
         if: github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
@@ -179,6 +186,13 @@ jobs:
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} --split-per-abi --deep-linking-scheme "ktv" --deep-linking-host "play" -v
+      - name: Inject TV banner & icon into Android resources
+        run: |
+          mkdir -p build/flutter/android/app/src/main/res/drawable-xhdpi
+          mkdir -p build/flutter/android/app/src/main/res/mipmap-xxxhdpi
+          cp src/assets/tv_banner.png build/flutter/android/app/src/main/res/drawable-xhdpi/banner.png
+          cp src/assets/icon.png build/flutter/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          echo "Injected TV banner (320x180) and icon (512x512)"
       - name: Upload directly to GitHub Release
         if: github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
@@ -210,6 +224,13 @@ jobs:
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: uv run flet build aab --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} --deep-linking-scheme "ktv" --deep-linking-host "play" -v
+      - name: Inject TV banner & icon into Android resources
+        run: |
+          mkdir -p build/flutter/android/app/src/main/res/drawable-xhdpi
+          mkdir -p build/flutter/android/app/src/main/res/mipmap-xxxhdpi
+          cp src/assets/tv_banner.png build/flutter/android/app/src/main/res/drawable-xhdpi/banner.png
+          cp src/assets/icon.png build/flutter/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          echo "Injected TV banner (320x180) and icon (512x512)"
       - name: Upload directly to GitHub Release
         if: github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2

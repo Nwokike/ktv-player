@@ -455,11 +455,11 @@ def SettingsScreen() -> Control:
                 content=ft.Row(
                     controls=[
                         ft.Image(
-                            src="/icon.png",
+                            src="/icon.svg",
                             width=56,
                             height=56,
                             fit=ft.BoxFit.CONTAIN,
-                            border_radius=12,
+                            color=ft.Colors.ON_SURFACE,
                         ),
                         ft.Column(
                             controls=[

@@ -85,6 +85,11 @@ async def load_all_channels(page_obj, loading_lock, force: bool = False):
                         )
 
             state.set_channels(merged)
+        except RuntimeError as e:
+            if "destroyed session" in str(e):
+                logger.debug("Session destroyed during channel load — safe to ignore")
+            else:
+                logger.exception("Failed to load channels")
         except Exception:
             logger.exception("Failed to load channels")
             try:
