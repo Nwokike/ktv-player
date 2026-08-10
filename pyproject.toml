@@ -30,7 +30,6 @@ dependencies = [
 [tool.flet.android.manifest_application]
 usesCleartextTraffic = "true"
 requestLegacyExternalStorage = "true"
-banner = "@drawable/banner"
 
 [tool.flet.android.meta_data]
 "com.google.android.gms.ads.APPLICATION_ID" = "ca-app-pub-5679949845754640~8438792639"

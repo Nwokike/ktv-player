@@ -148,13 +148,18 @@ jobs:
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} --deep-linking-scheme "ktv" --deep-linking-host "play" -v
-      - name: Inject TV banner & icon into Android resources
+      - name: Inject TV banner, icon & rebuild with banner
         run: |
-          mkdir -p build/flutter/android/app/src/main/res/drawable-xhdpi
-          mkdir -p build/flutter/android/app/src/main/res/mipmap-xxxhdpi
-          cp src/assets/tv_banner.png build/flutter/android/app/src/main/res/drawable-xhdpi/banner.png
-          cp src/assets/icon.png build/flutter/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
-          echo "Injected TV banner (320x180) and icon (512x512)"
+          MANIFEST=build/flutter/android/app/src/main/AndroidManifest.xml
+          RES=build/flutter/android/app/src/main/res
+          mkdir -p "$RES/drawable-xhdpi" "$RES/mipmap-xxxhdpi"
+          cp src/assets/tv_banner.png "$RES/drawable-xhdpi/banner.png"
+          cp src/assets/icon.png "$RES/mipmap-xxxhdpi/ic_launcher.png"
+          sed -i 's|<application |<application android:banner="@drawable/banner" |' "$MANIFEST"
+          cd build/flutter && ./gradlew assembleRelease
+          mkdir -p ../../build/apk
+          find app/build/outputs -name "*.apk" -exec cp {} ../../build/apk/ \;
+          echo "Rebuilt APK with TV banner (320x180) and icon (512x512)"
       - name: Upload directly to GitHub Release
         if: github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
@@ -186,13 +191,18 @@ jobs:
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} --split-per-abi --deep-linking-scheme "ktv" --deep-linking-host "play" -v
-      - name: Inject TV banner & icon into Android resources
+      - name: Inject TV banner, icon & rebuild with banner
         run: |
-          mkdir -p build/flutter/android/app/src/main/res/drawable-xhdpi
-          mkdir -p build/flutter/android/app/src/main/res/mipmap-xxxhdpi
-          cp src/assets/tv_banner.png build/flutter/android/app/src/main/res/drawable-xhdpi/banner.png
-          cp src/assets/icon.png build/flutter/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
-          echo "Injected TV banner (320x180) and icon (512x512)"
+          MANIFEST=build/flutter/android/app/src/main/AndroidManifest.xml
+          RES=build/flutter/android/app/src/main/res
+          mkdir -p "$RES/drawable-xhdpi" "$RES/mipmap-xxxhdpi"
+          cp src/assets/tv_banner.png "$RES/drawable-xhdpi/banner.png"
+          cp src/assets/icon.png "$RES/mipmap-xxxhdpi/ic_launcher.png"
+          sed -i 's|<application |<application android:banner="@drawable/banner" |' "$MANIFEST"
+          cd build/flutter && ./gradlew assembleRelease
+          mkdir -p ../../build/apk
+          find app/build/outputs -name "*.apk" -exec cp {} ../../build/apk/ \;
+          echo "Rebuilt split APKs with TV banner (320x180) and icon (512x512)"
       - name: Upload directly to GitHub Release
         if: github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
@@ -224,13 +234,18 @@ jobs:
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: uv run flet build aab --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} --deep-linking-scheme "ktv" --deep-linking-host "play" -v
-      - name: Inject TV banner & icon into Android resources
+      - name: Inject TV banner, icon & rebuild with banner
         run: |
-          mkdir -p build/flutter/android/app/src/main/res/drawable-xhdpi
-          mkdir -p build/flutter/android/app/src/main/res/mipmap-xxxhdpi
-          cp src/assets/tv_banner.png build/flutter/android/app/src/main/res/drawable-xhdpi/banner.png
-          cp src/assets/icon.png build/flutter/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
-          echo "Injected TV banner (320x180) and icon (512x512)"
+          MANIFEST=build/flutter/android/app/src/main/AndroidManifest.xml
+          RES=build/flutter/android/app/src/main/res
+          mkdir -p "$RES/drawable-xhdpi" "$RES/mipmap-xxxhdpi"
+          cp src/assets/tv_banner.png "$RES/drawable-xhdpi/banner.png"
+          cp src/assets/icon.png "$RES/mipmap-xxxhdpi/ic_launcher.png"
+          sed -i 's|<application |<application android:banner="@drawable/banner" |' "$MANIFEST"
+          cd build/flutter && ./gradlew bundleRelease
+          mkdir -p ../../build/aab
+          find app/build/outputs -name "*.aab" -exec cp {} ../../build/aab/ \;
+          echo "Rebuilt AAB with TV banner (320x180) and icon (512x512)"
       - name: Upload directly to GitHub Release
         if: github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
