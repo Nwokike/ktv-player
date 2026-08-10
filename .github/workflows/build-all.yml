@@ -164,7 +164,8 @@ jobs:
           sed -i 's|<application |<application android:banner="@drawable/banner" |' "$MANIFEST"
           cd build/flutter/android && ./gradlew assembleRelease
           mkdir -p ../../../build/apk
-          find app/build/outputs -name "*.apk" -exec cp {} ../../../build/apk/ \;
+          mkdir -p ../../../build/apk
+          find . -name "*.apk" -not -path "*/intermediates/*" -exec cp {} ../../../build/apk/ \;
           echo "Rebuilt APK with TV banner (320x180) and icon (512x512)"
       - name: Upload directly to GitHub Release
         if: github.event_name != 'pull_request'
@@ -213,7 +214,8 @@ jobs:
           sed -i 's|<application |<application android:banner="@drawable/banner" |' "$MANIFEST"
           cd build/flutter/android && ./gradlew assembleRelease
           mkdir -p ../../../build/apk
-          find app/build/outputs -name "*.apk" -exec cp {} ../../../build/apk/ \;
+          mkdir -p ../../../build/apk
+          find . -name "*.apk" -not -path "*/intermediates/*" -exec cp {} ../../../build/apk/ \;
           echo "Rebuilt split APKs with TV banner (320x180) and icon (512x512)"
       - name: Upload directly to GitHub Release
         if: github.event_name != 'pull_request'
@@ -262,7 +264,7 @@ jobs:
           sed -i 's|<application |<application android:banner="@drawable/banner" |' "$MANIFEST"
           cd build/flutter/android && ./gradlew bundleRelease
           mkdir -p ../../../build/aab
-          find app/build/outputs -name "*.aab" -exec cp {} ../../../build/aab/ \;
+          find . -name "*.aab" -not -path "*/intermediates/*" -exec cp {} ../../../build/aab/ \;
           echo "Rebuilt AAB with TV banner (320x180) and icon (512x512)"
       - name: Upload directly to GitHub Release
         if: github.event_name != 'pull_request'
