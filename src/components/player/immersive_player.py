@@ -435,13 +435,12 @@ class ImmersivePlayer(ft.Stack):
         self._is_final_error = True
         try:
             if self.video:
-                # 1. Clear playlist + update() — synchronous platform channel
-                #    message that stops native playback immediately.
-                self.video.playlist = []
-                self.video.update()
-                # 2. Async stop for full cleanup (best-effort)
+                # 1. Async stop first — proper player cleanup
                 with contextlib.suppress(Exception):
                     await self.video.stop()
+                # 2. Clear playlist + update() — sync final cleanup
+                self.video.playlist = []
+                self.video.update()
         except Exception as ex:
             logger.debug("Ignored error while stopping video on close: %s", ex)
 

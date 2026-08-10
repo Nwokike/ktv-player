@@ -50,8 +50,9 @@ def HomeScreen() -> Control:
 
     filters, set_filters = ft.use_state(_init_filters)
     add_dialog_open, set_add_dialog_open = ft.use_state(False)
-    liveliness_version, set_liveliness_version = ft.use_state(0)
+    _liveliness_version, set_liveliness_version = ft.use_state(0)
     pending_render = use_ref(False)
+    _visible_urls = use_ref(set())
 
     # Auto-load channels on first mount
     def _auto_load():
@@ -86,7 +87,7 @@ def HomeScreen() -> Control:
     # Filtered visible channels
     visible = ft.use_memo(
         lambda: apply_filters(state.channels, filters, favorites_set),
-        [state.channels_hash, filters, favorites_set, liveliness_version],
+        [state.channels_hash, filters, favorites_set],
     )
 
     # ---- Liveliness: filter-driven priority system ----
@@ -94,6 +95,11 @@ def HomeScreen() -> Control:
     def _seed_visible():
         from services.liveliness_checker import drain_queue, enqueue_liveliness_check
         from services.logo_cache import enqueue_logo_download
+
+        # Track which URLs are currently visible (for liveliness callback)
+        _visible_urls.current = {
+            ch.get("url", "") for ch in visible[:24] if ch.get("url")
+        }
 
         # DUMP old work — whatever is on screen NOW is priority
         drain_queue()
@@ -110,7 +116,14 @@ def HomeScreen() -> Control:
     ft.use_effect(_seed_visible, [filters, state.channels_hash])
 
     # Wire liveliness cache → debounced re-render (500ms coalesce)
-    def _on_liveliness_change():
+    def _on_liveliness_change(changed_url=None):
+        # Skip if the changed URL isn't one of our visible channels
+        if (
+            changed_url
+            and _visible_urls.current
+            and changed_url not in _visible_urls.current
+        ):
+            return
         if pending_render.current:
             return
         pending_render.current = True

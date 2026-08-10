@@ -73,6 +73,8 @@ def AppShell() -> Control:
         def _on_tab_change(e):
             idx = e.control.selected_index
             logger.info("Navigated to tab '%s' (index %d)", _TAB_NAMES[idx], idx)
+            if search_mode is not None:
+                set_search_mode(None)
             set_selected_tab(idx)
 
         destinations = [

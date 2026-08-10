@@ -514,6 +514,8 @@ async def main(page: ft.Page):
                         player = controller._find_immersive_player(ctrl)
                         if player:
                             player._is_closing = True
+                            with contextlib.suppress(Exception):
+                                await player.video.stop()
                             player.video.playlist = []
                             player.video.update()
 

@@ -35,7 +35,7 @@ class LivelinessCache:
         self._dirty.append((url, is_live, int(now)))
         if self._on_change:
             try:
-                self._on_change()
+                self._on_change(url)
             except Exception:
                 pass
 

@@ -177,7 +177,9 @@ def _build_online_form(
                 ft.Column(
                     controls=[
                         ft.Image(
-                            src="/icon.svg", width=90, height=90,
+                            src="/icon.svg",
+                            width=90,
+                            height=90,
                             color=ft.Colors.ON_SURFACE,
                         ),
                         ft.Text(
