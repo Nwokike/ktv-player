@@ -36,7 +36,7 @@ def SearchScreen(
     # Reset local page when query or mode changes
     ft.use_effect(lambda: set_local_page(0), [debounced_query, mode])
 
-    def _on_liveliness_change():
+    def _on_liveliness_change(changed_url=None):
         if pending_render.current:
             return
         pending_render.current = True

@@ -9,10 +9,10 @@ class LivelinessCache:
         self._max_size = max_size
         self._ttl = ttl
         self._dirty: list[tuple[str, bool, int]] = []
-        self._on_change: Callable[[], None] | None = None
+        self._on_change: Callable[[str | None], None] | None = None
 
-    def set_on_change(self, callback: Callable[[], None]) -> None:
-        """Register a callback that fires when liveliness results arrive."""
+    def set_on_change(self, callback: Callable[[str | None], None]) -> None:
+        """Register a callback that fires when liveliness results arrive. Receives the changed URL."""
         self._on_change = callback
 
     def get(self, url: str) -> bool | None:
