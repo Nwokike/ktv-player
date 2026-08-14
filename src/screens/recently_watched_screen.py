@@ -16,15 +16,28 @@ def _display_name(url: str) -> str:
 
 
 def RecentlyWatchedScreen(
-    history: list[str],
+    history: list[dict],
     channels_map: dict[str, dict],
     on_play,
 ) -> Control:
     """Full-screen view of all history items."""
 
-    def _make_card(url: str) -> Control:
-        ch = channels_map.get(url, {"name": _display_name(url), "logo": ""})
-        logo_src = ch.get("logo", "") or "/icon.png"
+    def _make_card(entry: dict) -> Control:
+        url = entry.get("url", "")
+        # Use stored title, fall back to channels_map, then _display_name
+        if isinstance(entry, dict):
+            title = (
+                entry.get("title")
+                or channels_map.get(url, {}).get("name")
+                or _display_name(url)
+            )
+            logo = channels_map.get(url, {}).get("logo", "") or entry.get("logo", "")
+        else:
+            # Legacy string entry
+            title = channels_map.get(url, {}).get("name") or _display_name(url)
+            logo = channels_map.get(url, {}).get("logo", "")
+
+        logo_src = logo or "/icon.png"
         if not logo_src.startswith("/"):
             cached = get_cached_logo(logo_src)
             if cached:
@@ -44,7 +57,7 @@ def RecentlyWatchedScreen(
                     ft.Column(
                         controls=[
                             ft.Text(
-                                ch.get("name", "Stream"),
+                                title,
                                 size=13,
                                 weight=ft.FontWeight.W_500,
                                 max_lines=1,
@@ -87,7 +100,7 @@ def RecentlyWatchedScreen(
             ),
         )
     else:
-        cards = [_make_card(url) for url in history]
+        cards = [_make_card(entry) for entry in history]
         body = ft.ListView(
             controls=cards,
             expand=True,

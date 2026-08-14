@@ -19,7 +19,7 @@ def _display_name(url: str) -> str:
 
 
 def RecentlyWatched(
-    history: list[str],
+    history: list[dict],
     channels_map: dict[str, dict],
     on_play: Callable[[str], None],
     on_view_all: Callable[[], None] | None = None,
@@ -30,9 +30,22 @@ def RecentlyWatched(
         return ft.Container(height=0, visible=False)
 
     cards = []
-    for url in visible_items:
-        ch = channels_map.get(url, {"name": _display_name(url), "logo": ""})
-        logo_src = ch.get("logo", "") or "/icon.png"
+    for entry in visible_items:
+        url = entry.get("url", "")
+        # Use stored title, fall back to channels_map, then _display_name
+        if isinstance(entry, dict):
+            title = (
+                entry.get("title")
+                or channels_map.get(url, {}).get("name")
+                or _display_name(url)
+            )
+            logo = channels_map.get(url, {}).get("logo", "") or entry.get("logo", "")
+        else:
+            # Legacy string entry
+            title = channels_map.get(url, {}).get("name") or _display_name(url)
+            logo = channels_map.get(url, {}).get("logo", "")
+
+        logo_src = logo or "/icon.png"
         if not logo_src.startswith("/"):
             cached = get_cached_logo(logo_src)
             if cached:
@@ -53,7 +66,7 @@ def RecentlyWatched(
                             error_content=ft.Icon(ft.Icons.TV, size=24),
                         ),
                         ft.Text(
-                            ch.get("name", "Stream"),
+                            title,
                             size=11,
                             max_lines=1,
                             overflow=ft.TextOverflow.ELLIPSIS,

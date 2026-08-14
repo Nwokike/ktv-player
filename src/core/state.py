@@ -10,7 +10,7 @@ class AppState:
     is_loading: bool = False
     is_online: bool = True
     channels: list[dict] = field(default_factory=list)
-    history: list[str] = field(default_factory=list)
+    history: list[dict] = field(default_factory=list)
     favorites: list[str] = field(default_factory=list)
 
     user_country: str = ""
@@ -26,10 +26,12 @@ class AppState:
         self.history = []
         self.favorites = []
 
-    def add_to_history(self, url: str):
-        if url in self.history:
-            self.history.remove(url)
-        self.history.insert(0, url)
+    def add_to_history(self, url: str, title: str = ""):
+        # Normalize: store as dict with url and title
+        entry = {"url": url, "title": title or url}
+        # Remove existing entry with same URL
+        self.history = [e for e in self.history if e.get("url") != url]
+        self.history.insert(0, entry)
         if len(self.history) > MAX_HISTORY_ITEMS:
             self.history = self.history[:MAX_HISTORY_ITEMS]
 

@@ -146,29 +146,37 @@ class AppController:
         self.page.render(lambda: ControllerMethodsCtx(methods, lambda: AppShell()))
         logger.info("AppShell frontend mounted successfully")
 
-        # Startup connectivity check — detect offline on subsequent launches
-        async def _startup_connectivity_check():
+        # Connectivity service — replaces DNS-probe polling with native listener
+        connectivity = ft.Connectivity()
+        connectivity.on_change = self._on_connectivity_change
+        self.page.services.append(connectivity)
+
+        async def _init_connectivity():
+            from flet import ConnectivityType
+
             try:
-                from services.http_client import get_http_client
-
-                client = get_http_client()
-                resp = await client.head(
-                    "https://www.google.com",
-                    timeout=3.0,
-                    follow_redirects=True,
-                )
-                state.is_online = resp.status_code < 400
+                result = await connectivity.get_connectivity()
+                state.is_online = ConnectivityType.NONE not in result
             except Exception:
-                state.is_online = False
-                logger.warning("Startup connectivity check: offline")
-                try:
-                    from utils.notifications import notify_warning
+                pass
 
-                    notify_warning("You are offline. Some features may be unavailable.")
-                except Exception:
-                    pass
+        self.page.run_task(_init_connectivity)
 
-        asyncio.create_task(_startup_connectivity_check())
+    def _on_connectivity_change(self, e):
+        from flet import ConnectivityType
+
+        was_online = state.is_online
+        state.is_online = ConnectivityType.NONE not in e.connectivity
+        if was_online and not state.is_online:
+            logger.warning("Connectivity lost")
+            try:
+                from utils.notifications import notify_warning
+
+                notify_warning("You are offline. Some features may be unavailable.")
+            except Exception:
+                pass
+        elif not was_online and state.is_online:
+            logger.info("Connectivity restored")
 
     def _on_global_error(self, e):
         err_data = e.data if hasattr(e, "data") else str(e)
@@ -260,15 +268,10 @@ class AppController:
     ):
         if not _is_valid_play_url(url):
             logger.warning("play_stream called with invalid URL: %s", url)
-            from components.common.snackbar import notify_error
+            from utils.notifications import notify_error
 
             notify_error("Invalid or blocked URL.")
             return
-
-        # Save to history
-        state.add_to_history(url)
-        with contextlib.suppress(Exception):
-            await db_manager.save_history(url)
 
         # Determine title
         if not title or title.strip() == "Stream":
@@ -296,6 +299,11 @@ class AppController:
                     title = parsed_url.netloc
                 else:
                     title = "Stream"
+
+        # Save to history with resolved title
+        state.add_to_history(url, title)
+        with contextlib.suppress(Exception):
+            await db_manager.save_history(url, title)
 
         headers = headers or {}
         referer_header = referer or headers.get("Referer")

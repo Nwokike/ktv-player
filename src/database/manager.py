@@ -96,19 +96,21 @@ class DatabaseManager:
 
     # --- History ---
 
-    async def save_history(self, url: str):
+    async def save_history(self, url: str, title: str = ""):
         async with self._lock:
             history = self._data.setdefault("history", [])
-            if url in history:
-                history.remove(url)
-            history.insert(0, url)
+            # Remove existing entry with same URL
+            history = [e for e in history if e.get("url") != url]
+            history.insert(0, {"url": url, "title": title or url})
             self._data["history"] = history[:50]
             self._dirty = True
             await self._save_now()
 
-    async def get_history(self, limit: int = 20) -> list[str]:
+    async def get_history(self, limit: int = 20) -> list[dict]:
         async with self._lock:
-            return list(self._data.get("history", [])[:limit])
+            raw = self._data.get("history", [])[:limit]
+            # Migrate old string entries to new dict format
+            return [e if isinstance(e, dict) else {"url": e, "title": e} for e in raw]
 
     async def clear_history(self):
         async with self._lock:

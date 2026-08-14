@@ -310,11 +310,6 @@ def scan_android_mediastore() -> list[LocalVideo]:
 # --- Platform helpers (extracted from local_tab.py) ---
 
 
-def is_mobile() -> bool:
-    """Detect if running on Android/iOS (not desktop/web)."""
-    return os.name != "nt" and not os.environ.get("FLET_WEB")
-
-
 def get_default_scan_paths() -> list[str]:
     """Fallback paths if Flet StoragePaths service is unavailable."""
     import logging
