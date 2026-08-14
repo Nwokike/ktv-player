@@ -49,7 +49,7 @@ class TestDatabaseManager:
         await temp_db.init_db()
         await temp_db.save_history("http://hist.com")
         history = await temp_db.get_history()
-        assert "http://hist.com" in history
+        assert any(e.get("url") == "http://hist.com" for e in history)
 
     @pytest.mark.asyncio
     async def test_clear_history(self, temp_db):
@@ -122,7 +122,7 @@ class TestAppState:
         state.add_to_history("http://a")
         state.add_to_history("http://b")
         state.add_to_history("http://a")  # duplicate
-        assert state.history[0] == "http://a"  # moved to front
+        assert state.history[0]["url"] == "http://a"  # moved to front
         assert len(state.history) == 2
 
     def test_set_channels(self):

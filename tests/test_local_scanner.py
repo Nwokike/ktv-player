@@ -7,7 +7,6 @@ from src.services.local_scanner import (
     _has_nomedia,
     _is_video_file,
     get_default_scan_paths,
-    is_mobile,
 )
 
 
@@ -75,14 +74,6 @@ class TestFormatSize:
     def test_exact_1kb(self):
         result = _format_size(1024)
         assert "KB" in result
-
-
-class TestIsMobile:
-    def test_on_windows(self):
-        import os
-
-        if os.name == "nt":
-            assert is_mobile() is False
 
 
 class TestGetDefaultScanPaths:

@@ -172,11 +172,20 @@ class AppController:
             try:
                 from utils.notifications import notify_warning
 
-                notify_warning("You are offline. Some features may be unavailable.")
+                notify_warning(
+                    "You are offline. Some features may be unavailable.",
+                    persist=True,
+                )
             except Exception:
                 pass
         elif not was_online and state.is_online:
             logger.info("Connectivity restored")
+            try:
+                from utils.notifications import notify
+
+                notify("You are back online.")
+            except Exception:
+                pass
 
     def _on_global_error(self, e):
         err_data = e.data if hasattr(e, "data") else str(e)
@@ -293,6 +302,7 @@ class AppController:
                     "master",
                     "live",
                     "stream",
+                    "uwu",
                 ):
                     title = urllib.parse.unquote(base_name)
                 elif parsed_url.netloc:

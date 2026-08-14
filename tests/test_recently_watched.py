@@ -11,18 +11,18 @@ def _make_ch(name, url):
 
 
 def test_recently_watched_hidden_when_no_history():
-    rw = RecentlyWatched(history=[], channels_map={}, on_play=lambda u: None)
+    rw = RecentlyWatched(history=[], channels_map={}, on_play=lambda u, t=None: None)
     assert isinstance(rw, ft.Container)
     assert rw.visible is False
 
 
 def test_recently_watched_lists_up_to_10_items():
-    history = [f"http://x/{i}" for i in range(15)]
+    history = [{"url": f"http://x/{i}", "title": f"Title {i}"} for i in range(15)]
     channels_map = {
         f"http://x/{i}": _make_ch(f"C{i}", f"http://x/{i}") for i in range(15)
     }
     rw = RecentlyWatched(
-        history=history, channels_map=channels_map, on_play=lambda u: None
+        history=history, channels_map=channels_map, on_play=lambda u, t=None: None
     )
     cards = _find_card_like(rw)
     assert len(cards) <= 10
@@ -32,10 +32,10 @@ def test_recently_watched_lists_up_to_10_items():
 
 def test_recently_watched_card_triggers_on_play():
     fired = []
-    history = ["http://x/0"]
+    history = [{"url": "http://x/0", "title": "My Title"}]
     channels_map = {"http://x/0": _make_ch("C0", "http://x/0")}
     rw = RecentlyWatched(
-        history=history, channels_map=channels_map, on_play=lambda u: fired.append(u)
+        history=history, channels_map=channels_map, on_play=lambda u, t=None: fired.append(u)
     )
     cards = _find_card_like(rw)
     if cards:

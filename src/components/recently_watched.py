@@ -34,14 +34,16 @@ def RecentlyWatched(
         url = entry.get("url", "")
         # Use stored title, fall back to channels_map, then _display_name
         if isinstance(entry, dict):
+            stored_title = entry.get("title")
             title = (
-                entry.get("title")
+                stored_title
                 or channels_map.get(url, {}).get("name")
                 or _display_name(url)
             )
             logo = channels_map.get(url, {}).get("logo", "") or entry.get("logo", "")
         else:
             # Legacy string entry
+            stored_title = None
             title = channels_map.get(url, {}).get("name") or _display_name(url)
             logo = channels_map.get(url, {}).get("logo", "")
 
@@ -53,7 +55,7 @@ def RecentlyWatched(
 
         cards.append(
             ft.FilledButton(
-                on_click=lambda e, u=url: on_play(u),
+                on_click=lambda e, u=url, t=stored_title: on_play(u, t),
                 style=card_button_style(padding=ft.Padding.all(8), radius=10),
                 content=ft.Column(
                     controls=[

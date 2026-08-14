@@ -90,11 +90,21 @@ class ImmersivePlayer(ft.Stack):
         )
 
         # Local notification container for fullscreen fallback
+        # Placed at the BOTTOM of the Stack (outside the overlay) so it's
+        # visible during normal playback when the overlay is hidden.
         self.local_notification = ft.Container(
             visible=False,
-            padding=ft.Padding(16, 8, 16, 8),
+            bgcolor=ft.Colors.with_opacity(0.8, ft.Colors.BLACK),
+            border_radius=8,
+            padding=ft.Padding(16, 10, 16, 10),
+            margin=ft.Margin(24, 0, 24, 80),
             alignment=ft.Alignment.CENTER,
             content=ft.Text("", color=ft.Colors.WHITE, size=14),
+        )
+        self._notification_bottom_wrapper = ft.Container(
+            expand=True,
+            alignment=ft.Alignment.BOTTOM_CENTER,
+            content=self.local_notification,
         )
         self.overlay = ft.Container(
             expand=True,
@@ -107,8 +117,6 @@ class ImmersivePlayer(ft.Stack):
                     self.status_text,
                     ft.Container(height=16),
                     self.error_actions_row,
-                    ft.Container(height=16),
-                    self.local_notification,
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 alignment=ft.MainAxisAlignment.CENTER,
@@ -176,6 +184,7 @@ class ImmersivePlayer(ft.Stack):
             ft.Container(expand=True, bgcolor=ft.Colors.BLACK),
             self.video,
             self.overlay,
+            self._notification_bottom_wrapper,
         ]
 
     # --- Controls ---
@@ -214,22 +223,28 @@ class ImmersivePlayer(ft.Stack):
         self._update_title_width()
 
     def _update_title_width(self):
-        if hasattr(self, "title_container") and self.page:
-            # 48px back button + 32px horizontal margins = 80px
-            new_width = max(100, int(self.page.width) - 80)
-            if self.title_container.width != new_width:
-                self.title_container.width = new_width
-                try:
-                    self.update()
-                except Exception:
-                    pass
+        if not hasattr(self, "title_container") or not self.page:
+            return
+        width = self.page.width
+        if width is None or width <= 0:
+            return
+        # 48px back button + 32px horizontal margins = 80px
+        new_width = max(100, int(width) - 80)
+        if self.title_container.width != new_width:
+            self.title_container.width = new_width
+            try:
+                self.title_container.update()
+            except Exception:
+                pass
 
-    def _on_enter_fullscreen(self, e):
-        """Recalculate title width when entering fullscreen."""
+    async def _on_enter_fullscreen(self, e):
+        """Recalculate title width after fullscreen rotation completes."""
+        await asyncio.sleep(0.5)
         self._update_title_width()
 
-    def _on_exit_fullscreen(self, e):
-        """Recalculate title width when exiting fullscreen."""
+    async def _on_exit_fullscreen(self, e):
+        """Recalculate title width after exiting fullscreen."""
+        await asyncio.sleep(0.5)
         self._update_title_width()
 
     def _build_controls(self) -> fv.AdaptiveVideoControls:

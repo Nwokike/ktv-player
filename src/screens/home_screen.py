@@ -152,10 +152,10 @@ def HomeScreen() -> Control:
 
     # --- handlers ---
 
-    def on_play(url: str):
+    def on_play(url: str, title: str | None = None):
         async def _play():
             try:
-                await controller.play_stream(url, None)
+                await controller.play_stream(url, title)
             except Exception:
                 from utils.notifications import notify_error
 

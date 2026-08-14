@@ -25,16 +25,16 @@ class TestAppState:
 
     def test_add_to_history_new(self, app_state):
         app_state.add_to_history("http://example.com/stream1")
-        assert app_state.history == ["http://example.com/stream1"]
+        assert app_state.history[0]["url"] == "http://example.com/stream1"
+        assert len(app_state.history) == 1
 
     def test_add_to_history_moves_duplicate_to_front(self, app_state):
         app_state.add_to_history("http://example.com/stream1")
         app_state.add_to_history("http://example.com/stream2")
         app_state.add_to_history("http://example.com/stream1")
-        assert app_state.history == [
-            "http://example.com/stream1",
-            "http://example.com/stream2",
-        ]
+        assert app_state.history[0]["url"] == "http://example.com/stream1"
+        assert app_state.history[1]["url"] == "http://example.com/stream2"
+        assert len(app_state.history) == 2
 
     def test_add_to_history_respects_max(self, app_state):
         for i in range(MAX_HISTORY_ITEMS + 5):
@@ -45,7 +45,7 @@ class TestAppState:
         for i in range(MAX_HISTORY_ITEMS + 5):
             app_state.add_to_history(f"http://example.com/stream{i}")
         assert (
-            app_state.history[0] == f"http://example.com/stream{MAX_HISTORY_ITEMS + 4}"
+            app_state.history[0]["url"] == f"http://example.com/stream{MAX_HISTORY_ITEMS + 4}"
         )
 
     def test_set_channels(self, app_state):

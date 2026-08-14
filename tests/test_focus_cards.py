@@ -95,13 +95,13 @@ def test_channel_card_favorite_subtile_is_focusable_icon_button():
 
 
 def _rw_factory(history=None, channels_map=None, on_play=None):
-    history = history if history is not None else ["http://a"]
+    history = history if history is not None else [{"url": "http://a", "title": "A"}]
     channels_map = (
         channels_map
         if channels_map is not None
         else {"http://a": {"name": "A", "url": "http://a", "logo": ""}}
     )
-    on_play = on_play or (lambda u: None)
+    on_play = on_play or (lambda u, t=None: None)
     return RecentlyWatched(history=history, channels_map=channels_map, on_play=on_play)
 
 
@@ -114,7 +114,7 @@ def test_recently_watched_cards_are_filled_buttons():
 
 def test_recently_watched_card_on_click_fires_on_play():
     fired = []
-    rw = _rw_factory(on_play=lambda u: fired.append(u))
+    rw = _rw_factory(on_play=lambda u, t=None: fired.append(u))
     card = next(iter(walk_buttons(rw)))
     card.on_click(None)
     assert fired == ["http://a"]

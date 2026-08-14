@@ -27,6 +27,7 @@ class FakePage:
         self.on_route_change = None
         self.on_view_pop = None
         self._render_calls: deque = deque()
+        self._run_task_calls: deque = deque()
         self._update_calls: int = 0
         self._dialogs: deque = deque()
         self._pushed_routes: deque = deque()
@@ -55,7 +56,7 @@ class FakePage:
             self.views.pop()
 
     def run_task(self, coro_or_fn, *args, **kwargs):
-        self._render_calls.append(("run_task", coro_or_fn, args, kwargs))
+        self._run_task_calls.append((coro_or_fn, args, kwargs))
 
     @property
     def render_calls(self):

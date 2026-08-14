@@ -1,11 +1,19 @@
 """Notification utilities using SnackBar overlay pattern."""
 
+import asyncio
+import logging
+
 import flet as ft
 
 from core.theme import AppColors
 
+logger = logging.getLogger(__name__)
+
 # Module-level state for fullscreen fallback notifications
 _local_notification_state: dict = {"container": None, "text": None}
+
+# Track pending auto-hide task so repeated notifications reset the timer
+_local_hide_task = None
 
 
 def register_local_notification(container, text_control):
@@ -15,14 +23,13 @@ def register_local_notification(container, text_control):
 
 
 def unregister_local_notification():
-    """Unregister local notification container."""
+    """Unregister local notification container and cancel pending hide."""
     _local_notification_state["container"] = None
     _local_notification_state["text"] = None
-
-
-def _get_local_notification_state():
-    """Get current local notification state."""
-    return _local_notification_state["container"], _local_notification_state["text"]
+    global _local_hide_task
+    if _local_hide_task and not _local_hide_task.done():
+        _local_hide_task.cancel()
+    _local_hide_task = None
 
 
 def _show_snackbar(msg: str, bgcolor=None, persist: bool = False) -> None:
@@ -38,7 +45,6 @@ def _show_snackbar(msg: str, bgcolor=None, persist: bool = False) -> None:
             behavior=ft.SnackBarBehavior.FLOATING,
             dismiss_direction=ft.DismissDirection.HORIZONTAL,
             persist=persist,
-            margin=ft.Margin(16, 0, 16, 80),
         )
         page.overlay.append(snack)
         snack.open = True
@@ -47,28 +53,50 @@ def _show_snackbar(msg: str, bgcolor=None, persist: bool = False) -> None:
         pass
 
 
-def _show_local_notification(msg: str) -> None:
+def _show_local_notification(msg: str, auto_hide: bool = True) -> None:
     """Show notification in local player container (for fullscreen fallback)."""
-    container, text = _get_local_notification_state()
-    if container and text:
+    global _local_hide_task
+    container = _local_notification_state.get("container")
+    text = _local_notification_state.get("text")
+    if not container or not text:
+        return
+    try:
+        text.value = msg
+        container.visible = True
+        container.update()
+    except Exception:
+        return
+
+    if auto_hide:
+        # Cancel any pending hide, schedule a new 3-second one
+        if _local_hide_task and not _local_hide_task.done():
+            _local_hide_task.cancel()
+
+        async def _hide():
+            await asyncio.sleep(3.0)
+            try:
+                container.visible = False
+                container.update()
+            except Exception:
+                pass
+
         try:
-            text.value = msg
-            container.visible = True
-            container.update()
-        except Exception:
+            loop = asyncio.get_running_loop()
+            _local_hide_task = loop.create_task(_hide())
+        except RuntimeError:
             pass
 
 
-def notify(msg: str) -> None:
-    _show_snackbar(msg, persist=True)
-    _show_local_notification(msg)
+def notify(msg: str, persist: bool = False) -> None:
+    _show_snackbar(msg, persist=persist)
+    _show_local_notification(msg, auto_hide=not persist)
 
 
-def notify_warning(msg: str) -> None:
-    _show_snackbar(msg, bgcolor=AppColors.WARNING, persist=True)
-    _show_local_notification(msg)
+def notify_warning(msg: str, persist: bool = False) -> None:
+    _show_snackbar(msg, bgcolor=AppColors.WARNING, persist=persist)
+    _show_local_notification(msg, auto_hide=not persist)
 
 
-def notify_error(msg: str) -> None:
-    _show_snackbar(msg, bgcolor=AppColors.ERROR, persist=True)
-    _show_local_notification(msg)
+def notify_error(msg: str, persist: bool = False) -> None:
+    _show_snackbar(msg, bgcolor=AppColors.ERROR, persist=persist)
+    _show_local_notification(msg, auto_hide=not persist)
