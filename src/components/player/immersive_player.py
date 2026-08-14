@@ -8,6 +8,10 @@ import flet as ft
 import flet_video as fv
 
 from core.theme import AppColors
+from utils.notifications import (
+    register_local_notification,
+    unregister_local_notification,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +89,13 @@ class ImmersivePlayer(ft.Stack):
             visible=False,
         )
 
+        # Local notification container for fullscreen fallback
+        self.local_notification = ft.Container(
+            visible=False,
+            padding=ft.Padding(16, 8, 16, 8),
+            alignment=ft.Alignment.CENTER,
+            content=ft.Text("", color=ft.Colors.WHITE, size=14),
+        )
         self.overlay = ft.Container(
             expand=True,
             bgcolor=ft.Colors.with_opacity(0.85, ft.Colors.BLACK),
@@ -96,6 +107,8 @@ class ImmersivePlayer(ft.Stack):
                     self.status_text,
                     ft.Container(height=16),
                     self.error_actions_row,
+                    ft.Container(height=16),
+                    self.local_notification,
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 alignment=ft.MainAxisAlignment.CENTER,
@@ -155,6 +168,8 @@ class ImmersivePlayer(ft.Stack):
             on_position_change=self._on_pos_change,
             on_error=self._on_error,
             on_complete=self._on_complete,
+            on_enter_fullscreen=self._on_enter_fullscreen,
+            on_exit_fullscreen=self._on_exit_fullscreen,
         )
 
         self.controls = [
@@ -173,9 +188,13 @@ class ImmersivePlayer(ft.Stack):
                 self.page.on("resize", self._on_resize)
             except Exception:
                 pass
+        register_local_notification(
+            self.local_notification, self.local_notification.content
+        )
 
     def will_unmount(self):
         super().will_unmount()
+        unregister_local_notification()
         # Sync stop: clear playlist + update() queues a platform channel
         # message that stops native playback immediately. No await needed.
         if self.video and not self._is_closing:
@@ -204,6 +223,14 @@ class ImmersivePlayer(ft.Stack):
                     self.update()
                 except Exception:
                     pass
+
+    def _on_enter_fullscreen(self, e):
+        """Recalculate title width when entering fullscreen."""
+        self._update_title_width()
+
+    def _on_exit_fullscreen(self, e):
+        """Recalculate title width when exiting fullscreen."""
+        self._update_title_width()
 
     def _build_controls(self) -> fv.AdaptiveVideoControls:
         from components.player.controls import build_player_controls
