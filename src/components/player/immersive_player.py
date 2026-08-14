@@ -104,6 +104,7 @@ class ImmersivePlayer(ft.Stack):
         self._notification_bottom_wrapper = ft.Container(
             expand=True,
             alignment=ft.Alignment.BOTTOM_CENTER,
+            ignore_interactions=True,
             content=self.local_notification,
         )
         self.overlay = ft.Container(
