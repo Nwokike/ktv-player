@@ -56,9 +56,15 @@ async def pick_subtitles(player_inst):
 
     async def _pick_local(e=None):
         _close_dialog()
-        fp = FilePicker()
+        # Use the singleton FilePicker registered at boot — constructing one
+        # inline loses the service registration on Android (see main.py).
+        picker = getattr(player_inst.page, "file_picker", None)
+        if picker is None:
+            picker = FilePicker()
+            player_inst.page.services.append(picker)
+            player_inst.page.file_picker = picker
         try:
-            files = await fp.pick_files(
+            files = await picker.pick_files(
                 dialog_title="Select Subtitle File",
                 file_type=FilePickerFileType.CUSTOM,
                 allowed_extensions=["srt", "vtt"],
@@ -230,12 +236,9 @@ def handle_stream_complete(player_inst, e: ft.ControlEvent):
     if re.match(r"https?://", player_inst.resource):
         if player_inst._reconnect_count < STREAM_RECONNECT_MAX:
             player_inst._reconnect_count += 1
-            player_inst._overlay_hidden = False
-            player_inst.status_text.value = f"Reconnecting stream ({player_inst._reconnect_count}/{STREAM_RECONNECT_MAX})..."
-            player_inst.loading_ring.visible = True
-            player_inst.overlay.visible = True
-            player_inst._enable_tap_to_close()
-            player_inst.update()
+            player_inst._show_progress(
+                f"Reconnecting stream ({player_inst._reconnect_count}/{STREAM_RECONNECT_MAX})..."
+            )
             player_inst.page.run_task(reconnect_stream, player_inst)
         else:
             player_inst._show_final_error()
@@ -255,6 +258,7 @@ async def reconnect_stream(player_inst):
             ]
             player_inst.video.update()
             await player_inst.video.play()
+            player_inst._start_watchdog()
     except Exception as ex:
         logger.debug("Failed to reconnect stream: %s", ex)
         player_inst._show_final_error()

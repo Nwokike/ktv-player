@@ -1,5 +1,5 @@
 APP_NAME = "KTV Player"
-APP_VERSION = "2.0.5"
+APP_VERSION = "2.0.6"
 
 # Error messages
 ERR_NETWORK = "Stream unavailable or network timeout."
@@ -10,6 +10,10 @@ ERR_FOLDER_PICK_FAILED = "Failed to pick folder"
 ERR_CLEAR_HISTORY_FAILED = "Failed to clear history."
 ERR_RESET_LIBRARY_FAILED = "Failed to reset custom content."
 ERR_CHANNELS_LOAD = "Failed to load channels. Check your connection."
+
+# Connectivity messages
+MSG_OFFLINE = "You're offline. Only your Local videos will work."
+MSG_ONLINE = "You're back online."
 
 # Onboarding
 LBL_WELCOME = "Welcome"
@@ -145,9 +149,7 @@ ADD_CONTENT_COOLDOWN = 5.0
 MAX_HISTORY_ITEMS = 20
 AD_PRELOAD_RETRY_DELAY = 30
 AD_PRELOAD_MAX_RETRIES = 5
-STREAM_RETRY_MAX = 3
 STREAM_RECONNECT_MAX = 5
-STREAM_RETRY_DELAY = 2
 LOCAL_SCAN_CACHE_TTL = 60.0
 LOCAL_SCAN_MAX_DEPTH = 6
 MAX_NAME_LENGTH = 200

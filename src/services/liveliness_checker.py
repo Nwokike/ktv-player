@@ -7,6 +7,7 @@ from core.constants import (
     LIVELINESS_BATCH_SIZE,
     LIVELINESS_UPDATE_INTERVAL,
 )
+from core.state import state
 from core.theme import AppColors
 from services.http_client import get_http_client
 from services.liveliness import liveliness_cache
@@ -84,6 +85,10 @@ def enqueue_liveliness_check(url: str):
         return
     if url in _in_flight:
         return
+    # No probes while offline — a failed probe would paint the dot red;
+    # dots stay neutral and checks resume when connectivity returns.
+    if not state.is_online:
+        return
 
     try:
         asyncio.get_running_loop()
@@ -110,6 +115,10 @@ class LivelinessChecker:
         cached = liveliness_cache.get(url)
         if cached is not None:
             return (url, cached)
+
+        # Offline: skip the probe entirely and leave the dot neutral
+        if not state.is_online:
+            return (url, False)
 
         check_timeout = httpx.Timeout(2.0, connect=1.2, read=1.0)
         async with self._semaphore:

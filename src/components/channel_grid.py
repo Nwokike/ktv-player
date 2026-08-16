@@ -43,6 +43,9 @@ def ChannelGrid(
     on_toggle_favorite: Callable[[str], None],
     ad_service=None,
 ) -> Control:
+    from state.app_state import AppStateCtx
+
+    state = ft.use_context(AppStateCtx)
     current_page, set_current_page = ft.use_state(0)
 
     total_pages = max(1, (len(channels) + PAGE_SIZE - 1) // PAGE_SIZE)
@@ -71,7 +74,8 @@ def ChannelGrid(
                 if logo and not logo.startswith("/"):
                     enqueue_logo_download(logo)
 
-    ft.use_effect(_seed_page_liveliness, [current_page, len(channels)])
+    # is_online in deps: reconnect re-enqueues this page's checks immediately
+    ft.use_effect(_seed_page_liveliness, [current_page, len(channels), state.is_online])
 
     if not visible:
         return EmptyState(

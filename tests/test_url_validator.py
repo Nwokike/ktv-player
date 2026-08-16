@@ -67,3 +67,40 @@ class TestUrlValidator:
 
     def test_none_value(self, validator):
         assert validator(None) is False
+
+
+class TestIsLocalMediaUrl:
+    def test_unix_path(self):
+        from core.url_validator import is_local_media_url
+
+        assert is_local_media_url("/home/user/video.mp4") is True
+
+    def test_file_scheme(self):
+        from core.url_validator import is_local_media_url
+
+        assert is_local_media_url("file:///sdcard/Movies/video.mp4") is True
+
+    def test_content_scheme(self):
+        from core.url_validator import is_local_media_url
+
+        assert is_local_media_url("content://media/video/file.mp4") is True
+
+    def test_windows_drive(self):
+        from core.url_validator import is_local_media_url
+
+        assert is_local_media_url("D:\\Videos\\movie.mp4") is True
+
+    def test_http_stream_is_not_local(self):
+        from core.url_validator import is_local_media_url
+
+        assert is_local_media_url("https://example.com/stream.m3u8") is False
+
+    def test_rtsp_stream_is_not_local(self):
+        from core.url_validator import is_local_media_url
+
+        assert is_local_media_url("rtsp://example.com/live") is False
+
+    def test_empty(self):
+        from core.url_validator import is_local_media_url
+
+        assert is_local_media_url("") is False

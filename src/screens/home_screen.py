@@ -113,7 +113,9 @@ def HomeScreen() -> Control:
             if logo and not logo.startswith("/"):
                 enqueue_logo_download(logo)
 
-    ft.use_effect(_seed_visible, [filters, state.channels_hash])
+    # Re-seed on connectivity flips: offline drains the queue (nothing to
+    # check), online re-enqueues the visible page so dots refresh immediately.
+    ft.use_effect(_seed_visible, [filters, state.channels_hash, state.is_online])
 
     # Wire liveliness cache → debounced re-render (500ms coalesce)
     def _on_liveliness_change(changed_url=None):

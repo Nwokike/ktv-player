@@ -14,6 +14,8 @@ from core.constants import (
     APP_NAME,
     CDN_HEADER_OVERRIDES,
     ERR_NETWORK,
+    MSG_OFFLINE,
+    MSG_ONLINE,
 )
 from core.logging_config import setup_logging
 from core.state import state
@@ -26,7 +28,7 @@ from services.liveliness_checker import LivelinessChecker
 
 logger = logging.getLogger(__name__)
 
-from core.url_validator import _is_valid_play_url
+from core.url_validator import _is_valid_play_url, is_local_media_url
 
 
 class AppController:
@@ -169,13 +171,15 @@ class AppController:
         state.is_online = ConnectivityType.NONE not in e.connectivity
         if was_online and not state.is_online:
             logger.warning("Connectivity lost")
+            # Reset liveliness to neutral — failed probes while offline would
+            # paint every dot red. Checks resume on reconnect.
+            from services.liveliness import liveliness_cache
+
+            liveliness_cache.clear()
             try:
                 from utils.notifications import notify_warning
 
-                notify_warning(
-                    "You are offline. Some features may be unavailable.",
-                    persist=True,
-                )
+                notify_warning(MSG_OFFLINE, persist=True)
             except Exception:
                 pass
         elif not was_online and state.is_online:
@@ -183,7 +187,7 @@ class AppController:
             try:
                 from utils.notifications import notify
 
-                notify("You are back online.")
+                notify(MSG_ONLINE)
             except Exception:
                 pass
 
@@ -257,6 +261,7 @@ class AppController:
         title: str | None = None,
         referer: str | None = None,
         headers: dict | None = None,
+        from_deep_link: bool = False,
     ):
         if not self._loading_lock:
             self._loading_lock = asyncio.Lock()
@@ -266,7 +271,7 @@ class AppController:
             return
 
         async with self._loading_lock:
-            await self._do_play_stream(url, title, referer, headers)
+            await self._do_play_stream(url, title, referer, headers, from_deep_link)
 
     async def _do_play_stream(
         self,
@@ -274,6 +279,7 @@ class AppController:
         title: str | None = None,
         referer: str | None = None,
         headers: dict | None = None,
+        from_deep_link: bool = False,
     ):
         if not _is_valid_play_url(url):
             logger.warning("play_stream called with invalid URL: %s", url)
@@ -345,12 +351,15 @@ class AppController:
             await player.handle_close()
             await self._close_player()
 
+        # Favorite star only for in-app channel plays — deep links AND local
+        # videos open the player without it (history is saved for both).
         player = ImmersivePlayer(
             resource=resource_url,
             title=title,
             http_headers=headers,
             on_close=lambda: self._close_player(),
             ad_service=self.ad_service,
+            show_favorite=not (from_deep_link or is_local_media_url(url)),
         )
 
         player_view = ft.View(
@@ -383,7 +392,7 @@ class AppController:
         url, title, referer, headers = parse_deep_link(route)
         if url:
             logger.info("Deep link URL valid, launching play_stream")
-            self.page.run_task(self.play_stream, url, title, referer, headers)
+            self.page.run_task(self.play_stream, url, title, referer, headers, True)
 
     # --- Routing ---
 
@@ -484,15 +493,6 @@ class AppController:
                 self.page.update()
             return
 
-        if len(self.page.views) > 1:
-            self.page.views.pop()
-            self.page.update()
-
-    async def _close_and_pop(self, player):
-        try:
-            await player.handle_close()
-        except Exception:
-            logger.exception("Error closing player")
         if len(self.page.views) > 1:
             self.page.views.pop()
             self.page.update()

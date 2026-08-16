@@ -9,11 +9,17 @@ import flet_video as fv
 
 from core.theme import AppColors
 from utils.notifications import (
-    register_local_notification,
-    unregister_local_notification,
+    register_fullscreen_toast,
+    set_fullscreen_toast_active,
+    unregister_fullscreen_toast,
 )
 
 logger = logging.getLogger(__name__)
+
+# Absolute backstop: if no load/position/error event arrives within this
+# window, the loading/reconnecting overlay is replaced by the retry/back UI.
+# mpv's network-timeout (10s) usually errors out first with a real reason.
+_WATCHDOG_SECONDS = 20.0
 
 
 class ImmersivePlayer(ft.Stack):
@@ -27,6 +33,7 @@ class ImmersivePlayer(ft.Stack):
         muted: bool = False,
         http_headers: dict | None = None,
         ad_service: Any | None = None,
+        show_favorite: bool = True,
     ):
         super().__init__()
         self.resource = resource
@@ -34,6 +41,8 @@ class ImmersivePlayer(ft.Stack):
         self.title = title
         self.http_headers = http_headers or {}
         self.ad_service = ad_service
+        # Deep-link plays (ktv://) hide the in-player favorite star
+        self.show_favorite_button = show_favorite
         self.expand = True
 
         self._retry_count = 0
@@ -41,6 +50,7 @@ class ImmersivePlayer(ft.Stack):
         self._is_final_error = False
         self._is_closing = False
         self._was_closed_during_ad = False
+        self._watchdog_task: asyncio.Task | None = None
 
         # Overlay Controls
         self.status_text = ft.Text(
@@ -89,24 +99,6 @@ class ImmersivePlayer(ft.Stack):
             visible=False,
         )
 
-        # Local notification container for fullscreen fallback
-        # Placed at the BOTTOM of the Stack (outside the overlay) so it's
-        # visible during normal playback when the overlay is hidden.
-        self.local_notification = ft.Container(
-            visible=False,
-            bgcolor=ft.Colors.with_opacity(0.8, ft.Colors.BLACK),
-            border_radius=8,
-            padding=ft.Padding(16, 10, 16, 10),
-            margin=ft.Margin(24, 0, 24, 80),
-            alignment=ft.Alignment.CENTER,
-            content=ft.Text("", color=ft.Colors.WHITE, size=14),
-        )
-        self._notification_bottom_wrapper = ft.Container(
-            expand=True,
-            alignment=ft.Alignment.BOTTOM_CENTER,
-            ignore_interactions=True,
-            content=self.local_notification,
-        )
         self.overlay = ft.Container(
             expand=True,
             bgcolor=ft.Colors.with_opacity(0.85, ft.Colors.BLACK),
@@ -166,6 +158,10 @@ class ImmersivePlayer(ft.Stack):
                     "demuxer-max-back-bytes": "10M",
                     "framedrop": "vo",
                     "hr-seek-framedrop": "yes",
+                    # mpv default is 60s — dead hosts would spin the loading
+                    # overlay for a minute with no error event. 10s makes
+                    # failure deterministic (verified: mpv DOCS/man/options.rst).
+                    "network-timeout": 10,
                 },
             ),
             fill_color=ft.Colors.BLACK,
@@ -185,7 +181,6 @@ class ImmersivePlayer(ft.Stack):
             ft.Container(expand=True, bgcolor=ft.Colors.BLACK),
             self.video,
             self.overlay,
-            self._notification_bottom_wrapper,
         ]
 
     # --- Controls ---
@@ -193,18 +188,13 @@ class ImmersivePlayer(ft.Stack):
     def did_mount(self):
         super().did_mount()
         self._update_title_width()
-        if self.page:
-            try:
-                self.page.on("resize", self._on_resize)
-            except Exception:
-                pass
-        register_local_notification(
-            self.local_notification, self.local_notification.content
-        )
+        # The toast chip was created by build_player_controls() in __init__
+        register_fullscreen_toast(self.toast_chip, self.toast_text)
 
     def will_unmount(self):
         super().will_unmount()
-        unregister_local_notification()
+        unregister_fullscreen_toast()
+        self._cancel_watchdog()
         # Sync stop: clear playlist + update() queues a platform channel
         # message that stops native playback immediately. No await needed.
         if self.video and not self._is_closing:
@@ -214,14 +204,6 @@ class ImmersivePlayer(ft.Stack):
                 self.video.update()
             except Exception:
                 pass
-        if self.page:
-            try:
-                self.page.off("resize", self._on_resize)
-            except Exception:
-                pass
-
-    def _on_resize(self, e):
-        self._update_title_width()
 
     def _update_title_width(self):
         if not hasattr(self, "title_container") or not self.page:
@@ -239,14 +221,29 @@ class ImmersivePlayer(ft.Stack):
                 pass
 
     async def _on_enter_fullscreen(self, e):
-        """Recalculate title width after fullscreen rotation completes."""
-        await asyncio.sleep(0.5)
-        self._update_title_width()
+        """Fullscreen covers the whole Flet page tree (SnackBar included),
+        so notifications must route to the in-controls toast chip."""
+        set_fullscreen_toast_active(True)
+        await self._refresh_title_width_after_transition()
 
     async def _on_exit_fullscreen(self, e):
-        """Recalculate title width after exiting fullscreen."""
-        await asyncio.sleep(0.5)
-        self._update_title_width()
+        """Back to normal rendering — SnackBar works again."""
+        set_fullscreen_toast_active(False)
+        await self._refresh_title_width_after_transition()
+
+    async def _refresh_title_width_after_transition(self):
+        """Re-apply the title width while a fullscreen/rotation transition
+        settles. Page has NO resize event in Flet 0.86, and page.width lags
+        behind the fullscreen route push (the WM animation and Flutter
+        metrics land later), so a single delayed read races the new size —
+        a long title stayed truncated after entering fullscreen (and an
+        un-truncated one overflowed after exiting). Each apply is a no-op
+        unless the computed width actually changed."""
+        for delay in (0.2, 0.4, 0.6, 0.8, 0.8):
+            await asyncio.sleep(delay)
+            if self._is_closing or not self.page:
+                return
+            self._update_title_width()
 
     def _build_controls(self) -> fv.AdaptiveVideoControls:
         from components.player.controls import build_player_controls
@@ -359,6 +356,9 @@ class ImmersivePlayer(ft.Stack):
             self.http_headers,
         )
         self._reconnect_count = 0
+        # Go Back is available from the very first moment — the player must
+        # never be a dead end, not even during the pre-roll ad.
+        self._show_progress("Loading stream...")
 
         # Show interstitial ad before playback, unless player was already closed
         if self.ad_service and not self._is_closing:
@@ -382,6 +382,7 @@ class ImmersivePlayer(ft.Stack):
             ]
             self.video.update()
             await self.video.play()
+            self._start_watchdog()
             playing = await self.video.is_playing()
             if playing:
                 logger.info("Stream playback started successfully for '%s'", self.title)
@@ -402,6 +403,7 @@ class ImmersivePlayer(ft.Stack):
     def _hide_overlay(self):
         if not self._overlay_hidden:
             self._overlay_hidden = True
+            self._cancel_watchdog()
             self.overlay.visible = False
             try:
                 self.update()
@@ -412,6 +414,56 @@ class ImmersivePlayer(ft.Stack):
 
     def _enable_tap_to_close(self):
         self.overlay.on_click = lambda _: self.page.run_task(self.handle_close)
+
+    def _safe_update(self):
+        try:
+            self.update()
+        except Exception:
+            pass
+
+    def _show_progress(self, message: str, show_back: bool = True):
+        """Overlay state for loading/reconnecting: spinner + status, with Go
+        Back always available (visible button + tap-to-close) so a stalling
+        stream is never a dead end."""
+        self._overlay_hidden = False
+        self.status_text.value = message
+        self.loading_ring.visible = True
+        self.error_actions_row.visible = True
+        self.retry_btn.visible = False
+        self.back_error_btn.visible = show_back
+        self.overlay.visible = True
+        self._enable_tap_to_close()
+        self._safe_update()
+
+    # --- Watchdog ---
+
+    def _start_watchdog(self, timeout: float | None = None):
+        """Guarantee every loading/reconnecting state resolves: if no load,
+        position or error event arrives within `timeout`, swap the spinner
+        for the retry/back UI instead of spinning forever."""
+        self._cancel_watchdog()
+        secs = _WATCHDOG_SECONDS if timeout is None else timeout
+
+        async def _watchdog():
+            await asyncio.sleep(secs)
+            if self._is_closing or self._is_final_error or self._overlay_hidden:
+                return
+            logger.warning(
+                "Playback watchdog fired after %.1fs — no load/position/error",
+                secs,
+            )
+            self._show_final_error("Stream is not responding. Retry or go back.")
+
+        try:
+            loop = asyncio.get_running_loop()
+            self._watchdog_task = loop.create_task(_watchdog())
+        except RuntimeError:
+            pass
+
+    def _cancel_watchdog(self):
+        if self._watchdog_task and not self._watchdog_task.done():
+            self._watchdog_task.cancel()
+        self._watchdog_task = None
 
     # --- Error handling & retry ---
 
@@ -430,6 +482,7 @@ class ImmersivePlayer(ft.Stack):
         )
 
     def _show_final_error(self, message: str = "Playback failed."):
+        self._cancel_watchdog()
         self._is_final_error = True
         self._overlay_hidden = False
         self.status_text.value = message
@@ -438,20 +491,15 @@ class ImmersivePlayer(ft.Stack):
         self.retry_btn.visible = True
         self.back_error_btn.visible = True
         self.overlay.visible = True
-        self.update()
+        self._enable_tap_to_close()
+        self._safe_update()
 
     async def _manual_retry(self):
         if self._is_closing:
             return
         self._is_final_error = False
-        self._overlay_hidden = False
-        self.status_text.value = "Reconnecting stream..."
-        self.loading_ring.visible = True
-        self.error_actions_row.visible = False
-        self.retry_btn.visible = False
-        self.back_error_btn.visible = False
-        self.overlay.visible = True
-        self.update()
+        self._reconnect_count = 0
+        self._show_progress("Reconnecting stream...")
 
         try:
             if self.video:
@@ -463,6 +511,8 @@ class ImmersivePlayer(ft.Stack):
         except Exception as ex:
             logger.error("Manual retry playback failed: %s", ex)
             self._show_final_error("Retry failed. Stream may be offline.")
+            return
+        self._start_watchdog()
 
     def _on_complete(self, e: ft.ControlEvent):
         from components.player.handlers import handle_stream_complete
@@ -476,6 +526,7 @@ class ImmersivePlayer(ft.Stack):
             return
         self._is_closing = True
         self._is_final_error = True
+        self._cancel_watchdog()
         try:
             if self.video:
                 # 1. Async stop first — proper player cleanup

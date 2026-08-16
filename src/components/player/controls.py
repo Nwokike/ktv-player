@@ -41,7 +41,37 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
     )
     player_inst.title_container = title_container
 
-    # In-player Favorite Star Button
+    # In-player toast chip. It lives INSIDE the video controls because the
+    # fullscreen route (pushed by media_kit on the root navigator, above the
+    # whole Flet page tree) re-renders these same controls — the only Flet
+    # surface visible in fullscreen. Overlays placed next to the Video in a
+    # Stack are covered in fullscreen; this chip is not.
+    toast_text = ft.Text(
+        "",
+        color=ft.Colors.WHITE,
+        size=13,
+        weight=ft.FontWeight.W_500,
+        max_lines=1,
+        overflow=ft.TextOverflow.ELLIPSIS,
+    )
+    toast_chip = ft.Container(
+        content=toast_text,
+        bgcolor=ft.Colors.with_opacity(0.85, ft.Colors.BLACK),
+        border_radius=10,
+        padding=ft.Padding(16, 10, 16, 10),
+        visible=False,
+    )
+    player_inst.toast_chip = toast_chip
+    player_inst.toast_text = toast_text
+
+    # Toast overlays the title slot so it needs no extra bar width
+    title_slot = ft.Stack(
+        controls=[title_container, toast_chip],
+        alignment=ft.Alignment.CENTER,
+    )
+
+    # In-player Favorite Star Button — hidden for deep-link plays
+    show_fav = getattr(player_inst, "show_favorite_button", True)
     is_fav = player_inst.resource in (state.favorites or [])
     fav_color = AppColors.PRIMARY if is_fav else ft.Colors.WHITE
     fav_icon = ft.Icons.STAR_ROUNDED if is_fav else ft.Icons.STAR_BORDER_ROUNDED
@@ -129,14 +159,14 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
             top_button_bar_margin=ft.Margin(16, 35, 16, 0),
             top_button_bar=[
                 back_btn,
-                title_container,
+                title_slot,
             ],
             bottom_button_bar=[
                 fv.VideoPositionIndicator(
                     text_style=ft.TextStyle(size=12, color=ft.Colors.WHITE),
                 ),
                 fv.VideoSpacer(),
-                fav_btn,
+                *([fav_btn] if show_fav else []),
                 camera_btn,
                 sub_btn,
                 settings_btn,
@@ -159,7 +189,7 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
             ],
             top_button_bar=[
                 back_btn,
-                title_container,
+                title_slot,
             ],
             bottom_button_bar=[
                 fv.VideoVolumeButton(slider_width=80, icon_color=ft.Colors.WHITE),
@@ -168,7 +198,7 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
                     text_style=ft.TextStyle(size=12, color=ft.Colors.WHITE),
                 ),
                 fv.VideoSpacer(),
-                fav_btn,
+                *([fav_btn] if show_fav else []),
                 camera_btn,
                 sub_btn,
                 settings_btn,

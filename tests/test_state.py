@@ -45,7 +45,8 @@ class TestAppState:
         for i in range(MAX_HISTORY_ITEMS + 5):
             app_state.add_to_history(f"http://example.com/stream{i}")
         assert (
-            app_state.history[0]["url"] == f"http://example.com/stream{MAX_HISTORY_ITEMS + 4}"
+            app_state.history[0]["url"]
+            == f"http://example.com/stream{MAX_HISTORY_ITEMS + 4}"
         )
 
     def test_set_channels(self, app_state):

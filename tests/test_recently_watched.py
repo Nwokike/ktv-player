@@ -35,7 +35,9 @@ def test_recently_watched_card_triggers_on_play():
     history = [{"url": "http://x/0", "title": "My Title"}]
     channels_map = {"http://x/0": _make_ch("C0", "http://x/0")}
     rw = RecentlyWatched(
-        history=history, channels_map=channels_map, on_play=lambda u, t=None: fired.append(u)
+        history=history,
+        channels_map=channels_map,
+        on_play=lambda u, t=None: fired.append(u),
     )
     cards = _find_card_like(rw)
     if cards:
