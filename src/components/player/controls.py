@@ -12,7 +12,7 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
     """Build adaptive player controls for touch and TV/Desktop modes."""
     speed_container = ft.Container(
         content=player_inst.speed_text,
-        padding=ft.Padding(8, 4, 8, 4),
+        padding=ft.Padding(6, 3, 6, 3),
         border_radius=4,
         ink=True,
         on_click=lambda e: player_inst.page.run_task(player_inst._cycle_speed),
@@ -49,7 +49,7 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
     toast_text = ft.Text(
         "",
         color=ft.Colors.WHITE,
-        size=12,
+        size=13,
         weight=ft.FontWeight.W_500,
         max_lines=1,
         overflow=ft.TextOverflow.ELLIPSIS,
@@ -76,14 +76,14 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
     # media_kit Flutter widget tree mounts it properly.
     quality_text = ft.Text(
         "Auto",
-        size=10,
+        size=11,
         color=ft.Colors.WHITE,
         weight=ft.FontWeight.W_600,
         no_wrap=True,
     )
     quality_row = ft.Row(
         controls=[
-            ft.Icon(ft.Icons.HIGH_QUALITY, size=12, color=ft.Colors.WHITE),
+            ft.Icon(ft.Icons.HIGH_QUALITY, size=14, color=ft.Colors.WHITE),
             quality_text,
         ],
         spacing=2,
@@ -91,7 +91,7 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
     )
     quality_btn = ft.Container(
         content=None,
-        padding=ft.Padding(0, 0, 0, 0),
+        padding=0,
         border_radius=4,
         ink=True,
         tooltip="Quality",
@@ -105,14 +105,14 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
     # when stream has multiple selectable audio renditions.
     audio_text = ft.Text(
         "Audio",
-        size=10,
+        size=11,
         color=ft.Colors.WHITE,
         weight=ft.FontWeight.W_600,
         no_wrap=True,
     )
     audio_row = ft.Row(
         controls=[
-            ft.Icon(ft.Icons.AUDIOTRACK_ROUNDED, size=12, color=ft.Colors.WHITE),
+            ft.Icon(ft.Icons.AUDIOTRACK_ROUNDED, size=14, color=ft.Colors.WHITE),
             audio_text,
         ],
         spacing=2,
@@ -120,7 +120,7 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
     )
     audio_btn = ft.Container(
         content=None,
-        padding=ft.Padding(0, 0, 0, 0),
+        padding=0,
         border_radius=4,
         ink=True,
         tooltip="Audio Track",
@@ -136,11 +136,18 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
     fav_color = AppColors.PRIMARY if is_fav else ft.Colors.WHITE
     fav_icon = ft.Icons.STAR_ROUNDED if is_fav else ft.Icons.STAR_BORDER_ROUNDED
 
+    btn_style = ft.ButtonStyle(
+        padding=ft.Padding(0, 0, 0, 0),
+        visual_density=ft.VisualDensity.COMPACT,
+    )
+
     fav_btn = ft.IconButton(
         icon=fav_icon,
         icon_color=fav_color,
-        icon_size=15,
-        padding=ft.Padding(2, 2, 2, 2),
+        icon_size=18,
+        padding=0,
+        visual_density=ft.VisualDensity.COMPACT,
+        style=btn_style,
         tooltip="Remove from Favorites" if is_fav else "Add to Favorites",
         data=is_fav,
     )
@@ -181,8 +188,10 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
     sub_btn = ft.IconButton(
         icon=ft.Icons.SUBTITLES_ROUNDED,
         icon_color=ft.Colors.WHITE,
-        icon_size=15,
-        padding=ft.Padding(2, 2, 2, 2),
+        icon_size=18,
+        padding=0,
+        visual_density=ft.VisualDensity.COMPACT,
+        style=btn_style,
         tooltip="Subtitles",
         on_click=lambda e: player_inst.page.run_task(player_inst._pick_subtitles),
     )
@@ -190,8 +199,10 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
     camera_btn = ft.IconButton(
         icon=ft.Icons.CAMERA_ALT_ROUNDED,
         icon_color=ft.Colors.WHITE,
-        icon_size=15,
-        padding=ft.Padding(2, 2, 2, 2),
+        icon_size=18,
+        padding=0,
+        visual_density=ft.VisualDensity.COMPACT,
+        style=btn_style,
         tooltip="Take Snapshot",
         on_click=lambda e: player_inst.page.run_task(player_inst._take_screenshot),
     )
@@ -199,8 +210,10 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
     settings_btn = ft.IconButton(
         icon=ft.Icons.SETTINGS_ROUNDED,
         icon_color=ft.Colors.WHITE,
-        icon_size=15,
-        padding=ft.Padding(2, 2, 2, 2),
+        icon_size=18,
+        padding=0,
+        visual_density=ft.VisualDensity.COMPACT,
+        style=btn_style,
         tooltip="Player & Snapshot Settings",
         on_click=lambda e: player_inst.page.run_task(player_inst._open_player_settings),
     )
@@ -211,8 +224,10 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
         pip_btn = ft.IconButton(
             icon=ft.Icons.PICTURE_IN_PICTURE,
             icon_color=ft.Colors.WHITE,
-            icon_size=15,
-            padding=ft.Padding(2, 2, 2, 2),
+            icon_size=18,
+            padding=0,
+            visual_density=ft.VisualDensity.COMPACT,
+            style=btn_style,
             tooltip="Picture-in-Picture",
             on_click=lambda e: player_inst.page.run_task(player_inst.enter_pip),
         )
@@ -231,7 +246,7 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
             controls_transition_duration=ft.Duration(milliseconds=300),
             seek_bar_position_color=AppColors.PRIMARY,
             button_bar_button_color=ft.Colors.WHITE,
-            button_bar_button_size=15.0,
+            button_bar_button_size=18.0,
             primary_button_bar=[
                 fv.VideoSpacer(flex=2),
                 fv.VideoPlayOrPauseButton(icon_size=48.0),
@@ -244,16 +259,16 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
             ],
             bottom_button_bar=[
                 fv.VideoPositionIndicator(
-                    text_style=ft.TextStyle(size=11, color=ft.Colors.WHITE),
+                    text_style=ft.TextStyle(size=12, color=ft.Colors.WHITE),
                 ),
                 fv.VideoSpacer(),
+                speed_container,
+                quality_btn,
+                audio_btn,
                 *([fav_btn] if show_fav else []),
                 camera_btn,
                 sub_btn,
                 settings_btn,
-                quality_btn,
-                audio_btn,
-                speed_container,
                 *([pip_btn] if pip_btn else []),
                 fv.VideoFullscreenButton(icon_color=ft.Colors.WHITE, icon_size=18.0),
             ],
@@ -266,7 +281,7 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
             toggle_fullscreen_on_double_press=False,
             play_and_pause_on_tap=False,
             hide_mouse_on_controls_removal=False,
-            button_bar_button_size=15.0,
+            button_bar_button_size=18.0,
             primary_button_bar=[
                 fv.VideoSpacer(flex=2),
                 fv.VideoPlayOrPauseButton(icon_size=32.0),
@@ -280,16 +295,16 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
                 fv.VideoVolumeButton(slider_width=80, icon_color=ft.Colors.WHITE),
                 fv.VideoSpacer(),
                 fv.VideoPositionIndicator(
-                    text_style=ft.TextStyle(size=11, color=ft.Colors.WHITE),
+                    text_style=ft.TextStyle(size=12, color=ft.Colors.WHITE),
                 ),
                 fv.VideoSpacer(),
+                speed_container,
+                quality_btn,
+                audio_btn,
                 *([fav_btn] if show_fav else []),
                 camera_btn,
                 sub_btn,
                 settings_btn,
-                quality_btn,
-                audio_btn,
-                speed_container,
                 fv.VideoFullscreenButton(icon_color=ft.Colors.WHITE, icon_size=18.0),
             ],
             seek_bar_position_color=AppColors.PRIMARY,

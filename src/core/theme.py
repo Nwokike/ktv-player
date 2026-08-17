@@ -10,7 +10,7 @@ class AppColors:
     WARNING = "#F59E0B"
     ERROR = "#EF4444"
 
-    # --- Dark Mode Colors (nkiri-tv cinematic theme) ---
+    # --- Dark Mode Colors (Cinematic Dark Theme) ---
     DARK_BG = "#0A0E14"
     DARK_SURFACE = "#0F1520"
     DARK_SURFACE_VARIANT = "#162030"

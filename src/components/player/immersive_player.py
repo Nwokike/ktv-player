@@ -848,7 +848,7 @@ class ImmersivePlayer(ft.Stack):
         q_row = getattr(self, "quality_row", None)
         if q_btn is not None and q_row is not None and len(variants) > 1:
             q_btn.content = q_row
-            q_btn.padding = ft.Padding(4, 2, 4, 2)
+            q_btn.padding = ft.Padding(6, 3, 6, 3)
             self._refresh_quality_label()
             try:
                 q_btn.update()
@@ -860,7 +860,7 @@ class ImmersivePlayer(ft.Stack):
         a_row = getattr(self, "audio_row", None)
         if a_btn is not None and a_row is not None and len(tracks) >= 2:
             a_btn.content = a_row
-            a_btn.padding = ft.Padding(4, 2, 4, 2)
+            a_btn.padding = ft.Padding(6, 3, 6, 3)
             self._refresh_audio_label()
             try:
                 a_btn.update()
