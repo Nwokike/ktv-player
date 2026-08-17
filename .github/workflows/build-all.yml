@@ -163,17 +163,10 @@ jobs:
           cp src/assets/icon.png "$RES/mipmap-xxxhdpi/ic_launcher.png"
           sed -i 's|<application |<application android:banner="@drawable/banner" |' "$MANIFEST"
           sed -i 's|<activity|<activity android:supportsPictureInPicture="true"|g' "$MANIFEST"
-          rm -rf build/apk/*.apk
           cd build/flutter/android && ./gradlew assembleRelease
           mkdir -p ../../../build/apk
-          cp app/build/outputs/apk/release/*.apk ../../../build/apk/
-          cd ../../../build/apk
-          for f in *.apk; do
-            if [[ "$f" == *"universal"* ]] || [[ "$f" == "app-release.apk" ]]; then
-              mv "$f" "ktv-android-universal.apk" || true
-            fi
-          done
-          echo "Rebuilt APK with TV banner (320x180), icon (512x512) and PiP enabled"
+          find . -name "*.apk" -not -path "*/intermediates/*" -exec cp {} ../../../build/apk/ \;
+          echo "Rebuilt APK with TV banner (320x180) and icon (512x512)"
       - name: Upload directly to GitHub Release
         if: github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
@@ -220,15 +213,10 @@ jobs:
           cp src/assets/icon.png "$RES/mipmap-xxxhdpi/ic_launcher.png"
           sed -i 's|<application |<application android:banner="@drawable/banner" |' "$MANIFEST"
           sed -i 's|<activity|<activity android:supportsPictureInPicture="true"|g' "$MANIFEST"
-          rm -rf build/apk/*.apk
           cd build/flutter/android && ./gradlew assembleRelease
           mkdir -p ../../../build/apk
-          cp app/build/outputs/apk/release/*.apk ../../../build/apk/
-          cd ../../../build/apk
-          for f in *arm64-v8a*.apk; do [ -f "$f" ] && mv "$f" "ktv-android-arm64.apk" || true; done
-          for f in *armeabi-v7a*.apk; do [ -f "$f" ] && mv "$f" "ktv-android-arm32.apk" || true; done
-          for f in *x86_64*.apk; do [ -f "$f" ] && mv "$f" "ktv-android-x86_64.apk" || true; done
-          echo "Rebuilt split APKs with TV banner (320x180), icon (512x512) and PiP enabled"
+          find . -name "*.apk" -not -path "*/intermediates/*" -exec cp {} ../../../build/apk/ \;
+          echo "Rebuilt split APKs with TV banner (320x180) and icon (512x512)"
       - name: Upload directly to GitHub Release
         if: github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
@@ -275,11 +263,10 @@ jobs:
           cp src/assets/icon.png "$RES/mipmap-xxxhdpi/ic_launcher.png"
           sed -i 's|<application |<application android:banner="@drawable/banner" |' "$MANIFEST"
           sed -i 's|<activity|<activity android:supportsPictureInPicture="true"|g' "$MANIFEST"
-          rm -rf build/aab/*.aab
           cd build/flutter/android && ./gradlew bundleRelease
           mkdir -p ../../../build/aab
-          cp app/build/outputs/bundle/release/*.aab ../../../build/aab/ktv-android.aab
-          echo "Rebuilt AAB with TV banner (320x180), icon (512x512) and PiP enabled"
+          find . -name "*.aab" -not -path "*/intermediates/*" -exec cp {} ../../../build/aab/ \;
+          echo "Rebuilt AAB with TV banner (320x180) and icon (512x512)"
       - name: Upload directly to GitHub Release
         if: github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
