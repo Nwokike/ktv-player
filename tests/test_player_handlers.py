@@ -3,6 +3,7 @@
 import asyncio
 from unittest import mock
 
+import flet as ft
 import pytest
 
 from components.player.handlers import (
@@ -240,3 +241,57 @@ class TestPlaybackStatesAndWatchdog:
         assert p.retry_btn.visible is True
         assert p.back_error_btn.visible is True
         p._start_watchdog.assert_not_called()
+
+
+class TestVodResumeAndPositionTracking:
+    def _player(self, source_url="http://example.com/vod.mp4"):
+        from components.player.immersive_player import ImmersivePlayer
+
+        p = ImmersivePlayer(resource=source_url, source_url=source_url, title="T")
+        p.update = mock.Mock()
+        return p
+
+    @pytest.mark.asyncio
+    async def test_save_current_position_vod(self):
+        from database.manager import db_manager
+
+        p = self._player("http://example.com/movie.mp4")
+        p.video.get_current_position = mock.AsyncMock(
+            return_value=ft.Duration(seconds=150)
+        )
+        p.video.get_duration = mock.AsyncMock(return_value=ft.Duration(seconds=600))
+        with mock.patch.object(
+            db_manager, "update_history_position", new_callable=mock.AsyncMock
+        ) as mock_update:
+            await p._save_current_position()
+            mock_update.assert_awaited_once_with(
+                "http://example.com/movie.mp4", 150.0, 600.0
+            )
+
+    @pytest.mark.asyncio
+    async def test_skip_save_position_live(self):
+        from database.manager import db_manager
+
+        p = self._player("http://example.com/live.m3u8")
+        p.video.get_current_position = mock.AsyncMock(
+            return_value=ft.Duration(seconds=150)
+        )
+        p.video.get_duration = mock.AsyncMock(return_value=ft.Duration(seconds=0))
+        with mock.patch.object(
+            db_manager, "update_history_position", new_callable=mock.AsyncMock
+        ) as mock_update:
+            await p._save_current_position()
+            mock_update.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_completion_resets_position(self):
+        from database.manager import db_manager
+
+        p = self._player("http://example.com/movie.mp4")
+        p._last_duration = 600.0
+        with mock.patch.object(
+            db_manager, "update_history_position", new_callable=mock.AsyncMock
+        ) as mock_update:
+            p._on_complete(mock.MagicMock())
+            await asyncio.sleep(0.05)
+            mock_update.assert_called_with("http://example.com/movie.mp4", 0.0, 600.0)

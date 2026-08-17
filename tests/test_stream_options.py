@@ -83,7 +83,26 @@ class TestApplyVariant:
         assert p._current_variant == 0
         assert p.resource == "http://127.0.0.1:1/pinned.m3u8"
         p.video.play.assert_awaited_once()
-        p.video.seek.assert_awaited_once()
+        # Seek is deferred: media isn't loaded yet at play() time, so the
+        # seek would be a no-op. _swap_media records the target in _pending_seek.
+        p.video.seek.assert_not_awaited()
+        assert p._pending_seek == 42
+
+        # Simulate playback tick after media loads
+        with mock.patch.object(
+            ImmersivePlayer, "page", new_callable=mock.PropertyMock
+        ) as mock_page:
+            import asyncio
+
+            def _run(coro, *a, **kw):
+                return asyncio.create_task(coro(*a, **kw))
+
+            mock_page.return_value = mock.MagicMock()
+            mock_page.return_value.run_task.side_effect = _run
+            p._on_pos_change()
+            await asyncio.sleep(0.1)
+        p.video.seek.assert_awaited_once_with(ft.Duration(seconds=42))
+        assert p._pending_seek is None
         p._start_watchdog.assert_called_once()
 
     @pytest.mark.asyncio
@@ -92,6 +111,7 @@ class TestApplyVariant:
         p.video.get_duration = mock.AsyncMock(return_value=ft.Duration(seconds=0))
         await p.apply_variant(1)
         assert p._current_variant == 1
+        assert p._pending_seek is None
         p.video.seek.assert_not_called()
 
     @pytest.mark.asyncio
@@ -137,36 +157,61 @@ class TestPipServiceDesktop:
 
 class TestSettingsDialogStreamSections:
     @pytest.mark.asyncio
-    async def test_no_stream_section_in_settings(self):
-        """Stream quality/audio are now in the separate quality picker (top-bar chip),
-        not in the settings dialog. Settings dialog only shows snapshot preferences
-        and screen aspect ratio."""
+    async def test_stream_section_visible_when_options_exist(self):
+        """Player Settings dialog shows Stream (Quality & Audio) section when multiple
+        variants exist."""
         player = mock.MagicMock()
         player.include_subtitles_in_snapshot = True
         player.snapshot_format = "image/png"
         player.can_switch_quality = True
         player._current_variant = None
         player._current_audio = None
-        player.list_variants = mock.AsyncMock(
-            return_value=[
-                {
-                    "index": 0,
-                    "label": "1280x720  (2.5 Mbps)",
-                    "bandwidth": 2500000,
-                    "resolution": "1280x720",
-                    "uri": "720/index.m3u8",
-                }
-            ]
-        )
+        player._variants_cache = [
+            {"index": 0, "label": "720p"},
+            {"index": 1, "label": "1080p"},
+        ]
+        player._audio_tracks_cache = []
+        player.list_variants = mock.AsyncMock(return_value=player._variants_cache)
         player.list_audio_tracks = mock.AsyncMock(return_value=[])
         player.video = mock.MagicMock()
         player.video.fit = ft.BoxFit.CONTAIN
         player.page = mock.MagicMock()
+        player.page.run_task = mock.MagicMock()
 
         await open_player_settings(player)
 
         dialog = player.page.show_dialog.call_args[0][0]
-        texts = [c.value for c in dialog.content.controls if isinstance(c, ft.Text)]
-        assert "Stream" not in texts  # Stream section moved to quality picker
-        assert "Snapshot Preferences" in texts
-        assert "Screen Aspect Ratio" in texts
+        stream_header = next(
+            c
+            for c in dialog.content.controls
+            if getattr(c, "value", None) == "Stream (Quality & Audio)"
+        )
+        assert stream_header.visible is True
+
+    @pytest.mark.asyncio
+    async def test_stream_section_hidden_for_local_or_single_stream(self):
+        """Local videos and single-quality streams hide the Stream (Quality & Audio) section."""
+        player = mock.MagicMock()
+        player.include_subtitles_in_snapshot = True
+        player.snapshot_format = "image/png"
+        player.can_switch_quality = False
+        player._current_variant = None
+        player._current_audio = None
+        player._variants_cache = []
+        player._audio_tracks_cache = []
+        player.list_variants = mock.AsyncMock(return_value=[])
+        player.list_audio_tracks = mock.AsyncMock(return_value=[])
+        player.video = mock.MagicMock()
+        player.video.fit = ft.BoxFit.CONTAIN
+        player.page = mock.MagicMock()
+        player.page.run_task = mock.MagicMock()
+
+        await open_player_settings(player)
+
+        dialog = player.page.show_dialog.call_args[0][0]
+        stream_header = next(
+            c
+            for c in dialog.content.controls
+            if getattr(c, "value", None) == "Stream (Quality & Audio)"
+        )
+        assert stream_header.visible is False

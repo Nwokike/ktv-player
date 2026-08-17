@@ -27,8 +27,14 @@ class AppState:
         self.favorites = []
 
     def add_to_history(self, url: str, title: str = ""):
-        # Normalize: store as dict with url and title
-        entry = {"url": url, "title": title or url}
+        # Normalize: store as dict with url and title, carrying forward any saved position/duration
+        existing = next((e for e in self.history if e.get("url") == url), None)
+        entry: dict = {"url": url, "title": title or url}
+        if isinstance(existing, dict):
+            if existing.get("position") is not None:
+                entry["position"] = existing["position"]
+            if existing.get("duration") is not None:
+                entry["duration"] = existing["duration"]
         # Remove existing entry with same URL
         self.history = [e for e in self.history if e.get("url") != url]
         self.history.insert(0, entry)

@@ -275,6 +275,128 @@ async def open_player_settings(player_inst):
             except Exception:
                 pass
 
+    # --- Stream (Quality & Audio) ---
+    # Restored to Settings: it is the reliable, always-reachable surface for
+    # quality/audio switching. The in-controls chip is gated behind a probe
+    # and was not reliably visible, so quality/audio now live here (and the
+    # chip, when visible, opens the same options). Populated from the already
+    # probed caches and refreshed in the background so the dialog opens
+    # instantly instead of blocking on a manifest fetch.
+    if not hasattr(player_inst, "_current_variant"):
+        player_inst._current_variant = None
+    if not hasattr(player_inst, "_current_audio"):
+        player_inst._current_audio = None
+
+    has_variants = (
+        getattr(player_inst, "_variants_cache", None) is not None
+        and len(player_inst._variants_cache) > 1
+    )
+    has_audio = (
+        getattr(player_inst, "_audio_tracks_cache", None) is not None
+        and len(player_inst._audio_tracks_cache) >= 2
+    )
+
+    stream_header = ft.Text(
+        "Stream (Quality & Audio)",
+        size=13,
+        weight=ft.FontWeight.W_600,
+        color=AppColors.PRIMARY,
+        visible=has_variants or has_audio,
+    )
+    stream_divider = ft.Divider(visible=has_variants or has_audio)
+
+    quality_dd = ft.Dropdown(
+        label="Quality",
+        value=(
+            "auto"
+            if player_inst._current_variant is None
+            else str(player_inst._current_variant)
+        ),
+        options=(
+            [ft.dropdown.Option("auto", "Auto (Adaptive)")]
+            + [
+                ft.dropdown.Option(str(v["index"]), v["label"])
+                for v in (getattr(player_inst, "_variants_cache", []) or [])
+            ]
+            if has_variants
+            else [ft.dropdown.Option("auto", "Auto (Adaptive)")]
+        ),
+        width=240,
+        visible=has_variants,
+        on_select=lambda e: player_inst.page.run_task(
+            player_inst.apply_variant,
+            None if e.control.value == "auto" else int(e.control.value),
+        ),
+    )
+    audio_dd = ft.Dropdown(
+        label="Audio Track",
+        value=(
+            "default"
+            if player_inst._current_audio is None
+            else player_inst._current_audio
+        ),
+        options=(
+            [ft.dropdown.Option("default", "Default")]
+            + [
+                ft.dropdown.Option(
+                    t["name"],
+                    t["name"] + (f" ({t['language']})" if t["language"] else ""),
+                )
+                for t in (getattr(player_inst, "_audio_tracks_cache", []) or [])
+            ]
+            if has_audio
+            else [ft.dropdown.Option("default", "Default")]
+        ),
+        width=240,
+        visible=has_audio,
+        on_select=lambda e: player_inst.page.run_task(
+            player_inst.apply_audio,
+            None if e.control.value == "default" else e.control.value,
+        ),
+    )
+
+    async def _refresh_stream_options():
+        try:
+            variants = await player_inst.list_variants() or []
+            tracks = await player_inst.list_audio_tracks() or [] if variants else []
+        except Exception:
+            return
+        has_q = len(variants) > 1
+        has_a = len(tracks) >= 2
+        quality_dd.visible = has_q
+        if has_q:
+            quality_dd.options = [ft.dropdown.Option("auto", "Auto (Adaptive)")] + [
+                ft.dropdown.Option(str(v["index"]), v["label"]) for v in variants
+            ]
+            quality_dd.value = (
+                "auto"
+                if player_inst._current_variant is None
+                else str(player_inst._current_variant)
+            )
+        audio_dd.visible = has_a
+        if has_a:
+            audio_dd.options = [ft.dropdown.Option("default", "Default")] + [
+                ft.dropdown.Option(
+                    t["name"],
+                    t["name"] + (f" ({t['language']})" if t["language"] else ""),
+                )
+                for t in tracks
+            ]
+            audio_dd.value = (
+                "default"
+                if player_inst._current_audio is None
+                else player_inst._current_audio
+            )
+        stream_header.visible = has_q or has_a
+        stream_divider.visible = has_q or has_a
+        try:
+            stream_header.update()
+            quality_dd.update()
+            audio_dd.update()
+            stream_divider.update()
+        except Exception:
+            pass
+
     def _close_dialog(e=None):
         try:
             dialog.open = False
@@ -290,6 +412,28 @@ async def open_player_settings(player_inst):
         ),
         content=ft.Column(
             controls=[
+                stream_header,
+                quality_dd,
+                audio_dd,
+                stream_divider,
+                ft.Text(
+                    "Screen Aspect Ratio",
+                    size=13,
+                    weight=ft.FontWeight.W_600,
+                    color=AppColors.PRIMARY,
+                ),
+                ft.Dropdown(
+                    label="Video Fit",
+                    value=getattr(player_inst.video.fit, "name", "CONTAIN"),
+                    options=[
+                        ft.dropdown.Option("CONTAIN", "Fit to Screen (Contain)"),
+                        ft.dropdown.Option("COVER", "Crop to Fill (Cover)"),
+                        ft.dropdown.Option("FILL", "Stretch to Fill (Fill)"),
+                    ],
+                    on_select=_change_fit,
+                    width=240,
+                ),
+                ft.Divider(),
                 ft.Text(
                     "Snapshot Preferences",
                     size=13,
@@ -311,27 +455,10 @@ async def open_player_settings(player_inst):
                     on_select=_change_format,
                     width=240,
                 ),
-                ft.Divider(),
-                ft.Text(
-                    "Screen Aspect Ratio",
-                    size=13,
-                    weight=ft.FontWeight.W_600,
-                    color=AppColors.PRIMARY,
-                ),
-                ft.Dropdown(
-                    label="Video Fit",
-                    value=getattr(player_inst.video.fit, "name", "CONTAIN"),
-                    options=[
-                        ft.dropdown.Option("CONTAIN", "Fit to Screen (Contain)"),
-                        ft.dropdown.Option("COVER", "Crop to Fill (Cover)"),
-                        ft.dropdown.Option("FILL", "Stretch to Fill (Fill)"),
-                    ],
-                    on_select=_change_fit,
-                    width=240,
-                ),
             ],
             tight=True,
             spacing=10,
+            scroll=ft.ScrollMode.AUTO,
         ),
         actions=[
             ft.TextButton("Done", on_click=_close_dialog),
@@ -341,19 +468,35 @@ async def open_player_settings(player_inst):
 
     try:
         player_inst.page.show_dialog(dialog)
+        player_inst.page.run_task(_refresh_stream_options)
     except Exception as ex:
         logger.warning("Failed to show player settings dialog: %s", ex)
 
 
 def handle_stream_complete(player_inst, e: ft.ControlEvent):
     """Handle stream completion / reconnection logic."""
+    # Finite VOD streams that reach the end should not reconnect
+    dur = getattr(player_inst, "_last_duration", 0.0)
+    pos = getattr(player_inst, "_last_position", 0.0)
+    if (
+        isinstance(dur, (int, float))
+        and isinstance(pos, (int, float))
+        and dur > 0
+        and pos >= max(0.0, dur - 5.0)
+    ):
+        return
+
     if re.match(r"https?://", player_inst.resource):
         if player_inst._reconnect_count < STREAM_RECONNECT_MAX:
             player_inst._reconnect_count += 1
             player_inst._show_progress(
                 f"Reconnecting stream ({player_inst._reconnect_count}/{STREAM_RECONNECT_MAX})..."
             )
-            player_inst.page.run_task(reconnect_stream, player_inst)
+            try:
+                if player_inst.page:
+                    player_inst.page.run_task(reconnect_stream, player_inst)
+            except Exception:
+                pass
         else:
             player_inst._show_final_error()
 

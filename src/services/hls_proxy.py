@@ -418,17 +418,25 @@ class HLSProxy:
 
             if stripped.startswith("#EXT-X-MEDIA:"):
                 attrs = _parse_attrs(stripped[len("#EXT-X-MEDIA:") :])
-                if attrs.get("TYPE", "").upper() == "AUDIO" and attrs.get("URI"):
-                    if audio is not None and attrs.get("NAME") != audio:
+                media_type = attrs.get("TYPE", "").upper()
+                if attrs.get("URI"):
+                    if (
+                        media_type == "AUDIO"
+                        and audio is not None
+                        and attrs.get("NAME") != audio
+                    ):
                         # Pinned to a different rendition — drop this one
                         continue
                     abs_uri = urllib.parse.urljoin(base_url, attrs["URI"])
-                    # Route audio renditions through the proxy too — without
-                    # this, referer-locked audio tracks fail to load
+                    # Route audio/subtitles/video renditions through the proxy
                     new_line = MEDIA_URI_PATTERN.sub(
                         lambda m, u=abs_uri: f'{m.group(1)}"{_proxy_sub(u)}"', stripped
                     )
-                    if audio is not None and attrs.get("NAME") == audio:
+                    if (
+                        media_type == "AUDIO"
+                        and audio is not None
+                        and attrs.get("NAME") == audio
+                    ):
                         attr_text = new_line[len("#EXT-X-MEDIA:") :]
                         attr_text = re.sub(r",?\s*DEFAULT=[^,]*", "", attr_text)
                         attr_text = re.sub(r",?\s*AUTOSELECT=[^,]*", "", attr_text)
@@ -442,6 +450,23 @@ class HLSProxy:
                     output_lines.append(new_line)
                     continue
                 output_lines.append(line)
+                continue
+
+            if stripped.startswith("#EXT-X-MAP"):
+                match = KEY_URI_PATTERN.search(stripped)
+                if match:
+                    map_url = match.group(1)
+                    abs_map_url = urllib.parse.urljoin(base_url, map_url)
+                    proxy_map_url = (
+                        f"{base_proxy}/segment?"
+                        f"url={_b64_encode(abs_map_url)}{ref_param}{hdrs_param}"
+                    )
+                    new_map_tag = KEY_URI_PATTERN.sub(
+                        f'URI="{proxy_map_url}"', stripped
+                    )
+                    output_lines.append(new_map_tag)
+                else:
+                    output_lines.append(line)
                 continue
 
             if stripped.startswith("#EXT-X-KEY"):

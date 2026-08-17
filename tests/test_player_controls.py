@@ -117,3 +117,21 @@ def test_desktop_play_and_pause_on_tap_enabled():
     desktop = controls.material_desktop
     assert isinstance(desktop, fv.MaterialDesktopVideoControls)
     assert desktop.play_and_pause_on_tap is False
+
+
+def test_quality_btn_mounted_in_bottom_bar():
+    player = mock.MagicMock()
+    player.speed_text = mock.MagicMock()
+    controls = build_player_controls(player)
+    assert hasattr(player, "quality_btn")
+    assert player.quality_btn in controls.material.bottom_button_bar
+    assert player.quality_btn in controls.material_desktop.bottom_button_bar
+
+
+def test_audio_btn_mounted_in_bottom_bar():
+    player = mock.MagicMock()
+    player.speed_text = mock.MagicMock()
+    controls = build_player_controls(player)
+    assert hasattr(player, "audio_btn")
+    assert player.audio_btn in controls.material.bottom_button_bar
+    assert player.audio_btn in controls.material_desktop.bottom_button_bar

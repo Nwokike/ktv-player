@@ -167,6 +167,23 @@ class TestRewritePinning:
         assert any(u.endswith("1080/index.m3u8") for u in urls)
         assert any(u.endswith("audio/en.m3u8") for u in urls)
         assert any(u.endswith("audio/ja.m3u8") for u in urls)
+        assert any(u.endswith("subs/en.m3u8") for u in urls)
+
+    def test_ext_x_map_rewritten_to_segment_proxy(self):
+        fmp4_m3u8 = (
+            "#EXTM3U\n"
+            "#EXT-X-VERSION:7\n"
+            '#EXT-X-MAP:URI="init.mp4"\n'
+            "#EXTINF:6.0,\n"
+            "seg1.m4s\n"
+        )
+        out = self._proxy()._rewrite_m3u8(
+            fmp4_m3u8, "https://cdn.example/video/index.m3u8", None, {"User-Agent": "X"}
+        )
+        assert '#EXT-X-MAP:URI="http://127.0.0.1:9999/segment?url=' in out
+        urls = _proxied_urls(out)
+        assert any(u.endswith("init.mp4") for u in urls)
+        assert any(u.endswith("seg1.m4s") for u in urls)
 
     def test_variant_pin_keeps_only_selected(self):
         out = self._proxy()._rewrite_m3u8(

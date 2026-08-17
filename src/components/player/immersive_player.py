@@ -8,6 +8,7 @@ import flet as ft
 import flet_video as fv
 
 from core.theme import AppColors
+from database.manager import db_manager
 from services.youtube_resolver import is_youtube_url
 from utils.notifications import (
     register_fullscreen_toast,
@@ -73,6 +74,30 @@ class ImmersivePlayer(ft.Stack):
         self._current_audio: str | None = None
         self._variants_cache: list[dict] | None = None
         self._audio_tracks_cache: list[dict] | None = None
+        # Resume-from-last-position: one-shot seek consumed by the first
+        # position-change tick after playback starts. _pending_seek is set
+        # by _swap_media; _initial_resume_position comes from history.
+        self._pending_seek: float | None = None
+        self._initial_resume_position: float | None = None
+        self._last_position: float = 0.0
+        self._last_duration: float = 0.0
+        try:
+            entry = db_manager.get_history_entry_sync(self.source_url)
+        except Exception:
+            entry = None
+        if entry and entry.get("position") is not None:
+            try:
+                saved_pos = float(entry["position"])
+                saved_dur = float(entry["duration"]) if entry.get("duration") else None
+                # Skip resume if finished (within 5s of end) or < 3s
+                if saved_pos > 3 and (
+                    saved_dur is None or saved_pos < max(0, saved_dur - 5)
+                ):
+                    self._initial_resume_position = saved_pos
+                    if saved_dur is not None:
+                        self._last_duration = saved_dur
+            except TypeError, ValueError:
+                self._initial_resume_position = None
 
         # Android PiP availability (detected without page context — jnius
         # only resolves on Android)
@@ -209,6 +234,7 @@ class ImmersivePlayer(ft.Stack):
             title=self.title or "KTV Player",
             controls=self._build_controls(),
             on_load=lambda e: self._hide_overlay(),
+            on_duration_change=self._on_duration_change,
             on_position_change=self._on_pos_change,
             on_error=self._on_error,
             on_complete=self._on_complete,
@@ -302,11 +328,8 @@ class ImmersivePlayer(ft.Stack):
         width = self.page.width
         if width is None or width <= 0:
             return
-        # 48px back button + 32px horizontal margins = 80px; the quality
-        # chip takes another ~64px when visible
-        chip = getattr(self, "quality_chip", None)
-        chip_reserve = 64 if (chip is not None and chip.visible) else 0
-        new_width = max(100, int(width) - 80 - chip_reserve)
+        # 48px back button + 32px horizontal margins = 80px
+        new_width = max(100, int(width) - 80)
         if self.title_container.width != new_width:
             self.title_container.width = new_width
             try:
@@ -512,9 +535,88 @@ class ImmersivePlayer(ft.Stack):
 
         await cycle_speed(self)
 
+    def _on_duration_change(self, e: ft.ControlEvent | None = None):
+        if not self._overlay_hidden:
+            self._hide_overlay()
+        if e and hasattr(e, "data") and e.data:
+            try:
+                val = float(e.data)
+                if val > 1_000_000:
+                    self._last_duration = val / 1_000_000.0
+                elif val > 1_000:
+                    self._last_duration = val / 1_000.0
+                elif val > 0:
+                    self._last_duration = val
+            except Exception:
+                pass
+        self._check_and_trigger_seek()
+
     def _on_pos_change(self, e: ft.ControlEvent | None = None):
         if not self._overlay_hidden:
             self._hide_overlay()
+        if e and hasattr(e, "data") and e.data:
+            try:
+                val = float(e.data)
+                if val > 1_000_000:
+                    self._last_position = val / 1_000_000.0
+                elif val > 1_000:
+                    self._last_position = val / 1_000.0
+                elif val > 0:
+                    self._last_position = val
+            except Exception:
+                pass
+        self._check_and_trigger_seek()
+
+    def _check_and_trigger_seek(self):
+        # After media is ready / first tick, consume any pending one-shot seek target —
+        # either the initial resume position loaded from history, or a position captured
+        # before a quality/audio swap.
+        target = getattr(self, "_pending_seek", None)
+        if target is None:
+            target = getattr(self, "_initial_resume_position", None)
+        if target and target > 3:
+            self._pending_seek = None
+            self._initial_resume_position = None
+            try:
+                if self.page:
+                    self.page.run_task(self._deferred_seek, target)
+            except Exception:
+                pass
+
+    async def _deferred_seek(self, seconds: float) -> None:
+        try:
+            # Poll readiness: mpv discards seek commands sent while the
+            # demuxer is still opening network playlists / media tracks.
+            for _ in range(40):  # up to 4.0s wait
+                if self._is_closing or not self.video:
+                    return
+                try:
+                    dur = await self.video.get_duration()
+                    if dur and dur.in_seconds > 0:
+                        break
+                except Exception:
+                    pass
+                await asyncio.sleep(0.1)
+
+            if self._is_closing or not self.video:
+                return
+
+            await asyncio.sleep(0.05)
+            await self.video.seek(ft.Duration(seconds=int(seconds)))
+            self._last_position = seconds
+            logger.info("Deferred seek succeeded to %s seconds", seconds)
+            from utils.notifications import notify
+
+            mins, secs = divmod(int(seconds), 60)
+            hrs, mins = divmod(mins, 60)
+            time_str = (
+                f"{hrs:02d}:{mins:02d}:{secs:02d}"
+                if hrs > 0
+                else f"{mins:02d}:{secs:02d}"
+            )
+            notify(f"⏱️ Resumed from {time_str}")
+        except Exception as ex:
+            logger.debug("Deferred seek failed: %s", ex)
 
     def _hide_overlay(self):
         if not self._overlay_hidden:
@@ -528,7 +630,7 @@ class ImmersivePlayer(ft.Stack):
                     "Failed to hide overlay (component might be unmounted): %s", ex
                 )
             # First successful playback: probe the stream once for quality /
-            # audio options so the chip can appear (MX-Player style).
+            # audio options so the button can appear.
             if not getattr(self, "_options_probed", False):
                 self._options_probed = True
                 try:
@@ -626,20 +728,42 @@ class ImmersivePlayer(ft.Stack):
 
     async def _swap_media(self, message: str) -> None:
         """Restart playback on the currently pinned resource, restoring the
-        position for VOD streams (live streams stay at the live edge)."""
+        position for seekable streams (live streams stay at the live edge)."""
         if self._is_closing or not self.video:
             return
         new_url = self._resource_url_for(self._current_variant, self._current_audio)
         position = None
         duration = None
         try:
-            position = await self.video.get_current_position()
-            duration = await self.video.get_duration()
+            pos_task = asyncio.create_task(self.video.get_current_position())
+            position = await asyncio.wait_for(pos_task, timeout=0.8)
+        except Exception:
+            pass
+        try:
+            dur_task = asyncio.create_task(self.video.get_duration())
+            duration = await asyncio.wait_for(dur_task, timeout=0.8)
         except Exception:
             pass
 
+        pos_sec = (
+            position.in_seconds
+            if (position and position.in_seconds > 0)
+            else self._last_position
+        )
+        dur_sec = (
+            duration.in_seconds
+            if (duration and duration.in_seconds > 0)
+            else self._last_duration
+        )
+        if dur_sec > 0:
+            self._last_duration = dur_sec
+
         self.resource = new_url
         self._show_progress(message)
+        # Restore position for finite streams (VOD duration > 0)
+        if dur_sec > 0 and pos_sec > 3:
+            self._pending_seek = pos_sec
+
         try:
             self.video.playlist = [
                 fv.VideoMedia(new_url, http_headers=self.http_headers),
@@ -647,15 +771,6 @@ class ImmersivePlayer(ft.Stack):
             self.video.update()
             await self.video.play()
             self._start_watchdog()
-            # Seek back only for finite (VOD) streams that had progress
-            if (
-                position is not None
-                and duration is not None
-                and duration.in_seconds > 0
-                and position.in_seconds > 3
-            ):
-                with contextlib.suppress(Exception):
-                    await self.video.seek(position)
         except Exception as ex:
             logger.error("Stream switch failed: %s", ex)
             self._show_final_error("Switch failed. Stream may be offline.")
@@ -671,15 +786,16 @@ class ImmersivePlayer(ft.Stack):
     async def apply_audio(self, name: str | None) -> None:
         """Pin an audio rendition (None = manifest default)."""
         self._current_audio = name
+        self._refresh_audio_label()
         await self._swap_media(
             "Default audio" if name is None else "Switching audio..."
         )
 
     def _refresh_quality_label(self) -> None:
-        """Sync the top-bar quality chip with the current pinning."""
+        """Sync the quality button with the current pinning."""
         text = getattr(self, "quality_text", None)
-        chip = getattr(self, "quality_chip", None)
-        if not text or not chip:
+        btn = getattr(self, "quality_btn", None)
+        if not text or not btn:
             return
         if self._current_variant is None:
             text.value = "Auto"
@@ -698,36 +814,64 @@ class ImmersivePlayer(ft.Stack):
                 else f"V{self._current_variant + 1}"
             )
         try:
-            chip.update()
+            btn.update()
+        except Exception:
+            pass
+
+    def _refresh_audio_label(self) -> None:
+        """Sync the audio button with the current pinning."""
+        text = getattr(self, "audio_text", None)
+        btn = getattr(self, "audio_btn", None)
+        if not text or not btn:
+            return
+        if self._current_audio is None:
+            text.value = "Default"
+        else:
+            text.value = self._current_audio
+        try:
+            btn.update()
         except Exception:
             pass
 
     async def _probe_stream_options(self) -> None:
-        """Fetch variants/audio once playback is running; reveal the quality
-        chip only when the stream actually has options to pick."""
+        """Fetch variants/audio once playback is running; reveal the quality and audio
+        buttons in bottom bar only when the stream actually has options to pick."""
         if not self.can_switch_quality or self._is_closing:
             return
         variants = await self.list_variants()
         tracks = await self.list_audio_tracks() if variants else []
         if self._is_closing:
             return
-        chip = getattr(self, "quality_chip", None)
-        if chip is None:
-            return
-        if len(variants) > 1 or len(tracks) >= 2:
-            chip.visible = True
+
+        # Quality button
+        q_btn = getattr(self, "quality_btn", None)
+        q_row = getattr(self, "quality_row", None)
+        if q_btn is not None and q_row is not None and len(variants) > 1:
+            q_btn.content = q_row
+            q_btn.padding = ft.Padding(4, 2, 4, 2)
             self._refresh_quality_label()
-            self._update_title_width()  # reserve title space for the chip
             try:
-                chip.update()
+                q_btn.update()
+            except Exception:
+                pass
+
+        # Audio button
+        a_btn = getattr(self, "audio_btn", None)
+        a_row = getattr(self, "audio_row", None)
+        if a_btn is not None and a_row is not None and len(tracks) >= 2:
+            a_btn.content = a_row
+            a_btn.padding = ft.Padding(4, 2, 4, 2)
+            self._refresh_audio_label()
+            try:
+                a_btn.update()
             except Exception:
                 pass
 
     async def open_quality_picker(self) -> None:
-        """Open the quick Quality/Audio picker (from the top-bar chip)."""
-        from components.player.handlers import open_quality_picker
+        """Open the player settings dialog with Stream Quality & Audio options."""
+        from components.player.handlers import open_player_settings
 
-        await open_quality_picker(self)
+        await open_player_settings(self)
 
     async def enter_pip(self) -> bool:
         """Enter Android Picture-in-Picture now (button action)."""
@@ -817,7 +961,47 @@ class ImmersivePlayer(ft.Stack):
             return
         self._start_watchdog()
 
+    async def _save_current_position(self) -> None:
+        """Capture and save playback position on player close for VOD streams."""
+        try:
+            if not self.video or not self.source_url:
+                return
+            pos = None
+            dur = None
+            try:
+                pos_task = asyncio.create_task(self.video.get_current_position())
+                pos = await asyncio.wait_for(pos_task, timeout=0.8)
+            except Exception:
+                pos = None
+            try:
+                dur_task = asyncio.create_task(self.video.get_duration())
+                dur = await asyncio.wait_for(dur_task, timeout=0.8)
+            except Exception:
+                dur = None
+
+            pos_sec = pos.in_seconds if pos else self._last_position
+            dur_sec = dur.in_seconds if dur else self._last_duration
+
+            # Only save for finite/VOD streams (duration > 0) with meaningful progress (> 3s)
+            if dur_sec > 0 and pos_sec > 3:
+                # If near the end (within 5s of completion), reset position to 0
+                if pos_sec >= (dur_sec - 5):
+                    pos_sec = 0.0
+                await db_manager.update_history_position(
+                    self.source_url, pos_sec, dur_sec
+                )
+        except Exception as ex:
+            logger.debug("Saving playback position failed: %s", ex)
+
     def _on_complete(self, e: ft.ControlEvent):
+        if self.source_url:
+            with contextlib.suppress(Exception):
+                loop = asyncio.get_running_loop()
+                loop.create_task(
+                    db_manager.update_history_position(
+                        self.source_url, 0.0, self._last_duration
+                    )
+                )
         from components.player.handlers import handle_stream_complete
 
         handle_stream_complete(self, e)
@@ -830,6 +1014,7 @@ class ImmersivePlayer(ft.Stack):
         self._is_closing = True
         self._is_final_error = True
         self._cancel_watchdog()
+        await self._save_current_position()
         try:
             if self.video:
                 # 1. Async stop first — proper player cleanup

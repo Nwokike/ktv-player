@@ -60,6 +60,64 @@ class TestDatabaseManager:
         assert history == []
 
     @pytest.mark.asyncio
+    async def test_save_history_carries_position_forward(self, temp_db):
+        """Re-saving an existing history entry must keep its saved position;
+        otherwise every re-play would lose resume progress."""
+        await temp_db.init_db()
+        await temp_db.save_history("http://hist.com", "Title")
+        await temp_db.update_history_position("http://hist.com", 120.0, 600.0)
+        # Re-play the same URL — should not wipe the saved position.
+        await temp_db.save_history("http://hist.com", "Title")
+        entry = await temp_db.get_history_entry("http://hist.com")
+        assert entry is not None
+        assert entry["position"] == 120.0
+        assert entry["duration"] == 600.0
+        assert entry["title"] == "Title"
+
+    @pytest.mark.asyncio
+    async def test_update_history_position_round_trip(self, temp_db):
+        await temp_db.init_db()
+        await temp_db.save_history("http://hist.com", "Title")
+        ok = await temp_db.update_history_position("http://hist.com", 45.5, 300.0)
+        assert ok is True
+        entry = await temp_db.get_history_entry("http://hist.com")
+        assert entry["position"] == 45.5
+        assert entry["duration"] == 300.0
+
+    @pytest.mark.asyncio
+    async def test_update_history_position_unknown_url(self, temp_db):
+        await temp_db.init_db()
+        ok = await temp_db.update_history_position("http://nope.com", 10.0)
+        assert ok is False
+        assert await temp_db.get_history_entry("http://nope.com") is None
+
+    @pytest.mark.asyncio
+    async def test_update_history_position_clamps_negative(self, temp_db):
+        await temp_db.init_db()
+        await temp_db.save_history("http://hist.com")
+        await temp_db.update_history_position("http://hist.com", -5.0)
+        entry = await temp_db.get_history_entry("http://hist.com")
+        assert entry["position"] == 0.0
+
+    def test_get_history_entry_sync(self, temp_db):
+        """Sync accessor used by ImmersivePlayer.__init__."""
+        temp_db._data["history"] = [
+            {
+                "url": "http://hist.com",
+                "title": "T",
+                "position": 42.0,
+                "duration": 100.0,
+            }
+        ]
+        entry = temp_db.get_history_entry_sync("http://hist.com")
+        assert entry is not None
+        assert entry["position"] == 42.0
+        # Returns a shallow copy — mutating it must NOT affect stored data.
+        entry["position"] = 999.0
+        assert temp_db._data["history"][0]["position"] == 42.0
+        assert temp_db.get_history_entry_sync("http://nope") is None
+
+    @pytest.mark.asyncio
     async def test_add_custom_channel(self, temp_db):
         await temp_db.init_db()
         await temp_db.add_custom_channel("My Channel", "http://my.channel")

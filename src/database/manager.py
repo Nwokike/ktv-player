@@ -99,12 +99,60 @@ class DatabaseManager:
     async def save_history(self, url: str, title: str = ""):
         async with self._lock:
             history = self._data.setdefault("history", [])
+            # Preserve any existing position so re-plays don't reset progress
+            existing = next((e for e in history if e.get("url") == url), None)
+            carried_position = (
+                existing.get("position") if isinstance(existing, dict) else None
+            )
+            carried_duration = (
+                existing.get("duration") if isinstance(existing, dict) else None
+            )
             # Remove existing entry with same URL
             history = [e for e in history if e.get("url") != url]
-            history.insert(0, {"url": url, "title": title or url})
+            entry: dict = {"url": url, "title": title or url}
+            if carried_position is not None:
+                entry["position"] = carried_position
+            if carried_duration is not None:
+                entry["duration"] = carried_duration
+            history.insert(0, entry)
             self._data["history"] = history[:50]
             self._dirty = True
             await self._save_now()
+
+    async def update_history_position(
+        self, url: str, position: float, duration: float | None = None
+    ) -> bool:
+        """Update the saved playback position for a history entry.
+
+        No-op (returns False) if no history entry exists for `url`.
+        """
+        async with self._lock:
+            for e in self._data.setdefault("history", []):
+                if e.get("url") == url:
+                    e["position"] = max(0.0, float(position))
+                    if duration is not None:
+                        e["duration"] = max(0.0, float(duration))
+                    self._dirty = True
+                    await self._save_now()
+                    return True
+            return False
+
+    async def get_history_entry(self, url: str) -> dict | None:
+        async with self._lock:
+            for e in self._data.get("history", []):
+                if e.get("url") == url:
+                    return e
+            return None
+
+    def get_history_entry_sync(self, url: str) -> dict | None:
+        """Sync accessor for use from synchronous contexts (e.g. component
+        __init__). Safe because the underlying data is only mutated under
+        `_lock` and we return a shallow copy of the entry dict.
+        """
+        for e in self._data.get("history", []):
+            if e.get("url") == url:
+                return dict(e)
+        return None
 
     async def get_history(self, limit: int = 20) -> list[dict]:
         async with self._lock:
