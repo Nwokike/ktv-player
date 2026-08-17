@@ -78,6 +78,10 @@ class ChannelProvider:
         self.MASTER_PLAYLIST_URL = (
             "https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8"
         )
+        self.PLAYLIST_SOURCES = [
+            "https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8",
+            "https://nwokike.github.io/IPTV/playlist.m3u8",
+        ]
         self.CACHE_DURATION = 24 * 60 * 60
         self.STALE_DURATION = 48 * 60 * 60
         self._channels = []
@@ -130,23 +134,29 @@ class ChannelProvider:
                 async with refresh_lock:
                     if self._channels and not cached_text:
                         return list(self._channels)
-                    try:
-                        logger.info(
-                            "Fetching master playlist from %s", self.MASTER_PLAYLIST_URL
-                        )
-                        client = get_http_client()
-                        response = await client.get(
-                            self.MASTER_PLAYLIST_URL, timeout=30.0
-                        )
-                        response.raise_for_status()
-                        await asyncio.to_thread(_write_cache, response.text)
-                        self._channels = self._parse_cached(response.text)
+                    client = get_http_client()
+                    fetched_text = None
+                    for url in self.PLAYLIST_SOURCES:
+                        try:
+                            logger.info("Fetching master playlist from %s", url)
+                            response = await client.get(url, timeout=30.0)
+                            response.raise_for_status()
+                            fetched_text = response.text
+                            if fetched_text and len(fetched_text) > 100:
+                                break
+                        except Exception as ex:
+                            logger.warning(
+                                "Failed to fetch playlist from %s: %s", url, ex
+                            )
+
+                    if fetched_text:
+                        await asyncio.to_thread(_write_cache, fetched_text)
+                        self._channels = self._parse_cached(fetched_text)
                         logger.info(
                             "Master playlist fetched successfully: %d channels parsed",
                             len(self._channels),
                         )
-                    except Exception:
-                        logger.exception("Failed to fetch master playlist")
+                    else:
                         # Fallback to cache if available
                         if not self._channels and cached_text:
                             self._channels = self._parse_cached(cached_text)
