@@ -70,6 +70,35 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
         alignment=ft.Alignment.CENTER,
     )
 
+    # Quality chip (MX-Player style): top bar, appears once the stream's
+    # options are probed (multi-variant and/or multi-audio). The title width
+    # reserves room for it whenever it is visible.
+    quality_text = ft.Text(
+        "Auto",
+        size=11,
+        color=ft.Colors.WHITE,
+        weight=ft.FontWeight.W_600,
+        no_wrap=True,
+    )
+    quality_chip = ft.Container(
+        content=ft.Row(
+            controls=[
+                ft.Icon(ft.Icons.HIGH_QUALITY, size=14, color=ft.Colors.WHITE),
+                quality_text,
+            ],
+            spacing=4,
+            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+        ),
+        padding=ft.Padding(8, 4, 8, 4),
+        border_radius=4,
+        ink=True,
+        visible=False,
+        tooltip="Quality & Audio",
+        on_click=lambda e: player_inst.page.run_task(player_inst.open_quality_picker),
+    )
+    player_inst.quality_chip = quality_chip
+    player_inst.quality_text = quality_text
+
     # In-player Favorite Star Button — hidden for deep-link plays
     show_fav = getattr(player_inst, "show_favorite_button", True)
     is_fav = player_inst.resource in (state.favorites or [])
@@ -137,6 +166,16 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
         on_click=lambda e: player_inst.page.run_task(player_inst._open_player_settings),
     )
 
+    # Android Picture-in-Picture (mobile controls only)
+    pip_btn = None
+    if getattr(player_inst, "pip_available", False):
+        pip_btn = ft.IconButton(
+            icon=ft.Icons.PICTURE_IN_PICTURE,
+            icon_color=ft.Colors.WHITE,
+            tooltip="Picture-in-Picture",
+            on_click=lambda e: player_inst.page.run_task(player_inst.enter_pip),
+        )
+
     return fv.AdaptiveVideoControls(
         # --- Mobile (touch) ---
         material=fv.MaterialVideoControls(
@@ -160,6 +199,7 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
             top_button_bar=[
                 back_btn,
                 title_slot,
+                quality_chip,
             ],
             bottom_button_bar=[
                 fv.VideoPositionIndicator(
@@ -171,6 +211,7 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
                 sub_btn,
                 settings_btn,
                 speed_container,
+                *([pip_btn] if pip_btn else []),
                 fv.VideoFullscreenButton(icon_color=ft.Colors.WHITE),
             ],
         ),
@@ -190,6 +231,7 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
             top_button_bar=[
                 back_btn,
                 title_slot,
+                quality_chip,
             ],
             bottom_button_bar=[
                 fv.VideoVolumeButton(slider_width=80, icon_color=ft.Colors.WHITE),

@@ -353,6 +353,7 @@ class AppController:
 
         # Favorite star only for in-app channel plays — deep links AND local
         # videos open the player without it (history is saved for both).
+        # Source metadata lets the player re-pin quality/audio via the proxy.
         player = ImmersivePlayer(
             resource=resource_url,
             title=title,
@@ -360,6 +361,11 @@ class AppController:
             on_close=lambda: self._close_player(),
             ad_service=self.ad_service,
             show_favorite=not (from_deep_link or is_local_media_url(url)),
+            hls_proxy=self.hls_proxy,
+            source_url=url,
+            source_referer=referer_header,
+            source_headers=headers or None,
+            source_proxied=resource_url != url,
         )
 
         player_view = ft.View(

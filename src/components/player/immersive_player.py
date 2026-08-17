@@ -8,6 +8,7 @@ import flet as ft
 import flet_video as fv
 
 from core.theme import AppColors
+from services.youtube_resolver import is_youtube_url
 from utils.notifications import (
     register_fullscreen_toast,
     set_fullscreen_toast_active,
@@ -22,6 +23,17 @@ logger = logging.getLogger(__name__)
 _WATCHDOG_SECONDS = 20.0
 
 
+def _short_variant_label(variant: dict) -> str:
+    """Compact chip label: '1280x720' → '720p', else bandwidth."""
+    resolution = variant.get("resolution") or ""
+    if "x" in resolution:
+        return f"{resolution.split('x')[-1]}p"
+    bandwidth = variant.get("bandwidth", 0)
+    if bandwidth >= 1_000_000:
+        return f"{bandwidth / 1_000_000:.0f}M"
+    return f"V{(variant.get('index') or 0) + 1}"
+
+
 class ImmersivePlayer(ft.Stack):
     def __init__(
         self,
@@ -34,9 +46,15 @@ class ImmersivePlayer(ft.Stack):
         http_headers: dict | None = None,
         ad_service: Any | None = None,
         show_favorite: bool = True,
+        hls_proxy: Any | None = None,
+        source_url: str = "",
+        source_referer: str | None = None,
+        source_headers: dict | None = None,
+        source_proxied: bool = False,
     ):
         super().__init__()
         self.resource = resource
+        self._original_resource = resource
         self.on_close = on_close
         self.title = title
         self.http_headers = http_headers or {}
@@ -44,6 +62,27 @@ class ImmersivePlayer(ft.Stack):
         # Deep-link plays (ktv://) hide the in-player favorite star
         self.show_favorite_button = show_favorite
         self.expand = True
+
+        # Quality / audio-track switching (HLS proxy manifest pinning)
+        self.hls_proxy = hls_proxy
+        self.source_url = source_url or resource
+        self.source_referer = source_referer
+        self.source_headers = source_headers
+        self.source_proxied = source_proxied
+        self._current_variant: int | None = None
+        self._current_audio: str | None = None
+        self._variants_cache: list[dict] | None = None
+        self._audio_tracks_cache: list[dict] | None = None
+
+        # Android PiP availability (detected without page context — jnius
+        # only resolves on Android)
+        self.pip_available = False
+        try:
+            from services.pip_service import is_pip_supported
+
+            self.pip_available = is_pip_supported()
+        except Exception:
+            self.pip_available = False
 
         self._retry_count = 0
         self._reconnect_count = 0
@@ -190,11 +229,63 @@ class ImmersivePlayer(ft.Stack):
         self._update_title_width()
         # The toast chip was created by build_player_controls() in __init__
         register_fullscreen_toast(self.toast_chip, self.toast_text)
+        self._enable_auto_pip()
 
     def will_unmount(self):
         super().will_unmount()
         unregister_fullscreen_toast()
         self._cancel_watchdog()
+        self._disable_auto_pip()
+
+    # --- Android PiP ---
+
+    def _enable_auto_pip(self):
+        """Modern auto-PiP: Android 12+ enters PiP on swipe-home natively
+        (setAutoEnterEnabled); Android 8–11 falls back to entering PiP when
+        the lifecycle reports the app is actually leaving the screen."""
+        if not self.pip_available:
+            return
+        from services import pip_service
+
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            return
+
+        loop.create_task(asyncio.to_thread(pip_service.set_auto_pip, True))
+
+        # Android 8-11 fallback: hook lifecycle 'hidden' (only fires when the
+        # app is really leaving the screen — not for the notification shade)
+        if self.page and pip_service.api_level() < 31:
+            previous = self.page.on_app_lifecycle_state_change
+            self._pip_lifecycle_previous = previous
+
+            def _on_lifecycle(e):
+                if getattr(e, "data", None) == "hidden":
+                    loop.create_task(asyncio.to_thread(pip_service.enter_pip))
+                if previous is not None:
+                    result = previous(e)
+                    if hasattr(result, "__await__"):
+                        loop.create_task(result)
+
+            self.page.on_app_lifecycle_state_change = _on_lifecycle
+
+    def _disable_auto_pip(self):
+        if not self.pip_available:
+            return
+        from services import pip_service
+
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(asyncio.to_thread(pip_service.set_auto_pip, False))
+        except RuntimeError:
+            pass
+        if self.page and hasattr(self, "_pip_lifecycle_previous"):
+            try:
+                self.page.on_app_lifecycle_state_change = self._pip_lifecycle_previous
+            except Exception:
+                pass
+        self._pip_lifecycle_previous = None
         # Sync stop: clear playlist + update() queues a platform channel
         # message that stops native playback immediately. No await needed.
         if self.video and not self._is_closing:
@@ -211,8 +302,11 @@ class ImmersivePlayer(ft.Stack):
         width = self.page.width
         if width is None or width <= 0:
             return
-        # 48px back button + 32px horizontal margins = 80px
-        new_width = max(100, int(width) - 80)
+        # 48px back button + 32px horizontal margins = 80px; the quality
+        # chip takes another ~64px when visible
+        chip = getattr(self, "quality_chip", None)
+        chip_reserve = 64 if (chip is not None and chip.visible) else 0
+        new_width = max(100, int(width) - 80 - chip_reserve)
         if self.title_container.width != new_width:
             self.title_container.width = new_width
             try:
@@ -376,6 +470,28 @@ class ImmersivePlayer(ft.Stack):
             logger.info("Playback cancelled — player closed during ad")
             return
 
+        # Resolve YouTube URLs to direct streams (no yt-dlp binary needed).
+        # VOD resolves via InnerTube; lives are best-effort — on failure the
+        # original URL is kept, and desktop mpv still falls back to yt-dlp.
+        if is_youtube_url(self.resource):
+            self._show_progress("Resolving YouTube stream...")
+            resolved = None
+            try:
+                from services.youtube_resolver import resolve_youtube_url
+
+                resolved = await asyncio.wait_for(
+                    resolve_youtube_url(self.resource), timeout=25.0
+                )
+            except Exception as ex:
+                logger.warning("YouTube resolution failed: %s", ex)
+            if resolved and resolved != self.resource:
+                logger.info("YouTube resolved to direct stream")
+                self.resource = resolved
+                self._original_resource = resolved
+                # Probe quality/audio on the resolved manifest
+                self.source_url = resolved
+                self.source_proxied = False
+
         try:
             self.video.playlist = [
                 fv.VideoMedia(self.resource, http_headers=self.http_headers),
@@ -411,6 +527,15 @@ class ImmersivePlayer(ft.Stack):
                 logger.debug(
                     "Failed to hide overlay (component might be unmounted): %s", ex
                 )
+            # First successful playback: probe the stream once for quality /
+            # audio options so the chip can appear (MX-Player style).
+            if not getattr(self, "_options_probed", False):
+                self._options_probed = True
+                try:
+                    loop = asyncio.get_running_loop()
+                    loop.create_task(self._probe_stream_options())
+                except RuntimeError:
+                    pass
 
     def _enable_tap_to_close(self):
         self.overlay.on_click = lambda _: self.page.run_task(self.handle_close)
@@ -434,6 +559,184 @@ class ImmersivePlayer(ft.Stack):
         self.overlay.visible = True
         self._enable_tap_to_close()
         self._safe_update()
+
+    # --- Quality / audio-track switching (HLS via proxy) ---
+
+    def _resource_url_for(self, variant: int | None, audio: str | None) -> str:
+        """Rebuild the playback URL for a (variant, audio) pinning choice."""
+        if (
+            self.hls_proxy
+            and self.source_url
+            and (variant is not None or audio is not None or self.source_proxied)
+        ):
+            try:
+                return self.hls_proxy.get_proxy_url(
+                    self.source_url,
+                    referer=self.source_referer,
+                    headers=self.source_headers,
+                    variant=variant,
+                    audio=audio,
+                )
+            except Exception:
+                pass
+        return self._original_resource
+
+    @property
+    def can_switch_quality(self) -> bool:
+        return bool(self.hls_proxy) and self.source_url.startswith(
+            ("http://", "https://")
+        )
+
+    async def list_variants(self) -> list[dict]:
+        """HLS master variants (cached). Empty for media playlists/non-HLS."""
+        if self._variants_cache is not None:
+            return self._variants_cache
+        if not self.can_switch_quality:
+            return []
+        try:
+            variants = await asyncio.wait_for(
+                self.hls_proxy.fetch_variants(
+                    self.source_url, headers=self.source_headers
+                ),
+                timeout=8.0,
+            )
+        except Exception:
+            variants = []
+        self._variants_cache = variants or []
+        return self._variants_cache
+
+    async def list_audio_tracks(self) -> list[dict]:
+        """External HLS audio renditions (cached). Muxed audio is not
+        switchable via manifest rewriting."""
+        if self._audio_tracks_cache is not None:
+            return self._audio_tracks_cache
+        if not self.can_switch_quality:
+            return []
+        try:
+            tracks = await asyncio.wait_for(
+                self.hls_proxy.fetch_audio_tracks(
+                    self.source_url, headers=self.source_headers
+                ),
+                timeout=8.0,
+            )
+        except Exception:
+            tracks = []
+        self._audio_tracks_cache = tracks or []
+        return self._audio_tracks_cache
+
+    async def _swap_media(self, message: str) -> None:
+        """Restart playback on the currently pinned resource, restoring the
+        position for VOD streams (live streams stay at the live edge)."""
+        if self._is_closing or not self.video:
+            return
+        new_url = self._resource_url_for(self._current_variant, self._current_audio)
+        position = None
+        duration = None
+        try:
+            position = await self.video.get_current_position()
+            duration = await self.video.get_duration()
+        except Exception:
+            pass
+
+        self.resource = new_url
+        self._show_progress(message)
+        try:
+            self.video.playlist = [
+                fv.VideoMedia(new_url, http_headers=self.http_headers),
+            ]
+            self.video.update()
+            await self.video.play()
+            self._start_watchdog()
+            # Seek back only for finite (VOD) streams that had progress
+            if (
+                position is not None
+                and duration is not None
+                and duration.in_seconds > 0
+                and position.in_seconds > 3
+            ):
+                with contextlib.suppress(Exception):
+                    await self.video.seek(position)
+        except Exception as ex:
+            logger.error("Stream switch failed: %s", ex)
+            self._show_final_error("Switch failed. Stream may be offline.")
+
+    async def apply_variant(self, index: int | None) -> None:
+        """Pin a quality variant (None = Auto)."""
+        self._current_variant = index
+        self._refresh_quality_label()
+        await self._swap_media(
+            "Auto quality" if index is None else "Switching quality..."
+        )
+
+    async def apply_audio(self, name: str | None) -> None:
+        """Pin an audio rendition (None = manifest default)."""
+        self._current_audio = name
+        await self._swap_media(
+            "Default audio" if name is None else "Switching audio..."
+        )
+
+    def _refresh_quality_label(self) -> None:
+        """Sync the top-bar quality chip with the current pinning."""
+        text = getattr(self, "quality_text", None)
+        chip = getattr(self, "quality_chip", None)
+        if not text or not chip:
+            return
+        if self._current_variant is None:
+            text.value = "Auto"
+        else:
+            current = next(
+                (
+                    v
+                    for v in (self._variants_cache or [])
+                    if v.get("index") == self._current_variant
+                ),
+                None,
+            )
+            text.value = (
+                _short_variant_label(current)
+                if current
+                else f"V{self._current_variant + 1}"
+            )
+        try:
+            chip.update()
+        except Exception:
+            pass
+
+    async def _probe_stream_options(self) -> None:
+        """Fetch variants/audio once playback is running; reveal the quality
+        chip only when the stream actually has options to pick."""
+        if not self.can_switch_quality or self._is_closing:
+            return
+        variants = await self.list_variants()
+        tracks = await self.list_audio_tracks() if variants else []
+        if self._is_closing:
+            return
+        chip = getattr(self, "quality_chip", None)
+        if chip is None:
+            return
+        if len(variants) > 1 or len(tracks) >= 2:
+            chip.visible = True
+            self._refresh_quality_label()
+            self._update_title_width()  # reserve title space for the chip
+            try:
+                chip.update()
+            except Exception:
+                pass
+
+    async def open_quality_picker(self) -> None:
+        """Open the quick Quality/Audio picker (from the top-bar chip)."""
+        from components.player.handlers import open_quality_picker
+
+        await open_quality_picker(self)
+
+    async def enter_pip(self) -> bool:
+        """Enter Android Picture-in-Picture now (button action)."""
+        try:
+            from services.pip_service import enter_pip
+
+            return await asyncio.to_thread(enter_pip)
+        except Exception:
+            return False
 
     # --- Watchdog ---
 

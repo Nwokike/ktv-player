@@ -97,33 +97,41 @@ async def pick_subtitles(player_inst):
         )
 
     dialog = ft.AlertDialog(
-        title=ft.Text("Subtitle Options", size=16, weight=ft.FontWeight.BOLD),
+        title=ft.Text("Subtitles", size=15, weight=ft.FontWeight.W_700),
+        content_padding=ft.Padding(0, 8, 0, 0),
+        inset_padding=ft.Padding(20, 24, 20, 16),
         content=ft.Column(
             controls=[
                 ft.ListTile(
-                    leading=ft.Icon(ft.Icons.SUBTITLES_ROUNDED),
-                    title=ft.Text("Auto (Embedded Track)"),
-                    subtitle=ft.Text("Detect automatically from stream"),
+                    leading=ft.Icon(ft.Icons.SUBTITLES_ROUNDED, size=20),
+                    title=ft.Text("Auto", size=14, weight=ft.FontWeight.W_500),
+                    subtitle=ft.Text(
+                        "Detect from stream", size=11, color=AppColors.grey_dim()
+                    ),
                     trailing=_check_icon(active_sub == "auto"),
                     on_click=_select_auto,
                 ),
                 ft.ListTile(
-                    leading=ft.Icon(ft.Icons.SUBTITLES_OFF_ROUNDED),
-                    title=ft.Text("Off"),
-                    subtitle=ft.Text("Disable subtitles"),
+                    leading=ft.Icon(ft.Icons.SUBTITLES_OFF_ROUNDED, size=20),
+                    title=ft.Text("Off", size=14, weight=ft.FontWeight.W_500),
+                    subtitle=ft.Text("Disabled", size=11, color=AppColors.grey_dim()),
                     trailing=_check_icon(active_sub == "off"),
                     on_click=_select_off,
                 ),
                 ft.ListTile(
-                    leading=ft.Icon(ft.Icons.FOLDER_OPEN_ROUNDED),
-                    title=ft.Text("Load Local Subtitle File..."),
-                    subtitle=ft.Text("Select .srt or .vtt file"),
+                    leading=ft.Icon(ft.Icons.FOLDER_OPEN_ROUNDED, size=20),
+                    title=ft.Text(
+                        "Load Local File…", size=14, weight=ft.FontWeight.W_500
+                    ),
+                    subtitle=ft.Text(
+                        "Select .srt or .vtt", size=11, color=AppColors.grey_dim()
+                    ),
                     trailing=_check_icon(active_sub == "local"),
                     on_click=_pick_local,
                 ),
             ],
             tight=True,
-            spacing=4,
+            spacing=2,
         ),
         actions=[
             ft.TextButton("Cancel", on_click=_close_dialog),
@@ -135,6 +143,112 @@ async def pick_subtitles(player_inst):
         player_inst.page.show_dialog(dialog)
     except Exception as ex:
         logger.warning("Failed to show subtitle options dialog: %s", ex)
+
+
+async def open_quality_picker(player_inst):
+    """Quick Quality / Audio picker opened from the top-bar chip.
+
+    Uses the already-probed variant/track caches, so it opens instantly —
+    no manifest fetch on the dialog path.
+    """
+    from core.theme import AppColors
+
+    variants = await player_inst.list_variants() or []
+    tracks = await player_inst.list_audio_tracks() or [] if variants else []
+    if not variants and not tracks:
+        return
+
+    def _close_dialog(e=None):
+        try:
+            dialog.open = False
+            player_inst.page.update()
+        except Exception:
+            pass
+
+    def _pick_quality(index):
+        _close_dialog()
+        player_inst.page.run_task(player_inst.apply_variant, index)
+
+    def _pick_audio(name):
+        _close_dialog()
+        player_inst.page.run_task(player_inst.apply_audio, name)
+
+    def _check(active: bool):
+        return (
+            ft.Icon(ft.Icons.CHECK_ROUNDED, color=AppColors.PRIMARY, size=18)
+            if active
+            else None
+        )
+
+    rows: list[ft.Control] = [
+        ft.ListTile(
+            leading=ft.Icon(ft.Icons.AUTO_AWESOME, size=20),
+            title=ft.Text("Auto", size=14),
+            subtitle=ft.Text("Adaptive (let the stream decide)", size=11),
+            trailing=_check(player_inst._current_variant is None),
+            on_click=lambda e: _pick_quality(None),
+        )
+    ]
+    rows.extend(
+        ft.ListTile(
+            dense=True,
+            title=ft.Text(v["label"], size=14),
+            trailing=_check(player_inst._current_variant == v["index"]),
+            on_click=lambda e, idx=v["index"]: _pick_quality(idx),
+        )
+        for v in variants
+    )
+
+    if len(tracks) >= 2:
+        rows.append(ft.Divider())
+        rows.append(
+            ft.Text(
+                "Audio Track",
+                size=12,
+                weight=ft.FontWeight.W_600,
+                color=AppColors.PRIMARY,
+            )
+        )
+        rows.append(
+            ft.ListTile(
+                dense=True,
+                title=ft.Text("Default", size=14),
+                trailing=_check(player_inst._current_audio is None),
+                on_click=lambda e: _pick_audio(None),
+            )
+        )
+        rows.extend(
+            ft.ListTile(
+                dense=True,
+                title=ft.Text(
+                    t["name"] + (f" ({t['language']})" if t["language"] else ""),
+                    size=14,
+                ),
+                trailing=_check(player_inst._current_audio == t["name"]),
+                on_click=lambda e, n=t["name"]: _pick_audio(n),
+            )
+            for t in tracks
+        )
+
+    dialog = ft.AlertDialog(
+        title=ft.Text("Quality", size=15, weight=ft.FontWeight.W_700),
+        content_padding=ft.Padding(0, 8, 0, 0),
+        inset_padding=ft.Padding(20, 24, 20, 16),
+        content=ft.Container(
+            content=ft.Column(
+                controls=rows, tight=True, spacing=2, scroll=ft.ScrollMode.AUTO
+            ),
+            width=280,
+            height=min(420, 52 * (len(rows) + 1)),
+        ),
+        actions=[ft.TextButton("Cancel", on_click=_close_dialog)],
+        actions_alignment=ft.MainAxisAlignment.END,
+    )
+
+    try:
+        player_inst.page.show_dialog(dialog)
+    except Exception as ex:
+        logger.warning("Failed to show quality picker: %s", ex)
 
 
 async def open_player_settings(player_inst):
