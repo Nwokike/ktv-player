@@ -17,7 +17,6 @@ Verified facts:
 
 import logging
 from fractions import Fraction
-from typing import ClassVar
 
 logger = logging.getLogger(__name__)
 
@@ -35,13 +34,17 @@ def _get_activity():
         return _activity
     import os
 
-    from jnius import autoclass
+    try:
+        from jnius import autoclass
+    except Exception:
+        return None
 
     for cls_name in (
         os.getenv("MAIN_ACTIVITY_HOST_CLASS_NAME"),
         "ng.kiri.ktvplayer.MainActivity",
         "net.flet.MainActivity",
         "com.flet.flet_android.MainActivity",
+        "org.kivy.android.PythonActivity",
     ):
         if not cls_name:
             continue
@@ -69,12 +72,12 @@ def api_level() -> int:
 
 
 def is_pip_supported() -> bool:
-    if api_level() < _MIN_API:
-        return False
-    activity = _get_activity()
-    if activity is None:
-        return False
     try:
+        if api_level() < _MIN_API:
+            return False
+        activity = _get_activity()
+        if activity is None:
+            return False
         pm = activity.getPackageManager()
         return bool(pm.hasSystemFeature("android.software.picture_in_picture"))
     except Exception as ex:
@@ -101,27 +104,8 @@ def _build_params(auto_enter: bool, aspect: float | None):
     return builder.build()
 
 
-def _run_on_ui(activity, fn) -> None:
-    from jnius import PythonJavaClass, java_method
-
-    class _Runnable(PythonJavaClass):
-        __javainterfaces__: ClassVar[list[str]] = ["java/lang/Runnable"]
-
-        def __init__(self):
-            super().__init__()
-
-        @java_method("()V")
-        def run(self):
-            try:
-                fn()
-            except Exception as ex:
-                logger.debug("PiP UI-thread task failed: %s", ex)
-
-    activity.runOnUiThread(_Runnable())
-
-
 def enter_pip(aspect: float | None = None) -> bool:
-    """Enter Picture-in-Picture now. Returns True when the call was posted."""
+    """Enter Picture-in-Picture now. Returns True when the call was made."""
     if not is_pip_supported():
         return False
     activity = _get_activity()
@@ -129,13 +113,9 @@ def enter_pip(aspect: float | None = None) -> bool:
         return False
     try:
         effective_aspect = aspect if aspect else 16 / 9
-
-        def _do():
-            activity.enterPictureInPictureMode(
-                _build_params(auto_enter=False, aspect=effective_aspect)
-            )
-
-        _run_on_ui(activity, _do)
+        activity.enterPictureInPictureMode(
+            _build_params(auto_enter=False, aspect=effective_aspect)
+        )
         return True
     except Exception as ex:
         logger.warning("enter_pip failed: %s", ex)
@@ -153,13 +133,9 @@ def set_auto_pip(enabled: bool, aspect: float | None = None) -> bool:
     if activity is None:
         return False
     try:
-
-        def _do():
-            activity.setPictureInPictureParams(
-                _build_params(auto_enter=enabled, aspect=aspect or 16 / 9)
-            )
-
-        _run_on_ui(activity, _do)
+        activity.setPictureInPictureParams(
+            _build_params(auto_enter=enabled, aspect=aspect or 16 / 9)
+        )
         return True
     except Exception as ex:
         logger.warning("set_auto_pip failed: %s", ex)
