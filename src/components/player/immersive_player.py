@@ -252,16 +252,66 @@ class ImmersivePlayer(ft.Stack):
 
     def did_mount(self):
         super().did_mount()
-        self._update_title_width()
         # The toast chip was created by build_player_controls() in __init__
         register_fullscreen_toast(self.toast_chip, self.toast_text)
         self._enable_auto_pip()
+        self._setup_resize_listener()
+        self._update_title_width()
 
     def will_unmount(self):
         super().will_unmount()
+        self._remove_resize_listener()
         unregister_fullscreen_toast()
         self._cancel_watchdog()
         self._disable_auto_pip()
+        # Save position if not already saved
+        if self.source_url and self._last_duration > 0 and self._last_position > 3:
+            pos_sec = self._last_position
+            if pos_sec >= (self._last_duration - 5):
+                pos_sec = 0.0
+            try:
+                loop = asyncio.get_running_loop()
+                loop.create_task(
+                    db_manager.update_history_position(
+                        self.source_url, pos_sec, self._last_duration
+                    )
+                )
+            except RuntimeError:
+                pass
+
+    @property
+    def safe_page(self):
+        if hasattr(self, "_mock_page") and self._mock_page is not None:
+            return self._mock_page
+        try:
+            return self.page
+        except Exception:
+            return None
+
+    def _setup_resize_listener(self):
+        page = self.safe_page
+        if not page:
+            return
+        self._previous_on_resize = getattr(page, "on_resize", None)
+
+        def _on_page_resize(e):
+            self._update_title_width()
+            if self._previous_on_resize:
+                try:
+                    res = self._previous_on_resize(e)
+                    if hasattr(res, "__await__"):
+                        loop = asyncio.get_running_loop()
+                        loop.create_task(res)
+                except Exception:
+                    pass
+
+        page.on_resize = _on_page_resize
+
+    def _remove_resize_listener(self):
+        page = self.safe_page
+        if page and hasattr(self, "_previous_on_resize"):
+            page.on_resize = self._previous_on_resize
+            del self._previous_on_resize
 
     # --- Android PiP ---
 
@@ -282,8 +332,9 @@ class ImmersivePlayer(ft.Stack):
 
         # Android 8-11 fallback: hook lifecycle 'hidden' (only fires when the
         # app is really leaving the screen — not for the notification shade)
-        if self.page and pip_service.api_level() < 31:
-            previous = self.page.on_app_lifecycle_state_change
+        page = self.safe_page
+        if page and pip_service.api_level() < 31:
+            previous = page.on_app_lifecycle_state_change
             self._pip_lifecycle_previous = previous
 
             def _on_lifecycle(e):
@@ -294,7 +345,7 @@ class ImmersivePlayer(ft.Stack):
                     if hasattr(result, "__await__"):
                         loop.create_task(result)
 
-            self.page.on_app_lifecycle_state_change = _on_lifecycle
+            page.on_app_lifecycle_state_change = _on_lifecycle
 
     def _disable_auto_pip(self):
         if not self.pip_available:
@@ -306,12 +357,14 @@ class ImmersivePlayer(ft.Stack):
             loop.create_task(asyncio.to_thread(pip_service.set_auto_pip, False))
         except RuntimeError:
             pass
-        if self.page and hasattr(self, "_pip_lifecycle_previous"):
-            try:
-                self.page.on_app_lifecycle_state_change = self._pip_lifecycle_previous
-            except Exception:
-                pass
-        self._pip_lifecycle_previous = None
+
+        page = self.safe_page
+        if hasattr(self, "_pip_lifecycle_previous") and page:
+            page.on_app_lifecycle_state_change = (
+                self._pip_lifecycle_previous
+            )
+            del self._pip_lifecycle_previous
+
         # Sync stop: clear playlist + update() queues a platform channel
         # message that stops native playback immediately. No await needed.
         if self.video and not self._is_closing:
@@ -322,14 +375,30 @@ class ImmersivePlayer(ft.Stack):
             except Exception:
                 pass
 
-    def _update_title_width(self):
-        if not hasattr(self, "title_container") or not self.page:
+    async def enter_pip_mode(self):
+        """User-triggered PiP (from control bar icon)."""
+        if not self.pip_available:
             return
-        width = self.page.width
+        from services import pip_service
+
+        try:
+            loop = asyncio.get_running_loop()
+            await loop.run_in_executor(None, pip_service.enter_pip)
+        except Exception as ex:
+            logger.debug("Entering PiP failed: %s", ex)
+
+    def _update_title_width(self):
+        """Dynamically update title width on window resize, rotation, or fullscreen."""
+        if not hasattr(self, "title_container"):
+            return
+        page = self.safe_page
+        if not page:
+            return
+        width = getattr(page, "width", None)
         if width is None or width <= 0:
             return
-        # 48px back button + 32px horizontal margins = 80px
-        new_width = max(100, int(width) - 80)
+        # 48px back button + 32px horizontal margins + 20px padding = 100px
+        new_width = max(80, int(width) - 100)
         if self.title_container.width != new_width:
             self.title_container.width = new_width
             try:
@@ -338,29 +407,14 @@ class ImmersivePlayer(ft.Stack):
                 pass
 
     async def _on_enter_fullscreen(self, e):
-        """Fullscreen covers the whole Flet page tree (SnackBar included),
-        so notifications must route to the in-controls toast chip."""
+        """Track fullscreen transition for notifications and update width."""
         set_fullscreen_toast_active(True)
-        await self._refresh_title_width_after_transition()
+        self._update_title_width()
 
     async def _on_exit_fullscreen(self, e):
-        """Back to normal rendering — SnackBar works again."""
+        """Track exiting fullscreen and update width."""
         set_fullscreen_toast_active(False)
-        await self._refresh_title_width_after_transition()
-
-    async def _refresh_title_width_after_transition(self):
-        """Re-apply the title width while a fullscreen/rotation transition
-        settles. Page has NO resize event in Flet 0.86, and page.width lags
-        behind the fullscreen route push (the WM animation and Flutter
-        metrics land later), so a single delayed read races the new size —
-        a long title stayed truncated after entering fullscreen (and an
-        un-truncated one overflowed after exiting). Each apply is a no-op
-        unless the computed width actually changed."""
-        for delay in (0.2, 0.4, 0.6, 0.8, 0.8):
-            await asyncio.sleep(delay)
-            if self._is_closing or not self.page:
-                return
-            self._update_title_width()
+        self._update_title_width()
 
     def _build_controls(self) -> fv.AdaptiveVideoControls:
         from components.player.controls import build_player_controls

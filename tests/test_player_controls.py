@@ -135,3 +135,30 @@ def test_audio_btn_mounted_in_bottom_bar():
     assert hasattr(player, "audio_btn")
     assert player.audio_btn in controls.material.bottom_button_bar
     assert player.audio_btn in controls.material_desktop.bottom_button_bar
+
+
+def test_title_width_updates_on_resize():
+    from components.player.immersive_player import ImmersivePlayer
+
+    p = ImmersivePlayer(resource="http://example.com/video.mp4", title="Very Long Video Title")
+    page_mock = mock.MagicMock()
+    page_mock.width = 1200
+    p._mock_page = page_mock
+
+    # Mock title_container
+    p.title_container = mock.MagicMock()
+    p.title_container.width = 300
+
+    p._setup_resize_listener()
+    assert page_mock.on_resize is not None
+
+    # Simulate resize event when window expands to 1400
+    page_mock.width = 1400
+    page_mock.on_resize(mock.MagicMock())
+    assert p.title_container.width == 1300
+    p.title_container.update.assert_called()
+
+    # Simulate resize event when window shrinks to 500
+    page_mock.width = 500
+    page_mock.on_resize(mock.MagicMock())
+    assert p.title_container.width == 400

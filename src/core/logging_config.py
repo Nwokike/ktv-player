@@ -42,3 +42,5 @@ def setup_logging(level: int = logging.DEBUG) -> None:
     logging.getLogger("flet_transport").setLevel(logging.WARNING)
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
+    logging.getLogger("kivy.jnius").setLevel(logging.WARNING)
+    logging.getLogger("jnius").setLevel(logging.WARNING)

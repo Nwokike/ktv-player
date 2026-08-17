@@ -121,9 +121,9 @@ def _show_fullscreen_toast(msg: str) -> bool:
 
 
 def _dispatch(msg: str, bgcolor=None, persist: bool = False) -> None:
-    """Route to the fullscreen toast chip when active, else the SnackBar."""
-    if _fullscreen_toast["active"] and _show_fullscreen_toast(msg):
-        return
+    """Show notification across all active presentation layers."""
+    if _fullscreen_toast["active"]:
+        _show_fullscreen_toast(msg)
     _show_snackbar(msg, bgcolor=bgcolor, persist=persist)
 
 

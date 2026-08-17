@@ -50,6 +50,7 @@ key_alias = "upload"
 [tool.flet.android.feature]
 "android.software.leanback" = false
 "android.hardware.touchscreen" = false
+"android.software.picture_in_picture" = true
 
 [tool.flet.deep_linking]
 scheme = "ktv"

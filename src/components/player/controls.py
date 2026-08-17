@@ -32,7 +32,6 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
         overflow=ft.TextOverflow.ELLIPSIS,
         max_lines=1,
     )
-    # Container clips the text; width is set dynamically in _update_title_width
     title_container = ft.Container(
         content=title_text,
         width=300,
@@ -175,6 +174,11 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
 
         try:
             fav_btn.update()
+        except Exception:
+            pass
+        try:
+            if hasattr(player_inst, "video") and player_inst.video:
+                player_inst.video.update()
         except Exception:
             pass
         try:

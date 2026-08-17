@@ -482,6 +482,22 @@ class AppController:
                 break
 
         if player:
+            # Persist playback position before closing (e.g. on Android system back gesture)
+            try:
+                pos_sec = player._last_position
+                dur_sec = player._last_duration
+                if player.source_url and dur_sec > 0 and pos_sec > 3:
+                    if pos_sec >= (dur_sec - 5):
+                        pos_sec = 0.0
+                    loop = asyncio.get_running_loop()
+                    loop.create_task(
+                        db_manager.update_history_position(
+                            player.source_url, pos_sec, dur_sec
+                        )
+                    )
+            except Exception:
+                pass
+
             # Stop synchronously: clear playlist + update() queues a
             # platform channel message that halts native playback immediately.
             if not player._is_closing:
