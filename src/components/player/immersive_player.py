@@ -360,9 +360,7 @@ class ImmersivePlayer(ft.Stack):
 
         page = self.safe_page
         if hasattr(self, "_pip_lifecycle_previous") and page:
-            page.on_app_lifecycle_state_change = (
-                self._pip_lifecycle_previous
-            )
+            page.on_app_lifecycle_state_change = self._pip_lifecycle_previous
             del self._pip_lifecycle_previous
 
         # Sync stop: clear playlist + update() queues a platform channel

@@ -161,13 +161,22 @@ jobs:
           mkdir -p "$RES/drawable-xhdpi" "$RES/mipmap-xxxhdpi"
           cp src/assets/tv_banner.png "$RES/drawable-xhdpi/banner.png"
           cp src/assets/icon.png "$RES/mipmap-xxxhdpi/ic_launcher.png"
-          sed -i 's|<application |<application android:banner="@drawable/banner" |' "$MANIFEST"
+          # NOTE: flet 0.86 writes <application> with attributes on following
+          # lines, so the tag is '<application' followed by a newline — a
+          # trailing space in the pattern would never match.
+          sed -i 's|<application|<application android:banner="@drawable/banner"|' "$MANIFEST"
           sed -i 's|<activity|<activity android:supportsPictureInPicture="true"|g' "$MANIFEST"
           grep -n "supportsPictureInPicture" "$MANIFEST"
           (cd build/flutter/android && ./gradlew assembleRelease)
           rm -rf build/apk
           mkdir -p build/apk
           find build/flutter -name "*.apk" -not -path "*/intermediates/*" -exec cp {} build/apk/ \;
+          # Hard-fail if the PiP flag didn't make it into the merged manifest
+          AAPT=$(find "${ANDROID_HOME:-$HOME/Android}" -name aapt -type f 2>/dev/null | sort -V | tail -1)
+          for f in build/apk/*.apk; do
+            "$AAPT" dump xmltree "$f" AndroidManifest.xml | grep -q supportsPictureInPicture \
+              || { echo "ERROR: supportsPictureInPicture missing in $f"; exit 1; }
+          done
           ls -lh build/apk/
           echo "Rebuilt APK with TV banner (320x180), icon (512x512) and PiP enabled"
       - name: Upload directly to GitHub Release
@@ -214,13 +223,30 @@ jobs:
           mkdir -p "$RES/drawable-xhdpi" "$RES/mipmap-xxxhdpi"
           cp src/assets/tv_banner.png "$RES/drawable-xhdpi/banner.png"
           cp src/assets/icon.png "$RES/mipmap-xxxhdpi/ic_launcher.png"
-          sed -i 's|<application |<application android:banner="@drawable/banner" |' "$MANIFEST"
+          # NOTE: flet 0.86 writes <application> with attributes on following
+          # lines, so the tag is '<application' followed by a newline — a
+          # trailing space in the pattern would never match.
+          sed -i 's|<application|<application android:banner="@drawable/banner"|' "$MANIFEST"
           sed -i 's|<activity|<activity android:supportsPictureInPicture="true"|g' "$MANIFEST"
           grep -n "supportsPictureInPicture" "$MANIFEST"
-          (cd build/flutter/android && ./gradlew assembleRelease)
+          # Remove the unpatched APKs from the first `flet build` step so stale
+          # ones can never be staged if the rebuild doesn't regenerate them.
+          rm -f build/flutter/build/app/outputs/flutter-apk/*.apk
+          rm -f build/flutter/build/app/outputs/apk/release/*.apk
+          # -Psplit-per-abi=true: the Flutter Gradle plugin only emits per-ABI
+          # APKs when this property is set — plain `assembleRelease` builds the
+          # universal APK only. Without it, the per-ABI APKs staged below are
+          # the unpatched leftovers from the first `flet build` step.
+          (cd build/flutter/android && ./gradlew assembleRelease -Psplit-per-abi=true)
           rm -rf build/apk
           mkdir -p build/apk
           find build/flutter -name "*.apk" -not -path "*/intermediates/*" -exec cp {} build/apk/ \;
+          # Hard-fail if the PiP flag didn't make it into the merged manifest
+          AAPT=$(find "${ANDROID_HOME:-$HOME/Android}" -name aapt -type f 2>/dev/null | sort -V | tail -1)
+          for f in build/apk/*.apk; do
+            "$AAPT" dump xmltree "$f" AndroidManifest.xml | grep -q supportsPictureInPicture \
+              || { echo "ERROR: supportsPictureInPicture missing in $f"; exit 1; }
+          done
           ls -lh build/apk/
           echo "Rebuilt split APKs with TV banner (320x180), icon (512x512) and PiP enabled"
       - name: Upload directly to GitHub Release
@@ -267,13 +293,22 @@ jobs:
           mkdir -p "$RES/drawable-xhdpi" "$RES/mipmap-xxxhdpi"
           cp src/assets/tv_banner.png "$RES/drawable-xhdpi/banner.png"
           cp src/assets/icon.png "$RES/mipmap-xxxhdpi/ic_launcher.png"
-          sed -i 's|<application |<application android:banner="@drawable/banner" |' "$MANIFEST"
+          # NOTE: flet 0.86 writes <application> with attributes on following
+          # lines, so the tag is '<application' followed by a newline — a
+          # trailing space in the pattern would never match.
+          sed -i 's|<application|<application android:banner="@drawable/banner"|' "$MANIFEST"
           sed -i 's|<activity|<activity android:supportsPictureInPicture="true"|g' "$MANIFEST"
           grep -n "supportsPictureInPicture" "$MANIFEST"
           (cd build/flutter/android && ./gradlew bundleRelease)
           rm -rf build/aab
           mkdir -p build/aab
           find build/flutter -name "*.aab" -not -path "*/intermediates/*" -exec cp {} build/aab/ \;
+          # Hard-fail if the PiP flag didn't make it into the merged manifest
+          AAPT=$(find "${ANDROID_HOME:-$HOME/Android}" -name aapt -type f 2>/dev/null | sort -V | tail -1)
+          for f in build/aab/*.aab; do
+            unzip -p "$f" base/manifest/AndroidManifest.xml | strings | grep -q supportsPictureInPicture \
+              || { echo "ERROR: supportsPictureInPicture missing in $f"; exit 1; }
+          done
           ls -lh build/aab/
           echo "Rebuilt AAB with TV banner (320x180), icon (512x512) and PiP enabled"
       - name: Upload directly to GitHub Release

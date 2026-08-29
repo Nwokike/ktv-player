@@ -140,7 +140,9 @@ def test_audio_btn_mounted_in_bottom_bar():
 def test_title_width_updates_on_resize():
     from components.player.immersive_player import ImmersivePlayer
 
-    p = ImmersivePlayer(resource="http://example.com/video.mp4", title="Very Long Video Title")
+    p = ImmersivePlayer(
+        resource="http://example.com/video.mp4", title="Very Long Video Title"
+    )
     page_mock = mock.MagicMock()
     page_mock.width = 1200
     p._mock_page = page_mock
