@@ -214,7 +214,12 @@ class ImmersivePlayer(ft.Stack):
             ),
             configuration=fv.VideoConfiguration(
                 enable_hardware_acceleration=True,
-                hardware_decoding_api="mediacodec",
+                # hwdec left at the flet_video platform default (Android:
+                # "auto-safe", desktop: "auto"). The previous hard force of
+                # "mediacodec" made phone MKVs fail with "Could not open
+                # codec" — auto-safe still uses MediaCodec when the device
+                # supports the codec, but falls back to software decoding
+                # instead of erroring out.
                 mpv_properties={
                     "cache": "yes",
                     "cache-secs": 5,
@@ -407,12 +412,26 @@ class ImmersivePlayer(ft.Stack):
     async def _on_enter_fullscreen(self, e):
         """Track fullscreen transition for notifications and update width."""
         set_fullscreen_toast_active(True)
-        self._update_title_width()
+        await self._refresh_title_width_after_transition()
 
     async def _on_exit_fullscreen(self, e):
         """Track exiting fullscreen and update width."""
         set_fullscreen_toast_active(False)
-        self._update_title_width()
+        await self._refresh_title_width_after_transition()
+
+    async def _refresh_title_width_after_transition(self):
+        """Re-apply the title width while a fullscreen/rotation transition
+        settles. page.width lags behind the fullscreen route push (the WM
+        animation and Flutter metrics land later), and on Android entering
+        fullscreen does not resize the window at all — so a single read races
+        the new size: a long title stayed truncated after entering fullscreen
+        (and an un-truncated one overflowed after exiting). Each apply is a
+        no-op unless the computed width actually changed."""
+        for delay in (0.2, 0.4, 0.6, 0.8, 0.8):
+            await asyncio.sleep(delay)
+            if self._is_closing or not self.page:
+                return
+            self._update_title_width()
 
     def _build_controls(self) -> fv.AdaptiveVideoControls:
         from components.player.controls import build_player_controls
@@ -563,8 +582,11 @@ class ImmersivePlayer(ft.Stack):
                 logger.info("YouTube resolved to direct stream")
                 self.resource = resolved
                 self._original_resource = resolved
-                # Probe quality/audio on the resolved manifest
-                self.source_url = resolved
+                # Probe quality/audio on the resolved manifest. source_url
+                # MUST stay the original URL: history entries (and their
+                # saved positions) are keyed by it — re-keying to the
+                # resolved manifest URL makes update_history_position a
+                # no-op, silently losing resume positions.
                 self.source_proxied = False
 
         try:
