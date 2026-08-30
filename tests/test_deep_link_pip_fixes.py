@@ -97,29 +97,62 @@ class TestPlayStreamOwnLock:
 
 
 class TestDeepLinkCloseExitsToCaller:
-    def _play_view(self):
+    def _play_view(self, player=None):
+        if player is not None:
+            return SimpleNamespace(route="/play", controls=[player])
         return SimpleNamespace(route="/play")
 
-    def test_close_player_exits_when_deep_link_view_is_only_view(
+    @pytest.mark.asyncio
+    async def test_close_player_saves_then_exits_when_deep_link_view_is_only_view(
         self, fake_page
     ):
         controller = main_mod.AppController(fake_page)
         controller._deep_link_open = True
-        fake_page.views = [self._play_view()]
-
-        controller._close_player()
-
-        assert len(fake_page._run_task_calls) == 1, (
-            "closing the only (deep-linked) view must schedule the exit"
+        player = SimpleNamespace(
+            source_url="http://anime.example/ep1.m3u8",
+            _last_position=120.0,
+            _last_duration=600.0,
+            _is_closing=False,
+            video=SimpleNamespace(playlist=[], update=lambda: None),
         )
-        fn, _args, _kwargs = fake_page._run_task_calls[0]
-        assert fn == controller._exit_to_caller
+        fake_page.views = [self._play_view(player)]
+
+        with (
+            mock.patch.object(
+                main_mod.AppController, "_find_immersive_player"
+            ) as find,
+            mock.patch.object(
+                pip_service, "set_auto_pip", mock.MagicMock(return_value=True)
+            ),
+            mock.patch.object(
+                pip_service, "exit_app", mock.MagicMock(return_value=True)
+            ),
+            mock.patch.object(
+                main_mod, "db_manager"
+            ) as db,
+        ):
+            find.return_value = player
+            db.update_history_position = mock.AsyncMock()
+            controller._close_player()
+            assert len(fake_page._run_task_calls) == 1
+            fn, args, _kwargs = fake_page._run_task_calls[0]
+            assert fn == controller._close_player_with_save
+            # Execute the scheduled close: position saved (awaited) BEFORE
+            # the activity is finished — a fire-and-forget save dies at
+            # teardown, which is exactly why resume worked on desktop but
+            # never on phone.
+            await fn(*args)
+            db.update_history_position.assert_awaited_once_with(
+                "http://anime.example/ep1.m3u8", 120.0, 600.0
+            )
+            assert controller._deep_link_open is False
 
     def test_close_player_pops_normally_with_shell_beneath(self, fake_page):
         controller = main_mod.AppController(fake_page)
         controller._deep_link_open = False
         shell = SimpleNamespace(route="/")
-        fake_page.views = [shell, self._play_view()]
+        play_view = SimpleNamespace(route="/play")
+        fake_page.views = [shell, play_view]
 
         controller._close_player()
 
@@ -146,7 +179,12 @@ class TestDeepLinkCloseExitsToCaller:
         ex.assert_called_once()
         assert controller._deep_link_open is False
 
-    def test_view_pop_exits_when_deep_link_view_is_only_view(self, fake_page):
+    def test_view_pop_schedules_awaited_close_not_teardown_race(
+        self, fake_page
+    ):
+        """System back must schedule _close_player_with_save (which awaits
+        the position write before popping/finishing) instead of popping
+        synchronously after a fire-and-forget save."""
         controller = main_mod.AppController(fake_page)
         controller._deep_link_open = True
 
@@ -167,8 +205,90 @@ class TestDeepLinkCloseExitsToCaller:
             controller.view_pop(None)
 
         assert len(fake_page._run_task_calls) == 1
-        fn, _args, _kwargs = fake_page._run_task_calls[0]
-        assert fn == controller._exit_to_caller
+        fn, args, _kwargs = fake_page._run_task_calls[0]
+        assert fn == controller._close_player_with_save
+        assert args[0] is player
+        # The view must still be mounted — teardown happens only AFTER the
+        # awaited save inside _close_player_with_save.
+        assert len(fake_page.views) == 1
+
+    def test_view_pop_ignores_second_back_while_close_in_flight(
+        self, fake_page
+    ):
+        controller = main_mod.AppController(fake_page)
+        controller._deep_link_open = True
+
+        player = SimpleNamespace(
+            source_url="http://anime.example/ep1.m3u8",
+            _last_position=0.0,
+            _last_duration=0.0,
+            _is_closing=False,
+            video=SimpleNamespace(playlist=[], update=lambda: None),
+        )
+        view = SimpleNamespace(route="/play", controls=[player])
+        fake_page.views = [view]
+
+        with mock.patch.object(
+            main_mod.AppController, "_find_immersive_player"
+        ) as find:
+            find.return_value = player
+            controller.view_pop(None)
+            controller.view_pop(None)
+
+        assert len(fake_page._run_task_calls) == 1, (
+            "double back must not schedule a second close"
+        )
+
+
+class TestPeriodicPositionCheckpoint:
+    """VOD-only throttled saves during playback — what makes resume survive
+    Android killing the app mid-play."""
+
+    def _player(self):
+        from components.player.immersive_player import ImmersivePlayer
+
+        return ImmersivePlayer(
+            resource="http://example.com/vod.mp4", title="VOD"
+        )
+
+    @pytest.mark.asyncio
+    async def test_periodic_save_fires_for_vod_after_interval(self):
+        from components.player import immersive_player as ip_mod
+
+        p = self._player()
+        p._last_duration = 600.0
+        p._last_position = 120.0
+        p._last_position_save = 0.0  # force interval elapsed
+
+        upd = mock.AsyncMock()
+        with mock.patch.object(ip_mod.db_manager, "update_history_position", upd):
+            p._maybe_save_position_periodically()
+            await asyncio.sleep(0.05)
+            upd.assert_awaited_once()
+            # Throttled: immediate second call must not fire again
+            p._maybe_save_position_periodically()
+            await asyncio.sleep(0.05)
+            upd.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_periodic_save_skips_live_and_short_positions(self):
+        from components.player import immersive_player as ip_mod
+
+        p = self._player()
+        upd = mock.AsyncMock()
+        with mock.patch.object(ip_mod.db_manager, "update_history_position", upd):
+            # Live stream: duration 0
+            p._last_duration = 0.0
+            p._last_position = 50.0
+            p._last_position_save = 0.0
+            p._maybe_save_position_periodically()
+            await asyncio.sleep(0.05)
+            # Meaningful progress only: position 2s
+            p._last_duration = 600.0
+            p._last_position = 2.0
+            p._maybe_save_position_periodically()
+            await asyncio.sleep(0.05)
+            upd.assert_not_awaited()
 
 
 class TestPipParamsExplicitDisable:

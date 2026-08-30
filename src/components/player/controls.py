@@ -25,20 +25,14 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
         tooltip="Back",
         on_click=lambda e: player_inst.page.run_task(player_inst._on_back, e),
     )
+    # Full title, no width machinery — the bar clips whatever doesn't fit.
+    # (Every dynamic-resizing attempt since v2.0 failed across
+    # rotation/fullscreen; the player now shows the name as-is.)
     title_text = ft.Text(
         player_inst.title or "Now Playing",
         color=ft.Colors.WHITE,
         weight=ft.FontWeight.W_500,
-        overflow=ft.TextOverflow.ELLIPSIS,
-        max_lines=1,
     )
-    title_container = ft.Container(
-        content=title_text,
-        width=300,
-        clip_behavior=ft.ClipBehavior.HARD_EDGE,
-        alignment=ft.Alignment.CENTER_LEFT,
-    )
-    player_inst.title_container = title_container
 
     # In-player toast chip. It lives INSIDE the video controls because the
     # fullscreen route (pushed by media_kit on the root navigator, above the
@@ -65,7 +59,7 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
 
     # Toast overlays the title slot so it needs no extra bar width
     title_slot = ft.Stack(
-        controls=[title_container, toast_chip],
+        controls=[title_text, toast_chip],
         alignment=ft.Alignment.CENTER,
     )
 
@@ -247,6 +241,11 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
             brightness_gesture=True,
             speed_up_on_long_press=True,
             speed_up_factor=2.0,
+            # 6s > the 3s toast lifetime: with the default 3s hover hide,
+            # mobile controls faded out and took the in-player toast with
+            # them before the user could read it (desktop worked because
+            # mouse movement resets its timer).
+            controls_hover_duration=ft.Duration(seconds=6),
             controls_transition_duration=ft.Duration(milliseconds=300),
             seek_bar_position_color=AppColors.PRIMARY,
             button_bar_button_color=ft.Colors.WHITE,

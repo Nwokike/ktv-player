@@ -171,6 +171,9 @@ jobs:
           rm -rf build/apk
           mkdir -p build/apk
           find build/flutter -name "*.apk" -not -path "*/intermediates/*" -exec cp {} build/apk/ \;
+          # README links ktv.apk — stage under the historical name so the
+          # release always carries exactly one authoritative set.
+          mv -f build/apk/app-release.apk build/apk/ktv.apk 2>/dev/null || true
           # Hard-fail if the PiP flag didn't make it into the merged manifest
           AAPT=$(find "${ANDROID_HOME:-$HOME/Android}" -name aapt -type f 2>/dev/null | sort -V | tail -1)
           for f in build/apk/*.apk; do
@@ -241,6 +244,11 @@ jobs:
           rm -rf build/apk
           mkdir -p build/apk
           find build/flutter -name "*.apk" -not -path "*/intermediates/*" -exec cp {} build/apk/ \;
+          # README links ktv-<abi>.apk — stage under the historical names so
+          # the release always carries exactly one authoritative set.
+          for abi in arm64-v8a armeabi-v7a x86_64; do
+            mv -f "build/apk/app-${abi}-release.apk" "build/apk/ktv-${abi}.apk" 2>/dev/null || true
+          done
           # Hard-fail if the PiP flag didn't make it into the merged manifest
           AAPT=$(find "${ANDROID_HOME:-$HOME/Android}" -name aapt -type f 2>/dev/null | sort -V | tail -1)
           for f in build/apk/*.apk; do
@@ -303,6 +311,9 @@ jobs:
           rm -rf build/aab
           mkdir -p build/aab
           find build/flutter -name "*.aab" -not -path "*/intermediates/*" -exec cp {} build/aab/ \;
+          # README links ktv.aab — stage under the historical name so the
+          # release always carries exactly one authoritative set.
+          mv -f build/aab/app-release.aab build/aab/ktv.aab 2>/dev/null || true
           # Hard-fail if the PiP flag didn't make it into the merged manifest
           AAPT=$(find "${ANDROID_HOME:-$HOME/Android}" -name aapt -type f 2>/dev/null | sort -V | tail -1)
           for f in build/aab/*.aab; do

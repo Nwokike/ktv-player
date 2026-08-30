@@ -1,6 +1,7 @@
 import asyncio
 import contextlib
 import logging
+import time
 from collections.abc import Callable
 from typing import Any
 
@@ -22,6 +23,10 @@ logger = logging.getLogger(__name__)
 # window, the loading/reconnecting overlay is replaced by the retry/back UI.
 # mpv's network-timeout (10s) usually errors out first with a real reason.
 _WATCHDOG_SECONDS = 20.0
+
+# Periodic VOD position checkpoint interval (see
+# _maybe_save_position_periodically).
+_POSITION_SAVE_INTERVAL = 10.0
 
 
 def _short_variant_label(variant: dict) -> str:
@@ -81,6 +86,7 @@ class ImmersivePlayer(ft.Stack):
         self._initial_resume_position: float | None = None
         self._last_position: float = 0.0
         self._last_duration: float = 0.0
+        self._last_position_save: float = 0.0
         try:
             entry = db_manager.get_history_entry_sync(self.source_url)
         except Exception:
@@ -261,12 +267,9 @@ class ImmersivePlayer(ft.Stack):
         super().did_mount()
         # The toast chip was created by build_player_controls() in __init__
         register_fullscreen_toast(self.toast_chip, self.toast_text)
-        self._setup_resize_listener()
-        self._update_title_width()
 
     def will_unmount(self):
         super().will_unmount()
-        self._remove_resize_listener()
         unregister_fullscreen_toast()
         self._cancel_watchdog()
         self._disable_auto_pip()
@@ -293,31 +296,6 @@ class ImmersivePlayer(ft.Stack):
             return self.page
         except Exception:
             return None
-
-    def _setup_resize_listener(self):
-        page = self.safe_page
-        if not page:
-            return
-        self._previous_on_resize = getattr(page, "on_resize", None)
-
-        def _on_page_resize(e):
-            self._update_title_width()
-            if self._previous_on_resize:
-                try:
-                    res = self._previous_on_resize(e)
-                    if hasattr(res, "__await__"):
-                        loop = asyncio.get_running_loop()
-                        loop.create_task(res)
-                except Exception:
-                    pass
-
-        page.on_resize = _on_page_resize
-
-    def _remove_resize_listener(self):
-        page = self.safe_page
-        if page and hasattr(self, "_previous_on_resize"):
-            page.on_resize = self._previous_on_resize
-            del self._previous_on_resize
 
     # --- Android PiP ---
 
@@ -399,48 +377,13 @@ class ImmersivePlayer(ft.Stack):
         except Exception as ex:
             logger.debug("Entering PiP failed: %s", ex)
 
-    def _update_title_width(self):
-        """Dynamically update title width on window resize, rotation, or fullscreen."""
-        if not hasattr(self, "title_container"):
-            return
-        page = self.safe_page
-        if not page:
-            return
-        width = getattr(page, "width", None)
-        if width is None or width <= 0:
-            return
-        # 48px back button + 32px horizontal margins + 20px padding = 100px
-        new_width = max(80, int(width) - 100)
-        if self.title_container.width != new_width:
-            self.title_container.width = new_width
-            try:
-                self.title_container.update()
-            except Exception:
-                pass
-
     async def _on_enter_fullscreen(self, e):
-        """Track fullscreen transition for notifications and update width."""
+        """Track fullscreen for in-player toast notifications."""
         set_fullscreen_toast_active(True)
-        await self._refresh_title_width_after_transition()
 
     async def _on_exit_fullscreen(self, e):
-        """Track exiting fullscreen and update width."""
+        """Track exiting fullscreen for in-player toast notifications."""
         set_fullscreen_toast_active(False)
-        await self._refresh_title_width_after_transition()
-
-    async def _refresh_title_width_after_transition(self):
-        """Re-apply the title width while a fullscreen/rotation transition
-        settles. page.width lags behind the fullscreen route push (the WM
-        animation and Flutter metrics land later), and on Android entering
-        fullscreen does not resize the window at all — so a single read races
-        the new size: a long title stayed truncated after entering fullscreen
-        (and an un-truncated one overflowed after exiting). Each apply is a
-        no-op unless the computed width actually changed."""
-        for delay in (0.2, 0.4, 0.6, 0.8, 0.8):
-            await asyncio.sleep(delay)
-            if self._is_closing or not self.page:
-                return
-            self._update_title_width()
 
     def _build_controls(self) -> fv.AdaptiveVideoControls:
         from components.player.controls import build_player_controls
@@ -653,6 +596,36 @@ class ImmersivePlayer(ft.Stack):
             except Exception:
                 pass
         self._check_and_trigger_seek()
+        self._maybe_save_position_periodically()
+
+    def _maybe_save_position_periodically(self):
+        """Throttled VOD-only checkpoint save (~every 10s). Android can kill
+        the app mid-play or while minimized — none of the close paths run
+        then, so without periodic checkpoints the resume position is lost
+        (desktop survived only because its event loop outlives teardown)."""
+        now = time.monotonic()
+        if now - self._last_position_save < _POSITION_SAVE_INTERVAL:
+            return
+        self._last_position_save = now
+        if (
+            self._is_closing
+            or not self.source_url
+            or self._last_duration <= 0
+            or self._last_position <= 3
+        ):
+            return
+        pos_sec = self._last_position
+        if pos_sec >= (self._last_duration - 5):
+            pos_sec = 0.0
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(
+                db_manager.update_history_position(
+                    self.source_url, pos_sec, self._last_duration
+                )
+            )
+        except RuntimeError:
+            pass
 
     def _check_and_trigger_seek(self):
         # After media is ready / first tick, consume any pending one-shot seek target —

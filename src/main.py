@@ -403,8 +403,13 @@ class AppController:
             self.page.views.pop()
             self.page.update()
         elif self._deep_link_open and self.page.views[-1].route == "/play":
-            # A deep-linked video is the only view (the shell was cleared
-            # at the deep-link launch) — closing it returns to the caller.
+            # A deep-linked video is the only view (the shell was cleared at
+            # the deep-link launch) — closing it returns to the caller.
+            player = self._find_immersive_player(self.page.views[-1].controls[0])
+            if player and not getattr(player, "_is_closing", False):
+                player._is_closing = True
+                self.page.run_task(self._close_player_with_save, player)
+                return
             self.page.run_task(self._exit_to_caller)
 
     async def _exit_to_caller(self):
@@ -470,6 +475,15 @@ class AppController:
         # 2. "Open With" local video files (Android Intent)
         if parsed.scheme in ("file", "content"):
             if _is_valid_play_url(route):
+                # Normalize SAF content:// URIs to the canonical
+                # /storage/emulated/0/... path so an "Open With" play and a
+                # Local-screen play of the same file share ONE history key
+                # (resume positions included).
+                from services.local_scanner import resolve_saf_path
+
+                resolved = resolve_saf_path(route)
+                if resolved != route and _is_valid_play_url(resolved):
+                    route = resolved
                 self.page.run_task(self.play_stream, route)
             return
 
@@ -518,46 +532,55 @@ class AppController:
                 break
 
         if player:
-            # Persist playback position before closing (e.g. on Android system back gesture)
-            try:
-                pos_sec = player._last_position
-                dur_sec = player._last_duration
-                if player.source_url and dur_sec > 0 and pos_sec > 3:
-                    if pos_sec >= (dur_sec - 5):
-                        pos_sec = 0.0
-                    loop = asyncio.get_running_loop()
-                    loop.create_task(
-                        db_manager.update_history_position(
-                            player.source_url, pos_sec, dur_sec
-                        )
-                    )
-            except Exception:
-                pass
-
-            # Stop synchronously: clear playlist + update() queues a
-            # platform channel message that halts native playback immediately.
-            if not player._is_closing:
-                player._is_closing = True
-                player._is_final_error = True
-                try:
-                    player.video.playlist = []
-                    player.video.update()
-                except Exception:
-                    pass
-            # Pop view immediately — will_unmount handles final cleanup
-            if len(self.page.views) > 1:
-                self._is_player_closing = True
-                self.page.views.pop()
-                self.page.update()
-            elif self._deep_link_open:
-                # Deep-linked player is the only view — back exits to caller
-                self._deep_link_open = False
-                self.page.run_task(self._exit_to_caller)
+            if getattr(player, "_is_closing", False):
+                return  # a close is already in flight
+            player._is_closing = True
+            # The position save must be AWAITED before the view pops (and,
+            # on deep links, before activity.finish()). The previous
+            # fire-and-forget create_task was routinely killed by Android
+            # at teardown — resume worked on desktop (its event loop
+            # survives) but never on phone.
+            self.page.run_task(self._close_player_with_save, player)
             return
 
         if len(self.page.views) > 1:
             self.page.views.pop()
             self.page.update()
+
+    async def _close_player_with_save(self, player):
+        """Persist position (awaited), then stop playback and pop/exit."""
+        await self._persist_player_position(player)
+
+        # Stop synchronously: clear playlist + update() queues a
+        # platform channel message that halts native playback immediately.
+        try:
+            player.video.playlist = []
+            player.video.update()
+        except Exception:
+            pass
+
+        if len(self.page.views) > 1:
+            self._is_player_closing = True
+            self.page.views.pop()
+            self.page.update()
+        elif self._deep_link_open:
+            # Deep-linked player is the only view — back exits to caller
+            self._deep_link_open = False
+            await self._exit_to_caller()
+
+    async def _persist_player_position(self, player) -> None:
+        """VOD-only position save, awaited so it completes before teardown."""
+        try:
+            pos_sec = player._last_position
+            dur_sec = player._last_duration
+            if player.source_url and dur_sec > 0 and pos_sec > 3:
+                if pos_sec >= (dur_sec - 5):
+                    pos_sec = 0.0
+                await db_manager.update_history_position(
+                    player.source_url, pos_sec, dur_sec
+                )
+        except Exception:
+            logger.debug("Persisting position on close failed", exc_info=True)
 
     async def _safe_start_playback(self, player):
         try:
