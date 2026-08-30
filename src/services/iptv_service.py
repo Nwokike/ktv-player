@@ -21,7 +21,10 @@ class IPTVService:
             resp = await client.get(url, headers=headers, timeout=playlist_timeout)
             resp.raise_for_status()
             return parse_m3u_text(resp.text, default_group="Custom")
-        except Exception:
+        except Exception as ex:
+            # Never silent: a dead host must show up in logs, not as a
+            # mysteriously empty channel list.
+            logger.warning("Failed to fetch playlist from %s: %s", url, ex)
             return []
 
     async def fetch_playlist(self, url: str) -> list[dict]:

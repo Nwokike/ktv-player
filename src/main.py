@@ -37,7 +37,16 @@ class AppController:
         self.ad_service: AdService | None = None
         self.liveliness: LivelinessChecker | None = None
         self._loading_lock: asyncio.Lock | None = None
+        # Separate from _loading_lock: channel loading must never block or
+        # drop a playback request. v2.0.2 (549503a) made play_stream share
+        # the loading lock, so a cold-start deep link was silently dropped
+        # while the loader fetched remote playlists — a permanent blank
+        # screen. This lock only suppresses duplicate concurrent plays.
+        self._play_lock: asyncio.Lock | None = None
         self._is_player_closing: bool = False
+        # True while a deep-linked video is the only view — closing it exits
+        # to the calling app instead of popping to a cleared view stack.
+        self._deep_link_open: bool = False
         self.hls_proxy: HLSProxy | None = None
         # Explicit modal name stack so _handle_back can pop the
         # topmost dialog before popping a view.
@@ -263,14 +272,14 @@ class AppController:
         headers: dict | None = None,
         from_deep_link: bool = False,
     ):
-        if not self._loading_lock:
-            self._loading_lock = asyncio.Lock()
+        if not self._play_lock:
+            self._play_lock = asyncio.Lock()
 
-        if self._loading_lock.locked():
+        if self._play_lock.locked():
             logger.info("play_stream locked, ignoring duplicate request")
             return
 
-        async with self._loading_lock:
+        async with self._play_lock:
             await self._do_play_stream(url, title, referer, headers, from_deep_link)
 
     async def _do_play_stream(
@@ -349,7 +358,7 @@ class AppController:
         # ImmersivePlayer cleanup (will_unmount) before the view pop.
         async def _player_on_back(e):
             await player.handle_close()
-            await self._close_player()
+            self._close_player()
 
         # Favorite star only for in-app channel plays — deep links AND local
         # videos open the player without it (history is saved for both).
@@ -376,6 +385,10 @@ class AppController:
             padding=0,
         )
 
+        # Deep-linked players are the only view (the shell was cleared at
+        # the deep-link launch) — closing them exits to the caller app.
+        self._deep_link_open = from_deep_link
+
         self.page.views.append(player_view)
         self.page.update()
 
@@ -389,6 +402,29 @@ class AppController:
             self._is_player_closing = True
             self.page.views.pop()
             self.page.update()
+        elif self._deep_link_open and self.page.views[-1].route == "/play":
+            # A deep-linked video is the only view (the shell was cleared
+            # at the deep-link launch) — closing it returns to the caller.
+            self.page.run_task(self._exit_to_caller)
+
+    async def _exit_to_caller(self):
+        """Finish the app after a deep-linked video closes. The deep-link
+        launch cleared the shell, so there is no in-app screen to return
+        to — MX-Player-style back-to-caller. Flet's window.close() is a
+        desktop-only no-op on Android (flet's Dart closeWindow() guards
+        isDesktopPlatform()), so the exit is activity.finish() via jnius."""
+        self._deep_link_open = False
+        from services import pip_service
+
+        # Reset PiP auto-enter before finishing so the activity can never
+        # re-enter PiP once the app is gone.
+        await asyncio.to_thread(pip_service.set_auto_pip, False)
+        exited = await asyncio.to_thread(pip_service.exit_app)
+        if not exited:
+            try:
+                await self.page.window.close()
+            except Exception:
+                pass
 
     # --- Deep Link ---
 
@@ -513,6 +549,10 @@ class AppController:
                 self._is_player_closing = True
                 self.page.views.pop()
                 self.page.update()
+            elif self._deep_link_open:
+                # Deep-linked player is the only view — back exits to caller
+                self._deep_link_open = False
+                self.page.run_task(self._exit_to_caller)
             return
 
         if len(self.page.views) > 1:

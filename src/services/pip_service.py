@@ -94,8 +94,11 @@ def _build_params(auto_enter: bool, aspect: float | None):
 
     builder = autoclass("android.app.PictureInPictureParams$Builder")()
     sdk = api_level()
-    if auto_enter and sdk >= _AUTO_ENTER_API:
-        builder.setAutoEnterEnabled(True)
+    if sdk >= _AUTO_ENTER_API:
+        # Explicit both ways. Skipping the setter when disabling left the
+        # previously-set auto-enter params active, so the app kept entering
+        # PiP on minimize long after the player closed.
+        builder.setAutoEnterEnabled(auto_enter)
     if aspect:
         ratio = Fraction(_clamp_aspect(aspect)).limit_denominator(1000)
         builder.setAspectRatio(
@@ -139,4 +142,20 @@ def set_auto_pip(enabled: bool, aspect: float | None = None) -> bool:
         return True
     except Exception as ex:
         logger.warning("set_auto_pip failed: %s", ex)
+        return False
+
+
+def exit_app() -> bool:
+    """Finish the Android activity, returning the user to the calling app.
+    Flet's window.close() is a desktop-only no-op on Android (its Dart
+    closeWindow() guards isDesktopPlatform()), so closing a deep-linked
+    video requires finishing the activity directly."""
+    activity = _get_activity()
+    if activity is None:
+        return False
+    try:
+        activity.finish()
+        return True
+    except Exception as ex:
+        logger.warning("exit_app failed: %s", ex)
         return False

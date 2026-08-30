@@ -114,6 +114,8 @@ class ImmersivePlayer(ft.Stack):
         self._is_final_error = False
         self._is_closing = False
         self._was_closed_during_ad = False
+        # Auto-PiP is armed (True) only while video is actually playing.
+        self._pip_active = False
         self._watchdog_task: asyncio.Task | None = None
 
         # Overlay Controls
@@ -259,7 +261,6 @@ class ImmersivePlayer(ft.Stack):
         super().did_mount()
         # The toast chip was created by build_player_controls() in __init__
         register_fullscreen_toast(self.toast_chip, self.toast_text)
-        self._enable_auto_pip()
         self._setup_resize_listener()
         self._update_title_width()
 
@@ -320,12 +321,14 @@ class ImmersivePlayer(ft.Stack):
 
     # --- Android PiP ---
 
-    def _enable_auto_pip(self):
-        """Modern auto-PiP: Android 12+ enters PiP on swipe-home natively
-        (setAutoEnterEnabled); Android 8–11 falls back to entering PiP when
-        the lifecycle reports the app is actually leaving the screen."""
-        if not self.pip_available:
+    def _arm_auto_pip(self):
+        """Arm auto-PiP once video is actually playing. Modern auto-PiP:
+        Android 12+ enters PiP on swipe-home natively (setAutoEnterEnabled);
+        Android 8–11 falls back to entering PiP when the lifecycle reports
+        the app is actually leaving the screen."""
+        if not self.pip_available or self._pip_active:
             return
+        self._pip_active = True
         from services import pip_service
 
         try:
@@ -343,7 +346,7 @@ class ImmersivePlayer(ft.Stack):
             self._pip_lifecycle_previous = previous
 
             def _on_lifecycle(e):
-                if getattr(e, "data", None) == "hidden":
+                if getattr(e, "data", None) == "hidden" and self._pip_active:
                     loop.create_task(asyncio.to_thread(pip_service.enter_pip))
                 if previous is not None:
                     result = previous(e)
@@ -352,7 +355,10 @@ class ImmersivePlayer(ft.Stack):
 
             page.on_app_lifecycle_state_change = _on_lifecycle
 
-    def _disable_auto_pip(self):
+    def _disarm_auto_pip(self):
+        """Disarm auto-PiP: playback ended, errored out, or the player is
+        closing. Fire-and-forget so it can never block app shutdown."""
+        self._pip_active = False
         if not self.pip_available:
             return
         from services import pip_service
@@ -367,6 +373,9 @@ class ImmersivePlayer(ft.Stack):
         if hasattr(self, "_pip_lifecycle_previous") and page:
             page.on_app_lifecycle_state_change = self._pip_lifecycle_previous
             del self._pip_lifecycle_previous
+
+    def _disable_auto_pip(self):
+        self._disarm_auto_pip()
 
         # Sync stop: clear playlist + update() queues a platform channel
         # message that stops native playback immediately. No await needed.
@@ -600,6 +609,10 @@ class ImmersivePlayer(ft.Stack):
             if playing:
                 logger.info("Stream playback started successfully for '%s'", self.title)
                 self._hide_overlay()
+                # Auto-PiP is armed only now that video is actually
+                # playing — mounting the player view is not enough
+                # (error/retry overlays used to trigger PiP too).
+                self._arm_auto_pip()
         except Exception:
             logger.exception("start_playback error")
             self._show_final_error()
@@ -1005,6 +1018,8 @@ class ImmersivePlayer(ft.Stack):
     def _show_final_error(self, message: str = "Playback failed."):
         self._cancel_watchdog()
         self._is_final_error = True
+        # Playback is dead — minimize must NOT trigger PiP anymore.
+        self._disarm_auto_pip()
         self._overlay_hidden = False
         self.status_text.value = message
         self.loading_ring.visible = False
@@ -1034,6 +1049,7 @@ class ImmersivePlayer(ft.Stack):
             self._show_final_error("Retry failed. Stream may be offline.")
             return
         self._start_watchdog()
+        self._arm_auto_pip()
 
     async def _save_current_position(self) -> None:
         """Capture and save playback position on player close for VOD streams."""
@@ -1068,6 +1084,8 @@ class ImmersivePlayer(ft.Stack):
             logger.debug("Saving playback position failed: %s", ex)
 
     def _on_complete(self, e: ft.ControlEvent):
+        # Video finished — nothing is playing, so PiP auto-enter is disarmed.
+        self._disarm_auto_pip()
         if self.source_url:
             with contextlib.suppress(Exception):
                 loop = asyncio.get_running_loop()
@@ -1088,6 +1106,7 @@ class ImmersivePlayer(ft.Stack):
         self._is_closing = True
         self._is_final_error = True
         self._cancel_watchdog()
+        self._disarm_auto_pip()
         await self._save_current_position()
         try:
             if self.video:

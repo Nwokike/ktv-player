@@ -1,5 +1,6 @@
 """Channel loading and state restoration helpers for AppController."""
 
+import asyncio
 import logging
 
 from channels.provider import channel_provider
@@ -40,14 +41,28 @@ async def load_all_channels(page_obj, loading_lock, force: bool = False):
                 if url:
                     seen_urls.add(url)
 
-            # Merge playlists — M3U group-title is preserved as-is
+            # Merge playlists — M3U group-title is preserved as-is.
+            # Fetches run concurrently: sequentially they held the loading
+            # lock for N × 20s (per-playlist httpx timeout) on slow hosts.
             playlists = await db_manager.get_playlists()
-            for pl in playlists:
-                if pl.get("is_active"):
+            active_playlists = [pl for pl in playlists if pl.get("is_active")]
+            if active_playlists:
+                fetched_lists = await asyncio.gather(
+                    *(
+                        iptv_service.fetch_playlist(pl["url"])
+                        for pl in active_playlists
+                    ),
+                    return_exceptions=True,
+                )
+                for pl, playlist_channels in zip(active_playlists, fetched_lists):
                     try:
-                        playlist_channels = await iptv_service.fetch_playlist(
-                            pl["url"],
-                        )
+                        if isinstance(playlist_channels, BaseException):
+                            logger.warning(
+                                "Failed to fetch playlist %s: %s",
+                                pl.get("name"),
+                                playlist_channels,
+                            )
+                            continue
                         # Auto-detect flat playlists: if ALL channels got
                         # group="Custom" (no group-title in M3U), derive a
                         # group name from the URL domain so they appear
@@ -80,7 +95,7 @@ async def load_all_channels(page_obj, loading_lock, force: bool = False):
                                 seen_urls.add(pc_url)
                     except Exception:
                         logger.exception(
-                            "Failed to fetch playlist: %s",
+                            "Failed to merge playlist: %s",
                             pl.get("name"),
                         )
 
