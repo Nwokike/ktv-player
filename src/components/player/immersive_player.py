@@ -13,7 +13,6 @@ from database.manager import db_manager
 from services.youtube_resolver import is_youtube_url
 from utils.notifications import (
     register_fullscreen_toast,
-    set_fullscreen_toast_active,
     unregister_fullscreen_toast,
 )
 
@@ -87,6 +86,10 @@ class ImmersivePlayer(ft.Stack):
         self._last_position: float = 0.0
         self._last_duration: float = 0.0
         self._last_position_save: float = 0.0
+        # Set after an awaited close-path save (handle_close /
+        # _close_player_with_save) so a racing back-press doesn't skip the
+        # position write — see AppController.view_pop.
+        self._position_saved: bool = False
         try:
             entry = db_manager.get_history_entry_sync(self.source_url)
         except Exception:
@@ -378,12 +381,14 @@ class ImmersivePlayer(ft.Stack):
             logger.debug("Entering PiP failed: %s", ex)
 
     async def _on_enter_fullscreen(self, e):
-        """Track fullscreen for in-player toast notifications."""
-        set_fullscreen_toast_active(True)
+        """Diagnostics only: the chip is active while the player is mounted
+        (register_fullscreen_toast), NOT gated on this event — it provably
+        does not fire on all platforms. Logged so a phone logcat shows
+        whether Android emits it."""
+        logger.info("fullscreen event: enter_fullscreen")
 
     async def _on_exit_fullscreen(self, e):
-        """Track exiting fullscreen for in-player toast notifications."""
-        set_fullscreen_toast_active(False)
+        logger.info("fullscreen event: exit_fullscreen")
 
     def _build_controls(self) -> fv.AdaptiveVideoControls:
         from components.player.controls import build_player_controls
@@ -1052,6 +1057,12 @@ class ImmersivePlayer(ft.Stack):
                     pos_sec = 0.0
                 await db_manager.update_history_position(
                     self.source_url, pos_sec, dur_sec
+                )
+                self._position_saved = True
+                logger.info(
+                    "close-path: handle_close saved position (%.1fs of %.1fs)",
+                    pos_sec,
+                    dur_sec,
                 )
         except Exception as ex:
             logger.debug("Saving playback position failed: %s", ex)

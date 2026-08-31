@@ -26,6 +26,8 @@ class FakePage:
         self.on_error = None
         self.on_route_change = None
         self.on_view_pop = None
+        self.on_app_lifecycle_state_change = None
+        self.on_close = None
         self._render_calls: deque = deque()
         self._run_task_calls: deque = deque()
         self._update_calls: int = 0

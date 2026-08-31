@@ -1,12 +1,17 @@
-"""Notification utilities using SnackBar overlay pattern.
+"""Notification utilities: SnackBar overlay + in-player toast chip.
 
 While a video is in native fullscreen, SnackBars are invisible: media_kit
 pushes an opaque fullscreen route on the ROOT navigator, which sits above
 Flet's entire page tree (views, page.overlay and dialogs). The only
 Flet-rendered surface inside fullscreen is the video's own controls
 (flet_video re-renders the same `Video.controls` there, per
-VideoControlsMode). ImmersivePlayer therefore registers its in-controls
-toast chip here and flips the active flag from on_enter/exit_fullscreen.
+VideoControlsMode). ImmersivePlayer registers its in-controls toast chip
+here on mount and unregisters on unmount.
+
+The chip is active for as long as the player is mounted — NOT gated on the
+`enter_fullscreen` event. If that event doesn't fire on a platform (phone),
+the old gate made dispatch fall back to a SnackBar that fullscreen covers,
+so the user saw nothing at all.
 """
 
 import asyncio
@@ -18,7 +23,8 @@ from core.theme import AppColors
 
 logger = logging.getLogger(__name__)
 
-# In-player toast chip used while the player is in native fullscreen.
+# In-player toast chip, active while the player that registered it is
+# mounted.
 _fullscreen_toast: dict = {
     "container": None,
     "text": None,
@@ -26,26 +32,24 @@ _fullscreen_toast: dict = {
 }
 
 _hide_task: asyncio.Task | None = None
-_TOAST_HIDE_AFTER = 3.0
+# Long enough that a phone tap-to-show-controls (which remounts the mobile
+# controls from the model) still reveals a live toast.
+_TOAST_HIDE_AFTER = 6.0
 
 
 def register_fullscreen_toast(container, text_control) -> None:
-    """Register the player's in-controls toast chip (visible in fullscreen)."""
-    _fullscreen_toast.update(container=container, text=text_control, active=False)
+    """Register the player's in-controls toast chip and activate it.
+
+    Active on mount (fullscreen or not) so notifications work in the
+    phone's fullscreen regardless of whether `enter_fullscreen` fires.
+    """
+    _fullscreen_toast.update(container=container, text=text_control, active=True)
 
 
 def unregister_fullscreen_toast() -> None:
     """Drop the chip registration and cancel any pending auto-hide."""
     _fullscreen_toast.update(container=None, text=None, active=False)
     _cancel_hide_task()
-
-
-def set_fullscreen_toast_active(active: bool) -> None:
-    """Track whether the player is currently in native fullscreen."""
-    _fullscreen_toast["active"] = active
-    if not active:
-        _cancel_hide_task()
-        _hide_toast()
 
 
 def _cancel_hide_task():
@@ -103,8 +107,10 @@ def _show_fullscreen_toast(msg: str) -> bool:
         container.visible = True
         container.update()
     except Exception:
+        logger.debug("toast: chip update failed", exc_info=True)
         return False
 
+    logger.info("toast: chip shown (%s)", msg[:60])
     # Reset any pending hide, then schedule a fresh one
     _cancel_hide_task()
 
@@ -121,7 +127,16 @@ def _show_fullscreen_toast(msg: str) -> bool:
 
 
 def _dispatch(msg: str, bgcolor=None, persist: bool = False) -> None:
-    """Show notification across all active presentation layers."""
+    """Show notification across all active presentation layers.
+
+    The chip is ADDITIVE on top of the SnackBar, never a replacement: on
+    the phone the mobile controls (which contain the chip) auto-unmount
+    while playback runs, and a background error then can't be seen in the
+    chip — the SnackBar must still fire so non-fullscreen errors remain
+    visible. In fullscreen the SnackBar is simply covered by media_kit's
+    opaque route; the chip (inside Video.controls) is the only visible
+    surface there.
+    """
     if _fullscreen_toast["active"]:
         _show_fullscreen_toast(msg)
     _show_snackbar(msg, bgcolor=bgcolor, persist=persist)

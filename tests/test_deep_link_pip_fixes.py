@@ -26,8 +26,8 @@ from unittest import mock
 import pytest
 
 import main as main_mod
-import services.pip_service as pip_service
 from core.state import state
+from services import pip_service
 
 
 @pytest.fixture(autouse=True)
@@ -41,9 +41,7 @@ class TestPlayStreamOwnLock:
     """play_stream must never be blocked or dropped by channel loading."""
 
     @pytest.mark.asyncio
-    async def test_play_proceeds_while_channel_loader_holds_lock(
-        self, fake_page
-    ):
+    async def test_play_proceeds_while_channel_loader_holds_lock(self, fake_page):
         with mock.patch.object(main_mod, "db_manager") as db:
             db.save_history = mock.AsyncMock()
             controller = main_mod.AppController(fake_page)
@@ -57,14 +55,12 @@ class TestPlayStreamOwnLock:
 
             # Regression: the old code logged "play_stream locked, ignoring
             # duplicate request" here and returned — a permanent blank screen.
-            assert any(
-                getattr(v, "route", None) == "/play" for v in fake_page.views
-            ), "deep-link play was dropped while the loader held the lock"
+            assert any(getattr(v, "route", None) == "/play" for v in fake_page.views), (
+                "deep-link play was dropped while the loader held the lock"
+            )
 
     @pytest.mark.asyncio
-    async def test_duplicate_play_suppressed_while_play_in_flight(
-        self, fake_page
-    ):
+    async def test_duplicate_play_suppressed_while_play_in_flight(self, fake_page):
         controller = main_mod.AppController(fake_page)
         controller._play_lock = asyncio.Lock()
 
@@ -76,9 +72,7 @@ class TestPlayStreamOwnLock:
         )
 
     @pytest.mark.asyncio
-    async def test_deep_link_play_marks_controller_for_exit_on_close(
-        self, fake_page
-    ):
+    async def test_deep_link_play_marks_controller_for_exit_on_close(self, fake_page):
         with mock.patch.object(main_mod, "db_manager") as db:
             db.save_history = mock.AsyncMock()
             controller = main_mod.AppController(fake_page)
@@ -118,18 +112,14 @@ class TestDeepLinkCloseExitsToCaller:
         fake_page.views = [self._play_view(player)]
 
         with (
-            mock.patch.object(
-                main_mod.AppController, "_find_immersive_player"
-            ) as find,
+            mock.patch.object(main_mod.AppController, "_find_immersive_player") as find,
             mock.patch.object(
                 pip_service, "set_auto_pip", mock.MagicMock(return_value=True)
             ),
             mock.patch.object(
                 pip_service, "exit_app", mock.MagicMock(return_value=True)
             ),
-            mock.patch.object(
-                main_mod, "db_manager"
-            ) as db,
+            mock.patch.object(main_mod, "db_manager") as db,
         ):
             find.return_value = player
             db.update_history_position = mock.AsyncMock()
@@ -159,9 +149,7 @@ class TestDeepLinkCloseExitsToCaller:
         assert fake_page.views == [shell]
 
     @pytest.mark.asyncio
-    async def test_exit_to_caller_resets_pip_and_finishes_activity(
-        self, fake_page
-    ):
+    async def test_exit_to_caller_resets_pip_and_finishes_activity(self, fake_page):
         controller = main_mod.AppController(fake_page)
         controller._deep_link_open = True
 
@@ -179,9 +167,7 @@ class TestDeepLinkCloseExitsToCaller:
         ex.assert_called_once()
         assert controller._deep_link_open is False
 
-    def test_view_pop_schedules_awaited_close_not_teardown_race(
-        self, fake_page
-    ):
+    def test_view_pop_schedules_awaited_close_not_teardown_race(self, fake_page):
         """System back must schedule _close_player_with_save (which awaits
         the position write before popping/finishing) instead of popping
         synchronously after a fire-and-forget save."""
@@ -212,9 +198,7 @@ class TestDeepLinkCloseExitsToCaller:
         # awaited save inside _close_player_with_save.
         assert len(fake_page.views) == 1
 
-    def test_view_pop_ignores_second_back_while_close_in_flight(
-        self, fake_page
-    ):
+    def test_view_pop_ignores_second_back_while_close_in_flight(self, fake_page):
         controller = main_mod.AppController(fake_page)
         controller._deep_link_open = True
 
@@ -223,6 +207,7 @@ class TestDeepLinkCloseExitsToCaller:
             _last_position=0.0,
             _last_duration=0.0,
             _is_closing=False,
+            _position_saved=False,
             video=SimpleNamespace(playlist=[], update=lambda: None),
         )
         view = SimpleNamespace(route="/play", controls=[player])
@@ -233,11 +218,205 @@ class TestDeepLinkCloseExitsToCaller:
         ) as find:
             find.return_value = player
             controller.view_pop(None)
+            # First close finished its awaited save — only then is a second
+            # back a no-op. Closing-but-unsaved must NOT skip the save (that
+            # was the route_change/view_pop race that lost positions).
+            player._position_saved = True
             controller.view_pop(None)
 
         assert len(fake_page._run_task_calls) == 1, (
             "double back must not schedule a second close"
         )
+
+    def test_view_pop_proceeds_when_closing_but_unsaved(self, fake_page):
+        """The race fix: a player marked closing by the route_change
+        stop-branch (which used to stop without saving) must still get its
+        awaited save when view_pop lands afterwards."""
+        controller = main_mod.AppController(fake_page)
+
+        player = SimpleNamespace(
+            source_url="http://anime.example/ep1.m3u8",
+            _last_position=120.0,
+            _last_duration=600.0,
+            _is_closing=True,
+            _position_saved=False,
+            video=SimpleNamespace(playlist=[], update=lambda: None),
+        )
+        view = SimpleNamespace(route="/play", controls=[player])
+        fake_page.views = [SimpleNamespace(route="/", controls=[]), view]
+
+        with mock.patch.object(
+            main_mod.AppController, "_find_immersive_player"
+        ) as find:
+            find.return_value = player
+            controller.view_pop(None)
+
+        assert len(fake_page._run_task_calls) == 1
+        fn, args, _kwargs = fake_page._run_task_calls[0]
+        assert fn == controller._close_player_with_save
+        assert args[0] is player
+
+    def test_view_pop_skips_when_close_already_saved(self, fake_page):
+        controller = main_mod.AppController(fake_page)
+
+        player = SimpleNamespace(
+            source_url="http://anime.example/ep1.m3u8",
+            _last_position=120.0,
+            _last_duration=600.0,
+            _is_closing=True,
+            _position_saved=True,
+            video=SimpleNamespace(playlist=[], update=lambda: None),
+        )
+        view = SimpleNamespace(route="/play", controls=[player])
+        fake_page.views = [SimpleNamespace(route="/", controls=[]), view]
+
+        with mock.patch.object(
+            main_mod.AppController, "_find_immersive_player"
+        ) as find:
+            find.return_value = player
+            controller.view_pop(None)
+
+        assert len(fake_page._run_task_calls) == 0
+
+    @pytest.mark.asyncio
+    async def test_ktv_deep_link_appends_blank_underlay(self, fake_page):
+        """The deep-linked player must never be the only view: flet's Dart
+        system-back handler returns early when views.length <= 1 and exits
+        the activity with no Python event at all — the resume position was
+        lost. The blank underlay keeps system back on the view_pop path."""
+        controller = main_mod.AppController(fake_page)
+        fake_page.route = "ktv://play?url=abc123"
+        fake_page.views = [SimpleNamespace(route="/")]
+
+        with mock.patch.object(controller, "_handle_deep_link") as dl:
+            await controller.route_change()
+
+        assert state.is_deep_link_launch is True
+        dl.assert_called_once_with("ktv://play?url=abc123")
+        assert len(fake_page.views) == 1
+        assert fake_page.views[0].route == "/blank"
+
+    @pytest.mark.asyncio
+    async def test_stop_branch_routes_through_awaited_close_save(self, fake_page):
+        """Navigating away from /play must schedule the close-save (position
+        persisted BEFORE playback stops), not a bare stop that marks
+        _is_closing without saving."""
+        controller = main_mod.AppController(fake_page)
+        fake_page.route = "/"
+
+        player = SimpleNamespace(
+            source_url="http://example.com/vod.mp4",
+            _last_position=120.0,
+            _last_duration=600.0,
+            _is_closing=False,
+            _position_saved=False,
+            video=SimpleNamespace(playlist=[], update=lambda: None),
+        )
+        shell = SimpleNamespace(route="/")
+        play_view = SimpleNamespace(route="/play", controls=[player])
+        fake_page.views = [shell, play_view]
+
+        with mock.patch.object(
+            main_mod.AppController, "_find_immersive_player"
+        ) as find:
+            find.return_value = player
+            await controller.route_change()
+
+        assert player._is_closing is True
+        assert len(fake_page._run_task_calls) == 1
+        fn, args, _kwargs = fake_page._run_task_calls[0]
+        assert fn == controller._close_player_with_save
+        assert args[0] is player
+        # Teardown happens only AFTER the awaited save inside close-save.
+        assert len(fake_page.views) == 2
+
+    @pytest.mark.asyncio
+    async def test_close_save_exits_to_caller_with_underlay_present(self, fake_page):
+        """With the blank underlay beneath a deep-linked player, close-save
+        must still exit to the caller (deep-link branch first), not pop the
+        player and strand the app on the blank view."""
+        controller = main_mod.AppController(fake_page)
+        controller._deep_link_open = True
+
+        player = SimpleNamespace(
+            source_url="http://anime.example/ep1.m3u8",
+            _last_position=120.0,
+            _last_duration=600.0,
+            _is_closing=True,
+            _position_saved=False,
+            video=SimpleNamespace(playlist=[], update=lambda: None),
+        )
+        blank = SimpleNamespace(route="/blank")
+        play_view = SimpleNamespace(route="/play", controls=[player])
+        fake_page.views = [blank, play_view]
+
+        with (
+            mock.patch.object(
+                pip_service, "set_auto_pip", mock.MagicMock(return_value=True)
+            ),
+            mock.patch.object(
+                pip_service, "exit_app", mock.MagicMock(return_value=True)
+            ),
+            mock.patch.object(main_mod, "db_manager") as db,
+        ):
+            db.update_history_position = mock.AsyncMock()
+            await controller._close_player_with_save(player)
+
+        db.update_history_position.assert_awaited_once_with(
+            "http://anime.example/ep1.m3u8", 120.0, 600.0
+        )
+        assert controller._deep_link_open is False
+        assert len(fake_page.views) == 2, "blank underlay must not be popped"
+
+
+class TestLifecycleCheckpoint:
+    """lifecycle 'hidden' (minimize/home) must checkpoint the top
+    player's position — the exit paths flet doesn't hook."""
+
+    def test_hidden_schedules_checkpoint_save(self, fake_page):
+        controller = main_mod.AppController(fake_page)
+
+        player = SimpleNamespace(
+            source_url="http://example.com/vod.mp4",
+            _last_position=120.0,
+            _last_duration=600.0,
+            _is_closing=False,
+            video=SimpleNamespace(playlist=[], update=lambda: None),
+        )
+        play_view = SimpleNamespace(route="/play", controls=[player])
+        fake_page.views = [SimpleNamespace(route="/blank"), play_view]
+
+        with mock.patch.object(
+            main_mod.AppController, "_find_immersive_player"
+        ) as find:
+            find.return_value = player
+            controller._save_top_player_position()
+
+        assert len(fake_page._run_task_calls) == 1
+        fn, args, _kwargs = fake_page._run_task_calls[0]
+        assert fn == controller._persist_player_position
+        assert args[0] is player
+
+    def test_hidden_skips_closing_player(self, fake_page):
+        controller = main_mod.AppController(fake_page)
+
+        player = SimpleNamespace(
+            source_url="http://example.com/vod.mp4",
+            _last_position=120.0,
+            _last_duration=600.0,
+            _is_closing=True,
+            video=SimpleNamespace(playlist=[], update=lambda: None),
+        )
+        play_view = SimpleNamespace(route="/play", controls=[player])
+        fake_page.views = [SimpleNamespace(route="/blank"), play_view]
+
+        with mock.patch.object(
+            main_mod.AppController, "_find_immersive_player"
+        ) as find:
+            find.return_value = player
+            controller._save_top_player_position()
+
+        assert len(fake_page._run_task_calls) == 0
 
 
 class TestPeriodicPositionCheckpoint:
@@ -247,9 +426,7 @@ class TestPeriodicPositionCheckpoint:
     def _player(self):
         from components.player.immersive_player import ImmersivePlayer
 
-        return ImmersivePlayer(
-            resource="http://example.com/vod.mp4", title="VOD"
-        )
+        return ImmersivePlayer(resource="http://example.com/vod.mp4", title="VOD")
 
     @pytest.mark.asyncio
     async def test_periodic_save_fires_for_vod_after_interval(self):
@@ -342,9 +519,7 @@ class TestPipParamsExplicitDisable:
 class TestExitAppHelper:
     def test_exit_app_finishes_activity(self):
         activity = mock.MagicMock()
-        with mock.patch.object(
-            pip_service, "_get_activity", return_value=activity
-        ):
+        with mock.patch.object(pip_service, "_get_activity", return_value=activity):
             assert pip_service.exit_app() is True
         activity.finish.assert_called_once()
 

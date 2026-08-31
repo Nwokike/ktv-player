@@ -145,7 +145,5 @@ def test_mobile_controls_hover_duration_outlives_toast():
     player.speed_text = mock.MagicMock()
     controls = build_player_controls(player)
     duration = controls.material.controls_hover_duration
-    total_seconds = (
-        duration.seconds + duration.minutes * 60 + duration.hours * 3600
-    )
+    total_seconds = duration.seconds + duration.minutes * 60 + duration.hours * 3600
     assert total_seconds >= 6

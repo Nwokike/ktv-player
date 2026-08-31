@@ -139,6 +139,26 @@ class AppController:
         cached_entries = await db_manager.load_liveliness_cache()
         liveliness_cache.load_from_db(cached_entries)
 
+        # Lifecycle safety net: when the app is hidden (minimize, home),
+        # persist the top player's position best-effort. Covers the exits
+        # flet doesn't hook with an event (Android killing the app while
+        # hidden) — pairs with the 10s in-play checkpoints.
+        page = self.page
+        _controller = self
+        _previous_lifecycle = page.on_app_lifecycle_state_change
+
+        def _on_lifecycle_save(e):
+            if getattr(e, "data", None) == "hidden":
+                logger.info("close-path: lifecycle hidden -> checkpoint save")
+                _controller._save_top_player_position()
+            if _previous_lifecycle is not None:
+                result = _previous_lifecycle(e)
+                if hasattr(result, "__await__"):
+                    with contextlib.suppress(Exception):
+                        page.run_task(result)
+
+        page.on_app_lifecycle_state_change = _on_lifecycle_save
+
         # Mount component frontend — AppShell manages routing, theme, nav.
         from app_shell import AppShell
         from state.controller_ctx import (
@@ -398,19 +418,26 @@ class AppController:
     def _close_player(self):
         if not self.page.views:
             return
-        if len(self.page.views) > 1 and self.page.views[-1].route == "/play":
-            self._is_player_closing = True
-            self.page.views.pop()
-            self.page.update()
-        elif self._deep_link_open and self.page.views[-1].route == "/play":
-            # A deep-linked video is the only view (the shell was cleared at
-            # the deep-link launch) — closing it returns to the caller.
+        if self._deep_link_open and self.page.views[-1].route == "/play":
+            # A deep-linked video sits on the blank underlay view (the shell
+            # was cleared at launch) — closing it returns to the caller.
+            # Checked BEFORE the plain pop branch: the underlay makes
+            # len(views) > 1 true for deep links too.
             player = self._find_immersive_player(self.page.views[-1].controls[0])
-            if player and not getattr(player, "_is_closing", False):
+            if player and not (
+                getattr(player, "_is_closing", False)
+                and getattr(player, "_position_saved", False)
+            ):
+                # Closing but not yet saved (e.g. a close raced in) — still
+                # run the awaited close-save so the position is persisted.
                 player._is_closing = True
                 self.page.run_task(self._close_player_with_save, player)
                 return
             self.page.run_task(self._exit_to_caller)
+        elif len(self.page.views) > 1 and self.page.views[-1].route == "/play":
+            self._is_player_closing = True
+            self.page.views.pop()
+            self.page.update()
 
     async def _exit_to_caller(self):
         """Finish the app after a deep-linked video closes. The deep-link
@@ -454,14 +481,22 @@ class AppController:
                 if v.route == "/play":
                     for ctrl in v.controls:
                         player = self._find_immersive_player(ctrl)
-                        if player and not player._is_closing:
+                        if player and not (
+                            getattr(player, "_is_closing", False)
+                            and getattr(player, "_position_saved", False)
+                        ):
+                            logger.info(
+                                "close-path: route_change away from /play -> close-save"
+                            )
                             player._is_closing = True
                             player._is_final_error = True
-                            try:
-                                player.video.playlist = []
-                                player.video.update()
-                            except Exception:
-                                pass
+                            # Route through the awaited close-save so the
+                            # position is persisted BEFORE playback stops.
+                            # The old bare stop marked _is_closing without
+                            # saving, which made view_pop's "already
+                            # closing" guard skip its save whenever this
+                            # event won the back-press race.
+                            self.page.run_task(self._close_player_with_save, player)
                     break
 
         # 1. Deep Link from external apps or web browsers (ktv://)
@@ -469,6 +504,16 @@ class AppController:
             logger.info("KTV deep link detected, clearing views")
             state.is_deep_link_launch = True
             self.page.views.clear()
+            # Blank underlay beneath the player: flet's Dart system-back
+            # handler returns early when the top view is the ONLY view
+            # (page.dart _handleSystemPopRoute: views.length <= 1 → the
+            # framework pops → SystemNavigator.pop() — the activity exits
+            # without any Python event, so no close path can save the
+            # resume position). A view beneath the player keeps system
+            # back on the view_pop path: awaited save, then exit-to-caller.
+            self.page.views.append(
+                ft.View(route="/blank", bgcolor=ft.Colors.BLACK, padding=0)
+            )
             self._handle_deep_link(route)
             return
 
@@ -523,6 +568,7 @@ class AppController:
 
     def view_pop(self, e):
         if not self.page.views:
+            logger.info("close-path: view_pop ignored (no views)")
             return
         top = self.page.views[-1]
         player = None
@@ -532,8 +578,16 @@ class AppController:
                 break
 
         if player:
-            if getattr(player, "_is_closing", False):
-                return  # a close is already in flight
+            if getattr(player, "_is_closing", False) and getattr(
+                player, "_position_saved", False
+            ):
+                # A close already ran and saved this position.
+                logger.info("close-path: view_pop skipped (already closing+saved)")
+                return
+            logger.info(
+                "close-path: view_pop -> close-save (was_closing=%s)",
+                getattr(player, "_is_closing", False),
+            )
             player._is_closing = True
             # The position save must be AWAITED before the view pops (and,
             # on deep links, before activity.finish()). The previous
@@ -543,6 +597,7 @@ class AppController:
             self.page.run_task(self._close_player_with_save, player)
             return
 
+        logger.info("close-path: view_pop without player, popping view")
         if len(self.page.views) > 1:
             self.page.views.pop()
             self.page.update()
@@ -559,14 +614,33 @@ class AppController:
         except Exception:
             pass
 
-        if len(self.page.views) > 1:
+        if self._deep_link_open:
+            # Deep-linked player: back exits to the caller app. Checked
+            # before the plain pop — the blank underlay keeps a second view
+            # beneath the player, so len(views) > 1 is true here too.
+            self._deep_link_open = False
+            logger.info("close-path: close-save -> exit to caller")
+            await self._exit_to_caller()
+        elif len(self.page.views) > 1:
+            logger.info("close-path: close-save -> pop view")
             self._is_player_closing = True
             self.page.views.pop()
             self.page.update()
-        elif self._deep_link_open:
-            # Deep-linked player is the only view — back exits to caller
-            self._deep_link_open = False
-            await self._exit_to_caller()
+
+    def _save_top_player_position(self):
+        """Best-effort checkpoint save for the top-most player (lifecycle
+        'hidden'). Fire-and-forget: the app is being hidden, so the loop
+        may only have a moment — better a late checkpoint than none."""
+        if not self.page.views:
+            return
+        for ctrl in self.page.views[-1].controls:
+            player = self._find_immersive_player(ctrl)
+            if player and not getattr(player, "_is_closing", False):
+                try:
+                    self.page.run_task(self._persist_player_position, player)
+                except Exception:
+                    logger.debug("Lifecycle checkpoint save failed", exc_info=True)
+                return
 
     async def _persist_player_position(self, player) -> None:
         """VOD-only position save, awaited so it completes before teardown."""
@@ -578,6 +652,20 @@ class AppController:
                     pos_sec = 0.0
                 await db_manager.update_history_position(
                     player.source_url, pos_sec, dur_sec
+                )
+                player._position_saved = True
+                logger.info(
+                    "close-path: position saved (%s at %.1fs of %.1fs)",
+                    str(player.source_url)[:80],
+                    pos_sec,
+                    dur_sec,
+                )
+            else:
+                logger.info(
+                    "close-path: position save skipped (has_url=%s dur=%.1f pos=%.1f)",
+                    bool(player.source_url),
+                    dur_sec,
+                    pos_sec,
                 )
         except Exception:
             logger.debug("Persisting position on close failed", exc_info=True)
