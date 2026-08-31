@@ -465,9 +465,15 @@ def SettingsScreen() -> Control:
                             controls=[
                                 ft.Text(APP_NAME, size=16, weight=ft.FontWeight.BOLD),
                                 ft.Text(
-                                    f"Version {APP_VERSION} · Flet {ft.__version__}",
+                                    "Update available · tap to view"
+                                    if core_state.update_available
+                                    else f"Version {APP_VERSION} · Flet {ft.__version__}",
                                     size=12,
-                                    color=AppColors.grey_dim(),
+                                    color=(
+                                        AppColors.PRIMARY
+                                        if core_state.update_available
+                                        else AppColors.grey_dim()
+                                    ),
                                 ),
                             ],
                             spacing=2,
@@ -476,6 +482,9 @@ def SettingsScreen() -> Control:
                     spacing=14,
                 ),
                 padding=ft.Padding(4, 8, 4, 8),
+                ink=True,
+                border_radius=10,
+                on_click=lambda e: controller.open_version_dialog(),
             ),
             ft.Divider(height=1, color=AppColors.get_border_color(ft.context.page)),
             ft.TextButton(

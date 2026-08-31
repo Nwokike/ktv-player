@@ -5,6 +5,8 @@ from collections.abc import Callable
 import flet as ft
 from flet import Control, context
 
+from core.constants import APP_VERSION
+from core.state import state as core_state
 from core.theme import AppColors
 from utils.theme_utils import toggle_theme as _toggle_theme_util
 
@@ -36,6 +38,7 @@ def Header(
     on_favorites_toggle: Callable[[], None] | None = None,
     on_add_content: Callable[[], None] | None = None,
     on_refresh: Callable[[], None] | None = None,
+    on_version_click: Callable[[], None] | None = None,
     refresh_tooltip: str = "Refresh",
     fav_active: bool = False,
     show_search: bool = True,
@@ -48,6 +51,67 @@ def Header(
     def _handle_toggle_theme():
         _toggle_theme_util(context.page)
         set_current_theme(getattr(context.page, "theme_mode", ft.ThemeMode.DARK))
+
+    def _build_version_chip() -> Control | None:
+        """Sherlock-style version chip: shows the current version normally,
+        flips to an Update pill when a newer build is found. Always opens
+        the version dialog (changelog when up to date)."""
+        if not callable(on_version_click):
+            return None
+        update_available = core_state.update_available
+        if update_available:
+            update_data = core_state.update_data or {}
+            label = (
+                update_data.get("version", "Update")
+                if update_data.get("type") != "announcement"
+                else "News"
+            )
+            content = ft.Row(
+                controls=[
+                    ft.Text(
+                        f"Update: {label} Available!"
+                        if update_data.get("type") != "announcement"
+                        else "News",
+                        size=11,
+                        weight=ft.FontWeight.BOLD,
+                        color=AppColors.PRIMARY,
+                        no_wrap=True,
+                    ),
+                    ft.Container(
+                        width=6,
+                        height=6,
+                        border_radius=3,
+                        bgcolor=AppColors.PRIMARY,
+                    ),
+                ],
+                spacing=6,
+                vertical_alignment=ft.CrossAxisAlignment.CENTER,
+            )
+            return ft.Container(
+                content=content,
+                padding=ft.Padding(10, 4, 10, 4),
+                border_radius=10,
+                bgcolor=ft.Colors.with_opacity(0.15, AppColors.PRIMARY),
+                border=ft.Border.all(1.5, AppColors.PRIMARY),
+                ink=True,
+                tooltip="New update available — tap to view",
+                on_click=lambda e: on_version_click(),
+            )
+        return ft.Container(
+            content=ft.Text(
+                f"v{APP_VERSION}",
+                size=11,
+                weight=ft.FontWeight.BOLD,
+                color=ft.Colors.ON_SURFACE_VARIANT,
+                no_wrap=True,
+            ),
+            padding=ft.Padding(10, 4, 10, 4),
+            border_radius=10,
+            bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.ON_SURFACE_VARIANT),
+            ink=True,
+            tooltip="What's New — version & changelog",
+            on_click=lambda e: on_version_click(),
+        )
 
     actions: list[Control] = []
 
@@ -90,6 +154,10 @@ def Header(
                 tooltip=refresh_tooltip,
             )
         )
+
+    version_chip = _build_version_chip()
+    if version_chip is not None:
+        actions.append(version_chip)
 
     try:
         is_dark = AppColors._is_dark(context.page)

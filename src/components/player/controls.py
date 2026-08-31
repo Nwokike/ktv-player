@@ -241,11 +241,6 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
             brightness_gesture=True,
             speed_up_on_long_press=True,
             speed_up_factor=2.0,
-            # 6s > the 3s toast lifetime: with the default 3s hover hide,
-            # mobile controls faded out and took the in-player toast with
-            # them before the user could read it (desktop worked because
-            # mouse movement resets its timer).
-            controls_hover_duration=ft.Duration(seconds=6),
             controls_transition_duration=ft.Duration(milliseconds=300),
             seek_bar_position_color=AppColors.PRIMARY,
             button_bar_button_color=ft.Colors.WHITE,

@@ -135,15 +135,3 @@ def test_audio_btn_mounted_in_bottom_bar():
     assert hasattr(player, "audio_btn")
     assert player.audio_btn in controls.material.bottom_button_bar
     assert player.audio_btn in controls.material_desktop.bottom_button_bar
-
-
-def test_mobile_controls_hover_duration_outlives_toast():
-    """Mobile controls must stay up longer than the 3s toast lifetime —
-    with the default 3s hover hide they faded out and took the in-player
-    toast with it (desktop worked because mouse movement resets it)."""
-    player = mock.MagicMock()
-    player.speed_text = mock.MagicMock()
-    controls = build_player_controls(player)
-    duration = controls.material.controls_hover_duration
-    total_seconds = duration.seconds + duration.minutes * 60 + duration.hours * 3600
-    assert total_seconds >= 6

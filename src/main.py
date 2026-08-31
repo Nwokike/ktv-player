@@ -97,6 +97,9 @@ class AppController:
 
         self.ad_service = AdService(self.page)
         self.liveliness = LivelinessChecker(self.page)
+        from services.update_service import UpdateService
+
+        self.update_service = UpdateService()
         self._loading_lock = asyncio.Lock()
 
         # Gather UMP consent before loading ads
@@ -173,6 +176,8 @@ class AppController:
             push_modal=self.push_modal,
             pop_modal=self.pop_modal,
             close_modal=self.close_modal,
+            check_for_updates=self.check_for_updates,
+            open_version_dialog=self.open_version_dialog,
         )
         self.page.render(lambda: ControllerMethodsCtx(methods, lambda: AppShell()))
         logger.info("AppShell frontend mounted successfully")
@@ -192,6 +197,41 @@ class AppController:
                 pass
 
         self.page.run_task(_init_connectivity)
+
+        # Update check in the background — pure GET + observable flip, so
+        # it can never delay the deep-link fast path. Mandatory updates
+        # open the version dialog on arrival.
+        self.page.run_task(self.check_for_updates)
+
+    async def check_for_updates(self, notify_if_latest: bool = False) -> None:
+        """Check version.json on main for a newer build or announcement.
+        Silent on failure; only a mandatory update auto-opens the dialog."""
+        if not getattr(self, "update_service", None):
+            return
+        update_info = await self.update_service.check_for_update()
+        if update_info:
+            state.update_available = True
+            state.update_data = update_info
+            logger.info(
+                "Update available: v%s (build %s, type=%s)",
+                update_info.get("version"),
+                update_info.get("build_number"),
+                update_info.get("type"),
+            )
+            if update_info.get("mandatory"):
+                self.open_version_dialog()
+        elif notify_if_latest:
+            from core.constants import APP_VERSION
+            from utils.notifications import notify
+
+            notify(f"✓ {APP_VERSION} is up to date")
+
+    def open_version_dialog(self) -> None:
+        """Open the version dialog (changelog when up to date, update UI
+        when a newer build was found)."""
+        from components.version_dialog import show_version_dialog
+
+        show_version_dialog(self.page)
 
     def _on_connectivity_change(self, e):
         from flet import ConnectivityType

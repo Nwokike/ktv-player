@@ -21,6 +21,10 @@ class AppState:
 
     channels_hash: int = 0
 
+    # Update service (version dialog reads these; None/False = up to date)
+    update_available: bool = False
+    update_data: dict | None = None
+
     def __init__(self):
         self.channels = []
         self.history = []
@@ -62,6 +66,8 @@ class AppState:
         self.is_first_launch = True
         self.theme_mode = ft.ThemeMode.SYSTEM
         self.channels_hash = 0
+        self.update_available = False
+        self.update_data = None
 
 
 state = AppState()

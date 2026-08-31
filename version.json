@@ -1,0 +1,9 @@
+{
+  "build_number": 18,
+  "version": "2.1.0",
+  "type": "update",
+  "title": "KTV Player 2.1.0",
+  "release_notes": "- In-player Quality switching for multi-variant HLS streams\n- In-player Audio Track selection with language labels\n- Android Picture-in-Picture (button + auto-enter while playing)\n- Auto-resume for VOD and local videos, with periodic checkpoints\n- Resume survives the Android system back gesture\n- In-player toast notifications work in fullscreen on phones\n- Rebuilt playback retry system — never a dead-end overlay\n- Full-title display in the player (no shrinking)\n- Deep links open fast and exit back to the calling app",
+  "mandatory": false,
+  "github_url": "https://github.com/Nwokike/ktv-player/releases/latest"
+}

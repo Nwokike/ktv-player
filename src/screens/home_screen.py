@@ -231,6 +231,11 @@ def HomeScreen() -> Control:
         on_favorites_toggle=_toggle_favorites_filter,
         on_add_content=lambda: set_add_dialog_open(True),
         on_refresh=on_refresh_home,
+        on_version_click=lambda: (
+            controller.open_version_dialog()
+            if callable(getattr(controller, "open_version_dialog", None))
+            else None
+        ),
         refresh_tooltip="Refresh Channels",
         fav_active=filters.get("fav_only", False),
     )

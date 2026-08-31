@@ -13,6 +13,7 @@ from database.manager import db_manager
 from services.youtube_resolver import is_youtube_url
 from utils.notifications import (
     register_fullscreen_toast,
+    set_fullscreen_toast_active,
     unregister_fullscreen_toast,
 )
 
@@ -381,14 +382,12 @@ class ImmersivePlayer(ft.Stack):
             logger.debug("Entering PiP failed: %s", ex)
 
     async def _on_enter_fullscreen(self, e):
-        """Diagnostics only: the chip is active while the player is mounted
-        (register_fullscreen_toast), NOT gated on this event — it provably
-        does not fire on all platforms. Logged so a phone logcat shows
-        whether Android emits it."""
-        logger.info("fullscreen event: enter_fullscreen")
+        """Track fullscreen for in-player toast notifications."""
+        set_fullscreen_toast_active(True)
 
     async def _on_exit_fullscreen(self, e):
-        logger.info("fullscreen event: exit_fullscreen")
+        """Track exiting fullscreen for in-player toast notifications."""
+        set_fullscreen_toast_active(False)
 
     def _build_controls(self) -> fv.AdaptiveVideoControls:
         from components.player.controls import build_player_controls

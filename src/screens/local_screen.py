@@ -189,6 +189,11 @@ def LocalScreen() -> Control:
         on_search_click=_open_search,
         on_add_content=_pick_folder,
         on_refresh=_refresh,
+        on_version_click=lambda: (
+            controller.open_version_dialog()
+            if callable(getattr(controller, "open_version_dialog", None))
+            else None
+        ),
         refresh_tooltip="Rescan Local Videos",
     )
 

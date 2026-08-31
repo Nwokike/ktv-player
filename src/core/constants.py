@@ -1,5 +1,13 @@
 APP_NAME = "KTV Player"
 APP_VERSION = "2.1.0"
+APP_BUILD_NUMBER = 18
+
+# Update service — version metadata is served from this repo's main branch
+# (a normal commit to version.json publishes it; no CI change needed).
+UPDATE_CONFIG_URL = (
+    "https://raw.githubusercontent.com/Nwokike/ktv-player/main/version.json"
+)
+GITHUB_RELEASES_URL = "https://github.com/Nwokike/ktv-player/releases/latest"
 
 # Error messages
 ERR_NETWORK = "Stream unavailable or network timeout."
