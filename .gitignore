@@ -34,3 +34,8 @@ release_notes.md
 log.txt
 .zcode/
 kiri_keystore.jks
+# local CI-debug dumps
+jobs.json
+runs.json
+rel.json
+run.json
