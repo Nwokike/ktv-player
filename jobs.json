@@ -1,0 +1,769 @@
+{
+  "total_count": 7,
+  "jobs": [
+    {
+      "id": 107320371795,
+      "run_id": 35902034712,
+      "workflow_name": "Build Multi-Platform & Create Release",
+      "head_branch": "v2.2.0",
+      "run_url": "https://api.github.com/repos/Nwokike/ktv-player/actions/runs/35902034712",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOSNQgP88AAAAY_MrqUw",
+      "head_sha": "7cd4fc7cb5d26d30200fb596adba8016fc50b6c6",
+      "url": "https://api.github.com/repos/Nwokike/ktv-player/actions/jobs/107320371795",
+      "html_url": "https://github.com/Nwokike/ktv-player/actions/runs/35902034712/job/107320371795",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-09-23T18:22:43Z",
+      "started_at": "2026-09-23T18:22:46Z",
+      "completed_at": "2026-09-23T18:23:01Z",
+      "name": "quality",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-09-23T18:22:47Z",
+          "completed_at": "2026-09-23T18:22:48Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-09-23T18:22:48Z",
+          "completed_at": "2026-09-23T18:22:50Z"
+        },
+        {
+          "name": "Run astral-sh/setup-uv@v6",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-09-23T18:22:50Z",
+          "completed_at": "2026-09-23T18:22:52Z"
+        },
+        {
+          "name": "Run actions/setup-python@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-09-23T18:22:52Z",
+          "completed_at": "2026-09-23T18:22:52Z"
+        },
+        {
+          "name": "Install dependencies (incl. dev group)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-09-23T18:22:52Z",
+          "completed_at": "2026-09-23T18:22:53Z"
+        },
+        {
+          "name": "Ruff",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-09-23T18:22:53Z",
+          "completed_at": "2026-09-23T18:22:53Z"
+        },
+        {
+          "name": "Ruff format",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-09-23T18:22:53Z",
+          "completed_at": "2026-09-23T18:22:53Z"
+        },
+        {
+          "name": "Tests",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-09-23T18:22:53Z",
+          "completed_at": "2026-09-23T18:22:58Z"
+        },
+        {
+          "name": "Post Run actions/setup-python@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-09-23T18:22:58Z",
+          "completed_at": "2026-09-23T18:22:58Z"
+        },
+        {
+          "name": "Post Run astral-sh/setup-uv@v6",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-09-23T18:22:58Z",
+          "completed_at": "2026-09-23T18:22:58Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16,
+          "started_at": "2026-09-23T18:22:58Z",
+          "completed_at": "2026-09-23T18:22:58Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17,
+          "started_at": "2026-09-23T18:22:58Z",
+          "completed_at": "2026-09-23T18:22:58Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/Nwokike/ktv-player/check-runs/107320371795",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000004812,
+      "runner_name": "GitHub Actions 1000004812",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 107320491909,
+      "run_id": 35902034712,
+      "workflow_name": "Build Multi-Platform & Create Release",
+      "head_branch": "v2.2.0",
+      "run_url": "https://api.github.com/repos/Nwokike/ktv-player/actions/runs/35902034712",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOSNQgP88AAAAY_My_hQ",
+      "head_sha": "7cd4fc7cb5d26d30200fb596adba8016fc50b6c6",
+      "url": "https://api.github.com/repos/Nwokike/ktv-player/actions/jobs/107320491909",
+      "html_url": "https://github.com/Nwokike/ktv-player/actions/runs/35902034712/job/107320491909",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-09-23T18:23:01Z",
+      "started_at": "2026-09-23T18:23:04Z",
+      "completed_at": "2026-09-23T18:23:12Z",
+      "name": "prepare-release",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-09-23T18:23:05Z",
+          "completed_at": "2026-09-23T18:23:06Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-09-23T18:23:06Z",
+          "completed_at": "2026-09-23T18:23:07Z"
+        },
+        {
+          "name": "Generate Release Tag & Name",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-09-23T18:23:07Z",
+          "completed_at": "2026-09-23T18:23:07Z"
+        },
+        {
+          "name": "Create GitHub Release Placeholder",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-09-23T18:23:07Z",
+          "completed_at": "2026-09-23T18:23:10Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-09-23T18:23:10Z",
+          "completed_at": "2026-09-23T18:23:10Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-09-23T18:23:10Z",
+          "completed_at": "2026-09-23T18:23:10Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/Nwokike/ktv-player/check-runs/107320491909",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000004813,
+      "runner_name": "GitHub Actions 1000004813",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 107320564876,
+      "run_id": 35902034712,
+      "workflow_name": "Build Multi-Platform & Create Release",
+      "head_branch": "v2.2.0",
+      "run_url": "https://api.github.com/repos/Nwokike/ktv-player/actions/runs/35902034712",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOSNQgP88AAAAY_M3cjA",
+      "head_sha": "7cd4fc7cb5d26d30200fb596adba8016fc50b6c6",
+      "url": "https://api.github.com/repos/Nwokike/ktv-player/actions/jobs/107320564876",
+      "html_url": "https://github.com/Nwokike/ktv-player/actions/runs/35902034712/job/107320564876",
+      "status": "in_progress",
+      "conclusion": null,
+      "created_at": "2026-09-23T18:23:12Z",
+      "started_at": "2026-09-23T18:23:15Z",
+      "completed_at": null,
+      "name": "build-apk",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-09-23T18:23:16Z",
+          "completed_at": "2026-09-23T18:23:19Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-09-23T18:23:19Z",
+          "completed_at": "2026-09-23T18:23:21Z"
+        },
+        {
+          "name": "Run astral-sh/setup-uv@v6",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-09-23T18:23:21Z",
+          "completed_at": "2026-09-23T18:23:23Z"
+        },
+        {
+          "name": "Run actions/setup-java@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-09-23T18:23:23Z",
+          "completed_at": "2026-09-23T18:23:23Z"
+        },
+        {
+          "name": "Decode Keystore",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-09-23T18:23:23Z",
+          "completed_at": "2026-09-23T18:23:23Z"
+        },
+        {
+          "name": "Build APK (universal)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-09-23T18:23:23Z",
+          "completed_at": "2026-09-23T18:31:21Z"
+        },
+        {
+          "name": "Inject TV banner, icon & rebuild with banner",
+          "status": "in_progress",
+          "conclusion": null,
+          "number": 7,
+          "started_at": "2026-09-23T18:31:21Z",
+          "completed_at": null
+        },
+        {
+          "name": "Upload directly to GitHub Release",
+          "status": "pending",
+          "conclusion": null,
+          "number": 8,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "name": "Post Run actions/setup-java@v4",
+          "status": "pending",
+          "conclusion": null,
+          "number": 14,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "name": "Post Run astral-sh/setup-uv@v6",
+          "status": "pending",
+          "conclusion": null,
+          "number": 15,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "pending",
+          "conclusion": null,
+          "number": 16,
+          "started_at": null,
+          "completed_at": null
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/Nwokike/ktv-player/check-runs/107320564876",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000004816,
+      "runner_name": "GitHub Actions 1000004816",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 107320564889,
+      "run_id": 35902034712,
+      "workflow_name": "Build Multi-Platform & Create Release",
+      "head_branch": "v2.2.0",
+      "run_url": "https://api.github.com/repos/Nwokike/ktv-player/actions/runs/35902034712",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOSNQgP88AAAAY_M3cmQ",
+      "head_sha": "7cd4fc7cb5d26d30200fb596adba8016fc50b6c6",
+      "url": "https://api.github.com/repos/Nwokike/ktv-player/actions/jobs/107320564889",
+      "html_url": "https://github.com/Nwokike/ktv-player/actions/runs/35902034712/job/107320564889",
+      "status": "in_progress",
+      "conclusion": null,
+      "created_at": "2026-09-23T18:23:12Z",
+      "started_at": "2026-09-23T18:23:15Z",
+      "completed_at": null,
+      "name": "build-aab",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-09-23T18:23:16Z",
+          "completed_at": "2026-09-23T18:23:17Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-09-23T18:23:17Z",
+          "completed_at": "2026-09-23T18:23:18Z"
+        },
+        {
+          "name": "Run astral-sh/setup-uv@v6",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-09-23T18:23:18Z",
+          "completed_at": "2026-09-23T18:23:20Z"
+        },
+        {
+          "name": "Run actions/setup-java@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-09-23T18:23:20Z",
+          "completed_at": "2026-09-23T18:23:20Z"
+        },
+        {
+          "name": "Decode Keystore",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-09-23T18:23:20Z",
+          "completed_at": "2026-09-23T18:23:20Z"
+        },
+        {
+          "name": "Build AAB",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-09-23T18:23:20Z",
+          "completed_at": "2026-09-23T18:30:36Z"
+        },
+        {
+          "name": "Inject TV banner, icon & rebuild with banner",
+          "status": "in_progress",
+          "conclusion": null,
+          "number": 7,
+          "started_at": "2026-09-23T18:30:36Z",
+          "completed_at": null
+        },
+        {
+          "name": "Upload directly to GitHub Release",
+          "status": "pending",
+          "conclusion": null,
+          "number": 8,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "name": "Post Run actions/setup-java@v4",
+          "status": "pending",
+          "conclusion": null,
+          "number": 14,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "name": "Post Run astral-sh/setup-uv@v6",
+          "status": "pending",
+          "conclusion": null,
+          "number": 15,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "pending",
+          "conclusion": null,
+          "number": 16,
+          "started_at": null,
+          "completed_at": null
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/Nwokike/ktv-player/check-runs/107320564889",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000004814,
+      "runner_name": "GitHub Actions 1000004814",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 107320564930,
+      "run_id": 35902034712,
+      "workflow_name": "Build Multi-Platform & Create Release",
+      "head_branch": "v2.2.0",
+      "run_url": "https://api.github.com/repos/Nwokike/ktv-player/actions/runs/35902034712",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOSNQgP88AAAAY_M3cwg",
+      "head_sha": "7cd4fc7cb5d26d30200fb596adba8016fc50b6c6",
+      "url": "https://api.github.com/repos/Nwokike/ktv-player/actions/jobs/107320564930",
+      "html_url": "https://github.com/Nwokike/ktv-player/actions/runs/35902034712/job/107320564930",
+      "status": "in_progress",
+      "conclusion": null,
+      "created_at": "2026-09-23T18:23:12Z",
+      "started_at": "2026-09-23T18:23:15Z",
+      "completed_at": null,
+      "name": "build-apk-split",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-09-23T18:23:16Z",
+          "completed_at": "2026-09-23T18:23:20Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-09-23T18:23:20Z",
+          "completed_at": "2026-09-23T18:23:21Z"
+        },
+        {
+          "name": "Run astral-sh/setup-uv@v6",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-09-23T18:23:21Z",
+          "completed_at": "2026-09-23T18:23:23Z"
+        },
+        {
+          "name": "Run actions/setup-java@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-09-23T18:23:23Z",
+          "completed_at": "2026-09-23T18:23:23Z"
+        },
+        {
+          "name": "Decode Keystore",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-09-23T18:23:23Z",
+          "completed_at": "2026-09-23T18:23:23Z"
+        },
+        {
+          "name": "Build APK (split per ABI)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-09-23T18:23:23Z",
+          "completed_at": "2026-09-23T18:31:04Z"
+        },
+        {
+          "name": "Inject TV banner, icon & rebuild with banner",
+          "status": "in_progress",
+          "conclusion": null,
+          "number": 7,
+          "started_at": "2026-09-23T18:31:04Z",
+          "completed_at": null
+        },
+        {
+          "name": "Upload directly to GitHub Release",
+          "status": "pending",
+          "conclusion": null,
+          "number": 8,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "name": "Post Run actions/setup-java@v4",
+          "status": "pending",
+          "conclusion": null,
+          "number": 14,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "name": "Post Run astral-sh/setup-uv@v6",
+          "status": "pending",
+          "conclusion": null,
+          "number": 15,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "pending",
+          "conclusion": null,
+          "number": 16,
+          "started_at": null,
+          "completed_at": null
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/Nwokike/ktv-player/check-runs/107320564930",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000004815,
+      "runner_name": "GitHub Actions 1000004815",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 107320564936,
+      "run_id": 35902034712,
+      "workflow_name": "Build Multi-Platform & Create Release",
+      "head_branch": "v2.2.0",
+      "run_url": "https://api.github.com/repos/Nwokike/ktv-player/actions/runs/35902034712",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOSNQgP88AAAAY_M3cyA",
+      "head_sha": "7cd4fc7cb5d26d30200fb596adba8016fc50b6c6",
+      "url": "https://api.github.com/repos/Nwokike/ktv-player/actions/jobs/107320564936",
+      "html_url": "https://github.com/Nwokike/ktv-player/actions/runs/35902034712/job/107320564936",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-09-23T18:23:12Z",
+      "started_at": "2026-09-23T18:23:16Z",
+      "completed_at": "2026-09-23T18:32:36Z",
+      "name": "build-windows",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-09-23T18:23:16Z",
+          "completed_at": "2026-09-23T18:23:18Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-09-23T18:23:18Z",
+          "completed_at": "2026-09-23T18:23:24Z"
+        },
+        {
+          "name": "Run astral-sh/setup-uv@v6",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-09-23T18:23:24Z",
+          "completed_at": "2026-09-23T18:23:31Z"
+        },
+        {
+          "name": "Build Windows Portable",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-09-23T18:23:31Z",
+          "completed_at": "2026-09-23T18:31:53Z"
+        },
+        {
+          "name": "Generate Icon for Installer",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-09-23T18:31:53Z",
+          "completed_at": "2026-09-23T18:31:54Z"
+        },
+        {
+          "name": "Build Windows Installer (Inno Setup)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-09-23T18:31:54Z",
+          "completed_at": "2026-09-23T18:32:27Z"
+        },
+        {
+          "name": "Upload directly to GitHub Release",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-09-23T18:32:27Z",
+          "completed_at": "2026-09-23T18:32:31Z"
+        },
+        {
+          "name": "Post Run astral-sh/setup-uv@v6",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-09-23T18:32:31Z",
+          "completed_at": "2026-09-23T18:32:31Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-09-23T18:32:31Z",
+          "completed_at": "2026-09-23T18:32:34Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-09-23T18:32:34Z",
+          "completed_at": "2026-09-23T18:32:34Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/Nwokike/ktv-player/check-runs/107320564936",
+      "labels": [
+        "windows-latest"
+      ],
+      "runner_id": 1000004817,
+      "runner_name": "GitHub Actions 1000004817",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 107320565170,
+      "run_id": 35902034712,
+      "workflow_name": "Build Multi-Platform & Create Release",
+      "head_branch": "v2.2.0",
+      "run_url": "https://api.github.com/repos/Nwokike/ktv-player/actions/runs/35902034712",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOSNQgP88AAAAY_M3dsg",
+      "head_sha": "7cd4fc7cb5d26d30200fb596adba8016fc50b6c6",
+      "url": "https://api.github.com/repos/Nwokike/ktv-player/actions/jobs/107320565170",
+      "html_url": "https://github.com/Nwokike/ktv-player/actions/runs/35902034712/job/107320565170",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-09-23T18:23:12Z",
+      "started_at": "2026-09-23T18:23:17Z",
+      "completed_at": "2026-09-23T18:28:56Z",
+      "name": "build-linux",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-09-23T18:23:18Z",
+          "completed_at": "2026-09-23T18:23:20Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-09-23T18:23:20Z",
+          "completed_at": "2026-09-23T18:23:21Z"
+        },
+        {
+          "name": "Run astral-sh/setup-uv@v6",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-09-23T18:23:21Z",
+          "completed_at": "2026-09-23T18:23:23Z"
+        },
+        {
+          "name": "Install Linux Build Dependencies & Packaging Tools",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-09-23T18:23:23Z",
+          "completed_at": "2026-09-23T18:25:02Z"
+        },
+        {
+          "name": "Build Linux Bundle",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-09-23T18:25:02Z",
+          "completed_at": "2026-09-23T18:28:05Z"
+        },
+        {
+          "name": "Create Linux Packages (.deb, .rpm, .tar.gz)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-09-23T18:28:05Z",
+          "completed_at": "2026-09-23T18:28:50Z"
+        },
+        {
+          "name": "Upload directly to GitHub Release",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-09-23T18:28:50Z",
+          "completed_at": "2026-09-23T18:28:53Z"
+        },
+        {
+          "name": "Post Run astral-sh/setup-uv@v6",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-09-23T18:28:53Z",
+          "completed_at": "2026-09-23T18:28:54Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-09-23T18:28:54Z",
+          "completed_at": "2026-09-23T18:28:54Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-09-23T18:28:54Z",
+          "completed_at": "2026-09-23T18:28:54Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/Nwokike/ktv-player/check-runs/107320565170",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000004818,
+      "runner_name": "GitHub Actions 1000004818",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    }
+  ]
+}
