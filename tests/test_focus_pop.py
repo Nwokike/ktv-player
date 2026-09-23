@@ -26,7 +26,9 @@ def test_channel_card_scales_up_on_focus_and_back_on_blur():
 
 
 def test_video_card_scales_up_on_focus_and_back_on_blur():
-    card = VideoCard(video=LocalVideo(name="v.mp4", path="/v.mp4", size=1), on_play=lambda p: None)
+    card = VideoCard(
+        video=LocalVideo(name="v.mp4", path="/v.mp4", size=1), on_play=lambda p: None
+    )
     card.on_focus(SimpleNamespace())
     assert card.scale == 1.04
     card.on_blur(SimpleNamespace())

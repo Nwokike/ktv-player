@@ -59,8 +59,6 @@ def test_loading_state_centered():
 
 
 def test_loading_state_shimmer_has_skeleton_cards():
-    shimmer = next(
-        c for c in _walk(LoadingState()) if isinstance(c, ft.Shimmer)
-    )
+    shimmer = next(c for c in _walk(LoadingState()) if isinstance(c, ft.Shimmer))
     assert isinstance(shimmer.content, ft.Column)
     assert len(shimmer.content.controls) == 3

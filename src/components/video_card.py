@@ -40,9 +40,7 @@ def VideoCard(
                                 border_radius=5,
                                 bgcolor=ft.Colors.GREEN_ACCENT_400,
                             ),
-                            ft.Icon(
-                                ft.Icons.MOVIE, size=18, color=ft.Colors.GREY
-                            ),
+                            ft.Icon(ft.Icons.MOVIE, size=18, color=ft.Colors.GREY),
                         ],
                         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                     ),
