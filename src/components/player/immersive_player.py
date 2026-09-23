@@ -15,11 +15,6 @@ from core.theme import AppColors
 from database.manager import db_manager
 from services.tv_detect import is_tv_device
 from services.youtube_resolver import is_youtube_url
-from utils.notifications import (
-    register_fullscreen_toast,
-    set_fullscreen_toast_active,
-    unregister_fullscreen_toast,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -278,14 +273,20 @@ class ImmersivePlayer(ft.Stack):
             fit=ft.BoxFit.CONTAIN,
             alignment=ft.Alignment.CENTER,
             title=self.title or "KTV Player",
-            controls=self._build_controls(),
+            # Per-mode controls: media_kit's fullscreen route re-renders the
+            # ACTIVE set, so the theater bar is a dedicated, larger control
+            # set instead of the old in-player toast-chip workaround.
+            controls={
+                fv.VideoControlsMode.NORMAL: self._build_controls(),
+                fv.VideoControlsMode.FULLSCREEN: self._build_controls(
+                    variant="fullscreen"
+                ),
+            },
             on_load=lambda e: self._hide_overlay(),
             on_duration_change=self._on_duration_change,
             on_position_change=self._on_pos_change,
             on_error=self._on_error,
             on_complete=self._on_complete,
-            on_enter_fullscreen=self._on_enter_fullscreen,
-            on_exit_fullscreen=self._on_exit_fullscreen,
         )
 
         self.controls = [
@@ -302,14 +303,8 @@ class ImmersivePlayer(ft.Stack):
 
     # --- Controls ---
 
-    def did_mount(self):
-        super().did_mount()
-        # The toast chip was created by build_player_controls() in __init__
-        register_fullscreen_toast(self.toast_chip, self.toast_text)
-
     def will_unmount(self):
         super().will_unmount()
-        unregister_fullscreen_toast()
         self._cancel_watchdog()
         self._disable_auto_pip()
         if self.ima_view is not None and not self._ima_destroyed:
@@ -421,18 +416,10 @@ class ImmersivePlayer(ft.Stack):
         except Exception as ex:
             logger.debug("Entering PiP failed: %s", ex)
 
-    async def _on_enter_fullscreen(self, e):
-        """Track fullscreen for in-player toast notifications."""
-        set_fullscreen_toast_active(True)
-
-    async def _on_exit_fullscreen(self, e):
-        """Track exiting fullscreen for in-player toast notifications."""
-        set_fullscreen_toast_active(False)
-
-    def _build_controls(self) -> fv.AdaptiveVideoControls:
+    def _build_controls(self, variant: str = "normal") -> fv.AdaptiveVideoControls:
         from components.player.controls import build_player_controls
 
-        return build_player_controls(self)
+        return build_player_controls(self, variant)
 
     async def _pick_subtitles(self):
         from components.player.handlers import pick_subtitles
