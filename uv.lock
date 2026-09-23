@@ -62,26 +62,26 @@ wheels = [
 
 [[package]]
 name = "flet-billing"
-version = "0.1.0"
+version = "0.1.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "flet" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/26/04/001490305cc2542d2d3b77fc9b6674afe8a1c83a0afb4487cabe8d4eac4b/flet_billing-0.1.0.tar.gz", hash = "sha256:b03e74e32d14d4778124cfbea1f700ea2ec7164bcad3319cb8ccaaa0c8e5c7dc", size = 20117, upload-time = "2026-09-23T12:11:26.961Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/4d/a1/65e6b4ffa1010d5331b737732d8a770a5104b3ff992c9055414ccc5262db/flet_billing-0.1.1.tar.gz", hash = "sha256:3edbbf252e468d8a2590f9f4e5dd579a882aa865d9f336f14fd753edbf54afa3", size = 23190, upload-time = "2026-09-23T13:39:56.326Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fa/7c/8ec1aaaf68fe40b26ce4b7a492823c6fd578adf3e3417b7b944947d5335b/flet_billing-0.1.0-py3-none-any.whl", hash = "sha256:b269ec2abd41eeec39a3d8d9c75a7ee614e2f9eb40a73c10c50917e19cbba29f", size = 19906, upload-time = "2026-09-23T12:11:25.897Z" },
+    { url = "https://files.pythonhosted.org/packages/86/c6/7af76d645a7455cb73c79a54adc2556702220c9481f9059e937b034031ed/flet_billing-0.1.1-py3-none-any.whl", hash = "sha256:a6a4351e9ed7450615f0fb434c3866137be02afc18390eea288af870d5f9f85e", size = 21954, upload-time = "2026-09-23T13:39:55.216Z" },
 ]
 
 [[package]]
 name = "flet-ima"
-version = "0.1.0"
+version = "0.1.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "flet" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/57/d6/b02dd2ced1ed918bcb1f19388ab87b6d6613bb2a4145af4480b0c642a41a/flet_ima-0.1.0.tar.gz", hash = "sha256:274ace11da05b8317a25c8c4e80d26b8b07dc179f935b4a14d3fabab1f3f9490", size = 21785, upload-time = "2026-09-23T12:28:01.794Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/15/45/da9da6cbf7aec1584ca1f77065a38e617327c8b85cd485de27b72438145c/flet_ima-0.1.5.tar.gz", hash = "sha256:b81d0864936905b520ca2ec8c5e8018988c7d0b5c99e31fe94bfc78b0b2b9454", size = 25345, upload-time = "2026-09-23T16:56:46.128Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c1/04/1909f9576c16c3969e54b3b54df6e4c25db7dda32a87c04b26b37c60ca72/flet_ima-0.1.0-py3-none-any.whl", hash = "sha256:a4c8b08345513cf430319855f796925c5da7af75be095d46e7377037a2e00ee6", size = 20757, upload-time = "2026-09-23T12:28:00.888Z" },
+    { url = "https://files.pythonhosted.org/packages/5e/eb/6e3de9394db45b9d0f21679fda19b7a45eaced808f254d11c90d1aaf2bbe/flet_ima-0.1.5-py3-none-any.whl", hash = "sha256:33e27420b9350814a5b6755aa949f51d9a98a5f1fc0a9679d3e214d9dc9ba121", size = 22538, upload-time = "2026-09-23T16:56:44.987Z" },
 ]
 
 [[package]]
@@ -225,8 +225,8 @@ dev = [
 requires-dist = [
     { name = "flet", specifier = ">=0.86.5" },
     { name = "flet-ads", specifier = ">=0.86.5" },
-    { name = "flet-billing", specifier = ">=0.1.0" },
-    { name = "flet-ima", specifier = ">=0.1.0" },
+    { name = "flet-billing", specifier = ">=0.1.1" },
+    { name = "flet-ima", specifier = ">=0.1.5" },
     { name = "flet-permission-handler", specifier = ">=0.86.5" },
     { name = "flet-video", specifier = ">=0.86.5" },
     { name = "httpx", extras = ["http2"], specifier = ">=0.28.1" },

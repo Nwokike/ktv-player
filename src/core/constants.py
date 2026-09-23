@@ -157,6 +157,16 @@ ADD_CONTENT_COOLDOWN = 5.0
 MAX_HISTORY_ITEMS = 20
 AD_PRELOAD_RETRY_DELAY = 30
 AD_PRELOAD_MAX_RETRIES = 5
+# Google IMA (client-side video ads) pre-roll — Android TV only; phones
+# keep the AdMob interstitial and all AdMob surfaces are suppressed on
+# TV. The ad tag is an Ad Manager VAST tag, NOT an AdMob unit. This is
+# Google's public test tag; replace it with your own Ad Manager tag
+# (free Small Business account) when you're ready to serve real ads.
+IMA_TEST_TAG = (
+    "https://pubads.g.doubleclick.net/gampad/ads"
+    "?iu=/217757449231/vast_pod_skippable&sz=640x480&impl=s"
+    "&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1"
+)
 STREAM_RECONNECT_MAX = 5
 LOCAL_SCAN_CACHE_TTL = 60.0
 LOCAL_SCAN_MAX_DEPTH = 6

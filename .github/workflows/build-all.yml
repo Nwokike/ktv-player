@@ -186,6 +186,17 @@ jobs:
           sed -i 's|<application|<application android:banner="@drawable/banner"|' "$MANIFEST"
           sed -i 's|<activity|<activity android:supportsPictureInPicture="true"|g' "$MANIFEST"
           grep -n "supportsPictureInPicture" "$MANIFEST"
+          # flet-ima (Google IMA video ads) requires core-library
+          # desugaring, which Flet's template doesn't enable. Guarded seds
+          # are idempotent; the replacement re-adds the closing '}'.
+          GRADLE=build/flutter/android/app/build.gradle.kts
+          grep -q "isCoreLibraryDesugaringEnabled" "$GRADLE" || \
+            sed -i 's/compileOptions {/compileOptions {\n        isCoreLibraryDesugaringEnabled = true/' "$GRADLE"
+          grep -q "coreLibraryDesugaring" "$GRADLE" || \
+            sed -i 's/dependencies {}/dependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")\n}/' "$GRADLE"
+          # IMA needs minSdk >= 24 — Flutter 3.44 resolves to 24; print
+          # the line so future drift is visible.
+          grep -n "resolvedMinSdk =" "$GRADLE"
           (cd build/flutter/android && ./gradlew assembleRelease)
           rm -rf build/apk
           mkdir -p build/apk
@@ -259,6 +270,15 @@ jobs:
           # APKs when this property is set — plain `assembleRelease` builds the
           # universal APK only. Without it, the per-ABI APKs staged below are
           # the unpatched leftovers from the first `flet build` step.
+          # flet-ima (Google IMA video ads) requires core-library
+          # desugaring, which Flet's template doesn't enable. Guarded seds
+          # are idempotent; the replacement re-adds the closing '}'.
+          GRADLE=build/flutter/android/app/build.gradle.kts
+          grep -q "isCoreLibraryDesugaringEnabled" "$GRADLE" || \
+            sed -i 's/compileOptions {/compileOptions {\n        isCoreLibraryDesugaringEnabled = true/' "$GRADLE"
+          grep -q "coreLibraryDesugaring" "$GRADLE" || \
+            sed -i 's/dependencies {}/dependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")\n}/' "$GRADLE"
+          grep -n "resolvedMinSdk =" "$GRADLE"
           (cd build/flutter/android && ./gradlew assembleRelease -Psplit-per-abi=true)
           rm -rf build/apk
           mkdir -p build/apk
@@ -326,6 +346,15 @@ jobs:
           sed -i 's|<application|<application android:banner="@drawable/banner"|' "$MANIFEST"
           sed -i 's|<activity|<activity android:supportsPictureInPicture="true"|g' "$MANIFEST"
           grep -n "supportsPictureInPicture" "$MANIFEST"
+          # flet-ima (Google IMA video ads) requires core-library
+          # desugaring, which Flet's template doesn't enable. Guarded seds
+          # are idempotent; the replacement re-adds the closing '}'.
+          GRADLE=build/flutter/android/app/build.gradle.kts
+          grep -q "isCoreLibraryDesugaringEnabled" "$GRADLE" || \
+            sed -i 's/compileOptions {/compileOptions {\n        isCoreLibraryDesugaringEnabled = true/' "$GRADLE"
+          grep -q "coreLibraryDesugaring" "$GRADLE" || \
+            sed -i 's/dependencies {}/dependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")\n}/' "$GRADLE"
+          grep -n "resolvedMinSdk =" "$GRADLE"
           (cd build/flutter/android && ./gradlew bundleRelease)
           rm -rf build/aab
           mkdir -p build/aab

@@ -7,9 +7,13 @@ from typing import Any
 
 import flet as ft
 import flet_video as fv
+from flet_ima import AdEventType, ImaAdsView
 
+from core.constants import IMA_TEST_TAG
+from core.state import state
 from core.theme import AppColors
 from database.manager import db_manager
+from services.tv_detect import is_tv_device
 from services.youtube_resolver import is_youtube_url
 from utils.notifications import (
     register_fullscreen_toast,
@@ -27,6 +31,10 @@ _WATCHDOG_SECONDS = 20.0
 # Periodic VOD position checkpoint interval (see
 # _maybe_save_position_periodically).
 _POSITION_SAVE_INTERVAL = 10.0
+
+# IMA (video ads): upstream recommends feeding content progress every
+# ~200ms so VMAP mid-roll cue points can fire.
+_IMA_PROGRESS_INTERVAL = 0.2
 
 
 def _short_variant_label(variant: dict) -> str:
@@ -51,6 +59,7 @@ class ImmersivePlayer(ft.Stack):
         muted: bool = False,
         http_headers: dict | None = None,
         ad_service: Any | None = None,
+        ima_tag: str = IMA_TEST_TAG,
         show_favorite: bool = True,
         hls_proxy: Any | None = None,
         source_url: str = "",
@@ -65,6 +74,26 @@ class ImmersivePlayer(ft.Stack):
         self.title = title
         self.http_headers = http_headers or {}
         self.ad_service = ad_service
+
+        # IMA video ads (Android TV only — phones keep the AdMob
+        # interstitial; AdService suppresses all AdMob surfaces on TV).
+        # The native ad view must be IN the tree before request_ads(), so
+        # it is built here; the request fires on the first duration tick
+        # (content metadata known) with a 2s fallback for live streams.
+        self.ima_view: ImaAdsView | None = None
+        self._ima_requested = False
+        self._ima_destroyed = False
+        self._ima_ad_active = False
+        self._last_ima_push = 0.0
+        if self._ima_supported(ima_tag):
+            self.ima_view = ImaAdsView(
+                ad_tag_url=ima_tag,
+                content_title=self.title,
+                on_ad_event=self._on_ima_ad_event,
+                on_ad_error=self._on_ima_error,
+                on_ads_loaded=self._on_ima_loaded,
+                on_ads_load_error=self._on_ima_error,
+            )
         # Deep-link plays (ktv://) hide the in-player favorite star
         self.show_favorite_button = show_favorite
         self.expand = True
@@ -262,8 +291,14 @@ class ImmersivePlayer(ft.Stack):
         self.controls = [
             ft.Container(expand=True, bgcolor=ft.Colors.BLACK),
             self.video,
-            self.overlay,
         ]
+        if self.ima_view is not None:
+            # Native IMA container: the expanding Container gives the
+            # platform view a bounded size; overlay stays topmost.
+            self.controls.append(
+                ft.Container(expand=True, content=self.ima_view, visible=True)
+            )
+        self.controls.append(self.overlay)
 
     # --- Controls ---
 
@@ -277,6 +312,11 @@ class ImmersivePlayer(ft.Stack):
         unregister_fullscreen_toast()
         self._cancel_watchdog()
         self._disable_auto_pip()
+        if self.ima_view is not None and not self._ima_destroyed:
+            page = self.safe_page
+            if page is not None:
+                with contextlib.suppress(Exception):
+                    page.run_task(self._ima_destroy)
         # Save position if not already saved
         if self.source_url and self._last_duration > 0 and self._last_position > 3:
             pos_sec = self._last_position
@@ -504,8 +544,9 @@ class ImmersivePlayer(ft.Stack):
         # never be a dead end, not even during the pre-roll ad.
         self._show_progress("Loading stream...")
 
-        # Show interstitial ad before playback, unless player was already closed
-        if self.ad_service and not self._is_closing:
+        # Show interstitial ad before playback, unless player was already
+        # closed — or IMA owns the pre-roll on Android TV.
+        if self.ad_service and not self._is_closing and self.ima_view is None:
             try:
                 await asyncio.wait_for(
                     self.ad_service.show_interstitial(),
@@ -551,6 +592,14 @@ class ImmersivePlayer(ft.Stack):
             ]
             self.video.update()
             await self.video.play()
+            # IMA pre-roll: requested on the first duration tick (so
+            # content_duration_ms is set for VMAP mid-rolls); the 2s
+            # fallback covers metadata-light/live streams. Never blocks.
+            if self.ima_view is not None and not state.is_premium:
+                page = self.safe_page
+                if page is not None:
+                    with contextlib.suppress(Exception):
+                        page.run_task(self._ima_request_soon)
             self._start_watchdog()
             playing = await self.video.is_playing()
             if playing:
@@ -584,6 +633,11 @@ class ImmersivePlayer(ft.Stack):
             except Exception:
                 pass
         self._check_and_trigger_seek()
+        if self.ima_view is not None and not state.is_premium:
+            page = self.safe_page
+            if page is not None:
+                with contextlib.suppress(Exception):
+                    page.run_task(self._ima_maybe_request)
 
     def _on_pos_change(self, e: ft.ControlEvent | None = None):
         if not self._overlay_hidden:
@@ -601,6 +655,7 @@ class ImmersivePlayer(ft.Stack):
                 pass
         self._check_and_trigger_seek()
         self._maybe_save_position_periodically()
+        self._maybe_push_ima_progress()
 
     def _maybe_save_position_periodically(self):
         """Throttled VOD-only checkpoint save (~every 10s). Android can kill
@@ -616,6 +671,7 @@ class ImmersivePlayer(ft.Stack):
             or not self.source_url
             or self._last_duration <= 0
             or self._last_position <= 3
+            or self._ima_ad_active
         ):
             return
         pos_sec = self._last_position
@@ -630,6 +686,117 @@ class ImmersivePlayer(ft.Stack):
             )
         except RuntimeError:
             pass
+
+    # --- IMA video ads (Android TV) ---
+
+    def _ima_supported(self, tag: str) -> bool:
+        """IMA is enabled only on Android TV builds with a tag configured."""
+        if not tag:
+            return False
+        page = self.safe_page
+        if page is None:
+            return False
+        try:
+            if not page.platform.is_mobile():
+                return False
+        except Exception:
+            return False
+        return bool(is_tv_device())
+
+    async def _ima_request_soon(self):
+        """Fallback request when duration metadata never arrives (live)."""
+        await asyncio.sleep(2.0)
+        await self._ima_maybe_request(force=True)
+
+    async def _ima_maybe_request(self, force: bool = False):
+        """Request the pre-roll exactly once, with content metadata set."""
+        if self.ima_view is None or self._ima_requested or self._ima_destroyed:
+            return
+        if self._is_closing or state.is_premium:
+            return
+        if not force and self._last_duration <= 0:
+            return
+        self._ima_requested = True
+        if self._last_duration > 0:
+            try:
+                self.ima_view.content_duration_ms = int(self._last_duration * 1000)
+                # Flush the property patch before the request method call
+                # so the Dart side sees the duration in its properties.
+                self.ima_view.update()
+            except Exception:
+                pass
+        try:
+            await asyncio.wait_for(self.ima_view.request_ads(), timeout=10.0)
+            logger.info("IMA: ad request sent (TV pre-roll)")
+        except TimeoutError:
+            logger.warning("IMA: request_ads timed out")
+        except Exception as ex:
+            self._ima_requested = False
+            logger.warning("IMA: request_ads failed: %s", ex)
+
+    def _on_ima_loaded(self, e):
+        logger.info(
+            "IMA: ads loaded (cue points=%s ms)", getattr(e, "cue_points_ms", [])
+        )
+
+    def _on_ima_error(self, e):
+        logger.warning(
+            "IMA error: code=%s type=%s message=%s",
+            getattr(e, "code", ""),
+            getattr(e, "type", ""),
+            getattr(e, "message", ""),
+        )
+
+    async def _on_ima_ad_event(self, e):
+        t = getattr(e, "type", "")
+        if t == AdEventType.LOADED.value:
+            if self.ima_view is not None:
+                with contextlib.suppress(Exception):
+                    await self.ima_view.start()
+        elif t == AdEventType.CONTENT_PAUSE_REQUESTED.value:
+            # An ad is about to cover the content — pause it (the SDK
+            # owns the screen until contentResumeRequested).
+            self._ima_ad_active = True
+            with contextlib.suppress(Exception):
+                await self.video.pause()
+        elif t in (
+            AdEventType.CONTENT_RESUME_REQUESTED.value,
+            AdEventType.ALL_ADS_COMPLETED.value,
+        ):
+            self._ima_ad_active = False
+            with contextlib.suppress(Exception):
+                await self.video.play()
+
+    def _maybe_push_ima_progress(self):
+        """Throttled ~200ms content-progress feed so cue points can fire."""
+        if self.ima_view is None or self._ima_destroyed or self._ima_ad_active:
+            return
+        if self._last_duration <= 0:
+            return
+        now = time.monotonic()
+        if now - self._last_ima_push < _IMA_PROGRESS_INTERVAL:
+            return
+        self._last_ima_push = now
+        page = self.safe_page
+        if page is None:
+            return
+        with contextlib.suppress(Exception):
+            page.run_task(
+                self.ima_view.set_content_progress,
+                int(self._last_position * 1000),
+                int(self._last_duration * 1000),
+            )
+
+    async def _ima_destroy(self):
+        if self.ima_view is None or self._ima_destroyed:
+            return
+        self._ima_destroyed = True
+        try:
+            await asyncio.wait_for(self.ima_view.destroy(), timeout=5.0)
+        except TimeoutError:
+            logger.warning("IMA: destroy timed out")
+        except Exception as ex:
+            logger.debug("IMA: destroy failed: %s", ex)
 
     def _check_and_trigger_seek(self):
         # After media is ready / first tick, consume any pending one-shot seek target —
@@ -1069,6 +1236,15 @@ class ImmersivePlayer(ft.Stack):
     def _on_complete(self, e: ft.ControlEvent):
         # Video finished — nothing is playing, so PiP auto-enter is disarmed.
         self._disarm_auto_pip()
+        if (
+            self.ima_view is not None
+            and self._last_duration > 0
+            and self._last_position >= (self._last_duration - 5)
+        ):
+            # VOD reached its end — tell IMA so a post-roll can play.
+            # Live/reconnect paths deliberately skip content_complete().
+            with contextlib.suppress(Exception):
+                self.safe_page.run_task(self.ima_view.content_complete)
         if self.source_url:
             with contextlib.suppress(Exception):
                 loop = asyncio.get_running_loop()
@@ -1091,6 +1267,7 @@ class ImmersivePlayer(ft.Stack):
         self._cancel_watchdog()
         self._disarm_auto_pip()
         await self._save_current_position()
+        await self._ima_destroy()
         try:
             if self.video:
                 # 1. Async stop first — proper player cleanup

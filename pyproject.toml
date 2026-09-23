@@ -7,8 +7,8 @@ requires-python = ">=3.14"
 dependencies = [
     "flet>=0.86.5",
     "flet-ads>=0.86.5",
-    "flet-billing>=0.1.0",
-    "flet-ima>=0.1.0",
+    "flet-billing>=0.1.1",
+    "flet-ima>=0.1.5",
     "flet-permission-handler>=0.86.5",
     "flet-video>=0.86.5",
     "httpx[http2]>=0.28.1",
