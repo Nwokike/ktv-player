@@ -3,6 +3,12 @@ date — works fully offline. One line per release; keep the entry for the
 current APP_VERSION in sync when bumping (guarded by tests)."""
 
 CHANGELOG: dict[str, str] = {
+    "2.2.0": (
+        "- Premium removes all ads (one-time unlock via Google Play Billing)\n"
+        "- Google IMA video pre-roll ads on Android TV (AdMob stays on phones)\n"
+        "- Upgraded to Flet 1.0.1 and the latest dependency set\n"
+        "- CI quality gate: lint, format and tests block every build"
+    ),
     "2.1.0": (
         "- In-player Quality switching for multi-variant HLS streams\n"
         "- In-player Audio Track selection with language labels\n"
