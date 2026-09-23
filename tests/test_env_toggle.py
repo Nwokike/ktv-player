@@ -25,9 +25,13 @@ def _patch_services():
     ads.gather_consent.return_value = None
     ads.preload_interstitial.return_value = None
 
+    premium = mock.AsyncMock()
+    premium.restore.return_value = None
+
     with (
         mock.patch("src.main.db_manager", dbm),
         mock.patch("src.main.AdService", return_value=ads),
+        mock.patch("src.main.PremiumService", return_value=premium),
         mock.patch("src.main.LivelinessChecker"),
         mock.patch("src.services.liveliness.liveliness_cache.load_from_db"),
     ):

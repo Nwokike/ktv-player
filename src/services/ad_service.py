@@ -5,6 +5,7 @@ from collections.abc import Callable
 import flet as ft
 
 from core.constants import AD_PRELOAD_MAX_RETRIES, AD_PRELOAD_RETRY_DELAY
+from core.state import state
 
 try:
     import flet_ads as fta
@@ -113,6 +114,7 @@ class AdService:
         if (
             not _HAS_FLET_ADS
             or not self.page.platform.is_mobile()
+            or state.is_premium
             or not self._can_request_ads
         ):
             return None
@@ -131,6 +133,7 @@ class AdService:
         if (
             not _HAS_FLET_ADS
             or not self.page.platform.is_mobile()
+            or state.is_premium
             or not self._can_request_ads
         ):
             return None
@@ -149,6 +152,7 @@ class AdService:
         if (
             not _HAS_FLET_ADS
             or not self.page.platform.is_mobile()
+            or state.is_premium
             or not self._can_request_ads
         ):
             return None
@@ -170,6 +174,7 @@ class AdService:
             if (
                 not _HAS_FLET_ADS
                 or not self.page.platform.is_mobile()
+                or state.is_premium
                 or not self._can_request_ads
             ):
                 self._ad_loaded_event.set()
@@ -237,7 +242,7 @@ class AdService:
         )
 
     async def show_interstitial(self) -> bool:
-        if not _HAS_FLET_ADS or not self.page.platform.is_mobile():
+        if not _HAS_FLET_ADS or not self.page.platform.is_mobile() or state.is_premium:
             return False
 
         # If we have a preloaded ad, wait for it to actually finish loading

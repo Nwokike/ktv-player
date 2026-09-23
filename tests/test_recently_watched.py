@@ -55,8 +55,8 @@ def _find_card_like(root):
     """
     results = []
     for c in walk(root):
-        if isinstance(
-            c, (ft.FilledButton, ft.OutlinedButton, ft.ElevatedButton, ft.TextButton)
-        ) or (isinstance(c, ft.Container) and hasattr(c, "on_click") and c.on_click):
+        if isinstance(c, (ft.FilledButton, ft.OutlinedButton, ft.TextButton)) or (
+            isinstance(c, ft.Container) and hasattr(c, "on_click") and c.on_click
+        ):
             results.append(c)
     return results

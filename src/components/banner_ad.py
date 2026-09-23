@@ -16,6 +16,10 @@ def build_banner_ad(page: ft.Page | None, unit_id: str | None = None) -> Control
     try:
         if not page.platform.is_mobile():
             return ft.Container(width=0, height=0)
+        from core.state import state
+
+        if state.is_premium:
+            return ft.Container(width=0, height=0)
     except Exception:
         return ft.Container(width=0, height=0)
 

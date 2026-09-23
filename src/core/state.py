@@ -25,6 +25,10 @@ class AppState:
     update_available: bool = False
     update_data: dict | None = None
 
+    # Premium (remove-ads) unlock — persisted as settings["premium"] and
+    # reconciled at boot by services.premium_service.PremiumService.
+    is_premium: bool = False
+
     def __init__(self):
         self.channels = []
         self.history = []
@@ -68,6 +72,7 @@ class AppState:
         self.channels_hash = 0
         self.update_available = False
         self.update_data = None
+        self.is_premium = False
 
 
 state = AppState()

@@ -55,6 +55,7 @@ _SECTIONS = [
     {"key": "localization", "title": "Localization", "icon": ft.Icons.PUBLIC},
     {"key": "data_management", "title": "Data Management", "icon": ft.Icons.STORAGE},
     {"key": "custom_content", "title": "Development", "icon": ft.Icons.TERMINAL},
+    {"key": "premium", "title": "Premium", "icon": ft.Icons.WORKSPACE_PREMIUM},
     {"key": "about", "title": "About", "icon": ft.Icons.INFO},
 ]
 
@@ -501,12 +502,79 @@ def SettingsScreen() -> Control:
     banner_1 = build_banner_ad(page_obj)
     banner_2 = build_banner_ad(page_obj)
 
+    # -- 6. Premium (remove-ads) -------------------------------------------
+    premium_service = getattr(page_obj, "premium", None)
+    is_premium = core_state.is_premium
+
+    async def _buy_premium(e=None):
+        if not premium_service:
+            notify_warning("Billing is not available on this platform")
+            return
+        if await premium_service.buy():
+            notify("Opening Google Play purchase…")
+        else:
+            notify_warning("Purchase could not be started")
+
+    async def _restore_premium(e=None):
+        if not premium_service:
+            notify_warning("Billing is not available on this platform")
+            return
+        await premium_service.restore_purchases()
+        notify("Restore requested — re-checking your purchases")
+
+    price = premium_service.price if premium_service else None
+    premium = _section_card(
+        "Premium",
+        ft.Icons.WORKSPACE_PREMIUM,
+        [
+            _setting_row(
+                leading=ft.Icon(
+                    ft.Icons.VERIFIED_ROUNDED,
+                    size=18,
+                    color=AppColors.PRIMARY if is_premium else AppColors.grey_dim(),
+                ),
+                title="KTV Premium",
+                subtitle=(
+                    "Ads removed · thank you!"
+                    if is_premium
+                    else f"One-time unlock, remove all ads{f' — {price}' if price else ''}"
+                ),
+                trailing=ft.Icon(
+                    ft.Icons.CHECK_CIRCLE if is_premium else ft.Icons.CIRCLE_OUTLINED,
+                    size=20,
+                    color=(AppColors.PRIMARY if is_premium else AppColors.grey_dim()),
+                ),
+            ),
+            *(
+                []
+                if is_premium
+                else [
+                    _setting_row(
+                        leading=ft.Icon(
+                            ft.Icons.SHOPPING_CART, size=18, color=AppColors.PRIMARY
+                        ),
+                        title="Upgrade",
+                        subtitle="Buy once — ads gone everywhere, forever",
+                        trailing=ft.FilledButton("Upgrade", on_click=_buy_premium),
+                    )
+                ]
+            ),
+            _setting_row(
+                leading=ft.Icon(ft.Icons.RESTORE, size=18, color=AppColors.PRIMARY),
+                title="Restore purchases",
+                subtitle="Re-check ownership (new device / reinstall)",
+                trailing=ft.OutlinedButton("Restore", on_click=_restore_premium),
+            ),
+        ],
+    )
+
     controls = [appearance]
     if banner_1:
         controls.append(banner_1)
     controls.extend([localization, data_mgmt, terminal])
     if banner_2:
         controls.append(banner_2)
+    controls.append(premium)
     controls.append(about)
 
     return ft.ListView(

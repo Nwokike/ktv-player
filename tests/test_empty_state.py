@@ -43,7 +43,7 @@ def test_empty_state_shows_action_button_when_label_provided():
 def test_empty_state_hides_action_when_label_is_none():
     es = EmptyState(title="x", message="y", action_label=None)
     buttons = list(walk_buttons(es))
-    # walk_buttons covers FilledButton + OutlinedButton + ElevatedButton + TextButton.
+    # walk_buttons covers FilledButton + OutlinedButton + TextButton.
     # EmptyState uses FilledButton when action_label is provided; returns []
     # when it isn't.
     assert buttons == []

@@ -25,6 +25,7 @@ from hooks.use_focus_scope import FocusScope
 from services.ad_service import AdService
 from services.hls_proxy import HLSProxy
 from services.liveliness_checker import LivelinessChecker
+from services.premium_service import PremiumService
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,7 @@ class AppController:
     def __init__(self, page: ft.Page):
         self.page = page
         self.ad_service: AdService | None = None
+        self.premium: PremiumService | None = None
         self.liveliness: LivelinessChecker | None = None
         self._loading_lock: asyncio.Lock | None = None
         # Separate from _loading_lock: channel loading must never block or
@@ -102,11 +104,19 @@ class AppController:
         self.update_service = UpdateService()
         self._loading_lock = asyncio.Lock()
 
-        # Gather UMP consent before loading ads
-        await self.ad_service.gather_consent()
+        # Premium (remove-ads): read the local flag first (instant UI), then
+        # reconcile ownership with the store — must settle BEFORE any ad
+        # work. page.premium mirrors the page.file_picker pattern so
+        # SettingsScreen can reach the service.
+        self.premium = PremiumService(self.page)
+        self.page.premium = self.premium
+        await self.premium.restore()
 
-        # Preload interstitial ad
-        await self.ad_service.preload_interstitial()
+        # Gather UMP consent + preload the interstitial — skipped entirely
+        # for premium users (no ads means no consent flow needed).
+        if not state.is_premium:
+            await self.ad_service.gather_consent()
+            await self.ad_service.preload_interstitial()
 
         # Load saved state
         saved_country = await db_manager.get_setting("user_country")
