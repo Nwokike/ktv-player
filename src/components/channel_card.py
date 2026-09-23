@@ -5,7 +5,7 @@ from collections.abc import Callable
 import flet as ft
 from flet import Control
 
-from components.focus_styles import card_button_style
+from components.focus_styles import attach_focus_pop, card_button_style
 from core.constants import (
     CARD_BORDER_RADIUS,
     CARD_HEIGHT,
@@ -85,21 +85,23 @@ def ChannelCard(
         overflow=ft.TextOverflow.ELLIPSIS,
     )
 
-    return ft.FilledButton(
-        key=ft.ValueKey(url),
-        height=CARD_HEIGHT,
-        content=ft.Column(
-            controls=[
-                top_row,
-                logo_widget,
-                title_widget,
-            ],
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-            spacing=2,
-        ),
-        on_click=lambda e: on_play(url),
-        style=card_button_style(
-            padding=ft.Padding.symmetric(horizontal=10, vertical=8),
-            radius=CARD_BORDER_RADIUS,
-        ),
+    return attach_focus_pop(
+        ft.FilledButton(
+            key=ft.ValueKey(url),
+            height=CARD_HEIGHT,
+            content=ft.Column(
+                controls=[
+                    top_row,
+                    logo_widget,
+                    title_widget,
+                ],
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                spacing=2,
+            ),
+            on_click=lambda e: on_play(url),
+            style=card_button_style(
+                padding=ft.Padding.symmetric(horizontal=10, vertical=8),
+                radius=CARD_BORDER_RADIUS,
+            ),
+        )
     )

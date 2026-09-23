@@ -47,4 +47,39 @@ def card_button_style(
     )
 
 
-__all__ = ["card_button_style"]
+def attach_focus_pop(control, *, scale: float = 1.04):
+    """Give a focusable card a subtle scale lift while it is focused.
+
+    The FOCUSED border from `card_button_style` is the primary focus cue;
+    this adds the small depth pop that makes a D-pad selection unmistakable
+    at 10-foot distance. `update()` is guarded because cards are also built
+    headless (unit tests, pre-mount) where no page exists yet.
+
+    Args:
+        control: the focusable control (e.g. the card's FilledButton).
+        scale: scale to apply while focused.
+
+    Returns:
+        The same control, with `on_focus`/`on_blur` attached.
+    """
+
+    def _on_focus(e):
+        control.scale = scale
+        try:
+            control.update()
+        except Exception:
+            pass
+
+    def _on_blur(e):
+        control.scale = 1.0
+        try:
+            control.update()
+        except Exception:
+            pass
+
+    control.on_focus = _on_focus
+    control.on_blur = _on_blur
+    return control
+
+
+__all__ = ["attach_focus_pop", "card_button_style"]
