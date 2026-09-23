@@ -166,7 +166,17 @@ jobs:
           FLET_ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} --deep-linking-scheme "ktv" --deep-linking-host "play" -v
+        run: |
+          # IMA (flet-ima) requires core-library desugaring, which the
+          # "Inject TV banner" step below adds — so this first pass is
+          # expected to fail at checkReleaseAarMetadata. Tolerate it ONLY
+          # when the Android project was generated; real errors still fail.
+          set +e
+          uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} --deep-linking-scheme "ktv" --deep-linking-host "play" -v
+          code=$?
+          set -e
+          test -f build/flutter/android/app/build.gradle.kts || exit $code
+          echo "flet build exit $code — continuing; desugaring patch + gradle rebuild follow"
       - name: Inject TV banner, icon & rebuild with banner
         env:
           FLET_ANDROID_SIGNING_KEY_STORE: ${{ github.workspace }}/kiri_keystore.jks
@@ -242,7 +252,15 @@ jobs:
           FLET_ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} --split-per-abi --deep-linking-scheme "ktv" --deep-linking-host "play" -v
+        run: |
+          # See build-apk: first pass may fail on IMA's desugaring
+          # requirement; the patch+rebuild step below is the real build.
+          set +e
+          uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} --split-per-abi --deep-linking-scheme "ktv" --deep-linking-host "play" -v
+          code=$?
+          set -e
+          test -f build/flutter/android/app/build.gradle.kts || exit $code
+          echo "flet build exit $code — continuing; desugaring patch + gradle rebuild follow"
       - name: Inject TV banner, icon & rebuild with banner
         env:
           FLET_ANDROID_SIGNING_KEY_STORE: ${{ github.workspace }}/kiri_keystore.jks
@@ -326,7 +344,15 @@ jobs:
           FLET_ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: uv run flet build aab --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} --deep-linking-scheme "ktv" --deep-linking-host "play" -v
+        run: |
+          # See build-apk: first pass may fail on IMA's desugaring
+          # requirement; the patch+rebuild step below is the real build.
+          set +e
+          uv run flet build aab --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} --deep-linking-scheme "ktv" --deep-linking-host "play" -v
+          code=$?
+          set -e
+          test -f build/flutter/android/app/build.gradle.kts || exit $code
+          echo "flet build exit $code — continuing; desugaring patch + gradle rebuild follow"
       - name: Inject TV banner, icon & rebuild with banner
         env:
           FLET_ANDROID_SIGNING_KEY_STORE: ${{ github.workspace }}/kiri_keystore.jks
