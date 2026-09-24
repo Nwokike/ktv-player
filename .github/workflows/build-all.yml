@@ -232,7 +232,12 @@ jobs:
           # NOTE: flet 0.86 writes <application> with attributes on following
           # lines, so the tag is '<application' followed by a newline — a
           # trailing space in the pattern would never match.
-          sed -i 's|<application|<application android:banner="@drawable/banner"|' "$MANIFEST"
+          # TV device-catalog hygiene: a library manifest declares
+          # android.hardware.microphone as REQUIRED, which would exclude
+          # TV boxes without a mic from the Play listing (like PiP did).
+          # Force it optional with tools:replace.
+          sed -i 's|<application|<uses-feature android:name="android.hardware.microphone" android:required="false" tools:replace="android:required" />
+          <application android:banner="@drawable/banner"|' "$MANIFEST"
           sed -i 's|<activity|<activity android:supportsPictureInPicture="true"|g' "$MANIFEST"
           grep -n "supportsPictureInPicture" "$MANIFEST"
           # Remove the unpatched APKs from the first `flet build` step so stale
@@ -324,7 +329,12 @@ jobs:
           # NOTE: flet 0.86 writes <application> with attributes on following
           # lines, so the tag is '<application' followed by a newline — a
           # trailing space in the pattern would never match.
-          sed -i 's|<application|<application android:banner="@drawable/banner"|' "$MANIFEST"
+          # TV device-catalog hygiene: a library manifest declares
+          # android.hardware.microphone as REQUIRED, which would exclude
+          # TV boxes without a mic from the Play listing (like PiP did).
+          # Force it optional with tools:replace.
+          sed -i 's|<application|<uses-feature android:name="android.hardware.microphone" android:required="false" tools:replace="android:required" />
+          <application android:banner="@drawable/banner"|' "$MANIFEST"
           sed -i 's|<activity|<activity android:supportsPictureInPicture="true"|g' "$MANIFEST"
           grep -n "supportsPictureInPicture" "$MANIFEST"
           # flet-ima (Google IMA video ads) requires core-library
