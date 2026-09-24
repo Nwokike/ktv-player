@@ -4,7 +4,11 @@ from collections.abc import Callable
 
 import flet as ft
 
-from core.constants import AD_PRELOAD_MAX_RETRIES, AD_PRELOAD_RETRY_DELAY
+from core.constants import (
+    AD_PRELOAD_MAX_RETRIES,
+    AD_PRELOAD_RETRY_DELAY,
+    ADS_MOB_ENABLED,
+)
 from core.state import state
 from services.tv_detect import is_tv_device
 
@@ -114,6 +118,7 @@ class AdService:
     def get_native_style_ad(self) -> ft.Control | None:
         if (
             not _HAS_FLET_ADS
+            or not ADS_MOB_ENABLED
             or not self.page.platform.is_mobile()
             or state.is_premium
             or is_tv_device()
@@ -134,6 +139,7 @@ class AdService:
     def get_standard_banner_ad(self) -> ft.Control | None:
         if (
             not _HAS_FLET_ADS
+            or not ADS_MOB_ENABLED
             or not self.page.platform.is_mobile()
             or state.is_premium
             or is_tv_device()
@@ -154,6 +160,7 @@ class AdService:
     def get_anchor_banner_ad(self) -> ft.Control | None:
         if (
             not _HAS_FLET_ADS
+            or not ADS_MOB_ENABLED
             or not self.page.platform.is_mobile()
             or state.is_premium
             or is_tv_device()
@@ -177,6 +184,7 @@ class AdService:
         try:
             if (
                 not _HAS_FLET_ADS
+                or not ADS_MOB_ENABLED
                 or not self.page.platform.is_mobile()
                 or state.is_premium
                 or is_tv_device()
@@ -249,6 +257,7 @@ class AdService:
     async def show_interstitial(self) -> bool:
         if (
             not _HAS_FLET_ADS
+            or not ADS_MOB_ENABLED
             or not self.page.platform.is_mobile()
             or state.is_premium
             or is_tv_device()

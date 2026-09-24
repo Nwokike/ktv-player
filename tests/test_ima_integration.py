@@ -95,10 +95,11 @@ def _run_task_fns(page):
 # --- View construction ---
 
 
-def test_phone_has_no_ima_view(page):
+def test_phone_has_ima_view(page):
+    """IMA is on every mobile build — the phone is the test rig with logs."""
     p = _player(page, tv=False)
-    assert p.ima_view is None
-    assert len(p.controls) == 3  # black, video, overlay — unchanged
+    assert p.ima_view is not None
+    assert len(p.controls) == 4  # black, video, ima, overlay
 
 
 def test_tv_has_ima_view_in_stack(page):
@@ -118,14 +119,15 @@ def test_no_tag_disables_ima(page):
 
 
 @pytest.mark.asyncio
-async def test_phone_start_shows_interstitial(page):
+async def test_phone_start_skips_interstitial_and_arms_ima(page):
+    """AdMob interstitial is off (master switch); IMA owns the pre-roll."""
     ads = mock.AsyncMock()
     p = _player(page, tv=False, ad_service=ads)
 
     await p.start_playback()
 
-    ads.show_interstitial.assert_awaited_once()
-    assert p._ima_request_soon not in _run_task_fns(page)
+    ads.show_interstitial.assert_not_awaited()
+    assert p._ima_request_soon in _run_task_fns(page)
 
 
 @pytest.mark.asyncio
@@ -334,9 +336,24 @@ async def test_ad_service_suppressed_on_tv(page):
 
 
 @pytest.mark.asyncio
-async def test_ad_service_phone_unchanged(page):
+async def test_ad_service_phone_unchanged_with_switch_on(page):
+    """With the master switch restored, phone AdMob behaves as before."""
     svc = AdService(page)
-    with mock.patch("services.ad_service.is_tv_device", return_value=False):
+    with (
+        mock.patch("services.ad_service.is_tv_device", return_value=False),
+        mock.patch("services.ad_service.ADS_MOB_ENABLED", True),
+    ):
         assert svc.get_standard_banner_ad() is not None
         await svc.preload_interstitial()
         assert svc.interstitial is not None
+
+
+@pytest.mark.asyncio
+async def test_ad_service_silent_with_switch_off(page):
+    """Current default: AdMob fully off, no exceptions, no ads."""
+    svc = AdService(page)
+    with mock.patch("services.ad_service.ADS_MOB_ENABLED", False):
+        assert svc.get_standard_banner_ad() is None
+        await svc.preload_interstitial()
+        assert svc.interstitial is None
+        assert await svc.show_interstitial() is False

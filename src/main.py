@@ -11,6 +11,7 @@ import flet as ft
 import core.logger_handler  # noqa: F401
 from components.player.immersive_player import ImmersivePlayer
 from core.constants import (
+    ADS_MOB_ENABLED,
     APP_NAME,
     CDN_HEADER_OVERRIDES,
     ERR_NETWORK,
@@ -112,9 +113,10 @@ class AppController:
         self.page.premium = self.premium
         await self.premium.restore()
 
-        # Gather UMP consent + preload the interstitial — skipped entirely
-        # for premium users (no ads means no consent flow needed).
-        if not state.is_premium:
+        # Gather UMP consent + preload the interstitial — skipped for
+        # premium users and while the AdMob master switch is off (IMA
+        # video ads are then the only ad surface).
+        if ADS_MOB_ENABLED and not state.is_premium:
             await self.ad_service.gather_consent()
             await self.ad_service.preload_interstitial()
 

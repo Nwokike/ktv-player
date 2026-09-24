@@ -66,11 +66,16 @@ _SECTIONS = [
 
 
 def _build_logs_dialog(page: ft.Page) -> ft.AlertDialog:
+    from services.device_info import get_device_summary
+
     logs = MemoryLogHandler.get_logs()
     logs_str = "\n".join(logs) if logs else LBL_NO_ACTIVITY_LOG
+    # Device header travels WITH the logs so the existing "Copy to clipboard"
+    # produces a complete TV diagnostics dump (no way to pipe TV adb logs).
+    full_text = f"{get_device_summary()}\n\n--- logs ---\n{logs_str}"
 
     log_text = ft.Text(
-        value=logs_str,
+        value=full_text,
         font_family="Courier New",
         size=12,
         color=AppColors.TERMINAL_TEXT,

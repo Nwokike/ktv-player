@@ -37,18 +37,32 @@ def _db(get_setting_return=None):
 
 
 def test_banner_ad_getters_hidden_when_premium(fake_page):
+    # AdMob is globally off right now (ADS_MOB_ENABLED=False) — pin it on
+    # to exercise the *premium* gate specifically.
     _with_platform(fake_page)
     svc = AdService(fake_page)
 
-    state.is_premium = False
-    assert svc.get_standard_banner_ad() is not None
-    assert svc.get_anchor_banner_ad() is not None
-    assert svc.get_native_style_ad() is not None
+    with mock.patch("services.ad_service.ADS_MOB_ENABLED", True):
+        state.is_premium = False
+        assert svc.get_standard_banner_ad() is not None
+        assert svc.get_anchor_banner_ad() is not None
+        assert svc.get_native_style_ad() is not None
 
-    state.is_premium = True
-    assert svc.get_standard_banner_ad() is None
-    assert svc.get_anchor_banner_ad() is None
-    assert svc.get_native_style_ad() is None
+        state.is_premium = True
+        assert svc.get_standard_banner_ad() is None
+        assert svc.get_anchor_banner_ad() is None
+        assert svc.get_native_style_ad() is None
+
+
+def test_admob_master_switch_hides_everything(fake_page):
+    """ADS_MOB_ENABLED=False (current) — no AdMob surfaces anywhere."""
+    _with_platform(fake_page)
+    svc = AdService(fake_page)
+    with mock.patch("services.ad_service.ADS_MOB_ENABLED", False):
+        state.is_premium = False
+        assert svc.get_standard_banner_ad() is None
+        assert svc.get_anchor_banner_ad() is None
+        assert svc.get_native_style_ad() is None
 
 
 def test_build_banner_ad_collapses_when_premium(fake_page):

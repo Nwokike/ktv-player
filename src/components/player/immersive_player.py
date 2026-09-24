@@ -13,7 +13,6 @@ from core.constants import IMA_TEST_TAG
 from core.state import state
 from core.theme import AppColors
 from database.manager import db_manager
-from services.tv_detect import is_tv_device
 from services.youtube_resolver import is_youtube_url
 
 logger = logging.getLogger(__name__)
@@ -77,6 +76,7 @@ class ImmersivePlayer(ft.Stack):
         # (content metadata known) with a 2s fallback for live streams.
         self.ima_view: ImaAdsView | None = None
         self._ima_requested = False
+        self._ima_t0 = 0.0
         self._ima_destroyed = False
         self._ima_ad_active = False
         self._last_ima_push = 0.0
@@ -674,21 +674,23 @@ class ImmersivePlayer(ft.Stack):
         except RuntimeError:
             pass
 
-    # --- IMA video ads (Android TV) ---
+    # --- IMA video ads (Android / iOS) ---
 
     def _ima_supported(self, tag: str) -> bool:
-        """IMA is enabled only on Android TV builds with a tag configured."""
+        """IMA is enabled on every mobile build with a tag configured.
+
+        (Phone and TV alike: the phone build is the test rig with readable
+        logs; desktop is excluded — no IMA platform upstream.)
+        """
         if not tag:
             return False
         page = self.safe_page
         if page is None:
             return False
         try:
-            if not page.platform.is_mobile():
-                return False
+            return bool(page.platform.is_mobile())
         except Exception:
             return False
-        return bool(is_tv_device())
 
     async def _ima_request_soon(self):
         """Fallback request when duration metadata never arrives (live)."""
@@ -704,6 +706,7 @@ class ImmersivePlayer(ft.Stack):
         if not force and self._last_duration <= 0:
             return
         self._ima_requested = True
+        self._ima_t0 = time.monotonic()
         if self._last_duration > 0:
             try:
                 self.ima_view.content_duration_ms = int(self._last_duration * 1000)
@@ -714,7 +717,7 @@ class ImmersivePlayer(ft.Stack):
                 pass
         try:
             await asyncio.wait_for(self.ima_view.request_ads(), timeout=10.0)
-            logger.info("IMA: ad request sent (TV pre-roll)")
+            logger.info("IMA: ad request sent at t0 (pre-roll)")
         except TimeoutError:
             logger.warning("IMA: request_ads timed out")
         except Exception as ex:
@@ -723,8 +726,14 @@ class ImmersivePlayer(ft.Stack):
 
     def _on_ima_loaded(self, e):
         logger.info(
-            "IMA: ads loaded (cue points=%s ms)", getattr(e, "cue_points_ms", [])
+            "IMA: ads loaded +%.1fs (cue points=%s ms)",
+            self._ima_elapsed(),
+            getattr(e, "cue_points_ms", []),
         )
+
+    def _ima_elapsed(self) -> float:
+        """Seconds since the IMA request was sent (ad-pipeline telemetry)."""
+        return time.monotonic() - self._ima_t0 if self._ima_t0 else 0.0
 
     def _on_ima_error(self, e):
         logger.warning(
@@ -736,6 +745,11 @@ class ImmersivePlayer(ft.Stack):
 
     async def _on_ima_ad_event(self, e):
         t = getattr(e, "type", "")
+        logger.info("IMA event %s (+%.1fs)", t, self._ima_elapsed())
+        if t == AdEventType.STARTED.value:
+            logger.info("IMA: ad started playing")
+        elif t == AdEventType.COMPLETE.value:
+            logger.info("IMA: ad completed")
         if t == AdEventType.LOADED.value:
             if self.ima_view is not None:
                 with contextlib.suppress(Exception):

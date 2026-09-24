@@ -167,6 +167,10 @@ IMA_TEST_TAG = (
     "?iu=/217757449231/vast_pod_skippable&sz=640x480&impl=s"
     "&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1"
 )
+# AdMob (flet-ads banners + interstitial) master switch — TEMPORARILY OFF
+# while the IMA (Google video ads) path is proven. Flip to True to restore
+# AdMob alongside IMA. Premium users never see ads either way.
+ADS_MOB_ENABLED = False
 STREAM_RECONNECT_MAX = 5
 LOCAL_SCAN_CACHE_TTL = 60.0
 LOCAL_SCAN_MAX_DEPTH = 6

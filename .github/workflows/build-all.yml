@@ -44,6 +44,47 @@ jobs:
       - name: Tests
         run: uv run pytest -q
 
+  # ─── A. Android manifest audit: TV device-catalog evidence ────────────
+  # Builds the real app once and dumps the facts Play's device catalog
+  # cares about (leanback required flag, LEANBACK_LAUNCHER, PiP flag,
+  # min/target SDK, native ABIs, permissions) into the run log. No
+  # artifacts uploaded.
+  manifest-audit:
+    needs: [quality]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Build APK (first pass may fail on IMA desugaring)
+        run: |
+          set +e
+          uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri -v
+          set -e
+          test -f build/flutter/android/app/build.gradle.kts
+          GRADLE=build/flutter/android/app/build.gradle.kts
+          grep -q "isCoreLibraryDesugaringEnabled" "$GRADLE" || \
+            sed -i 's/compileOptions {/compileOptions {\n        isCoreLibraryDesugaringEnabled = true/' "$GRADLE"
+          grep -q "coreLibraryDesugaring" "$GRADLE" || \
+            sed -i 's/dependencies {}/dependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")\n}/' "$GRADLE"
+          (cd build/flutter/android && SERIOUS_PYTHON_SITE_PACKAGES="$PWD/../../site-packages" ./gradlew assembleRelease --no-daemon)
+      - name: Dump manifest + badging facts
+        run: |
+          AAPT=$(find "${ANDROID_HOME:-$HOME/Android}" -name aapt -type f 2>/dev/null | sort -V | tail -1)
+          APK=$(find build/flutter -name "app-release.apk" -not -path "*/intermediates/*" | head -1)
+          echo "=== APK: $APK ==="
+          echo "=== badging (sdk/features/native) ==="
+          "$AAPT" dump badging "$APK" | grep -E "^package:|sdkVersion|targetSdkVersion|uses-feature|native-code|launchable-activity" || true
+          echo "=== manifest: TV / PiP / network ==="
+          "$AAPT" dump xmltree "$APK" AndroidManifest.xml | grep -iE "leanback|picture_in_picture|INTERNET|ACCESS_NETWORK_STATE" | sort -u || true
+          echo "=== merged manifest source (build output) ==="
+          MERGED=$(find build/flutter/android -path "*intermediates*" -name "AndroidManifest.xml" | grep -iE "merged|processRelease" | head -1)
+          echo "${MERGED:-<none found>}"
+          [ -n "$MERGED" ] && grep -iE "leanback|LEANBACK_LAUNCHER|picture_in_picture|INTERNET|ACCESS_NETWORK_STATE" "$MERGED" | sort -u || true
+
   # ─── 0. Create Release Tag & Placeholder ───────────────
   prepare-release:
     needs: [quality]
