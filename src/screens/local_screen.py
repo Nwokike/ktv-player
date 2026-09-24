@@ -2,7 +2,6 @@
 
 import asyncio
 import logging
-import os
 
 import flet as ft
 from flet import Control
@@ -295,18 +294,26 @@ def LocalScreen() -> Control:
             )
 
         async def _delete_video(v, page):
+            from services.local_scanner import (
+                delete_local_file,
+                delete_media_store_video,
+            )
             from utils.notifications import notify, notify_warning
 
-            def _remove():
-                os.remove(v.path)
-
-            try:
-                await asyncio.to_thread(_remove)
-            except FileNotFoundError:
-                notify("Already removed")
-            except OSError as ex:
-                # Android scoped storage can refuse files the app doesn't own.
-                notify_warning(f"Delete failed: {ex}")
+            # MediaStore is what the scanner reads — deleting only the file
+            # left the row (and the card) in place on Android.
+            deleted = False
+            if v.content_uri:
+                deleted = await asyncio.to_thread(
+                    delete_media_store_video, v.content_uri
+                )
+            if not deleted and v.path:
+                deleted = await asyncio.to_thread(delete_local_file, v.path)
+            if not deleted:
+                notify_warning(
+                    f"Could not delete {v.name} — Android may block deleting "
+                    "files this app doesn't own"
+                )
                 return
             notify(f"Deleted {v.name}")
             await _scan()

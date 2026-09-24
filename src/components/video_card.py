@@ -57,12 +57,6 @@ def VideoCard(
                 controls=[
                     ft.Row(
                         controls=[
-                            ft.Container(
-                                width=10,
-                                height=10,
-                                border_radius=5,
-                                bgcolor=ft.Colors.GREEN_ACCENT_400,
-                            ),
                             ft.Icon(ft.Icons.MOVIE, size=18, color=ft.Colors.GREY),
                             # Always-visible options button — long-press is
                             # undiscoverable on a TV remote.

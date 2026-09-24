@@ -56,6 +56,8 @@ class LocalVideo:
     duration: str = ""
     modified: float = 0.0
     thumbnail: str = ""
+    content_uri: str = ""
+    """MediaStore content URI (Android) — the only reliable delete handle."""
 
 
 @dataclass
@@ -277,6 +279,7 @@ def scan_android_mediastore() -> list[LocalVideo]:
         EXTERNAL_URI = MediaStoreVideo.EXTERNAL_CONTENT_URI
 
         projection = [
+            "_id",
             "_data",
             "_display_name",
             "_size",
@@ -286,10 +289,11 @@ def scan_android_mediastore() -> list[LocalVideo]:
         cursor = content_resolver.query(EXTERNAL_URI, projection, None, None, None)
         if cursor is not None:
             while cursor.moveToNext():
-                path = cursor.getString(0)
-                name = cursor.getString(1) or os.path.basename(path)
-                size = cursor.getLong(2)
-                mtime = cursor.getLong(3)
+                media_id = cursor.getLong(0)
+                path = cursor.getString(1)
+                name = cursor.getString(2) or os.path.basename(path or "")
+                size = cursor.getLong(3)
+                mtime = cursor.getLong(4)
                 if path and os.path.exists(path):
                     videos.append(
                         LocalVideo(
@@ -297,6 +301,11 @@ def scan_android_mediastore() -> list[LocalVideo]:
                             path=path,
                             size=size,
                             modified=mtime,
+                            content_uri=(
+                                f"content://media/external/video/media/{media_id}"
+                                if media_id
+                                else ""
+                            ),
                         )
                     )
             cursor.close()
@@ -305,6 +314,65 @@ def scan_android_mediastore() -> list[LocalVideo]:
         logger.debug("MediaStore scan via pyjnius skipped/failed: %s", ex)
 
     return videos
+
+
+def _android_activity(autoclass):
+    import os as _os
+
+    for cls_name in (
+        _os.getenv("MAIN_ACTIVITY_HOST_CLASS_NAME"),
+        "ng.kiri.ktvplayer.MainActivity",
+        "net.flet.MainActivity",
+        "com.flet.flet_android.MainActivity",
+        "org.kivy.android.PythonActivity",
+    ):
+        if not cls_name:
+            continue
+        try:
+            host = autoclass(cls_name)
+            activity = getattr(host, "mActivity", None) or getattr(
+                host, "mCurrentActivity", None
+            )
+            if activity:
+                return activity
+        except Exception as ex:
+            logger.debug("Activity candidate %s unavailable: %s", cls_name, ex)
+            continue
+    return None
+
+
+def delete_media_store_video(content_uri: str) -> bool:
+    """Delete a video through MediaStore (works without storage permissions
+    on Android 11+ where direct file deletes are blocked). True = the row
+    was removed."""
+    if not content_uri:
+        return False
+    try:
+        from jnius import autoclass  # type: ignore[import-not-found]
+
+        activity = _android_activity(autoclass)
+        if not activity:
+            return False
+        Uri = autoclass("android.net.Uri")
+        rows = activity.getContentResolver().delete(Uri.parse(content_uri), None, None)
+        return int(rows) > 0
+    except Exception as ex:
+        logger.debug("MediaStore delete failed for %s: %s", content_uri, ex)
+        return False
+
+
+def delete_local_file(path: str) -> bool:
+    """Fallback file delete. True when the file is gone afterwards."""
+    if not path:
+        return False
+    try:
+        os.remove(path)
+        return True
+    except FileNotFoundError:
+        return True
+    except OSError as ex:
+        logger.debug("File delete failed for %s: %s", path, ex)
+        return False
 
 
 # --- Platform helpers (extracted from local_tab.py) ---

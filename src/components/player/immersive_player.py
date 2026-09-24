@@ -83,6 +83,7 @@ class ImmersivePlayer(ft.Stack):
         self._ima_destroyed = False
         self._ima_ad_active = False
         self._last_ima_push = 0.0
+        self._ima_slot = None
         # Deep-link plays (ktv://) hide the in-player favorite star
         self.show_favorite_button = show_favorite
         self.expand = True
@@ -321,7 +322,13 @@ class ImmersivePlayer(ft.Stack):
             on_ads_loaded=self._on_ima_loaded,
             on_ads_load_error=self._on_ima_error,
         )
-        slot = ft.Container(expand=True, content=self.ima_view, visible=True)
+        # Height 0 while idle: an attached-but-empty Android platform view
+        # renders opaque over the video texture (audio played, picture
+        # black). Zero height = no pixels composited; the view stays
+        # ATTACHED (so the SDK keeps its container) and expands only while
+        # an ad is actually on screen.
+        slot = ft.Container(height=0, content=self.ima_view)
+        self._ima_slot = slot
         if self.controls and self.controls[-1] is self.overlay:
             self.controls.insert(len(self.controls) - 1, slot)
         else:
@@ -763,6 +770,7 @@ class ImmersivePlayer(ft.Stack):
         return time.monotonic() - self._ima_t0 if self._ima_t0 else 0.0
 
     def _on_ima_error(self, e):
+        self._ima_set_slot_visible(False)
         logger.warning(
             "IMA error: code=%s type=%s message=%s",
             getattr(e, "code", ""),
@@ -770,8 +778,18 @@ class ImmersivePlayer(ft.Stack):
             getattr(e, "message", ""),
         )
 
+    def _ima_set_slot_visible(self, visible: bool):
+        slot = self._ima_slot
+        if slot is None:
+            return
+        slot.height = None if visible else 0
+        with contextlib.suppress(Exception):
+            self.update()
+
     async def _on_ima_ad_event(self, e):
         t = getattr(e, "type", "")
+        if t == AdEventType.STARTED.value:
+            self._ima_set_slot_visible(True)
         logger.info("IMA event %s (+%.1fs)", t, self._ima_elapsed())
         if t == AdEventType.STARTED.value:
             logger.info("IMA: ad started playing")
@@ -792,6 +810,7 @@ class ImmersivePlayer(ft.Stack):
             AdEventType.ALL_ADS_COMPLETED.value,
         ):
             self._ima_ad_active = False
+            self._ima_set_slot_visible(False)
             with contextlib.suppress(Exception):
                 await self.video.play()
 
@@ -819,6 +838,7 @@ class ImmersivePlayer(ft.Stack):
         if self.ima_view is None or self._ima_destroyed:
             return
         self._ima_destroyed = True
+        self._ima_set_slot_visible(False)
         try:
             await asyncio.wait_for(self.ima_view.destroy(), timeout=5.0)
         except TimeoutError:
