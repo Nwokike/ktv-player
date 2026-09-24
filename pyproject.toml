@@ -5,6 +5,7 @@ description = "A lightning-fast TV player built for seamless network streaming a
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "cryptography>=50.0.1",
     "flet>=0.86.5",
     "flet-ads>=0.86.5",
     "flet-billing>=0.1.1",
@@ -53,6 +54,10 @@ key_alias = "upload"
 "android.software.leanback" = true
 "android.hardware.touchscreen" = false
 "android.software.picture_in_picture" = false
+# A library manifest declares the microphone as REQUIRED, which excludes TV
+# boxes without one from the Play listing. Declared here so the toolchain
+# emits it correctly — no post-generation manifest surgery.
+"android.hardware.microphone" = false
 
 [tool.flet.deep_linking]
 scheme = "ktv"

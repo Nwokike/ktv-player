@@ -4,10 +4,18 @@ The Worker (license.kiri.ng) signs ``v1.<b64url payload>.<b64url signature>``
 with ECDSA P-256 / SHA-256 via WebCrypto, which emits a **raw r‖s** (IEEE
 P1363, 64-byte) signature over the ASCII bytes of the payload segment.
 
-Why this is hand-rolled rather than using `cryptography`: that package ships
-a Rust extension, and native wheels are exactly what Serious Python cannot
-bundle on Android. The verification is a few dozen lines of modular
-arithmetic, so the app carries no crypto dependency at all.
+`cryptography` is the verifier we use: it is the maintained library, it is
+audited, and hand-rolled signature maths is exactly the kind of code that
+breaks quietly. It needs the signature in **DER** form, so the raw r‖s the
+Worker emits is re-encoded with ``encode_dss_signature`` before verifying.
+
+It is a compiled (maturin/Rust) package. Flet's serious_python packaging
+memory-maps ``.so`` files straight out of the APK, but cryptography
+publishes no Android wheel, so on a build without that extension the
+import fails and this module falls back to an equivalent pure-Python
+implementation. Both paths are tested against the same real Worker-signed
+fixtures, so the fallback is proven to reach the same verdict — it exists
+for availability, not as a second source of truth.
 
 Trust model (see kiri-license/docs/client-integration.md): the Worker is
 authoritative whenever the app is online. The token is a signed cache that
@@ -26,7 +34,19 @@ from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 
-# NIST P-256 (secp256r1) domain parameters.
+try:  # pragma: no cover - availability depends on the platform build
+    from cryptography.exceptions import InvalidSignature
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.primitives.asymmetric import ec
+    from cryptography.hazmat.primitives.asymmetric.utils import encode_dss_signature
+    from cryptography.hazmat.primitives.serialization import load_der_public_key
+
+    _HAS_CRYPTOGRAPHY = True
+except ImportError:  # Android without a compiled cryptography
+    InvalidSignature = ValueError  # type: ignore[assignment,misc]
+    _HAS_CRYPTOGRAPHY = False
+
+# NIST P-256 (secp256r1) domain parameters, used only by the fallback.
 _P = 0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF
 _A = _P - 3
 _B = 0x5AC635D8AA3A93E7B3EBBD55769886BC651D06B0CC53B0F63BCE3C3E27D2604B
@@ -36,6 +56,11 @@ _N = 0xFFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551
 
 ISSUER = "license.kiri.ng"
 _UNLOCKING_STATUSES = ("active", "grace")
+
+
+def using_cryptography() -> bool:
+    """True when the compiled verifier is in use (false on Android)."""
+    return _HAS_CRYPTOGRAPHY
 
 
 class TokenRejected(Exception):
@@ -137,6 +162,36 @@ def _scale(point, scalar: int):
     return result
 
 
+def _verify_signature(public_key: str, message: bytes, signature: bytes) -> bool:
+    """Verify the Worker's raw r‖s signature.
+
+    Uses `cryptography` when the compiled extension is present, re-encoding
+    the raw pair as DER because that is what its API expects. The
+    pure-Python path is reached only where the extension is missing.
+    """
+    if len(signature) != 64:
+        return False
+    if _HAS_CRYPTOGRAPHY:
+        try:
+            key = load_der_public_key(_b64url_decode(public_key))
+        except Exception as ex:
+            # A key we cannot parse is a configuration error, and callers
+            # report it distinctly from a rejected signature.
+            raise TokenRejected("bad_public_key", str(ex)) from ex
+        if not isinstance(key, ec.EllipticCurvePublicKey):
+            raise TokenRejected("bad_public_key", "not an EC public key")
+        r = int.from_bytes(signature[:32], "big")
+        s = int.from_bytes(signature[32:], "big")
+        if not (1 <= r < _N and 1 <= s < _N):
+            return False
+        try:
+            key.verify(encode_dss_signature(r, s), message, ec.ECDSA(hashes.SHA256()))
+        except InvalidSignature:
+            return False
+        return True
+    return _ecdsa_verify(_public_point_from_spki(public_key), message, signature)
+
+
 def verify_token(
     token: str,
     public_key: str,
@@ -167,9 +222,7 @@ def verify_token(
 
     # WebCrypto signs the ASCII bytes of the base64url payload segment, not
     # the decoded JSON — matching that is what makes the signature verify.
-    if not _ecdsa_verify(
-        _public_point_from_spki(public_key), payload_b64.encode("utf-8"), signature
-    ):
+    if not _verify_signature(public_key, payload_b64.encode("utf-8"), signature):
         raise TokenRejected("bad_signature")
 
     if claims_raw.get("iss") != ISSUER:
