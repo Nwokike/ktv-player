@@ -191,6 +191,7 @@ class AppController:
             check_for_updates=self.check_for_updates,
             open_version_dialog=self.open_version_dialog,
         )
+        self._controller_methods = methods
         self.page.render(lambda: ControllerMethodsCtx(methods, lambda: AppShell()))
         logger.info("AppShell frontend mounted successfully")
 
@@ -326,6 +327,13 @@ class AppController:
         if len(self.page.views) > 1:
             self.page.views.pop()
             self.page.update()
+            return
+        # On a non-Home tab, back navigates to Home instead of closing the
+        # app (Android's default). On Home, go_home() is a no-op and the
+        # default close proceeds.
+        methods = getattr(self, "_controller_methods", None)
+        if methods is not None:
+            methods.go_home()
 
     # --- Channel Loading ---
 

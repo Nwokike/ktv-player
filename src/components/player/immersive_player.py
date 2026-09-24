@@ -71,24 +71,18 @@ class ImmersivePlayer(ft.Stack):
 
         # IMA video ads (Android TV only — phones keep the AdMob
         # interstitial; AdService suppresses all AdMob surfaces on TV).
-        # The native ad view must be IN the tree before request_ads(), so
-        # it is built here; the request fires on the first duration tick
-        # (content metadata known) with a 2s fallback for live streams.
+        # The native ad view must be IN the tree before request_ads(). It is
+        # created in did_mount() (the page only exists once the control is
+        # attached — building it here produced no ads on any device); the
+        # request fires on the first duration tick (content metadata known)
+        # with a 2s fallback for live streams.
+        self._ima_tag = ima_tag
         self.ima_view: ImaAdsView | None = None
         self._ima_requested = False
         self._ima_t0 = 0.0
         self._ima_destroyed = False
         self._ima_ad_active = False
         self._last_ima_push = 0.0
-        if self._ima_supported(ima_tag):
-            self.ima_view = ImaAdsView(
-                ad_tag_url=ima_tag,
-                content_title=self.title,
-                on_ad_event=self._on_ima_ad_event,
-                on_ad_error=self._on_ima_error,
-                on_ads_loaded=self._on_ima_loaded,
-                on_ads_load_error=self._on_ima_error,
-            )
         # Deep-link plays (ktv://) hide the in-player favorite star
         self.show_favorite_button = show_favorite
         self.expand = True
@@ -302,6 +296,39 @@ class ImmersivePlayer(ft.Stack):
         self.controls.append(self.overlay)
 
     # --- Controls ---
+
+    def did_mount(self):
+        super().did_mount()
+        self._mount_ima_view()
+
+    def _mount_ima_view(self):
+        """Create the IMA ad view once the control is attached.
+
+        The player is constructed BEFORE it is added to a View, so the page
+        is only reachable from did_mount() onward — building the ad view in
+        __init__ silently produced no ads on any device (the symptom that
+        hid the pre-roll on both phones and TVs).
+        """
+        if self.ima_view is not None or not self._ima_tag:
+            return
+        if not self._ima_supported(self._ima_tag):
+            return
+        self.ima_view = ImaAdsView(
+            ad_tag_url=self._ima_tag,
+            content_title=self.title,
+            on_ad_event=self._on_ima_ad_event,
+            on_ad_error=self._on_ima_error,
+            on_ads_loaded=self._on_ima_loaded,
+            on_ads_load_error=self._on_ima_error,
+        )
+        slot = ft.Container(expand=True, content=self.ima_view, visible=True)
+        if self.controls and self.controls[-1] is self.overlay:
+            self.controls.insert(len(self.controls) - 1, slot)
+        else:
+            self.controls.append(slot)
+        logger.info("IMA: ad view mounted (pre-roll ready)")
+        with contextlib.suppress(Exception):
+            self.update()
 
     def will_unmount(self):
         super().will_unmount()

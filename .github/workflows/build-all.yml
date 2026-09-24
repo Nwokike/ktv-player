@@ -186,93 +186,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # ─── 2. Android APK (universal) ───────────────────────────
-  build-apk:
-    needs: [prepare-release]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-      - name: Decode Keystore
-        env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-        run: echo "$KEYSTORE_BASE64" | base64 --decode > kiri_keystore.jks
-      - name: Build APK (universal)
-        env:
-          FLET_ANDROID_SIGNING_KEY_STORE: ${{ github.workspace }}/kiri_keystore.jks
-          FLET_ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          # IMA (flet-ima) requires core-library desugaring, which the
-          # "Inject TV banner" step below adds — so this first pass is
-          # expected to fail at checkReleaseAarMetadata. Tolerate it ONLY
-          # when the Android project was generated; real errors still fail.
-          set +e
-          uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} --deep-linking-scheme "ktv" --deep-linking-host "play" -v
-          code=$?
-          set -e
-          test -f build/flutter/android/app/build.gradle.kts || exit $code
-          echo "flet build exit $code — continuing; desugaring patch + gradle rebuild follow"
-      - name: Inject TV banner, icon & rebuild with banner
-        env:
-          FLET_ANDROID_SIGNING_KEY_STORE: ${{ github.workspace }}/kiri_keystore.jks
-          FLET_ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          SERIOUS_PYTHON_SITE_PACKAGES: ${{ github.workspace }}/build/site-packages
-        run: |
-          MANIFEST=build/flutter/android/app/src/main/AndroidManifest.xml
-          RES=build/flutter/android/app/src/main/res
-          mkdir -p "$RES/drawable-xhdpi" "$RES/mipmap-xxxhdpi"
-          cp src/assets/tv_banner.png "$RES/drawable-xhdpi/banner.png"
-          cp src/assets/icon.png "$RES/mipmap-xxxhdpi/ic_launcher.png"
-          # NOTE: flet 0.86 writes <application> with attributes on following
-          # lines, so the tag is '<application' followed by a newline — a
-          # trailing space in the pattern would never match.
-          sed -i 's|<application|<application android:banner="@drawable/banner"|' "$MANIFEST"
-          sed -i 's|<activity|<activity android:supportsPictureInPicture="true"|g' "$MANIFEST"
-          grep -n "supportsPictureInPicture" "$MANIFEST"
-          # flet-ima (Google IMA video ads) requires core-library
-          # desugaring, which Flet's template doesn't enable. Guarded seds
-          # are idempotent; the replacement re-adds the closing '}'.
-          GRADLE=build/flutter/android/app/build.gradle.kts
-          grep -q "isCoreLibraryDesugaringEnabled" "$GRADLE" || \
-            sed -i 's/compileOptions {/compileOptions {\n        isCoreLibraryDesugaringEnabled = true/' "$GRADLE"
-          grep -q "coreLibraryDesugaring" "$GRADLE" || \
-            sed -i 's/dependencies {}/dependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")\n}/' "$GRADLE"
-          # IMA needs minSdk >= 24 — Flutter 3.44 resolves to 24; print
-          # the line so future drift is visible.
-          grep -n "resolvedMinSdk =" "$GRADLE"
-          (cd build/flutter/android && ./gradlew assembleRelease)
-          rm -rf build/apk
-          mkdir -p build/apk
-          find build/flutter -name "*.apk" -not -path "*/intermediates/*" -exec cp {} build/apk/ \;
-          # README links ktv.apk — stage under the historical name so the
-          # release always carries exactly one authoritative set.
-          mv -f build/apk/app-release.apk build/apk/ktv.apk 2>/dev/null || true
-          # Hard-fail if the PiP flag didn't make it into the merged manifest
-          AAPT=$(find "${ANDROID_HOME:-$HOME/Android}" -name aapt -type f 2>/dev/null | sort -V | tail -1)
-          for f in build/apk/*.apk; do
-            "$AAPT" dump xmltree "$f" AndroidManifest.xml | grep -q supportsPictureInPicture \
-              || { echo "ERROR: supportsPictureInPicture missing in $f"; exit 1; }
-          done
-          ls -lh build/apk/
-          echo "Rebuilt APK with TV banner (320x180), icon (512x512) and PiP enabled"
-      - name: Upload directly to GitHub Release
-        if: github.event_name != 'pull_request'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ needs.prepare-release.outputs.TAG_NAME }}
-          files: build/apk/*.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # ─── 3. Android APK (split per ABI) ───────────────────────
+  # ─── 2. Android APK (split per ABI) ───────────────────────
   build-apk-split:
     needs: [prepare-release]
     runs-on: ubuntu-latest
@@ -294,7 +208,7 @@ jobs:
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          # See build-apk: first pass may fail on IMA's desugaring
+          # First flet pass may fail on IMA's desugaring
           # requirement; the patch+rebuild step below is the real build.
           set +e
           uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} --split-per-abi --deep-linking-scheme "ktv" --deep-linking-host "play" -v
@@ -364,7 +278,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # ─── 4. Android AAB (Play Store) ──────────────────────────
+  # ─── 3. Android AAB (Play Store) ──────────────────────────
   build-aab:
     needs: [prepare-release]
     runs-on: ubuntu-latest
@@ -386,7 +300,7 @@ jobs:
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          # See build-apk: first pass may fail on IMA's desugaring
+          # First flet pass may fail on IMA's desugaring
           # requirement; the patch+rebuild step below is the real build.
           set +e
           uv run flet build aab --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} --deep-linking-scheme "ktv" --deep-linking-host "play" -v
@@ -446,7 +360,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # ─── 5. Linux (.deb, .rpm & Universal .tar.gz) ────────────────
+  # ─── 4. Linux (.deb, .rpm & Universal .tar.gz) ────────────────
   build-linux:
     needs: [prepare-release]
     runs-on: ubuntu-latest

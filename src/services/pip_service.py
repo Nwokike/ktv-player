@@ -26,6 +26,9 @@ _ASPECT_MIN = 0.41841  # 1:2.39
 _ASPECT_MAX = 2.39
 
 _activity = None
+# One-shot warning: Android 16 rejects auto-PiP on some devices and the
+# pyjnius exception string is a full Java stacktrace.
+_auto_pip_warned = False
 
 
 def _get_activity():
@@ -141,7 +144,16 @@ def set_auto_pip(enabled: bool, aspect: float | None = None) -> bool:
         )
         return True
     except Exception as ex:
-        logger.warning("set_auto_pip failed: %s", ex)
+        global _auto_pip_warned
+        first_line = str(ex).splitlines()[0]
+        if not _auto_pip_warned:
+            _auto_pip_warned = True
+            logger.warning(
+                "set_auto_pip failed (further failures logged at debug): %s",
+                first_line,
+            )
+        else:
+            logger.debug("set_auto_pip failed: %s", first_line)
         return False
 
 

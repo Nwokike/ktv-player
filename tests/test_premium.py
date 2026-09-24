@@ -68,13 +68,24 @@ def test_admob_master_switch_hides_everything(fake_page):
 def test_build_banner_ad_collapses_when_premium(fake_page):
     _with_platform(fake_page)
 
-    state.is_premium = True
-    collapsed = build_banner_ad(fake_page)
-    assert collapsed.width == 0
+    # The builder talks to flet-ads directly — pin the master switch on
+    # to exercise the premium gate itself.
+    with mock.patch("components.banner_ad.ADS_MOB_ENABLED", True):
+        state.is_premium = True
+        collapsed = build_banner_ad(fake_page)
+        assert collapsed.width == 0
 
+        state.is_premium = False
+        shown = build_banner_ad(fake_page)
+        assert shown.width != 0
+
+
+def test_build_banner_ad_hidden_when_admob_switch_off(fake_page):
+    _with_platform(fake_page)
     state.is_premium = False
-    shown = build_banner_ad(fake_page)
-    assert shown.width != 0
+    with mock.patch("components.banner_ad.ADS_MOB_ENABLED", False):
+        ad = build_banner_ad(fake_page)
+    assert ad.width == 0
 
 
 @pytest.mark.asyncio

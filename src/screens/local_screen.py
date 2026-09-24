@@ -321,6 +321,7 @@ def LocalScreen() -> Control:
                     is_custom=is_c,
                     on_remove_custom=lambda p: asyncio.create_task(_async_remove(p)),
                     on_long_press_video=_on_video_long_press,
+                    on_video_menu=lambda v: asyncio.create_task(_video_menu(v)),
                 )
             )
             # Insert banner ad after the 5th folder (index 4)

@@ -70,7 +70,9 @@ def _player(page, tv=False, ad_service=None, ima_tag="tag", **kw):
             ima_tag=ima_tag,
             **kw,
         )
-    p._mock_page = page
+        p._mock_page = page
+        # The IMA view is created on mount (the page only exists then).
+        p.did_mount()
     p.update = mock.Mock()
     p.video.play = mock.AsyncMock()
     p.video.pause = mock.AsyncMock()
@@ -83,6 +85,8 @@ def _player(page, tv=False, ad_service=None, ima_tag="tag", **kw):
     p._arm_auto_pip = mock.Mock()
     p._disarm_auto_pip = mock.Mock()
     p._disable_auto_pip = mock.Mock()
+    if p.ima_view is not None:
+        p.ima_view = _ima()  # swap the real view for a mock
     return p
 
 
@@ -104,8 +108,12 @@ def test_tv_has_ima_view_in_stack(page):
     p = _player(page, tv=True)
     assert p.ima_view is not None
     assert len(p.controls) == 4  # + bounded IMA container, overlay still last
+    from flet_ima import ImaAdsView
+
     assert p.controls[-1] is p.overlay
-    assert p.controls[2].content is p.ima_view
+    # The stack holds the real view created on mount (the attribute is
+    # swapped for a mock after construction by the helper).
+    assert isinstance(p.controls[2].content, ImaAdsView)
 
 
 def test_no_tag_disables_ima(page):

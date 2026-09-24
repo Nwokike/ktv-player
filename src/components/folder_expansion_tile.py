@@ -22,6 +22,7 @@ def FolderExpansionTile(
     is_custom: bool = False,
     on_remove_custom: Callable[[str], None] | None = None,
     on_long_press_video: Callable | None = None,
+    on_video_menu: Callable | None = None,
 ) -> Control:
     expanded, set_expanded = ft.use_state(False)
     count, set_count = ft.use_state(PAGE_SIZE)
@@ -66,7 +67,12 @@ def FolderExpansionTile(
         items.append(remove_btn)
 
     cards = [
-        VideoCard(v, on_play=on_play, on_long_press=on_long_press_video)
+        VideoCard(
+            v,
+            on_play=on_play,
+            on_long_press=on_long_press_video,
+            on_menu=on_video_menu,
+        )
         for v in visible_videos
     ]
     grid = ft.GridView(

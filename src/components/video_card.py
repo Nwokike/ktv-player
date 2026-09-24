@@ -41,6 +41,7 @@ def VideoCard(
     video: LocalVideo,
     on_play: Callable[[str], None],
     on_long_press: Callable[[LocalVideo], None] | None = None,
+    on_menu: Callable[[LocalVideo], None] | None = None,
 ) -> Control:
     """Local video tile.
 
@@ -63,6 +64,20 @@ def VideoCard(
                                 bgcolor=ft.Colors.GREEN_ACCENT_400,
                             ),
                             ft.Icon(ft.Icons.MOVIE, size=18, color=ft.Colors.GREY),
+                            # Always-visible options button — long-press is
+                            # undiscoverable on a TV remote.
+                            *(
+                                [
+                                    ft.IconButton(
+                                        icon=ft.Icons.MORE_VERT,
+                                        icon_size=16,
+                                        tooltip="Options",
+                                        on_click=lambda e, v=video: on_menu(v),
+                                    )
+                                ]
+                                if on_menu
+                                else []
+                            ),
                         ],
                         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                     ),

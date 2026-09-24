@@ -517,8 +517,23 @@ def SettingsScreen() -> Control:
             return
         if await premium_service.buy():
             notify("Opening Google Play purchase…")
-        else:
-            notify_warning("Premium is not available in this store yet")
+            return
+        # Snackbars are easy to miss (especially on a TV) — this is a real
+        # blocker for the user, so it gets a dialog.
+        page_obj.show_dialog(
+            ft.AlertDialog(
+                title=ft.Text(
+                    "Premium unavailable", size=15, weight=ft.FontWeight.BOLD
+                ),
+                content=ft.Text(
+                    "This premium product isn't available in the store yet. "
+                    "If it was just created in Play Console, give the "
+                    "listing a few minutes and try again.",
+                    size=12,
+                ),
+                actions=[ft.TextButton("OK", on_click=lambda e: page_obj.pop_dialog())],
+            )
+        )
 
     async def _restore_premium(e=None):
         if not premium_service or not premium_service.available:

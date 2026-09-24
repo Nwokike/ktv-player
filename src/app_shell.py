@@ -47,6 +47,13 @@ def AppShell() -> Control:
 
     controller.open_search = lambda mode="tv": set_search_mode(mode)
 
+    def _go_home():
+        if selected_tab != 0:
+            logger.info("Back → Home tab")
+            set_selected_tab(0)
+
+    controller.go_home = _go_home
+
     use_keyboard_shortcuts(
         controller=controller,
         on_search=lambda: set_search_mode("tv"),

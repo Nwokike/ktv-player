@@ -63,6 +63,7 @@ class ControllerMethods:
     pop_modal: Callable[[], Awaitable[None]] = _noop_async_close_modal
     close_modal: Callable[[], Awaitable[None]] = _noop_async_close_modal
     open_search: Callable[[str], None] = lambda mode="tv": None
+    go_home: Callable[[], None] = _noop_sync
     check_for_updates: Callable[..., Awaitable[None]] = _noop_async_update_check
     open_version_dialog: Callable[[], None] = _noop_sync_version_dialog
 
