@@ -55,14 +55,12 @@ def _ima():
 def _player(page, tv=False, ad_service=None, ima_tag="tag", **kw):
     from components.player import immersive_player as ip
 
-    with (
-        mock.patch.object(ip, "is_tv_device", return_value=tv),
-        mock.patch.object(
-            ip.ImmersivePlayer,
-            "safe_page",
-            new_callable=mock.PropertyMock,
-            return_value=page,
-        ),
+    # `tv` no longer gates IMA (mobile-wide) — kept for test readability.
+    with mock.patch.object(
+        ip.ImmersivePlayer,
+        "safe_page",
+        new_callable=mock.PropertyMock,
+        return_value=page,
     ):
         p = ip.ImmersivePlayer(
             resource="http://example.com/vod.mp4",
