@@ -19,6 +19,7 @@ must say so first.
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from core.constants import (
@@ -27,7 +28,6 @@ from core.constants import (
     KIRI_LICENSE_PUBLIC_KEY,
     KIRI_LICENSE_TIMEOUT,
 )
-from core.state import state
 from database.manager import db_manager
 from services.http_client import get_http_client
 from services.license_token import LicenseClaims, TokenRejected, verify_token
@@ -87,12 +87,17 @@ class KiriLicenseService:
         self,
         app_id: str = KIRI_LICENSE_APP_ID,
         public_key: str = KIRI_LICENSE_PUBLIC_KEY,
+        on_change: Callable[[], None] | None = None,
     ):
         self.app_id = app_id
         # Injected rather than read from the constant at every call so a key
         # rotation (and the test fixtures, which are signed with their own
         # throwaway pair) is a constructor argument, not a monkeypatch.
         self.public_key = public_key
+        # This service owns its own entitlement only. The app-wide premium
+        # flag is the union of this and the Play purchase, and only
+        # PremiumService knows both — so it is told, not set here.
+        self.on_change = on_change
         self.products: list[LicenseProduct] = []
         self.claims: LicenseClaims | None = None
         self._unlocked = False
@@ -124,16 +129,22 @@ class KiriLicenseService:
             await db_manager.set_setting(SETTING_PRODUCT, product)
 
     async def _apply(self, status: str, claims: LicenseClaims | None) -> None:
-        """Mirror a verified entitlement into the app-wide premium flag."""
+        """Record a verified entitlement and let the app re-evaluate.
+
+        Deliberately does NOT set `state.is_premium`: that flag is the union
+        of the Play purchase and this license, and only PremiumService knows
+        both. Setting it here would let a lapsed license keep ad-free
+        access through the Play cache flag.
+        """
         self._unlocked = status in ("active", "grace") and claims is not None
-        if self._unlocked:
-            state.is_premium = True
         logger.info(
-            "Kiri license status=%s product=%s premium=%s",
+            "Kiri license status=%s product=%s unlocked=%s",
             status,
             claims.product if claims else "-",
             self._unlocked,
         )
+        if self.on_change is not None:
+            self.on_change()
 
     # -- offline -------------------------------------------------------------
 

@@ -58,8 +58,14 @@ class PremiumService:
         self.billing: Billing | None = None
         self.price: str | None = None
         self.backend: str = "none"  # "play" | "kiri" | "none"
-        self.license = KiriLicenseService()
+        # The two channels are deliberately separate entitlements:
+        # Play keeps a local `premium=true` cache (reconciled with the store
+        # on every launch), while Kiri is unlocked *only* by a signed token.
+        # Collapsing them would let a lapsed license stay ad-free forever
+        # through the Play flag.
+        self._play_unlocked = False
         self._listeners: list[Callable[[], None]] = []
+        self.license = KiriLicenseService(on_change=self._recompute_premium)
         if self._billing_supported():
             self.billing = Billing(on_purchase_updated=self._on_purchases)
             # Service auto-registers against context.page (flet
@@ -74,6 +80,19 @@ class PremiumService:
         else:
             # Desktop and web have no Play at all.
             self.backend = "kiri"
+
+    def _recompute_premium(self) -> None:
+        """Premium is the union of both channels, never either alone."""
+        unlocked = self._play_unlocked or self.license.unlocked
+        if state.is_premium != unlocked:
+            logger.info(
+                "Premium state -> %s (play=%s kiri=%s)",
+                unlocked,
+                self._play_unlocked,
+                self.license.unlocked,
+            )
+        state.is_premium = unlocked
+        self._notify_listeners()
 
     def _billing_supported(self) -> bool:
         """Android phones and Android TV both have a Play Store; desktop and
@@ -112,20 +131,22 @@ class PremiumService:
         return self.backend == "play" and self.billing is not None
 
     async def load_local(self) -> None:
-        """Read the persisted entitlement — safe on the boot path.
+        """Read both entitlements — safe on the boot path.
 
-        Two sources: the Play flag, and the Kiri token, which is verified
-        offline so a paid app keeps premium with no network at all.
+        Play contributes a local cache flag (reconciled with the store on
+        every launch); Kiri contributes a signed token, verified offline so
+        a paid app keeps premium with no network at all. Neither one alone
+        is enough to unlock the other channel.
         """
         try:
-            if await db_manager.get_setting("premium") == "true":
-                state.is_premium = True
+            self._play_unlocked = await db_manager.get_setting("premium") == "true"
         except Exception:
             logger.warning("Could not read premium flag", exc_info=True)
         try:
             await self.license.apply_cached_token()
         except Exception:
             logger.warning("Could not verify the cached license", exc_info=True)
+        self._recompute_premium()
 
     async def reconcile(self) -> None:
         """Reconcile ownership with whichever backend applies.
@@ -286,17 +307,15 @@ class PremiumService:
     async def kiri_restore(self, recovery_id: str):
         """Redeem a recovery ID; raises LicenseUnavailable with a reason."""
         status = await self.license.restore(recovery_id)
-        if status.unlocks:
-            await self._activate()
-        self._notify_listeners()
+        # Not _activate(): a Kiri license must never write the Play cache
+        # flag, or a lapsed subscription would stay unlocked forever.
+        self._recompute_premium()
         return status
 
     async def kiri_check_status(self):
         """Re-check the saved entitlement, keeping the local token offline."""
         status = await self.license.refresh()
-        if status is not None and status.unlocks:
-            await self._activate()
-        self._notify_listeners()
+        self._recompute_premium()
         return status
 
     def _is_android(self) -> bool:
@@ -340,10 +359,11 @@ class PremiumService:
                         logger.debug("show_in_app_messages unavailable", exc_info=True)
 
     async def _activate(self) -> None:
-        if state.is_premium:
+        """Record a Google Play purchase (the only writer of the Play cache)."""
+        if self._play_unlocked:
             return
-        state.is_premium = True
-        self._notify_listeners()
+        self._play_unlocked = True
+        self._recompute_premium()
         try:
             await db_manager.set_setting("premium", "true")
         except Exception:

@@ -219,7 +219,7 @@ async def test_restore_with_a_verified_token_unlocks_premium(store):
         status = await svc.restore("KIRI-L-abc123")
 
     assert status.unlocks is True
-    assert state.is_premium is True
+    assert svc.unlocked is True
     assert store["kiri_token"] == TOKENS["LIFETIME"]
 
 
@@ -259,7 +259,7 @@ async def test_cached_token_unlocks_without_a_network(store):
     store["kiri_token"] = TOKENS["LIFETIME"]
     svc = KiriLicenseService(public_key=PUBLIC_KEY)
     assert await svc.apply_cached_token() is True
-    assert state.is_premium is True
+    assert svc.unlocked is True
 
 
 @pytest.mark.asyncio
@@ -368,4 +368,83 @@ async def test_cached_license_is_applied_on_the_boot_path(store):
     with mock.patch("services.premium_service.db_manager", dbm):
         await svc.load_local()
 
+    assert state.is_premium is True
+
+
+# -- channel separation -----------------------------------------------------
+# A Kiri license is unlocked by a signed token only. It must never write the
+# Play `premium=true` cache, or a lapsed subscription would keep ad-free
+# access forever; and a Play cache must not unlock the Kiri channel.
+
+
+@pytest.mark.asyncio
+async def test_kiri_restore_does_not_write_the_play_cache_flag(store):
+    svc = _premium_service(_page(mobile=False))
+    svc.license.public_key = PUBLIC_KEY
+    with (
+        mock.patch(
+            "services.kiri_license.get_http_client",
+            return_value=_http("post", _response(_restore_body()), []),
+        ),
+        mock.patch("services.premium_service.db_manager") as dbm,
+    ):
+        dbm.get_setting = mock.AsyncMock(return_value="")
+        dbm.set_setting = mock.AsyncMock()
+        await svc.kiri_restore("KIRI-L-abc123")
+        written = {c.args for c in dbm.set_setting.await_args_list}
+    assert state.is_premium is True
+    assert ("premium", "true") not in written
+
+
+@pytest.mark.asyncio
+async def test_a_lapsed_kiri_license_drops_premium(store):
+    """A stale token must not survive on the Play cache flag."""
+    dbm = mock.AsyncMock()
+    values: dict[str, str] = {}
+
+    async def get_setting(key, default=None):
+        return values.get(key, default)
+
+    async def set_setting(key, value):
+        values[key] = str(value)
+
+    dbm.get_setting.side_effect = get_setting
+    dbm.set_setting.side_effect = set_setting
+
+    svc = _premium_service(_page(mobile=False))
+    svc.license.public_key = PUBLIC_KEY
+    store["kiri_token"] = TOKENS["LIFETIME"]
+    with mock.patch("services.premium_service.db_manager", dbm):
+        await svc.load_local()
+        assert state.is_premium is True
+
+        # The subscription lapses; the cached token no longer verifies.
+        store["kiri_token"] = TOKENS["EXPIRED"]
+        await svc.load_local()
+
+    assert state.is_premium is False
+
+
+@pytest.mark.asyncio
+async def test_play_cache_alone_does_not_unlock_the_kiri_channel(store):
+    """A Play purchase must not stand in for a Kiri license."""
+    dbm = mock.AsyncMock()
+
+    async def get_setting(key, default=None):
+        return "true" if key == "premium" else None
+
+    async def set_setting(key, value):
+        return None
+
+    dbm.get_setting.side_effect = get_setting
+    dbm.set_setting.side_effect = set_setting
+
+    svc = _premium_service(_page(mobile=False))
+    svc.license.public_key = PUBLIC_KEY
+    with mock.patch("services.premium_service.db_manager", dbm):
+        await svc.load_local()
+
+    assert svc.license.unlocked is False
+    assert svc._play_unlocked is True
+    # The union still unlocks the app, because Play did.
     assert state.is_premium is True
