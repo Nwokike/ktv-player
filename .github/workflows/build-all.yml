@@ -111,10 +111,13 @@ jobs:
         run: |
           # AGP has written the processed manifest under several directory
           # names across versions (merged_manifest, packaged_manifests,
-          # processDebugMainManifest, ...), so match them all and fall back
-          # to any manifest under the app's intermediates.
-          MERGED=$(find build/flutter/android/app/build/intermediates -name "AndroidManifest.xml" 2>/dev/null             | grep -iE "merged|packaged_manifests|processDebug|processRelease" | head -1)
-          [ -z "$MERGED" ] && MERGED=$(find build/flutter/android -name "AndroidManifest.xml" 2>/dev/null | head -1)
+          # processDebugMainManifest, ...), so match them all.
+          #
+          # The search MUST stay under app/build: app/src holds the *source*
+          # manifests (debug/profile stubs with no uses-sdk and no features),
+          # and checking one of those reports a TV regression that does not
+          # exist — it did exactly that for several runs.
+          MERGED=$(find build/flutter/android/app/build -path "*/intermediates/*" -name "AndroidManifest.xml" 2>/dev/null             | grep -iE "merged|packaged_manifests|processDebug" | head -1)
           if [ -z "$MERGED" ]; then
             echo "WARNING: no processed AndroidManifest.xml found — the TV catalog could not be verified this run"
             exit 0
@@ -140,6 +143,9 @@ jobs:
             gh release edit "${{ github.ref_name }}" --notes-file notes.md || true
           fi
           echo "manifest audit verdict: $VERDICT (0 = every TV fact verified)"
+          # The Android jobs do not depend on this one, so a real TV
+          # regression is loud here without withholding a good build.
+          exit "$VERDICT"
 
   # ─── 0. Create Release Tag & Placeholder ───────────────
   prepare-release:
@@ -322,8 +328,9 @@ jobs:
           done
           # Verify the TV banner / PiP / optional-mic patches reached the
           # merged manifest (same checker the audit job uses, no aapt needed).
-          MERGED=$(find build/flutter/android/app/build/intermediates -name "AndroidManifest.xml" 2>/dev/null             | grep -iE "merged|packaged_manifests|processDebug|processRelease" | head -1)
-          [ -z "$MERGED" ] && MERGED=$(find build/flutter/android -name "AndroidManifest.xml" 2>/dev/null | head -1)
+          # Under app/build only — app/src holds source stubs, not the
+          # manifest the build actually shipped.
+          MERGED=$(find build/flutter/android/app/build -path "*/intermediates/*" -name "AndroidManifest.xml" 2>/dev/null             | grep -iE "merged|packaged_manifests|processRelease" | head -1)
           if [ -z "$MERGED" ]; then
             echo "ERROR: no merged release manifest found"
             exit 1
@@ -414,8 +421,9 @@ jobs:
           mv -f build/aab/app-release.aab build/aab/ktv.aab 2>/dev/null || true
           # Same manifest gate as the split-APK job (the aapt/unzip variant
           # broke whenever the runner image lacked aapt).
-          MERGED=$(find build/flutter/android/app/build/intermediates -name "AndroidManifest.xml" 2>/dev/null             | grep -iE "merged|packaged_manifests|processDebug|processRelease" | head -1)
-          [ -z "$MERGED" ] && MERGED=$(find build/flutter/android -name "AndroidManifest.xml" 2>/dev/null | head -1)
+          # Under app/build only — app/src holds source stubs, not the
+          # manifest the build actually shipped.
+          MERGED=$(find build/flutter/android/app/build -path "*/intermediates/*" -name "AndroidManifest.xml" 2>/dev/null             | grep -iE "merged|packaged_manifests|processRelease" | head -1)
           if [ -z "$MERGED" ]; then
             echo "ERROR: no merged release manifest found"
             exit 1
