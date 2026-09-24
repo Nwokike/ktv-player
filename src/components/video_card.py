@@ -58,22 +58,7 @@ def VideoCard(
                     ft.Row(
                         controls=[
                             ft.Icon(ft.Icons.MOVIE, size=18, color=ft.Colors.GREY),
-                            # Always-visible options button — long-press is
-                            # undiscoverable on a TV remote.
-                            *(
-                                [
-                                    ft.IconButton(
-                                        icon=ft.Icons.MORE_VERT,
-                                        icon_size=16,
-                                        tooltip="Options",
-                                        on_click=lambda e, v=video: on_menu(v),
-                                    )
-                                ]
-                                if on_menu
-                                else []
-                            ),
                         ],
-                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                     ),
                     _preview(video),
                     ft.Text(
@@ -95,9 +80,34 @@ def VideoCard(
             ),
         )
     )
+
+    card: Control = button
+    if on_menu is not None:
+        # The options button is a SIBLING of the play button, not nested
+        # inside it: a button inside a button makes it ambiguous which one
+        # a tap (or D-pad OK) activates. Long-press remains available on
+        # phones, but the TV remote has no long-press at all.
+        card = ft.Container(
+            content=ft.Stack(
+                controls=[
+                    button,
+                    ft.Container(
+                        content=ft.IconButton(
+                            icon=ft.Icons.MORE_VERT,
+                            icon_size=16,
+                            tooltip="Options",
+                            on_click=lambda e, v=video: on_menu(v),
+                        ),
+                        alignment=ft.Alignment.TOP_RIGHT,
+                        padding=ft.Padding.only(top=2, right=2),
+                    ),
+                ],
+            ),
+        )
+
     if on_long_press is None:
-        return button
+        return card
     return ft.GestureDetector(
-        content=button,
+        content=card,
         on_long_press=lambda e: on_long_press(video),
     )

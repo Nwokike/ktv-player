@@ -554,7 +554,7 @@ class HLSProxy:
                 async for chunk in resp.aiter_bytes(chunk_size=262144):
                     writer.write(chunk)
                     await writer.drain()
-            except ConnectionResetError, BrokenPipeError, asyncio.CancelledError:
+            except (ConnectionResetError, BrokenPipeError, asyncio.CancelledError):
                 pass
         finally:
             await resp.aclose()

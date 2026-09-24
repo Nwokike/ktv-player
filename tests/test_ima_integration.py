@@ -347,7 +347,7 @@ async def test_ad_service_phone_unchanged_with_switch_on(page):
     svc = AdService(page)
     with (
         mock.patch("services.ad_service.is_tv_device", return_value=False),
-        mock.patch("services.ad_service.ADS_MOB_ENABLED", True),
+        mock.patch("core.constants.ADS_MOB_ENABLED", True),
     ):
         assert svc.get_standard_banner_ad() is not None
         await svc.preload_interstitial()
@@ -358,7 +358,7 @@ async def test_ad_service_phone_unchanged_with_switch_on(page):
 async def test_ad_service_silent_with_switch_off(page):
     """Current default: AdMob fully off, no exceptions, no ads."""
     svc = AdService(page)
-    with mock.patch("services.ad_service.ADS_MOB_ENABLED", False):
+    with mock.patch("core.constants.ADS_MOB_ENABLED", False):
         assert svc.get_standard_banner_ad() is None
         await svc.preload_interstitial()
         assert svc.interstitial is None

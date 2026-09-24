@@ -87,7 +87,9 @@ def _build_logs_dialog(page: ft.Page) -> ft.AlertDialog:
             await ft.Clipboard().set(log_text.value)
             notify(LBL_LOG_COPIED)
         except Exception:
-            pass
+            # Android TV has no clipboard service in some images, and a
+            # silent failure looks like the button is broken.
+            notify_warning("Copy failed — clipboard unavailable on this device")
 
     def _clear(e=None):
         MemoryLogHandler.clear_logs()
@@ -509,40 +511,75 @@ def SettingsScreen() -> Control:
 
     # -- 6. Premium (remove-ads) -------------------------------------------
     premium_service = getattr(page_obj, "premium", None)
-    is_premium = core_state.is_premium
+    # The Play purchase stream lands asynchronously — often while this very
+    # screen is still open — so the card follows the service instead of a
+    # snapshot taken at build time (which left "Upgrade" showing to users
+    # who had already paid).
+    is_premium, set_is_premium = ft.use_state(core_state.is_premium)
+    price, set_price = ft.use_state(
+        getattr(premium_service, "price", None) if premium_service else None
+    )
+    buying, set_buying = ft.use_state(False)
+
+    def _sync_premium():
+        set_is_premium(core_state.is_premium)
+        set_price(getattr(premium_service, "price", None) if premium_service else None)
+
+    def _watch_premium(e=None):
+        if premium_service is None:
+            return None
+        premium_service.add_listener(_sync_premium)
+        _sync_premium()
+
+        def _cleanup():
+            premium_service.remove_listener(_sync_premium)
+
+        return _cleanup
+
+    ft.on_mounted(_watch_premium)
 
     async def _buy_premium(e=None):
+        if buying:
+            return
         if not premium_service or not premium_service.available:
             notify_warning("Billing is not available on this platform")
             return
-        if await premium_service.buy():
-            notify("Opening Google Play purchase…")
-            return
-        # Snackbars are easy to miss (especially on a TV) — this is a real
-        # blocker for the user, so it gets a dialog.
-        page_obj.show_dialog(
-            ft.AlertDialog(
-                title=ft.Text(
-                    "Premium unavailable", size=15, weight=ft.FontWeight.BOLD
-                ),
-                content=ft.Text(
-                    "This premium product isn't available in the store yet. "
-                    "If it was just created in Play Console, give the "
-                    "listing a few minutes and try again.",
-                    size=12,
-                ),
-                actions=[ft.TextButton("OK", on_click=lambda e: page_obj.pop_dialog())],
+        set_buying(True)
+        try:
+            started = await premium_service.buy()
+            _sync_premium()
+            if started:
+                notify("Opening Google Play purchase…")
+                return
+            # Snackbars are easy to miss (especially on a TV) — this is a real
+            # blocker for the user, so it gets a dialog.
+            page_obj.show_dialog(
+                ft.AlertDialog(
+                    title=ft.Text(
+                        "Premium unavailable", size=15, weight=ft.FontWeight.BOLD
+                    ),
+                    content=ft.Text(
+                        "This premium product isn't available in the store yet. "
+                        "If it was just created in Play Console, give the "
+                        "listing a few minutes and try again.",
+                        size=12,
+                    ),
+                    actions=[
+                        ft.TextButton("OK", on_click=lambda e: page_obj.pop_dialog())
+                    ],
+                )
             )
-        )
+        finally:
+            set_buying(False)
 
     async def _restore_premium(e=None):
         if not premium_service or not premium_service.available:
             notify_warning("Billing is not available on this platform")
             return
         await premium_service.restore_purchases()
+        _sync_premium()
         notify("Restore requested — re-checking your purchases")
 
-    price = premium_service.price if premium_service else None
     premium = _section_card(
         "Premium",
         ft.Icons.WORKSPACE_PREMIUM,
@@ -575,7 +612,9 @@ def SettingsScreen() -> Control:
                         ),
                         title="Upgrade",
                         subtitle="Buy once — ads gone everywhere, forever",
-                        trailing=ft.FilledButton("Upgrade", on_click=_buy_premium),
+                        trailing=ft.FilledButton(
+                            "Upgrade", on_click=_buy_premium, disabled=buying
+                        ),
                     )
                 ]
             ),

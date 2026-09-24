@@ -8,6 +8,13 @@ from flet import Control
 
 logger = logging.getLogger("LocalScreen")
 
+# One LocalScreen is mounted at a time, but its build function re-runs on
+# every state change — a closure variable would be recreated each time, so
+# these two guards live at module scope. Scans serialize (the last one wins,
+# none overlap) and thumbnail prewarming is cancelled rather than leaked.
+_SCAN_LOCK = asyncio.Lock()
+_prewarm_task: asyncio.Task | None = None
+
 from components.empty_state import EmptyState
 from components.folder_expansion_tile import FolderExpansionTile
 from components.header import Header
@@ -116,27 +123,41 @@ def LocalScreen() -> Control:
         except Exception:
             logger.debug("Thumbnail prewarm failed", exc_info=True)
 
-    async def _scan():
-        set_is_scanning(True)
+    async def _scan(*, background: bool = False) -> list:
+        """Rescan the device.
+
+        `background=True` refreshes the grid in place — used after a delete
+        so the folder tree, its expansion state and the scroll position
+        survive instead of flashing the full-screen loading state.
+        """
+        if not background:
+            set_is_scanning(True)
         try:
-            paths = list(await _get_storage_paths())
-            custom = await _get_custom_paths()
-            set_custom_paths(custom)
-            for p in custom:
-                if p not in paths:
-                    paths.append(p)
-            logger.info("Scanning %d paths: %s", len(paths), paths)
-            result = await asyncio.to_thread(scan_videos, paths)
-            logger.info("Scan found %d folders", len(result))
-            set_folders(result)
-            videos = [v for folder in result for v in folder.videos]
-            if videos:
-                asyncio.create_task(_prewarm(videos))
+            async with _SCAN_LOCK:
+                paths = list(await _get_storage_paths())
+                custom = await _get_custom_paths()
+                set_custom_paths(custom)
+                for p in custom:
+                    if p not in paths:
+                        paths.append(p)
+                logger.info("Scanning %d paths: %s", len(paths), paths)
+                result = await asyncio.to_thread(scan_videos, paths)
+                logger.info("Scan found %d folders", len(result))
+                set_folders(result)
+                videos = [v for folder in result for v in folder.videos]
+                if videos:
+                    global _prewarm_task
+                    if _prewarm_task is not None and not _prewarm_task.done():
+                        _prewarm_task.cancel()
+                    _prewarm_task = asyncio.create_task(_prewarm(videos))
+                return result
         except Exception:
             logger.exception("Scan failed")
             set_folders([])
+            return []
         finally:
-            set_is_scanning(False)
+            if not background:
+                set_is_scanning(False)
 
     async def _on_mount():
         from flet import context
@@ -297,6 +318,8 @@ def LocalScreen() -> Control:
             from services.local_scanner import (
                 delete_local_file,
                 delete_media_store_video,
+                media_store_exists,
+                request_media_store_delete,
             )
             from utils.notifications import notify, notify_warning
 
@@ -307,6 +330,17 @@ def LocalScreen() -> Control:
                 deleted = await asyncio.to_thread(
                     delete_media_store_video, v.content_uri
                 )
+            if not deleted and v.content_uri:
+                # Android 11+ refuses deletes of media this app doesn't own
+                # unless the user approves in the system dialog.
+                requested = await asyncio.to_thread(
+                    request_media_store_delete, v.content_uri
+                )
+                if requested:
+                    await asyncio.sleep(1.5)
+                    deleted = not await asyncio.to_thread(
+                        media_store_exists, v.content_uri
+                    )
             if not deleted and v.path:
                 deleted = await asyncio.to_thread(delete_local_file, v.path)
             if not deleted:
@@ -315,8 +349,19 @@ def LocalScreen() -> Control:
                     "files this app doesn't own"
                 )
                 return
+
+            # Rescan FIRST, then report: MediaStore rows and the filesystem
+            # can disagree, and the old "Deleted…" toast fired before the
+            # rescan that proved it.
+            remaining = await _scan(background=True)
+            if any(
+                item.path == v.path for folder in remaining for item in folder.videos
+            ):
+                notify_warning(
+                    f"{v.name} is still in the library — Android kept a copy"
+                )
+                return
             notify(f"Deleted {v.name}")
-            await _scan()
 
         tiles: list[Control] = []
         for idx, f in enumerate(filtered_folders):
@@ -324,6 +369,10 @@ def LocalScreen() -> Control:
             tiles.append(
                 FolderExpansionTile(
                     folder=f,
+                    # Stable identity: a background rescan that removes or
+                    # reorders a folder would otherwise shift every later
+                    # tile's expansion/count state onto the wrong folder.
+                    key=f.path,
                     on_play=on_play,
                     is_custom=is_c,
                     on_remove_custom=lambda p: asyncio.create_task(_async_remove(p)),

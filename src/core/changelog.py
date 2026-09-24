@@ -7,7 +7,17 @@ CHANGELOG: dict[str, str] = {
         "- Premium removes all ads (one-time unlock via Google Play Billing)\n"
         "- Google IMA video pre-roll ads on Android TV (AdMob stays on phones)\n"
         "- Upgraded to Flet 1.0.1 and the latest dependency set\n"
-        "- CI quality gate: lint, format and tests block every build"
+        "- CI quality gate: lint, format and tests block every build\n"
+        "- Back button behaves: a tab returns Home, Home exits, a video saves "
+        "its position\n"
+        "- Premium works on Android TV and refreshes the moment a purchase "
+        "lands\n"
+        "- Deleting a local video is confirmed against a fresh scan, and "
+        "Android 11+ asks for consent instead of failing silently\n"
+        "- IMA: an ad error resumes the video instead of freezing it, and a "
+        "post-roll no longer restarts a finished video\n"
+        "- CI now fails the build when the TV device-catalog manifest "
+        "regresses"
     ),
     "2.1.0": (
         "- In-player Quality switching for multi-variant HLS streams\n"

@@ -15,7 +15,7 @@ from hooks.use_autofocus import use_autofocus
 def _source(obj) -> str:
     try:
         return inspect.getsource(obj)
-    except OSError, TypeError:
+    except (OSError, TypeError):
         return ""
 
 

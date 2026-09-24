@@ -125,7 +125,7 @@ class ImmersivePlayer(ft.Stack):
                     self._initial_resume_position = saved_pos
                     if saved_dur is not None:
                         self._last_duration = saved_dur
-            except TypeError, ValueError:
+            except (TypeError, ValueError):
                 self._initial_resume_position = None
 
         # Android PiP availability (detected without page context — jnius
@@ -777,12 +777,44 @@ class ImmersivePlayer(ft.Stack):
             getattr(e, "type", ""),
             getattr(e, "message", ""),
         )
+        # An error can arrive AFTER contentPauseRequested (e.g. the ad host
+        # dies mid-pod). Without this the content stayed paused forever, and
+        # checkpoints + the progress feed stayed suppressed by the stale
+        # ad-active flag — a frozen frame with no resume.
+        was_ad_active = self._ima_ad_active
+        self._ima_ad_active = False
+        if (
+            was_ad_active
+            and not self._is_closing
+            and not self._ima_destroyed
+            and not self._content_finished()
+        ):
+            page = self.safe_page
+            if page is not None:
+                page.run_task(self._resume_content_after_ad)
+
+    async def _resume_content_after_ad(self):
+        with contextlib.suppress(Exception):
+            await self.video.play()
+
+    def _content_finished(self) -> bool:
+        """True when the VOD has run to its end (no post-roll resume)."""
+        return bool(
+            self._last_duration > 0 and self._last_position >= (self._last_duration - 5)
+        )
 
     def _ima_set_slot_visible(self, visible: bool):
         slot = self._ima_slot
         if slot is None:
             return
-        slot.height = None if visible else 0
+        if visible:
+            # Fill the stack while an ad is on screen; zero height otherwise
+            # so the idle platform view composites nothing over the video.
+            slot.height = None
+            slot.expand = True
+        else:
+            slot.height = 0
+            slot.expand = False
         with contextlib.suppress(Exception):
             self.update()
 
@@ -796,7 +828,9 @@ class ImmersivePlayer(ft.Stack):
         elif t == AdEventType.COMPLETE.value:
             logger.info("IMA: ad completed")
         if t == AdEventType.LOADED.value:
-            if self.ima_view is not None:
+            if self.ima_view is not None and not (
+                self._is_closing or self._ima_destroyed
+            ):
                 with contextlib.suppress(Exception):
                     await self.ima_view.start()
         elif t == AdEventType.CONTENT_PAUSE_REQUESTED.value:
@@ -805,14 +839,19 @@ class ImmersivePlayer(ft.Stack):
             self._ima_ad_active = True
             with contextlib.suppress(Exception):
                 await self.video.pause()
-        elif t in (
-            AdEventType.CONTENT_RESUME_REQUESTED.value,
-            AdEventType.ALL_ADS_COMPLETED.value,
-        ):
+        elif t == AdEventType.CONTENT_RESUME_REQUESTED.value:
             self._ima_ad_active = False
             self._ima_set_slot_visible(False)
             with contextlib.suppress(Exception):
                 await self.video.play()
+        elif t == AdEventType.ALL_ADS_COMPLETED.value:
+            # Breakout plays (post-roll) land here: the ad is over, but
+            # resuming a finished VOD would restart it from the top.
+            self._ima_ad_active = False
+            self._ima_set_slot_visible(False)
+            if not self._content_finished():
+                with contextlib.suppress(Exception):
+                    await self.video.play()
 
     def _maybe_push_ima_progress(self):
         """Throttled ~200ms content-progress feed so cue points can fire."""
@@ -1242,6 +1281,13 @@ class ImmersivePlayer(ft.Stack):
             return
         self._start_watchdog()
         self._arm_auto_pip()
+        # A failed ad request clears the latch in _ima_maybe_request, so the
+        # retry is the next chance at a pre-roll for this playback.
+        if self.ima_view is not None and not self._ima_requested:
+            self._ima_requested = False
+            page = self.safe_page
+            if page is not None:
+                page.run_task(self._ima_request_soon)
 
     async def _save_current_position(self) -> None:
         """Capture and save playback position on player close for VOD streams."""
@@ -1291,8 +1337,10 @@ class ImmersivePlayer(ft.Stack):
         ):
             # VOD reached its end — tell IMA so a post-roll can play.
             # Live/reconnect paths deliberately skip content_complete().
-            with contextlib.suppress(Exception):
-                self.safe_page.run_task(self.ima_view.content_complete)
+            page = self.safe_page
+            if page is not None:
+                with contextlib.suppress(Exception):
+                    page.run_task(self.ima_view.content_complete)
         if self.source_url:
             with contextlib.suppress(Exception):
                 loop = asyncio.get_running_loop()

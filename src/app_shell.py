@@ -34,6 +34,23 @@ def _dashboard_scaffold(body: Control) -> Control:
     return ft.Container(content=body, expand=True)
 
 
+def _shell_view(page: ft.Page) -> ft.View | None:
+    """The dashboard's own view.
+
+    The app keeps a `/blank` view *beneath* the dashboard so Android's
+    system back reaches Python instead of finishing the activity, and
+    pushes `/play` views *above* it — so neither may be mistaken for the
+    shell (a navigation bar attached to the player would render over the
+    video).
+    """
+    if not page.views:
+        return None
+    for view in page.views:
+        if view.route not in ("/blank", "/play"):
+            return view
+    return None
+
+
 async def _onboarding_complete() -> None:
     """No-op default — completion handler is managed by AppController."""
 
@@ -48,11 +65,20 @@ def AppShell() -> Control:
     controller.open_search = lambda mode="tv": set_search_mode(mode)
 
     def _go_home():
+        # Back must also leave the search overlay — otherwise a back press
+        # on Search (opened from Local) changes the hidden tab and appears
+        # to do nothing.
+        if search_mode is not None:
+            set_search_mode(None)
         if selected_tab != 0:
             logger.info("Back → Home tab")
             set_selected_tab(0)
 
     controller.go_home = _go_home
+    # Lets AppController decide what a back press means without reaching
+    # into component state. Search counts as "not plain Home" so back
+    # dismisses the overlay before it would consider leaving the app.
+    controller.on_non_home_tab = lambda: selected_tab != 0 or search_mode is not None
 
     use_keyboard_shortcuts(
         controller=controller,
@@ -68,9 +94,12 @@ def AppShell() -> Control:
         page = context.page
         if not page or not page.views:
             return
+        view = _shell_view(page)
+        if view is None:
+            return
         if _should_show_onboarding(state):
-            if page.views[0].navigation_bar is not None:
-                page.views[0].navigation_bar = None
+            if view.navigation_bar is not None:
+                view.navigation_bar = None
                 try:
                     page.update()
                 except Exception:
@@ -88,7 +117,7 @@ def AppShell() -> Control:
             ft.NavigationBarDestination(icon=icon, label=label)
             for icon, label in zip(_TAB_ICONS, _TAB_NAMES, strict=True)
         ]
-        page.views[0].navigation_bar = ft.NavigationBar(
+        view.navigation_bar = ft.NavigationBar(
             destinations=destinations,
             selected_index=selected_tab,
             on_change=_on_tab_change,
@@ -99,7 +128,22 @@ def AppShell() -> Control:
             pass
 
     ft.use_effect(
-        _sync_navigation_bar, [selected_tab, state.has_accepted_terms, search_mode]
+        _sync_navigation_bar,
+        [selected_tab, state.has_accepted_terms, state.is_first_launch, search_mode],
+    )
+
+    from utils.channels import build_favorites_set
+
+    fav_dep = (
+        tuple(state.favorites)
+        if isinstance(state.favorites, (list, set, tuple))
+        else state.favorites
+    )
+    # Hook order must not depend on which branch renders, so this sits
+    # outside the search conditional even though only search uses it.
+    fav_set = ft.use_memo(
+        lambda: build_favorites_set(state) if search_mode is not None else set(),
+        [state.channels_hash, fav_dep, search_mode is not None],
     )
 
     if _should_show_onboarding(state):
@@ -110,17 +154,7 @@ def AppShell() -> Control:
         )
     elif search_mode is not None:
         from screens.search_screen import SearchScreen
-        from utils.channels import build_favorites_set
         from utils.favorites import toggle_favorite
-
-        fav_dep = (
-            tuple(state.favorites)
-            if isinstance(state.favorites, (list, set, tuple))
-            else state.favorites
-        )
-        fav_set = ft.use_memo(
-            lambda: build_favorites_set(state), [state.channels_hash, fav_dep]
-        )
 
         def _on_play(url: str):
             import asyncio

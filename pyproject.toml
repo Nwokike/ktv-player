@@ -91,4 +91,10 @@ dev = [
 ]
 
 [tool.ruff]
+# Deliberately below the dev interpreter (3.14): with target-version 3.14
+# ruff's pyupgrade rules strip the parentheses from `except (A, B):` and
+# rewrite it to the PEP 758 form, which only parses on 3.14+. Pinning the
+# linter lower keeps every source file importable on 3.12 — including
+# Android and desktop builds produced with an older bundled interpreter.
+target-version = "py312"
 lint.extend-ignore = ["BLE001", "S110"]

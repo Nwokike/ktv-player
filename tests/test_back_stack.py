@@ -12,9 +12,10 @@ Contract:
 - push_modal(name) appends to _modal_stack (async)
 - close_modal() pops the top modal (async), or clears all
 - _handle_back() checks _modal_stack first; if non-empty,
-  pops the top modal and returns WITHOUT popping a view
-- _handle_back() falls through to pop_views() (existing
-  behavior) when _modal_stack is empty
+  pops the top modal and returns WITHOUT touching the views
+- _handle_back() then closes a playing video through the awaited
+  position save, and finally delegates to _handle_shell_back():
+  a secondary tab returns Home, Home exits the app
 - ControllerMethods exposes push_modal / pop_modal / close_modal
   so components (AddCustomContentDialog) can call controller.push_modal("add")
 """
@@ -83,23 +84,71 @@ def test_handle_back_pops_modal_updates_page():
     assert controller.page.update.call_count >= 1
 
 
-def test_handle_back_when_no_modal_pops_view():
+def test_handle_back_on_secondary_tab_returns_home():
+    """Back on Local/Settings goes Home — it must NOT pop the shell view.
+
+    The dashboard sits on a /blank underlay, so popping would strand the
+    user on an empty black screen instead of closing the app or going Home.
+    """
     controller = AppController(fake_page())
-    controller.page.views = ["/", "/play"]
+    controller.page.views = ["/blank", "/"]
+    methods = mock.MagicMock()
+    methods.on_non_home_tab.return_value = True
+    controller._controller_methods = methods
+
     controller._handle_back()
-    assert len(controller.page.views) == 1
-    controller.page.views.append("/play")
-    controller._handle_back()
-    assert len(controller.page.views) == 1
+
+    methods.go_home.assert_called_once()
+    assert len(controller.page.views) == 2
 
 
-def test_handle_back_when_no_modal_and_one_view_does_not_pop():
-    """When only one view remains and no modal is open,
-    _handle_back does NOT pop the last view."""
+def test_handle_back_on_home_exits_app():
+    """On the Home tab there is nowhere to go back to: the app exits, but
+    the shell view is left intact (no pop onto the blank underlay)."""
     controller = AppController(fake_page())
-    controller.page.views = ["/"]
+    controller.page.views = ["/blank", "/"]
+    methods = mock.MagicMock()
+    methods.on_non_home_tab.return_value = False
+    controller._controller_methods = methods
+
     controller._handle_back()
-    assert controller.page.views == ["/"]
+
+    methods.go_home.assert_not_called()
+    controller.page.run_task.assert_called_once_with(controller._exit_app)
+    assert len(controller.page.views) == 2
+
+
+def test_handle_back_with_player_schedules_awaited_save():
+    """A playing video is closed through the awaited save path, whatever
+    route the back press arrived by."""
+    controller = AppController(fake_page())
+    player = mock.MagicMock()
+    player._is_closing = False
+    player._position_saved = False
+    view = mock.MagicMock()
+    view.controls = [player]
+    controller.page.views = [view]
+
+    with mock.patch.object(
+        AppController, "_find_immersive_player", return_value=player
+    ):
+        controller._handle_back()
+
+    assert player._is_closing is True
+    controller.page.run_task.assert_called_once_with(
+        controller._close_player_with_save, player
+    )
+
+
+def test_handle_back_when_shell_state_unknown_leaves_views_alone():
+    """If the shell never reported its tab, do nothing rather than exit."""
+    controller = AppController(fake_page())
+    controller.page.views = ["/blank", "/"]
+
+    controller._handle_back()
+
+    controller.page.run_task.assert_not_called()
+    assert len(controller.page.views) == 2
 
 
 def test_controller_methods_exposes_modal_methods():

@@ -42,7 +42,7 @@ def test_banner_ad_getters_hidden_when_premium(fake_page):
     _with_platform(fake_page)
     svc = AdService(fake_page)
 
-    with mock.patch("services.ad_service.ADS_MOB_ENABLED", True):
+    with mock.patch("core.constants.ADS_MOB_ENABLED", True):
         state.is_premium = False
         assert svc.get_standard_banner_ad() is not None
         assert svc.get_anchor_banner_ad() is not None
@@ -58,7 +58,7 @@ def test_admob_master_switch_hides_everything(fake_page):
     """ADS_MOB_ENABLED=False (current) — no AdMob surfaces anywhere."""
     _with_platform(fake_page)
     svc = AdService(fake_page)
-    with mock.patch("services.ad_service.ADS_MOB_ENABLED", False):
+    with mock.patch("core.constants.ADS_MOB_ENABLED", False):
         state.is_premium = False
         assert svc.get_standard_banner_ad() is None
         assert svc.get_anchor_banner_ad() is None
@@ -70,7 +70,7 @@ def test_build_banner_ad_collapses_when_premium(fake_page):
 
     # The builder talks to flet-ads directly — pin the master switch on
     # to exercise the premium gate itself.
-    with mock.patch("components.banner_ad.ADS_MOB_ENABLED", True):
+    with mock.patch("core.constants.ADS_MOB_ENABLED", True):
         state.is_premium = True
         collapsed = build_banner_ad(fake_page)
         assert collapsed.width == 0
@@ -83,7 +83,7 @@ def test_build_banner_ad_collapses_when_premium(fake_page):
 def test_build_banner_ad_hidden_when_admob_switch_off(fake_page):
     _with_platform(fake_page)
     state.is_premium = False
-    with mock.patch("components.banner_ad.ADS_MOB_ENABLED", False):
+    with mock.patch("core.constants.ADS_MOB_ENABLED", False):
         ad = build_banner_ad(fake_page)
     assert ad.width == 0
 

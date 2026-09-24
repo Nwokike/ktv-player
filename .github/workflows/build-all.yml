@@ -70,20 +70,65 @@ jobs:
             sed -i 's/compileOptions {/compileOptions {\n        isCoreLibraryDesugaringEnabled = true/' "$GRADLE"
           grep -q "coreLibraryDesugaring" "$GRADLE" || \
             sed -i 's/dependencies {}/dependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")\n}/' "$GRADLE"
+          # A template change turns these seds into silent no-ops, which then
+          # fails deep inside gradle with an unreadable AAR error.
+          grep -q "isCoreLibraryDesugaringEnabled" "$GRADLE" || { echo "ERROR: desugaring flag patch did not apply"; exit 1; }
+          grep -q "coreLibraryDesugaring" "$GRADLE" || { echo "ERROR: desugar_jdk_libs dependency missing"; exit 1; }
+          test -d build/site-packages || { echo "ERROR: build/site-packages missing"; exit 1; }
           (cd build/flutter/android && SERIOUS_PYTHON_SITE_PACKAGES="$PWD/../../site-packages" ./gradlew assembleDebug --no-daemon)
       - name: Dump manifest + badging facts
         run: |
           AAPT=$(find "${ANDROID_HOME:-$HOME/Android}" -name aapt -type f 2>/dev/null | sort -V | tail -1)
           APK=$(find build/flutter -name "app-debug.apk" -not -path "*/intermediates/*" | head -1)
           echo "=== APK: $APK ==="
+          BADGING=$("$AAPT" dump badging "$APK")
           echo "=== badging (sdk/features/native) ==="
-          "$AAPT" dump badging "$APK" | grep -E "^package:|sdkVersion|targetSdkVersion|uses-feature|native-code|launchable-activity" || true
+          echo "$BADGING" | grep -E "^package:|sdkVersion|targetSdkVersion|uses-feature|native-code|launchable-activity" || true
           echo "=== manifest: TV / PiP / network ==="
           "$AAPT" dump xmltree "$APK" AndroidManifest.xml | grep -iE "leanback|picture_in_picture|INTERNET|ACCESS_NETWORK_STATE" | sort -u || true
           echo "=== merged manifest source (build output) ==="
           MERGED=$(find build/flutter/android -path "*intermediates*" -name "AndroidManifest.xml" | grep -iE "merged|processDebug" | head -1)
           echo "${MERGED:-<none found>}"
           [ -n "$MERGED" ] && grep -iE "leanback|LEANBACK_LAUNCHER|picture_in_picture|INTERNET|ACCESS_NETWORK_STATE" "$MERGED" | sort -u || true
+
+      # This job exists because 2.0.5 vanished from the Android TV catalog:
+      # Play hides apps whose <uses-feature> flags no TV device satisfies.
+      # Printing the dump is evidence; asserting on it is the gate.
+      - name: Assert TV device-catalog facts
+        run: |
+          AAPT=$(find "${ANDROID_HOME:-$HOME/Android}" -name aapt -type f 2>/dev/null | sort -V | tail -1)
+          APK=$(find build/flutter -name "app-debug.apk" -not -path "*/intermediates/*" | head -1)
+          BADGING=$("$AAPT" dump badging "$APK")
+
+          fail() { echo "MANIFEST AUDIT FAILED: $1"; exit 1; }
+
+          # Leanback must be REQUIRED — optional means phones-only listings.
+          echo "$BADGING" | grep -q "uses-feature:'android.software.leanback'" \
+            || fail "android.software.leanback is not a required uses-feature (TV apps get hidden)"
+          if echo "$BADGING" | grep -q "uses-feature-not-required:'android.software.leanback'"; then
+            fail "leanback is marked not-required — the TV listing will not appear"
+          fi
+
+          echo "$BADGING" | grep -q "leanback-launchable-activity" \
+            || fail "no LEANBACK_LAUNCHER activity (TV home screen cannot launch the app)"
+
+          # interstitials/IMA need the network permissions.
+          echo "$BADGING" | grep -q "android.permission.INTERNET" \
+            || fail "INTERNET permission missing (IMA cannot request ads)"
+          echo "$BADGING" | grep -q "android.permission.ACCESS_NETWORK_STATE" \
+            || fail "ACCESS_NETWORK_STATE permission missing (IMA cannot request ads)"
+
+          # minSdk 24 is flet's floor; Play requires a modern target.
+          echo "$BADGING" | grep -Eq "sdkVersion:'2[4-9]|sdkVersion:'[3-9][0-9]" \
+            || fail "unexpected minSdkVersion (expected >= 24)"
+          echo "$BADGING" | grep -Eq "targetSdkVersion:'3[3-9]|targetSdkVersion:'[4-9][0-9]" \
+            || fail "targetSdkVersion below 33 — Play will refuse the upload"
+
+          # Every advertised ABI must actually be in the APK.
+          for abi in arm64-v8a armeabi-v7a x86_64; do
+            echo "$BADGING" | grep -q "$abi" || fail "native-code missing $abi"
+          done
+          echo "Manifest audit passed: TV-capable, network-enabled, 3 ABIs."
 
   # ─── 0. Create Release Tag & Placeholder ───────────────
   prepare-release:
@@ -188,7 +233,7 @@ jobs:
 
   # ─── 2. Android APK (split per ABI) ───────────────────────
   build-apk-split:
-    needs: [prepare-release]
+    needs: [prepare-release, manifest-audit]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -236,9 +281,12 @@ jobs:
           # android.hardware.microphone as REQUIRED, which would exclude
           # TV boxes without a mic from the Play listing (like PiP did).
           # Force it optional with tools:replace.
-          sed -i 's|<application|<uses-feature android:name="android.hardware.microphone" android:required="false" tools:replace="android:required" />
+          # tools:replace below is meaningless (and the merge fails) unless
+          # the manifest root declares the namespace.
+          grep -q 'xmlns:tools' "$MANIFEST" ||             sed -i '0,/<manifest/{s|<manifest|<manifest xmlns:tools="http://schemas.android.com/tools"|}' "$MANIFEST"
+          grep -q 'android:banner' "$MANIFEST" ||           sed -i 's|<application|<uses-feature android:name="android.hardware.microphone" android:required="false" tools:replace="android:required" />
           <application android:banner="@drawable/banner"|' "$MANIFEST"
-          sed -i 's|<activity|<activity android:supportsPictureInPicture="true"|g' "$MANIFEST"
+          grep -q 'supportsPictureInPicture' "$MANIFEST" ||           sed -i 's|<activity|<activity android:supportsPictureInPicture="true"|g' "$MANIFEST"
           grep -n "supportsPictureInPicture" "$MANIFEST"
           # Remove the unpatched APKs from the first `flet build` step so stale
           # ones can never be staged if the rebuild doesn't regenerate them.
@@ -256,7 +304,12 @@ jobs:
             sed -i 's/compileOptions {/compileOptions {\n        isCoreLibraryDesugaringEnabled = true/' "$GRADLE"
           grep -q "coreLibraryDesugaring" "$GRADLE" || \
             sed -i 's/dependencies {}/dependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")\n}/' "$GRADLE"
+          # A template change turns these seds into silent no-ops, which then
+          # fails deep inside gradle with an unreadable AAR error.
+          grep -q "isCoreLibraryDesugaringEnabled" "$GRADLE" || { echo "ERROR: desugaring flag patch did not apply"; exit 1; }
+          grep -q "coreLibraryDesugaring" "$GRADLE" || { echo "ERROR: desugar_jdk_libs dependency missing"; exit 1; }
           grep -n "resolvedMinSdk =" "$GRADLE"
+          test -d "$SERIOUS_PYTHON_SITE_PACKAGES" || { echo "ERROR: $SERIOUS_PYTHON_SITE_PACKAGES missing"; exit 1; }
           (cd build/flutter/android && ./gradlew assembleRelease -Psplit-per-abi=true)
           rm -rf build/apk
           mkdir -p build/apk
@@ -285,7 +338,7 @@ jobs:
 
   # ─── 3. Android AAB (Play Store) ──────────────────────────
   build-aab:
-    needs: [prepare-release]
+    needs: [prepare-release, manifest-audit]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -333,9 +386,12 @@ jobs:
           # android.hardware.microphone as REQUIRED, which would exclude
           # TV boxes without a mic from the Play listing (like PiP did).
           # Force it optional with tools:replace.
-          sed -i 's|<application|<uses-feature android:name="android.hardware.microphone" android:required="false" tools:replace="android:required" />
+          # tools:replace below is meaningless (and the merge fails) unless
+          # the manifest root declares the namespace.
+          grep -q 'xmlns:tools' "$MANIFEST" ||             sed -i '0,/<manifest/{s|<manifest|<manifest xmlns:tools="http://schemas.android.com/tools"|}' "$MANIFEST"
+          grep -q 'android:banner' "$MANIFEST" ||           sed -i 's|<application|<uses-feature android:name="android.hardware.microphone" android:required="false" tools:replace="android:required" />
           <application android:banner="@drawable/banner"|' "$MANIFEST"
-          sed -i 's|<activity|<activity android:supportsPictureInPicture="true"|g' "$MANIFEST"
+          grep -q 'supportsPictureInPicture' "$MANIFEST" ||           sed -i 's|<activity|<activity android:supportsPictureInPicture="true"|g' "$MANIFEST"
           grep -n "supportsPictureInPicture" "$MANIFEST"
           # flet-ima (Google IMA video ads) requires core-library
           # desugaring, which Flet's template doesn't enable. Guarded seds
@@ -345,6 +401,10 @@ jobs:
             sed -i 's/compileOptions {/compileOptions {\n        isCoreLibraryDesugaringEnabled = true/' "$GRADLE"
           grep -q "coreLibraryDesugaring" "$GRADLE" || \
             sed -i 's/dependencies {}/dependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")\n}/' "$GRADLE"
+          # A template change turns these seds into silent no-ops, which then
+          # fails deep inside gradle with an unreadable AAR error.
+          grep -q "isCoreLibraryDesugaringEnabled" "$GRADLE" || { echo "ERROR: desugaring flag patch did not apply"; exit 1; }
+          grep -q "coreLibraryDesugaring" "$GRADLE" || { echo "ERROR: desugar_jdk_libs dependency missing"; exit 1; }
           grep -n "resolvedMinSdk =" "$GRADLE"
           (cd build/flutter/android && ./gradlew bundleRelease)
           rm -rf build/aab

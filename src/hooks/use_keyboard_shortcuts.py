@@ -68,7 +68,22 @@ def use_keyboard_shortcuts(
 
         async def _handler(e: ft.KeyboardEvent) -> None:
             handled = False
-            if e.ctrl and e.key.lower() == "k":
+            if e.key == "Escape" and not e.ctrl and not e.meta and not e.shift:
+                # Esc is the desktop/TV equivalent of the Android back
+                # press. While a player view is open the player's own focus
+                # scope already handles it — closing it from here as well
+                # would save and pop the view twice, landing the user on the
+                # bare /blank underlay.
+                player_open = any(
+                    getattr(v, "route", "") == "/play" for v in (page.views or [])
+                )
+                pop_views = getattr(controller, "pop_views", None)
+                if not player_open and callable(pop_views):
+                    result = pop_views()
+                    if hasattr(result, "__await__"):
+                        await result
+                    handled = True
+            elif e.ctrl and e.key.lower() == "k":
                 if on_search is not None:
                     result = on_search()
                     if hasattr(result, "__await__"):

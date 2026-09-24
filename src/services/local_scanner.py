@@ -1,7 +1,7 @@
 import logging
 import os
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 from core.constants import LOCAL_SCAN_MAX_DEPTH
@@ -44,7 +44,7 @@ def _is_system_dir(dir_path: Path) -> bool:
     try:
         attrs = os.stat(str(dir_path)).st_file_attributes
         return bool(attrs & _SKIP_ATTR)
-    except OSError, AttributeError:
+    except (OSError, AttributeError):
         return False
 
 
@@ -94,7 +94,7 @@ def _format_size(size_bytes: int) -> str:
 
 def _format_modified(mtime: float) -> str:
     try:
-        dt = datetime.fromtimestamp(mtime, tz=datetime.timezone.utc)
+        dt = datetime.fromtimestamp(mtime, tz=UTC)
         return dt.strftime("%b %d, %Y")
     except Exception:
         return ""
@@ -136,7 +136,7 @@ def scan_videos(
                                 modified=stat.st_mtime,
                             )
                         )
-                    except OSError, PermissionError:
+                    except (OSError, PermissionError):
                         continue
             folder_key = str(root)
             folder_name = root.name or str(root)
@@ -189,7 +189,7 @@ def scan_videos(
                                 modified=stat.st_mtime,
                             ),
                         )
-                    except OSError, PermissionError:
+                    except (OSError, PermissionError):
                         continue
 
             if video_files or str(current) == root_str:
@@ -248,28 +248,7 @@ def scan_android_mediastore() -> list[LocalVideo]:
     try:
         from jnius import autoclass  # type: ignore[import-not-found]
 
-        candidate_classes = [
-            os.getenv("MAIN_ACTIVITY_HOST_CLASS_NAME"),
-            "ng.kiri.ktvplayer.MainActivity",
-            "net.flet.MainActivity",
-            "com.flet.flet_android.MainActivity",
-            "org.kivy.android.PythonActivity",
-        ]
-
-        activity = None
-        for cls_name in candidate_classes:
-            if not cls_name:
-                continue
-            try:
-                activity_host = autoclass(cls_name)
-                activity = getattr(activity_host, "mActivity", None) or getattr(
-                    activity_host, "mCurrentActivity", None
-                )
-                if activity:
-                    break
-            except Exception as ex:
-                logger.debug("Candidate activity %s unavailable: %s", cls_name, ex)
-
+        activity = _android_activity(autoclass)
         if not activity:
             return videos
 
@@ -277,6 +256,7 @@ def scan_android_mediastore() -> list[LocalVideo]:
 
         MediaStoreVideo = autoclass("android.provider.MediaStore$Video$Media")
         EXTERNAL_URI = MediaStoreVideo.EXTERNAL_CONTENT_URI
+        ContentUris = autoclass("android.content.ContentUris")
 
         projection = [
             "_id",
@@ -288,27 +268,31 @@ def scan_android_mediastore() -> list[LocalVideo]:
 
         cursor = content_resolver.query(EXTERNAL_URI, projection, None, None, None)
         if cursor is not None:
-            while cursor.moveToNext():
-                media_id = cursor.getLong(0)
-                path = cursor.getString(1)
-                name = cursor.getString(2) or os.path.basename(path or "")
-                size = cursor.getLong(3)
-                mtime = cursor.getLong(4)
-                if path and os.path.exists(path):
-                    videos.append(
-                        LocalVideo(
-                            name=name,
-                            path=path,
-                            size=size,
-                            modified=mtime,
-                            content_uri=(
-                                f"content://media/external/video/media/{media_id}"
-                                if media_id
-                                else ""
-                            ),
+            try:
+                while cursor.moveToNext():
+                    media_id = cursor.getLong(0)
+                    path = cursor.getString(1)
+                    name = cursor.getString(2) or os.path.basename(path or "")
+                    size = cursor.getLong(3)
+                    mtime = cursor.getLong(4)
+                    if path and os.path.exists(path):
+                        videos.append(
+                            LocalVideo(
+                                name=name,
+                                path=path,
+                                size=size,
+                                modified=mtime,
+                                # Built through ContentUris so rows on
+                                # secondary volumes (SD card) resolve too —
+                                # a hand-written .../external/video/media/<id>
+                                # only addresses primary storage.
+                                content_uri=ContentUris.withAppendedId(
+                                    EXTERNAL_URI, media_id
+                                ).toString(),
+                            )
                         )
-                    )
-            cursor.close()
+            finally:
+                cursor.close()
             logger.info("MediaStore via pyjnius returned %d videos", len(videos))
     except Exception as ex:
         logger.debug("MediaStore scan via pyjnius skipped/failed: %s", ex)
@@ -358,6 +342,77 @@ def delete_media_store_video(content_uri: str) -> bool:
         return int(rows) > 0
     except Exception as ex:
         logger.debug("MediaStore delete failed for %s: %s", content_uri, ex)
+        return False
+
+
+# Request code for the system delete-consent dialog.
+_DELETE_REQUEST_CODE = 0x4B54
+
+
+def request_media_store_delete(content_uri: str) -> bool:
+    """Ask the user to approve deleting a MediaStore item we don't own.
+
+    Android 11+ raises a RecoverableSecurityException when the app touches
+    another app's media. ``MediaStore.createDeleteRequest`` (API 30) shows
+    the system consent dialog instead. The answer comes back through the
+    activity, not through us, so the caller re-checks the row with
+    :func:`media_store_exists`. True = the dialog was launched.
+    """
+    if not content_uri:
+        return False
+    try:
+        from jnius import autoclass  # type: ignore[import-not-found]
+
+        build_version = autoclass("android.os.Build$VERSION")
+        if int(build_version.SDK_INT) < 30:
+            return False
+
+        activity = _android_activity(autoclass)
+        if not activity:
+            return False
+
+        resolver = activity.getContentResolver()
+        media_store_video = autoclass("android.provider.MediaStore$Video$Media")
+        Uri = autoclass("android.net.Uri")
+        uris = autoclass("java.util.ArrayList")()
+        uris.add(Uri.parse(content_uri))
+        pending_intent = media_store_video.createDeleteRequest(resolver, uris)
+        activity.startIntentSenderForResult(
+            pending_intent.getIntentSender(),
+            _DELETE_REQUEST_CODE,
+            None,
+            0,
+            0,
+            0,
+        )
+        logger.info("Delete-consent dialog requested for %s", content_uri)
+        return True
+    except Exception as ex:
+        logger.warning("Delete-consent request failed for %s: %s", content_uri, ex)
+        return False
+
+
+def media_store_exists(content_uri: str) -> bool:
+    """Whether the row is still in MediaStore (confirms a consented delete)."""
+    if not content_uri:
+        return False
+    try:
+        from jnius import autoclass  # type: ignore[import-not-found]
+
+        activity = _android_activity(autoclass)
+        if not activity:
+            return False
+        Uri = autoclass("android.net.Uri")
+        cursor = activity.getContentResolver().query(
+            Uri.parse(content_uri), None, None, None, None
+        )
+        if cursor is None:
+            return False
+        try:
+            return bool(cursor.getCount() > 0)
+        finally:
+            cursor.close()
+    except Exception:
         return False
 
 

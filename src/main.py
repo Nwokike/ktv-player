@@ -11,7 +11,6 @@ import flet as ft
 import core.logger_handler  # noqa: F401
 from components.player.immersive_player import ImmersivePlayer
 from core.constants import (
-    ADS_MOB_ENABLED,
     APP_NAME,
     CDN_HEADER_OVERRIDES,
     ERR_NETWORK,
@@ -105,20 +104,14 @@ class AppController:
         self.update_service = UpdateService()
         self._loading_lock = asyncio.Lock()
 
-        # Premium (remove-ads): read the local flag first (instant UI), then
-        # reconcile ownership with the store — must settle BEFORE any ad
-        # work. page.premium mirrors the page.file_picker pattern so
-        # SettingsScreen can reach the service.
+        # Premium (remove-ads): the local entitlement flag is read here (a
+        # single DB row, instant), but the Play round-trips are deferred to
+        # _post_render_startup — a slow store connection must not hold the
+        # first frame hostage. page.premium mirrors the page.file_picker
+        # pattern so SettingsScreen can reach the service.
         self.premium = PremiumService(self.page)
         self.page.premium = self.premium
-        await self.premium.restore()
-
-        # Gather UMP consent + preload the interstitial — skipped for
-        # premium users and while the AdMob master switch is off (IMA
-        # video ads are then the only ad surface).
-        if ADS_MOB_ENABLED and not state.is_premium:
-            await self.ad_service.gather_consent()
-            await self.ad_service.preload_interstitial()
+        await self.premium.load_local()
 
         # Load saved state
         saved_country = await db_manager.get_setting("user_country")
@@ -169,8 +162,14 @@ class AppController:
             if _previous_lifecycle is not None:
                 result = _previous_lifecycle(e)
                 if hasattr(result, "__await__"):
-                    with contextlib.suppress(Exception):
-                        page.run_task(result)
+                    # run_task takes a coroutine FUNCTION; handing it the
+                    # already-created coroutine raised TypeError and leaked
+                    # an un-awaited coroutine.
+                    async def _await_previous():
+                        with contextlib.suppress(Exception):
+                            await result
+
+                    page.run_task(_await_previous)
 
         page.on_app_lifecycle_state_change = _on_lifecycle_save
 
@@ -194,6 +193,8 @@ class AppController:
         self._controller_methods = methods
         self.page.render(lambda: ControllerMethodsCtx(methods, lambda: AppShell()))
         logger.info("AppShell frontend mounted successfully")
+        self._ensure_back_underlay()
+        self.page.run_task(self._post_render_startup)
 
         # Connectivity service — replaces DNS-probe polling with native listener
         connectivity = ft.Connectivity()
@@ -314,26 +315,127 @@ class AppController:
         self.page.update()
 
     def _handle_back(self):
-        """Handle OS back button / FocusScope.on_back.
+        """Back / Esc from a control (not the Android system back, which
+        arrives as `view_pop`).
 
-        If a modal dialog is open (tracked in _modal_stack),
-        close it first. Otherwise, fall through to the existing
-        view-pop behaviour.
+        Order: open modals, then a playing video (with the awaited position
+        save), then the shell — where a non-Home tab returns Home and Home
+        exits the app.
         """
         if self._modal_stack:
             self._modal_stack.pop()
+            # Popping the tracker alone left the dialog on screen (it is a
+            # real page dialog, not a view), so the next back press would
+            # exit the app with a dialog still up.
+            with contextlib.suppress(Exception):
+                self.page.pop_dialog()
             self.page.update()
             return
-        if len(self.page.views) > 1:
-            self.page.views.pop()
-            self.page.update()
+
+        player = self._player_in_top_view()
+        if player is not None:
+            self._begin_player_close(player)
             return
-        # On a non-Home tab, back navigates to Home instead of closing the
-        # app (Android's default). On Home, go_home() is a no-op and the
-        # default close proceeds.
+
+        if self._deep_link_open:
+            if len(self.page.views) > 1:
+                self.page.views.pop()
+                self.page.update()
+            else:
+                self.page.run_task(self._exit_to_caller)
+            return
+
+        self._handle_shell_back()
+
+    def _player_in_top_view(self) -> ImmersivePlayer | None:
+        """The ImmersivePlayer in the topmost view, if any."""
+        if not self.page.views:
+            return None
+        for control in getattr(self.page.views[-1], "controls", None) or []:
+            player = self._find_immersive_player(control)
+            if player:
+                return player
+        return None
+
+    def _begin_player_close(self, player: ImmersivePlayer) -> None:
+        """Run the awaited close-save once, no matter how many paths ask."""
+        if getattr(player, "_is_closing", False) and getattr(
+            player, "_position_saved", False
+        ):
+            logger.info("close-path: close already in flight, skipping duplicate")
+            return
+        logger.info("close-path: scheduling close-save")
+        player._is_closing = True
+        self.page.run_task(self._close_player_with_save, player)
+
+    def _handle_shell_back(self) -> None:
+        """Back on the dashboard: a non-Home tab returns Home, Home exits.
+
+        The dashboard sits on a `/blank` underlay (see _ensure_back_underlay)
+        so this handler — not the Android framework — owns the outcome.
+        """
         methods = getattr(self, "_controller_methods", None)
-        if methods is not None:
-            methods.go_home()
+        on_non_home_tab = getattr(methods, "on_non_home_tab", None) if methods else None
+        if not callable(on_non_home_tab):
+            # Shell state unknown (not mounted / mid-teardown). Exiting on a
+            # guess would kill the app from a stray keypress.
+            logger.info("Back on shell with unknown tab state — ignoring")
+            return
+        try:
+            if on_non_home_tab():
+                logger.info("Back on a non-Home tab -> Home")
+                methods.go_home()
+                return
+        except Exception:
+            logger.debug("Tab probe failed; leaving the shell alone", exc_info=True)
+            return
+        # On Home the pop would otherwise strand the user on the blank
+        # underlay, so the exit is explicit.
+        logger.info("Back on Home -> exit app")
+        self.page.run_task(self._exit_app)
+
+    def _ensure_back_underlay(self) -> None:
+        """Put a view beneath the dashboard so Android back reaches Python.
+
+        Flet's Dart system-back handler bails out when the top view is the
+        only one (`page.dart` `_handleSystemPopRoute`: `views.length <= 1`),
+        and the framework pops the route itself — the activity finishes
+        without emitting `on_view_pop`, so no handler can save state or
+        change tabs. This is the same underlay the deep-link path installs.
+        """
+        try:
+            if not self.page.views:
+                return
+            if any(v.route == "/blank" for v in self.page.views):
+                return
+            self.page.views.insert(
+                0, ft.View(route="/blank", bgcolor=ft.Colors.BLACK, padding=0)
+            )
+            self.page.update()
+            logger.info("Back underlay installed beneath the dashboard")
+        except Exception:
+            logger.debug("Could not install the back underlay", exc_info=True)
+
+    async def _post_render_startup(self) -> None:
+        """Startup work that must not block the first frame."""
+        try:
+            await self.premium.reconcile()
+        except Exception:
+            logger.warning("Premium reconciliation failed", exc_info=True)
+
+        # UMP consent + interstitial preload — skipped for premium users
+        # and while the AdMob master switch is off (IMA video ads are then
+        # the only ad surface).
+        # Read the switch live: an import-time binding would ignore a
+        # runtime flip (and every test that patches the constant).
+        from core import constants
+
+        if constants.ADS_MOB_ENABLED and not state.is_premium:
+            try:
+                await self.ad_service.gather_consent()
+                await self.ad_service.preload_interstitial()
+            except Exception:
+                logger.warning("Ad startup failed", exc_info=True)
 
     # --- Channel Loading ---
 
@@ -502,10 +604,17 @@ class AppController:
     async def _exit_to_caller(self):
         """Finish the app after a deep-linked video closes. The deep-link
         launch cleared the shell, so there is no in-app screen to return
-        to — MX-Player-style back-to-caller. Flet's window.close() is a
-        desktop-only no-op on Android (flet's Dart closeWindow() guards
-        isDesktopPlatform()), so the exit is activity.finish() via jnius."""
+        to — MX-Player-style back-to-caller."""
         self._deep_link_open = False
+        await self._exit_app()
+
+    async def _exit_app(self):
+        """Finish the activity.
+
+        Flet's window.close() is a desktop-only no-op on Android (its Dart
+        closeWindow() guards isDesktopPlatform()), so the exit is
+        activity.finish() via jnius.
+        """
         from services import pip_service
 
         # Reset PiP auto-enter before finishing so the activity can never
@@ -630,12 +739,7 @@ class AppController:
         if not self.page.views:
             logger.info("close-path: view_pop ignored (no views)")
             return
-        top = self.page.views[-1]
-        player = None
-        for control in top.controls:
-            player = self._find_immersive_player(control)
-            if player:
-                break
+        player = self._player_in_top_view()
 
         if player:
             if getattr(player, "_is_closing", False) and getattr(
@@ -648,19 +752,16 @@ class AppController:
                 "close-path: view_pop -> close-save (was_closing=%s)",
                 getattr(player, "_is_closing", False),
             )
-            player._is_closing = True
-            # The position save must be AWAITED before the view pops (and,
-            # on deep links, before activity.finish()). The previous
-            # fire-and-forget create_task was routinely killed by Android
-            # at teardown — resume worked on desktop (its event loop
-            # survives) but never on phone.
-            self.page.run_task(self._close_player_with_save, player)
+            self._begin_player_close(player)
             return
 
-        logger.info("close-path: view_pop without player, popping view")
-        if len(self.page.views) > 1:
-            self.page.views.pop()
-            self.page.update()
+        logger.info("close-path: view_pop on a shell view")
+        if self._deep_link_open:
+            if len(self.page.views) > 1:
+                self.page.views.pop()
+                self.page.update()
+            return
+        self._handle_shell_back()
 
     async def _close_player_with_save(self, player):
         """Persist position (awaited), then stop playback and pop/exit."""

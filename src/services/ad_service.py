@@ -7,7 +7,6 @@ import flet as ft
 from core.constants import (
     AD_PRELOAD_MAX_RETRIES,
     AD_PRELOAD_RETRY_DELAY,
-    ADS_MOB_ENABLED,
 )
 from core.state import state
 from services.tv_detect import is_tv_device
@@ -47,19 +46,30 @@ class AdService:
     def get_native_unit_id(self) -> str:
         return self.NATIVE_ID
 
+    def _ads_allowed(self) -> bool:
+        """Single gate for every ad surface (UMP included).
+
+        Live lookup of the module constant on purpose: a `from ...
+        import ADS_MOB_ENABLED` binds the value at import time, so flipping
+        the switch later (or in tests) would leave this service stuck in
+        the old mode.
+        """
+        from core import constants
+
+        if not constants.ADS_MOB_ENABLED:
+            return False
+        try:
+            if not self.page.platform.is_mobile():
+                return False
+        except Exception:
+            return False
+        return not state.is_premium and not is_tv_device()
+
     # ── Consent Management (UMP) ──────────────────────────────────────────────
 
     async def gather_consent(self):
         """Run UMP consent flow. Only shows UI in regulated regions (EEA/UK)."""
-        if not _HAS_FLET_ADS:
-            self._can_request_ads = True
-            return
-        try:
-            if not self.page.platform.is_mobile():
-                self._can_request_ads = True
-                return
-        except Exception:
-            self._can_request_ads = True
+        if not _HAS_FLET_ADS or not self._ads_allowed():
             return
         try:
             self._consent_manager = fta.ConsentManager()
@@ -77,7 +87,7 @@ class AdService:
 
     async def show_privacy_options(self):
         """Show privacy options form if required by regulation (GDPR)."""
-        if not self._consent_manager:
+        if not self._consent_manager or not self._ads_allowed():
             return
         try:
             status = (
@@ -116,14 +126,7 @@ class AdService:
         )
 
     def get_native_style_ad(self) -> ft.Control | None:
-        if (
-            not _HAS_FLET_ADS
-            or not ADS_MOB_ENABLED
-            or not self.page.platform.is_mobile()
-            or state.is_premium
-            or is_tv_device()
-            or not self._can_request_ads
-        ):
+        if not _HAS_FLET_ADS or not self._ads_allowed() or not self._can_request_ads:
             return None
         try:
             ad = fta.BannerAd(
@@ -137,14 +140,7 @@ class AdService:
             return None
 
     def get_standard_banner_ad(self) -> ft.Control | None:
-        if (
-            not _HAS_FLET_ADS
-            or not ADS_MOB_ENABLED
-            or not self.page.platform.is_mobile()
-            or state.is_premium
-            or is_tv_device()
-            or not self._can_request_ads
-        ):
+        if not _HAS_FLET_ADS or not self._ads_allowed() or not self._can_request_ads:
             return None
         try:
             ad = fta.BannerAd(
@@ -158,14 +154,7 @@ class AdService:
             return None
 
     def get_anchor_banner_ad(self) -> ft.Control | None:
-        if (
-            not _HAS_FLET_ADS
-            or not ADS_MOB_ENABLED
-            or not self.page.platform.is_mobile()
-            or state.is_premium
-            or is_tv_device()
-            or not self._can_request_ads
-        ):
+        if not _HAS_FLET_ADS or not self._ads_allowed() or not self._can_request_ads:
             return None
         try:
             ad = fta.BannerAd(
@@ -184,12 +173,12 @@ class AdService:
         try:
             if (
                 not _HAS_FLET_ADS
-                or not ADS_MOB_ENABLED
-                or not self.page.platform.is_mobile()
-                or state.is_premium
-                or is_tv_device()
+                or not self._ads_allowed()
                 or not self._can_request_ads
             ):
+                # Nothing was attempted, so the retry budget stays intact —
+                # otherwise five gated calls would starve every later one.
+                self._preload_retry_count = 0
                 self._ad_loaded_event.set()
                 return
 
@@ -206,6 +195,8 @@ class AdService:
                 ),
                 on_close=self._handle_close,
             )
+            if self.interstitial not in self.page.services:
+                self.page.services.append(self.interstitial)
             self._preload_retry_count = 0
         except Exception:
             logger.exception("Failed to preload InterstitialAd")
@@ -227,7 +218,11 @@ class AdService:
     async def _retry_preload(self, on_close: Callable | None = None):
         self._preload_retry_count += 1
         await asyncio.sleep(AD_PRELOAD_RETRY_DELAY)
-        if self.interstitial is None and not self._is_shutting_down:
+        # The world can change during the delay (purchase, TV detect,
+        # switch flipped) — a stale timer must not resurrect ads.
+        if self._is_shutting_down or not self._ads_allowed():
+            return
+        if self.interstitial is None:
             await self.preload_interstitial(on_close)
 
     async def close(self):
@@ -255,13 +250,7 @@ class AdService:
         )
 
     async def show_interstitial(self) -> bool:
-        if (
-            not _HAS_FLET_ADS
-            or not ADS_MOB_ENABLED
-            or not self.page.platform.is_mobile()
-            or state.is_premium
-            or is_tv_device()
-        ):
+        if not _HAS_FLET_ADS or not self._ads_allowed():
             return False
 
         # If we have a preloaded ad, wait for it to actually finish loading
@@ -330,6 +319,8 @@ class AdService:
                 on_error=handle_error,
                 on_close=handle_close,
             )
+            if fresh_ad not in self.page.services:
+                self.page.services.append(fresh_ad)
             # Wait up to 10 seconds for the ad to load and show. If it fails or takes
             # too long, timeout and let the video play so the user isn't stuck.
             try:

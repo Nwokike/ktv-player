@@ -64,6 +64,10 @@ class ControllerMethods:
     close_modal: Callable[[], Awaitable[None]] = _noop_async_close_modal
     open_search: Callable[[str], None] = lambda mode="tv": None
     go_home: Callable[[], None] = _noop_sync
+    # True when the shell shows anything other than the Home tab. AppShell
+    # installs this on every render; AppController reads it to decide
+    # whether a back press returns Home or exits.
+    on_non_home_tab: Callable[[], bool] = lambda: False
     check_for_updates: Callable[..., Awaitable[None]] = _noop_async_update_check
     open_version_dialog: Callable[[], None] = _noop_sync_version_dialog
 

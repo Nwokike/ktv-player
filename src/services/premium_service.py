@@ -3,11 +3,12 @@
 Portable pattern — see the "Recipe: premium / remove-ads" section in the
 flet-billing README. Core rules:
 
-- Billing attaches on **mobile only**: ``in_app_purchase`` has no desktop
-  platform, and a desktop invoke would stall for the full timeout on boot.
-  Off-mobile everything here is an instant no-op.
-- Boot reads the local flag first (instant UI), then reconciles with the
-  store (upgrade-only; a failed store check never downgrades the flag).
+- Billing attaches on **Android phones and Android TV**: ``in_app_purchase``
+  has no desktop or web platform, and an invoke there would stall for the
+  full timeout on boot. Everywhere else this service is an instant no-op.
+- Boot reads the local flag first (instant UI, before the first frame), then
+  reconciles with the store *after* the first render (upgrade-only; a failed
+  store check never downgrades the flag).
 - Buy re-queries the product first: the Play product may have been
   created after boot, and listing propagation lags. A product the store
   doesn't know yet is a friendly False, not an exception.
@@ -18,7 +19,9 @@ flet-billing README. Core rules:
 """
 
 import logging
+from collections.abc import Callable
 
+import flet as ft
 from flet_billing import Billing, PurchaseStatus
 
 from core.state import state
@@ -28,6 +31,11 @@ logger = logging.getLogger(__name__)
 
 PREMIUM_PRODUCT_ID = "premium_unlock"
 
+# Play round-trips are given a shorter leash than flet-billing's 10s default:
+# these run on app resume and behind a settings button, where a stalled
+# network should surface as a message rather than a spinner that never ends.
+STORE_TIMEOUT = 6.0
+
 
 class PremiumService:
     """Owns the Billing service and the persisted ``premium`` flag."""
@@ -36,33 +44,65 @@ class PremiumService:
         self.page = page
         self.billing: Billing | None = None
         self.price: str | None = None
+        self._listeners: list[Callable[[], None]] = []
         if self._billing_supported():
             self.billing = Billing(on_purchase_updated=self._on_purchases)
-            page.services.append(self.billing)
+            # Service auto-registers against context.page (flet
+            # service.py:__post_init__); appending again would register the
+            # same instance twice.
+            if self.billing not in page.services:
+                page.services.append(self.billing)
 
     def _billing_supported(self) -> bool:
+        """Android phones and Android TV both have a Play Store; desktop and
+        web have no in-app-purchase platform at all, where every invoke
+        would stall for the full timeout."""
         try:
-            return bool(self.page.platform.is_mobile())
+            platform = self.page.platform
+            return bool(platform.is_mobile() or platform == ft.PagePlatform.ANDROID_TV)
         except Exception:
             return False
 
+    def add_listener(self, callback: Callable[[], None]) -> None:
+        """Observe entitlement/price changes (SettingsScreen re-renders)."""
+        if callback not in self._listeners:
+            self._listeners.append(callback)
+
+    def remove_listener(self, callback: Callable[[], None]) -> None:
+        if callback in self._listeners:
+            self._listeners.remove(callback)
+
+    def _notify_listeners(self) -> None:
+        for callback in list(self._listeners):
+            try:
+                callback()
+            except Exception:
+                logger.debug("Premium listener failed", exc_info=True)
+
     @property
     def available(self) -> bool:
-        """True when a Billing service is attached (mobile builds)."""
+        """True when a Billing service is attached (mobile/TV builds)."""
         return self.billing is not None
 
-    async def restore(self) -> None:
-        """Boot sequence: instant local flag, then reconcile with the store."""
+    async def load_local(self) -> None:
+        """Read the persisted entitlement — one DB row, safe on the boot path."""
         try:
             if await db_manager.get_setting("premium") == "true":
                 state.is_premium = True
         except Exception:
             logger.warning("Could not read premium flag", exc_info=True)
 
+    async def reconcile(self) -> None:
+        """Reconcile ownership with the store.
+
+        Every call here is a network round-trip, so this runs *after* the
+        first frame (AppController._post_render_startup), never before it.
+        A failed store check never downgrades the local flag.
+        """
         if self.billing is None:
             return
         try:
-            if not await self.billing.is_available():
+            if not await self.billing.is_available(timeout=STORE_TIMEOUT):
                 return
         except TimeoutError:
             logger.info(
@@ -79,7 +119,7 @@ class PremiumService:
         try:
             # Android-only fast path; iOS relies on restore_purchases events
             # below (query_past_purchases raises off-Android).
-            owned = await self.billing.query_past_purchases()
+            owned = await self.billing.query_past_purchases(timeout=STORE_TIMEOUT)
             if any(
                 p.product_id == PREMIUM_PRODUCT_ID
                 and p.status is PurchaseStatus.PURCHASED
@@ -89,9 +129,14 @@ class PremiumService:
         except Exception:
             logger.debug("query_past_purchases unavailable here", exc_info=True)
         try:
-            await self.billing.restore_purchases()
+            await self.billing.restore_purchases(timeout=STORE_TIMEOUT)
         except Exception:
             logger.debug("restore_purchases failed", exc_info=True)
+
+    async def restore(self) -> None:
+        """Full boot sequence: instant local flag, then store reconciliation."""
+        await self.load_local()
+        await self.reconcile()
 
     async def _refresh_product(self) -> bool:
         """Query the premium product.
@@ -103,7 +148,9 @@ class PremiumService:
         if self.billing is None:
             return False
         try:
-            result = await self.billing.query_products([PREMIUM_PRODUCT_ID])
+            result = await self.billing.query_products(
+                [PREMIUM_PRODUCT_ID], timeout=STORE_TIMEOUT
+            )
             if result.error:
                 logger.info("Premium product query error: %s", result.error.message)
                 return False
@@ -120,6 +167,7 @@ class PremiumService:
             )
             return False
         self.price = product.price
+        self._notify_listeners()
         return True
 
     async def buy(self) -> bool:
@@ -144,9 +192,18 @@ class PremiumService:
         if self.billing is None:
             return
         try:
-            await self.billing.restore_purchases()
+            await self.billing.restore_purchases(timeout=STORE_TIMEOUT)
         except Exception:
             logger.debug("restore_purchases failed", exc_info=True)
+
+    def _is_android(self) -> bool:
+        try:
+            return self.page.platform in (
+                ft.PagePlatform.ANDROID,
+                ft.PagePlatform.ANDROID_TV,
+            )
+        except Exception:
+            return False
 
     async def _on_purchases(self, e) -> None:
         if self.billing is None:
@@ -165,19 +222,29 @@ class PremiumService:
                         )
                 await self._activate()
             elif p.status is PurchaseStatus.ERROR:
+                code = ((p.error.code if p.error else "") or "").lower()
                 logger.warning(
                     "Purchase error: %s",
                     p.error.message if p.error else "unknown",
                 )
-                try:
-                    # Android: Play overlay e.g. for declined payment methods.
-                    await self.billing.show_in_app_messages()
-                except Exception:
-                    logger.debug("show_in_app_messages unavailable", exc_info=True)
+                # The Play in-app-message overlay is only useful for a
+                # declined payment — showing it for network/store errors
+                # pops an unrelated dialog at the user.
+                if "declin" in code and self._is_android():
+                    try:
+                        await self.billing.show_in_app_messages()
+                    except Exception:
+                        logger.debug("show_in_app_messages unavailable", exc_info=True)
 
     async def _activate(self) -> None:
         if state.is_premium:
             return
         state.is_premium = True
-        await db_manager.set_setting("premium", "true")
+        self._notify_listeners()
+        try:
+            await db_manager.set_setting("premium", "true")
+        except Exception:
+            # The entitlement is live in RAM but won't survive a restart;
+            # the next reconcile re-activates it from the store.
+            logger.warning("Could not persist the premium flag", exc_info=True)
         logger.info("Premium activated — ads disabled")

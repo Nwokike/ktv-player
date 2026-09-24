@@ -5,8 +5,6 @@ import logging
 import flet as ft
 from flet import Control
 
-from core.constants import ADS_MOB_ENABLED
-
 logger = logging.getLogger(__name__)
 
 
@@ -16,12 +14,18 @@ def build_banner_ad(page: ft.Page | None, unit_id: str | None = None) -> Control
         return ft.Container(width=0, height=0)
 
     try:
-        # AdMob master switch (currently off while IMA video ads are the
-        # only ad surface) — this builder talks to flet-ads directly and
-        # does NOT go through AdService, so it needs its own gate.
-        if not ADS_MOB_ENABLED:
+        # This builder talks to flet-ads directly and does NOT go through
+        # AdService, so it needs its own gate — the AdMob master switch
+        # (currently off while IMA video ads are the only ad surface), the
+        # premium unlock, and the TV exclusion AdService also applies.
+        from core import constants
+        from services.tv_detect import is_tv_device
+
+        if not constants.ADS_MOB_ENABLED:
             return ft.Container(width=0, height=0)
         if not page.platform.is_mobile():
+            return ft.Container(width=0, height=0)
+        if is_tv_device():
             return ft.Container(width=0, height=0)
         from core.state import state
 

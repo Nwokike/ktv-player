@@ -17,8 +17,10 @@ def _tmp_cache(tmp_path, monkeypatch):
     return tmp_path
 
 
-def _video(path="/videos/a.mp4", size=1234, modified=1700000000.0):
-    return LocalVideo(name="a.mp4", path=path, size=size, modified=modified)
+def _video(path="/videos/a.mp4", size=1234, modified=1700000000.0, content_uri=""):
+    return LocalVideo(
+        name="a.mp4", path=path, size=size, modified=modified, content_uri=content_uri
+    )
 
 
 def test_thumbnail_path_is_deterministic():
@@ -53,11 +55,12 @@ async def test_extract_thumbnail_noop_off_android(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_extract_thumbnail_writes_frame(monkeypatch, _tmp_cache):
-    v = _video()
+    v = _video(content_uri="content://media/external/video/media/42")
     written = {}
 
-    def _fake_extract(video_path, out_path):
+    def _fake_extract(video_path, out_path, content_uri=""):
         written["src"] = video_path
+        written["uri"] = content_uri
         os.makedirs(os.path.dirname(out_path), exist_ok=True)
         with open(out_path, "wb") as f:
             f.write(b"\xff\xd8\xffframe")
@@ -67,6 +70,9 @@ async def test_extract_thumbnail_writes_frame(monkeypatch, _tmp_cache):
     path = await video_thumbnails.extract_thumbnail(v)
     assert path == video_thumbnails.thumbnail_path(v)
     assert written["src"] == v.path
+    # MediaStore rows carry a content:// handle — preferred over the raw
+    # path under scoped storage.
+    assert written["uri"] == v.content_uri
     # Second call is a pure cache hit (extraction not repeated).
     monkeypatch.setattr(
         video_thumbnails,
@@ -82,7 +88,7 @@ async def test_prewarm_fills_videos_and_updates_page(monkeypatch, _tmp_cache):
         _video(path=f"/videos/{i}.mp4", modified=1700000000.0 + i) for i in range(3)
     ]
 
-    def _fake_extract(video_path, out_path):
+    def _fake_extract(video_path, out_path, content_uri=""):
         os.makedirs(os.path.dirname(out_path), exist_ok=True)
         with open(out_path, "wb") as f:
             f.write(b"\xff\xd8\xffframe")

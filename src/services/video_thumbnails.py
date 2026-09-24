@@ -34,7 +34,11 @@ _EXTRACT_CONCURRENCY = 2
 
 def thumbnail_path(video) -> str:
     """Deterministic cache path for a video (keyed by content identity)."""
-    key = f"{video.path}|{video.modified:.0f}|{video.size}".encode()
+    try:
+        modified = float(getattr(video, "modified", 0) or 0)
+    except (TypeError, ValueError):
+        modified = 0.0
+    key = f"{video.path}|{modified:.0f}|{video.size}".encode()
     safe = hashlib.sha256(key).hexdigest()[:16]
     return os.path.join(THUMBNAIL_CACHE_DIR, f"{safe}.jpg")
 
@@ -53,8 +57,14 @@ def get_cached_thumbnail(video) -> str | None:
         return None
 
 
-def _extract_sync(video_path: str, out_path: str) -> bool:
-    """Grab one frame via MediaMetadataRetriever. Runs in a worker thread."""
+def _extract_sync(video_path: str, out_path: str, content_uri: str = "") -> bool:
+    """Grab one frame via MediaMetadataRetriever. Runs in a worker thread.
+
+    Prefers the MediaStore content URI: under scoped storage a raw path can
+    be unreadable even with media permission granted. Falls back to the path
+    (and to the URI failing) so nothing regresses on devices where either
+    handle works.
+    """
     from jnius import autoclass
 
     MediaMetadataRetriever = autoclass("android.media.MediaMetadataRetriever")
@@ -67,7 +77,24 @@ def _extract_sync(video_path: str, out_path: str) -> bool:
     tmp_path = out_path + ".tmp"
     mr = MediaMetadataRetriever()
     try:
-        mr.setDataSource(video_path)
+        if content_uri:
+            try:
+                from services.local_scanner import _android_activity
+
+                activity = _android_activity(autoclass)
+                if activity is not None:
+                    Uri = autoclass("android.net.Uri")
+                    mr.setDataSource(activity, Uri.parse(content_uri))
+                else:
+                    mr.setDataSource(video_path)
+            except Exception:
+                logger.debug(
+                    "content:// source failed for %s, falling back to path",
+                    video_path,
+                )
+                mr.setDataSource(video_path)
+        else:
+            mr.setDataSource(video_path)
         bitmap = mr.getFrameAtTime(_FRAME_AT_US)
         if bitmap is None:
             return False
@@ -81,7 +108,11 @@ def _extract_sync(video_path: str, out_path: str) -> bool:
             bitmap.recycle()
         if not ok:
             return False
-        File(tmp_path).renameTo(File(out_path))
+        # renameTo returns a boolean — an unchecked failure left a cache
+        # entry pointing at a file that was never created (broken images).
+        if not File(tmp_path).renameTo(File(out_path)):
+            logger.debug("Thumbnail rename failed for %s", out_path)
+            return False
         return True
     finally:
         with contextlib.suppress(Exception):
@@ -95,7 +126,12 @@ async def extract_thumbnail(video) -> str | None:
         return cached
     path = thumbnail_path(video)
     try:
-        ok = await asyncio.to_thread(_extract_sync, video.path, path)
+        ok = await asyncio.to_thread(
+            _extract_sync,
+            video.path,
+            path,
+            getattr(video, "content_uri", "") or "",
+        )
     except ImportError:
         return None  # not Android (no pyjnius / no JVM)
     except Exception:
@@ -137,11 +173,19 @@ async def prewarm_thumbnails(videos, page, limit: int = _PREWARM_LIMIT) -> int:
                     return True
                 return False
 
-        results = await asyncio.gather(*(_one(v) for v in pending))
-        filled = sum(1 for r in results if r)
+        # One bad video must not take the rest of the batch with it.
+        results = await asyncio.gather(
+            *(_one(v) for v in pending), return_exceptions=True
+        )
+        filled = sum(1 for r in results if r is True)
     if filled and page is not None:
         try:
-            page.update()
+            # Async update keeps the grid responsive on TV.
+            update = getattr(page, "update_async", None)
+            if callable(update):
+                await update()
+            else:
+                page.update()
         except Exception:
             logger.debug("Thumbnail refresh update failed", exc_info=True)
     return filled
