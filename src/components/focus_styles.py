@@ -50,10 +50,14 @@ def card_button_style(
 def attach_focus_pop(control, *, scale: float = 1.04):
     """Give a focusable card a subtle scale lift while it is focused.
 
-    The FOCUSED border from `card_button_style` is the primary focus cue;
-    this adds the small depth pop that makes a D-pad selection unmistakable
-    at 10-foot distance. `update()` is guarded because cards are also built
-    headless (unit tests, pre-mount) where no page exists yet.
+    The FOCUSED border from `card_button_style` is the primary (and always
+    visible) focus cue; this adds a small depth pop on top where the
+    control tree allows mutation.
+
+    Best-effort by design: Flet 1.0 freezes declarative component trees,
+    where property assignment raises "Frozen controls cannot be updated",
+    and headless tests build cards with no page. The pop is a silent
+    no-op in those contexts; the border/overlay still guides the D-pad.
 
     Args:
         control: the focusable control (e.g. the card's FilledButton).
@@ -64,15 +68,15 @@ def attach_focus_pop(control, *, scale: float = 1.04):
     """
 
     def _on_focus(e):
-        control.scale = scale
         try:
+            control.scale = scale
             control.update()
         except Exception:
             pass
 
     def _on_blur(e):
-        control.scale = 1.0
         try:
+            control.scale = 1.0
             control.update()
         except Exception:
             pass

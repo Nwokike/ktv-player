@@ -41,3 +41,20 @@ def test_focus_handlers_survive_unattached_cards():
     card = _channel_card()
     card.on_focus(SimpleNamespace())
     card.on_blur(SimpleNamespace())
+
+
+def test_focus_handlers_swallow_frozen_controls():
+    """Flet 1.0 freezes declarative component trees ("Frozen controls
+    cannot be updated") — the pop must no-op there; the FOCUSED border
+    remains the always-visible focus cue."""
+    from components.focus_styles import attach_focus_pop
+
+    class FrozenCard:
+        def __setattr__(self, name, value):
+            if name == "scale":
+                raise RuntimeError("Frozen controls cannot be updated.")
+            object.__setattr__(self, name, value)
+
+    card = attach_focus_pop(FrozenCard())
+    card.on_focus(SimpleNamespace())
+    card.on_blur(SimpleNamespace())

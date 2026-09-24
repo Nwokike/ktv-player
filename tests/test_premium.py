@@ -95,7 +95,7 @@ async def test_restore_reads_local_premium_flag(fake_page):
         mock.patch("services.premium_service.db_manager", dbm),
         mock.patch.object(Billing, "is_available", mock.AsyncMock(return_value=False)),
     ):
-        svc = PremiumService(fake_page)
+        svc = PremiumService(_with_platform(fake_page))
         await svc.restore()
 
     assert state.is_premium is True
@@ -115,7 +115,7 @@ async def test_restore_upgrades_from_owned_product(fake_page):
         error=None,
     )
     products = SimpleNamespace(
-        products=[SimpleNamespace(price="$4.99")],
+        products=[SimpleNamespace(id=PREMIUM_PRODUCT_ID, price="$4.99")],
         not_found_ids=[],
         error=None,
     )
@@ -130,7 +130,7 @@ async def test_restore_upgrades_from_owned_product(fake_page):
         ),
         mock.patch.object(Billing, "restore_purchases", mock.AsyncMock()),
     ):
-        svc = PremiumService(fake_page)
+        svc = PremiumService(_with_platform(fake_page))
         await svc.restore()
 
     assert state.is_premium is True
@@ -149,7 +149,7 @@ async def test_restore_failure_keeps_local_flag(fake_page):
             mock.AsyncMock(side_effect=RuntimeError("no session")),
         ),
     ):
-        svc = PremiumService(fake_page)
+        svc = PremiumService(_with_platform(fake_page))
         await svc.restore()
 
     assert state.is_premium is True
@@ -163,7 +163,7 @@ async def test_purchase_event_activates_and_acknowledges(fake_page):
         mock.patch("services.premium_service.db_manager", dbm),
         mock.patch.object(Billing, "complete_purchase", complete),
     ):
-        svc = PremiumService(fake_page)
+        svc = PremiumService(_with_platform(fake_page))
         purchase = Purchase(
             status=PurchaseStatus.PURCHASED,
             product_id=PREMIUM_PRODUCT_ID,
@@ -182,7 +182,7 @@ async def test_purchase_event_activates_and_acknowledges(fake_page):
 async def test_other_products_do_not_activate(fake_page):
     dbm = _db()
     with mock.patch("services.premium_service.db_manager", dbm):
-        svc = PremiumService(fake_page)
+        svc = PremiumService(_with_platform(fake_page))
         purchase = Purchase(
             status=PurchaseStatus.PURCHASED,
             product_id="coins_100",
@@ -204,3 +204,74 @@ def test_settings_screen_has_premium_section():
     assert "_buy_premium" in source
     assert "_restore_premium" in source
     assert "controls.append(premium)" in source
+
+
+# ── Platform gating + purchase UX (TV-UX hotfixes) ──────────────────────
+
+
+def test_desktop_never_attaches_billing(fake_page):
+    """in_app_purchase has no desktop platform — a desktop invoke stalls
+    for the full timeout, so the service must stay inert off-mobile."""
+    _with_platform(fake_page, mobile=False)
+    svc = PremiumService(fake_page)
+    assert svc.billing is None
+    assert svc.available is False
+    assert fake_page.services == []
+
+
+@pytest.mark.asyncio
+async def test_desktop_restore_is_instant_noop(fake_page):
+    _with_platform(fake_page, mobile=False)
+    dbm = _db()
+    with mock.patch("services.premium_service.db_manager", dbm):
+        svc = PremiumService(fake_page)
+        await svc.restore()  # no is_available invoke is even possible
+    assert svc.billing is None
+    dbm.set_setting.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_buy_without_product_is_friendly_false(fake_page):
+    """Play doesn't know the product yet (not created / listing lag) —
+    a friendly False, never an exception or a scary traceback."""
+    _with_platform(fake_page)
+    with mock.patch("services.premium_service.db_manager", _db()):
+        svc = PremiumService(fake_page)
+    billing = mock.AsyncMock()
+    billing.query_products.return_value = SimpleNamespace(
+        products=[], not_found_ids=[PREMIUM_PRODUCT_ID], error=None
+    )
+    svc.billing = billing
+    assert await svc.buy() is False
+    billing.buy_non_consumable.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_buy_with_product_starts_purchase(fake_page):
+    _with_platform(fake_page)
+    with mock.patch("services.premium_service.db_manager", _db()):
+        svc = PremiumService(fake_page)
+    billing = mock.AsyncMock()
+    billing.query_products.return_value = SimpleNamespace(
+        products=[SimpleNamespace(id=PREMIUM_PRODUCT_ID, price="$4.99")],
+        not_found_ids=[],
+        error=None,
+    )
+    billing.buy_non_consumable.return_value = True
+    svc.billing = billing
+    assert await svc.buy() is True
+    billing.buy_non_consumable.assert_awaited_once_with(PREMIUM_PRODUCT_ID)
+    assert svc.price == "$4.99"
+
+
+@pytest.mark.asyncio
+async def test_buy_short_circuits_when_already_premium(fake_page):
+    state.is_premium = True
+    _with_platform(fake_page)
+    with mock.patch("services.premium_service.db_manager", _db()):
+        svc = PremiumService(fake_page)
+    billing = mock.AsyncMock()
+    svc.billing = billing
+    assert await svc.buy() is True
+    billing.query_products.assert_not_called()
+    billing.buy_non_consumable.assert_not_called()

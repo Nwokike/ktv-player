@@ -507,16 +507,16 @@ def SettingsScreen() -> Control:
     is_premium = core_state.is_premium
 
     async def _buy_premium(e=None):
-        if not premium_service:
+        if not premium_service or not premium_service.available:
             notify_warning("Billing is not available on this platform")
             return
         if await premium_service.buy():
             notify("Opening Google Play purchase…")
         else:
-            notify_warning("Purchase could not be started")
+            notify_warning("Premium is not available in this store yet")
 
     async def _restore_premium(e=None):
-        if not premium_service:
+        if not premium_service or not premium_service.available:
             notify_warning("Billing is not available on this platform")
             return
         await premium_service.restore_purchases()
