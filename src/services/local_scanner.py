@@ -349,6 +349,27 @@ def delete_media_store_video(content_uri: str) -> bool:
 _DELETE_REQUEST_CODE = 0x4B54
 
 
+def build_delete_request(
+    media_store_cls,
+    resolver,
+    content_uri: str,
+    arraylist_cls,
+    uri_cls,
+):
+    """Build the system delete-consent PendingIntent for one MediaStore item.
+
+    ``createDeleteRequest`` is a **static method on ``android.provider.MediaStore``**
+    (API 30+). It does not exist on ``MediaStore.Video.Media`` — calling it
+    there raises ``has no attribute 'createDeleteRequest'`` and the system
+    consent dialog never opens, which is why every delete failed on device.
+
+    Split out from the pyjnius plumbing so it can be unit-tested off Android.
+    """
+    uris = arraylist_cls()
+    uris.add(uri_cls.parse(content_uri))
+    return media_store_cls.createDeleteRequest(resolver, uris)
+
+
 def request_media_store_delete(content_uri: str) -> bool:
     """Ask the user to approve deleting a MediaStore item we don't own.
 
@@ -371,12 +392,13 @@ def request_media_store_delete(content_uri: str) -> bool:
         if not activity:
             return False
 
-        resolver = activity.getContentResolver()
-        media_store_video = autoclass("android.provider.MediaStore$Video$Media")
-        Uri = autoclass("android.net.Uri")
-        uris = autoclass("java.util.ArrayList")()
-        uris.add(Uri.parse(content_uri))
-        pending_intent = media_store_video.createDeleteRequest(resolver, uris)
+        pending_intent = build_delete_request(
+            autoclass("android.provider.MediaStore"),
+            activity.getContentResolver(),
+            content_uri,
+            autoclass("java.util.ArrayList"),
+            autoclass("android.net.Uri"),
+        )
         activity.startIntentSenderForResult(
             pending_intent.getIntentSender(),
             _DELETE_REQUEST_CODE,

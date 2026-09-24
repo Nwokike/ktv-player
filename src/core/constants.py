@@ -171,6 +171,24 @@ IMA_TEST_TAG = (
 # while the IMA (Google video ads) path is proven. Flip to True to restore
 # AdMob alongside IMA. Premium users never see ads either way.
 ADS_MOB_ENABLED = False
+
+# --- Kiri License (license.kiri.ng) -------------------------------------
+# External checkout for the platforms Google Play cannot serve: direct APK
+# installs, Windows and Linux. The Worker owns the payment policy; this app
+# only holds a recovery ID and a signed entitlement token. Play Billing
+# still wins whenever Play can actually bill the install.
+KIRI_LICENSE_BASE_URL = "https://license.kiri.ng"
+# Matches LICENSE_PUBLIC_KEY in kiri-license/wrangler.toml. Public by
+# design — it verifies tokens offline and can never sign anything.
+KIRI_LICENSE_PUBLIC_KEY = (
+    "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE-YfZ-yKdG3wYF1IR0XcpJH4RclAB"
+    "nddMmAGXFI2J8sbC4gWY2POKc8hVrn0_uHxDZ9ufzwzg4buUimW-IEw4Uw"
+)
+# Stable app identifier sent to the Worker. The same value is used for
+# checkout, restore and status — a temporary install id would orphan
+# purchases on reinstall.
+KIRI_LICENSE_APP_ID = "ng.kiri.ktvplayer"
+KIRI_LICENSE_TIMEOUT = 15.0
 STREAM_RECONNECT_MAX = 5
 LOCAL_SCAN_CACHE_TTL = 60.0
 LOCAL_SCAN_MAX_DEPTH = 6

@@ -17,7 +17,13 @@ CHANGELOG: dict[str, str] = {
         "- IMA: an ad error resumes the video instead of freezing it, and a "
         "post-roll no longer restarts a finished video\n"
         "- CI now fails the build when the TV device-catalog manifest "
-        "regresses"
+        "regresses\n"
+        "- Premium now works everywhere: Google Play where it can bill, and "
+        "the Kiri License checkout (card, crypto, desktop) everywhere else\n"
+        "- Local video delete: Android's own consent dialog now appears, so "
+        "videos the app does not own can be removed\n"
+        "- IMA asks with a real ad container and collapses it if no ad "
+        "arrives, so a failed request can no longer black out the video"
     ),
     "2.1.0": (
         "- In-player Quality switching for multi-variant HLS streams\n"

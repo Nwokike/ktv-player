@@ -29,6 +29,24 @@ _POSITION_SAVE_INTERVAL = 10.0
 # IMA (video ads): upstream recommends feeding content progress every
 # ~200ms so VMAP mid-roll cue points can fire.
 _IMA_PROGRESS_INTERVAL = 0.2
+# How long the ad container stays expanded waiting for an ad to start. A
+# request that never produces an event must not leave a black rectangle
+# over the video.
+_IMA_REQUEST_WATCHDOG_S = 8.0
+
+
+def _vast_host(tag: str | None) -> str:
+    """Host that serves the VAST — the single most useful fact when an ad
+    request silently produces no events (a blocked host looks exactly like
+    a broken SDK otherwise)."""
+    if not tag:
+        return "none"
+    try:
+        from urllib.parse import urlparse
+
+        return urlparse(tag).netloc or "unknown"
+    except Exception:
+        return "unknown"
 
 
 def _short_variant_label(variant: dict) -> str:
@@ -84,6 +102,7 @@ class ImmersivePlayer(ft.Stack):
         self._ima_ad_active = False
         self._last_ima_push = 0.0
         self._ima_slot = None
+        self._ima_watchdog_task: asyncio.Task | None = None
         # Deep-link plays (ktv://) hide the in-player favorite star
         self.show_favorite_button = show_favorite
         self.expand = True
@@ -749,14 +768,62 @@ class ImmersivePlayer(ft.Stack):
                 self.ima_view.update()
             except Exception:
                 pass
+
+        # The SDK loads into the ad container, so give it real pixels for
+        # the request. An earlier build requested into a zero-height slot
+        # and the SDK never produced an event at all.
+        self._ima_expand_slot_for_request()
+        logger.info(
+            "IMA: requesting pre-roll (tag_host=%s container=expanded duration=%s)",
+            _vast_host(self._ima_tag),
+            f"{self._last_duration:.1f}s" if self._last_duration > 0 else "live",
+        )
+        self._arm_ima_request_watchdog()
         try:
             await asyncio.wait_for(self.ima_view.request_ads(), timeout=10.0)
-            logger.info("IMA: ad request sent at t0 (pre-roll)")
+            logger.info(
+                "IMA: request_ads returned in %.2fs — waiting for ad events",
+                self._ima_elapsed(),
+            )
         except TimeoutError:
-            logger.warning("IMA: request_ads timed out")
+            logger.warning(
+                "IMA: request_ads timed out after %.1fs (tag_host=%s)",
+                self._ima_elapsed(),
+                _vast_host(self._ima_tag),
+            )
         except Exception as ex:
             self._ima_requested = False
             logger.warning("IMA: request_ads failed: %s", ex)
+
+    def _arm_ima_request_watchdog(self) -> None:
+        """Collapse the ad slot if the request never becomes an ad.
+
+        Without this a failed request would leave a black rectangle over
+        the video until the user backs out.
+        """
+        self._cancel_ima_watchdog()
+
+        async def _watch():
+            await asyncio.sleep(_IMA_REQUEST_WATCHDOG_S)
+            if self._ima_ad_active or self._ima_destroyed or self._is_closing:
+                return
+            logger.warning(
+                "IMA: no ad started within %.0fs — collapsing the ad slot",
+                _IMA_REQUEST_WATCHDOG_S,
+            )
+            self._ima_set_slot_visible(False)
+
+        try:
+            self._ima_watchdog_task = asyncio.create_task(_watch())
+        except RuntimeError:
+            # No running loop (headless tests): no watchdog, no ad slot.
+            self._ima_set_slot_visible(False)
+
+    def _cancel_ima_watchdog(self) -> None:
+        task = self._ima_watchdog_task
+        self._ima_watchdog_task = None
+        if task is not None and not task.done():
+            task.cancel()
 
     def _on_ima_loaded(self, e):
         logger.info(
@@ -820,9 +887,18 @@ class ImmersivePlayer(ft.Stack):
 
     async def _on_ima_ad_event(self, e):
         t = getattr(e, "type", "")
+        # Any event at all means the SDK answered, so the "no ad arrived"
+        # watchdog has done its job and must not collapse a live ad.
+        if t in (AdEventType.STARTED.value, AdEventType.LOADED.value):
+            self._cancel_ima_watchdog()
         if t == AdEventType.STARTED.value:
             self._ima_set_slot_visible(True)
-        logger.info("IMA event %s (+%.1fs)", t, self._ima_elapsed())
+        logger.info(
+            "IMA event %s (+%.1fs) ad=%s",
+            t,
+            self._ima_elapsed(),
+            getattr(e, "ad", None) or "-",
+        )
         if t == AdEventType.STARTED.value:
             logger.info("IMA: ad started playing")
         elif t == AdEventType.COMPLETE.value:
@@ -873,6 +949,23 @@ class ImmersivePlayer(ft.Stack):
                 int(self._last_duration * 1000),
             )
 
+    def _ima_expand_slot_for_request(self) -> None:
+        """Give the SDK a laid-out ad container for the request."""
+        self._ima_set_slot_visible(True)
+
+    async def teardown(self) -> None:
+        """Release platform resources while still attached to the page.
+
+        The controller closes players by popping their view, which detaches
+        every control inside it — and a detached control cannot invoke a
+        method ("Control must be added to the page first"). So IMA, the
+        only control here that owns a native view, is destroyed *before*
+        the pop; will_unmount is the fallback for paths that never get
+        here.
+        """
+        self._cancel_ima_watchdog()
+        await self._ima_destroy()
+
     async def _ima_destroy(self):
         if self.ima_view is None or self._ima_destroyed:
             return
@@ -880,10 +973,13 @@ class ImmersivePlayer(ft.Stack):
         self._ima_set_slot_visible(False)
         try:
             await asyncio.wait_for(self.ima_view.destroy(), timeout=5.0)
+            logger.info("IMA: ad view destroyed cleanly")
         except TimeoutError:
             logger.warning("IMA: destroy timed out")
         except Exception as ex:
-            logger.debug("IMA: destroy failed: %s", ex)
+            # Detached control: the view is already gone, so there is
+            # nothing left to release on the Dart side.
+            logger.debug("IMA: destroy skipped (%s)", ex)
 
     def _check_and_trigger_seek(self):
         # After media is ready / first tick, consume any pending one-shot seek target —

@@ -767,6 +767,14 @@ class AppController:
         """Persist position (awaited), then stop playback and pop/exit."""
         await self._persist_player_position(player)
 
+        # Release native resources (the IMA ad view) while the control tree
+        # is still attached: a popped view detaches its controls, and a
+        # detached control cannot invoke methods on the Dart side.
+        teardown = getattr(player, "teardown", None)
+        if callable(teardown):
+            with contextlib.suppress(Exception):
+                await teardown()
+
         # Stop synchronously: clear playlist + update() queues a
         # platform channel message that halts native playback immediately.
         try:

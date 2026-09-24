@@ -236,11 +236,17 @@ def test_settings_screen_has_premium_section():
 
 def test_desktop_never_attaches_billing(fake_page):
     """in_app_purchase has no desktop platform — a desktop invoke stalls
-    for the full timeout, so the service must stay inert off-mobile."""
+    for the full timeout, so the service must stay inert off-mobile.
+
+    Desktop still offers premium, through the Kiri License Worker, which
+    is why `available` stays True while `billing` is None.
+    """
     _with_platform(fake_page, mobile=False)
     svc = PremiumService(fake_page)
     assert svc.billing is None
-    assert svc.available is False
+    assert svc.backend == "kiri"
+    assert svc.uses_play is False
+    assert svc.available is True
     assert fake_page.services == []
 
 
@@ -284,6 +290,9 @@ async def test_buy_with_product_starts_purchase(fake_page):
     )
     billing.buy_non_consumable.return_value = True
     svc.billing = billing
+    # Play only becomes the checkout surface once is_available() has proved
+    # this install can actually be billed (see PremiumService.reconcile).
+    svc.backend = "play"
     assert await svc.buy() is True
     billing.buy_non_consumable.assert_awaited_once_with(PREMIUM_PRODUCT_ID)
     assert svc.price == "$4.99"

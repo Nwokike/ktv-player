@@ -580,6 +580,170 @@ def SettingsScreen() -> Control:
         _sync_premium()
         notify("Restore requested — re-checking your purchases")
 
+    # -- Kiri License (the backend for installs Play cannot bill) -----------
+
+    uses_play = bool(getattr(premium_service, "uses_play", False))
+    products, set_products = ft.use_state([])
+    recovery_id, set_recovery_id = ft.use_state("")
+    license_busy, set_license_busy = ft.use_state(False)
+
+    async def _load_license(e=None):
+        if not premium_service or uses_play:
+            return
+        set_products(await premium_service.kiri_catalog())
+        set_recovery_id(await premium_service.license.recovery_id())
+
+    ft.on_mounted(_load_license)
+
+    def _ask_email(product_label: str):
+        """Email is required by the payment provider and is the only field
+        the user has to type."""
+        field = ft.TextField(
+            label="Email for your receipt",
+            hint_text="you@example.com",
+            keyboard_type=ft.KeyboardType.EMAIL,
+            width=320,
+        )
+        dialog = ft.AlertDialog(
+            title=ft.Text(f"Unlock KTV Premium — {product_label}", size=15),
+            content=field,
+            actions=[
+                ft.TextButton("Cancel", on_click=lambda e: page_obj.pop_dialog()),
+                ft.FilledButton(
+                    "Continue",
+                    on_click=lambda e: page_obj.run_task(
+                        _start_kiri_checkout, product_label, field
+                    ),
+                ),
+            ],
+        )
+        page_obj.show_dialog(dialog)
+
+    async def _start_kiri_checkout(product_id: str, field):
+        email = (field.value or "").strip()
+        if not email or "@" not in email:
+            notify_warning("Enter a valid email address")
+            return
+        page_obj.pop_dialog()
+        set_license_busy(True)
+        try:
+            checkout = await premium_service.kiri_checkout(product_id, email)
+            set_recovery_id(checkout.recovery_id)
+            # Flutterwave hosts the payment; the app never sees card data.
+            await ft.UrlLauncher().launch_url(checkout.checkout_url)
+            notify("Complete the payment, then tap Restore with your code")
+        except Exception as ex:
+            notify_warning(str(ex) or "Could not start the payment")
+        finally:
+            set_license_busy(False)
+
+    def _ask_recovery_id():
+        field = ft.TextField(
+            label="Recovery ID",
+            hint_text=recovery_id or "KIRI-L-...",
+            width=340,
+        )
+        page_obj.show_dialog(
+            ft.AlertDialog(
+                title=ft.Text("Restore your license", size=15),
+                content=ft.Column(
+                    [
+                        field,
+                        ft.Text(
+                            "Your recovery ID is shown on the payment receipt. "
+                            "It is also stored on this device.",
+                            size=11,
+                        ),
+                    ],
+                    tight=True,
+                ),
+                actions=[
+                    ft.TextButton("Cancel", on_click=lambda e: page_obj.pop_dialog()),
+                    ft.FilledButton(
+                        "Restore",
+                        on_click=lambda e: page_obj.run_task(_redeem_kiri, field),
+                    ),
+                ],
+            )
+        )
+
+    async def _redeem_kiri(field):
+        code = (field.value or "").strip() or recovery_id
+        page_obj.pop_dialog()
+        set_license_busy(True)
+        try:
+            status = await premium_service.kiri_restore(code)
+            set_recovery_id(status.recovery_id)
+            _sync_premium()
+            notify(
+                "Premium unlocked — ads removed"
+                if status.unlocks
+                else f"License status: {status.status}"
+            )
+        except Exception as ex:
+            notify_warning(str(ex) or "Could not restore that license")
+        finally:
+            set_license_busy(False)
+
+    async def _copy_recovery_id(e=None):
+        if not recovery_id:
+            return
+        try:
+            await ft.Clipboard().set(recovery_id)
+            notify("Recovery ID copied")
+        except Exception:
+            notify_warning("Copy failed — clipboard unavailable on this device")
+
+    def _kiri_product_row(product):
+        return _setting_row(
+            leading=ft.Icon(
+                ft.Icons.LOCK_OPEN_ROUNDED
+                if product.id == "lifetime"
+                else ft.Icons.AUTORENEW,
+                size=18,
+                color=AppColors.PRIMARY,
+            ),
+            title=product.id.capitalize(),
+            subtitle=product.description or product.price_label,
+            trailing=ft.FilledButton(
+                product.price_label,
+                on_click=lambda e, p=product: _ask_email(p.id),
+                disabled=license_busy,
+            ),
+        )
+
+    _kiri_rows: list = []
+    if not uses_play and not is_premium:
+        _kiri_rows = [
+            *[_kiri_product_row(p) for p in products],
+            *(
+                [
+                    _setting_row(
+                        leading=ft.Icon(ft.Icons.KEY, size=18, color=AppColors.PRIMARY),
+                        title="Your recovery ID",
+                        subtitle=(recovery_id or "Created when you start a payment"),
+                        trailing=ft.OutlinedButton(
+                            "Copy",
+                            on_click=_copy_recovery_id,
+                            disabled=not recovery_id,
+                        ),
+                    )
+                ]
+                if recovery_id
+                else []
+            ),
+        ]
+        if not products:
+            _kiri_rows.append(
+                _setting_row(
+                    leading=ft.Icon(
+                        ft.Icons.CLOUD_OFF, size=18, color=AppColors.grey_dim()
+                    ),
+                    title="Unlock options unavailable",
+                    subtitle="Could not reach the license service — check your connection",
+                )
+            )
+
     premium = _section_card(
         "Premium",
         ft.Icons.WORKSPACE_PREMIUM,
@@ -605,24 +769,37 @@ def SettingsScreen() -> Control:
             *(
                 []
                 if is_premium
-                else [
-                    _setting_row(
-                        leading=ft.Icon(
-                            ft.Icons.SHOPPING_CART, size=18, color=AppColors.PRIMARY
-                        ),
-                        title="Upgrade",
-                        subtitle="Buy once — ads gone everywhere, forever",
-                        trailing=ft.FilledButton(
-                            "Upgrade", on_click=_buy_premium, disabled=buying
-                        ),
-                    )
-                ]
+                else (
+                    []
+                    if uses_play
+                    else [
+                        _setting_row(
+                            leading=ft.Icon(
+                                ft.Icons.SHOPPING_CART,
+                                size=18,
+                                color=AppColors.PRIMARY,
+                            ),
+                            title="Upgrade",
+                            subtitle="Buy once — ads gone everywhere, forever",
+                            trailing=ft.FilledButton(
+                                "Upgrade", on_click=_buy_premium, disabled=buying
+                            ),
+                        )
+                    ]
+                )
             ),
+            # Kiri License rows only exist when Play cannot bill this
+            # install (direct APK, desktop). Google policy forbids an
+            # external checkout button inside a Play-distributed build.
+            *([] if uses_play or is_premium else _kiri_rows),
             _setting_row(
                 leading=ft.Icon(ft.Icons.RESTORE, size=18, color=AppColors.PRIMARY),
                 title="Restore purchases",
                 subtitle="Re-check ownership (new device / reinstall)",
-                trailing=ft.OutlinedButton("Restore", on_click=_restore_premium),
+                trailing=ft.OutlinedButton(
+                    "Restore",
+                    on_click=_restore_premium if uses_play else _ask_recovery_id,
+                ),
             ),
         ],
     )

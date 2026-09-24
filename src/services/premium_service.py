@@ -26,6 +26,7 @@ from flet_billing import Billing, PurchaseStatus
 
 from core.state import state
 from database.manager import db_manager
+from services.kiri_license import KiriLicenseService, LicenseUnavailable
 
 logger = logging.getLogger(__name__)
 
@@ -38,12 +39,26 @@ STORE_TIMEOUT = 6.0
 
 
 class PremiumService:
-    """Owns the Billing service and the persisted ``premium`` flag."""
+    """Owns the entitlement and the persisted ``premium`` flag.
+
+    Two backends, chosen at runtime:
+
+    - **Play Billing** whenever Play can actually bill this install
+      (Play-installed build, or a linked license tester).
+    - **Kiri License** otherwise — direct APK installs, Windows and Linux.
+      Play will not sell to a sideloaded build no matter what the app does,
+      so those surfaces get the Worker instead.
+
+    Both paths end in the same place: ``state.is_premium = True``, which is
+    the single flag every ad surface in the app already checks.
+    """
 
     def __init__(self, page):
         self.page = page
         self.billing: Billing | None = None
         self.price: str | None = None
+        self.backend: str = "none"  # "play" | "kiri" | "none"
+        self.license = KiriLicenseService()
         self._listeners: list[Callable[[], None]] = []
         if self._billing_supported():
             self.billing = Billing(on_purchase_updated=self._on_purchases)
@@ -52,6 +67,13 @@ class PremiumService:
             # same instance twice.
             if self.billing not in page.services:
                 page.services.append(self.billing)
+            # Until Play proves it can serve this install, Kiri is the
+            # backend on offer. reconcile() switches to Play the moment
+            # is_available() succeeds.
+            self.backend = "kiri"
+        else:
+            # Desktop and web have no Play at all.
+            self.backend = "kiri"
 
     def _billing_supported(self) -> bool:
         """Android phones and Android TV both have a Play Store; desktop and
@@ -81,40 +103,75 @@ class PremiumService:
 
     @property
     def available(self) -> bool:
-        """True when a Billing service is attached (mobile/TV builds)."""
-        return self.billing is not None
+        """True when some backend can take a payment on this install."""
+        return self.billing is not None or self.backend == "kiri"
+
+    @property
+    def uses_play(self) -> bool:
+        """True when Google Play is the checkout surface right now."""
+        return self.backend == "play" and self.billing is not None
 
     async def load_local(self) -> None:
-        """Read the persisted entitlement — one DB row, safe on the boot path."""
+        """Read the persisted entitlement — safe on the boot path.
+
+        Two sources: the Play flag, and the Kiri token, which is verified
+        offline so a paid app keeps premium with no network at all.
+        """
         try:
             if await db_manager.get_setting("premium") == "true":
                 state.is_premium = True
         except Exception:
             logger.warning("Could not read premium flag", exc_info=True)
+        try:
+            await self.license.apply_cached_token()
+        except Exception:
+            logger.warning("Could not verify the cached license", exc_info=True)
 
     async def reconcile(self) -> None:
-        """Reconcile ownership with the store.
+        """Reconcile ownership with whichever backend applies.
 
         Every call here is a network round-trip, so this runs *after* the
         first frame (AppController._post_render_startup), never before it.
         A failed store check never downgrades the local flag.
         """
-        if self.billing is None:
+        if self.billing is not None:
+            if await self._play_can_bill():
+                self.backend = "play"
+                await self._reconcile_play()
+            else:
+                # Play cannot serve this install (sideloaded APK, desktop,
+                # web): fall back to the license Worker.
+                self.backend = "kiri"
+        await self._reconcile_kiri()
+
+    async def _reconcile_kiri(self) -> None:
+        """Refresh the Worker entitlement (online status wins over cache)."""
+        if self.license.unlocked:
             return
         try:
-            if not await self.billing.is_available(timeout=STORE_TIMEOUT):
-                return
+            await self.license.refresh()
+        except LicenseUnavailable as ex:
+            logger.info("Kiri license refresh skipped: %s", ex)
+        except Exception:
+            logger.debug("Kiri license refresh failed", exc_info=True)
+
+    async def _play_can_bill(self) -> bool:
+        if self.billing is None:
+            return False
+        try:
+            return bool(await self.billing.is_available(timeout=STORE_TIMEOUT))
         except TimeoutError:
             logger.info(
                 "Billing store check unavailable (timeout) — keeping local flag"
             )
-            return
+            return False
         except Exception:
             logger.warning(
                 "Billing store check failed; keeping local flag", exc_info=True
             )
-            return
+            return False
 
+    async def _reconcile_play(self) -> None:
         await self._refresh_product()
         try:
             # Android-only fast path; iOS relies on restore_purchases events
@@ -171,13 +228,18 @@ class PremiumService:
         return True
 
     async def buy(self) -> bool:
-        """Start the one-time premium purchase. Result arrives via the
-        purchase-stream handler. False when the store doesn't offer the
-        product (or the request could not start)."""
+        """Start a purchase on whichever backend is active.
+
+        Play returns immediately and the result arrives on the purchase
+        stream. The Kiri backend has nothing to start — the caller drives
+        checkout explicitly via :meth:`kiri_checkout`, because it needs an
+        email and a browser — so this returns False there and the UI shows
+        the license options instead.
+        """
         if state.is_premium:
             return True
-        if self.billing is None:
-            logger.info("Premium purchase requested on an unsupported platform")
+        if self.billing is None or not self.uses_play:
+            logger.info("Premium purchase requested outside Google Play")
             return False
         if not await self._refresh_product():
             return False
@@ -189,12 +251,53 @@ class PremiumService:
 
     async def restore_purchases(self) -> None:
         """Manual restore (Settings button) — results arrive via events."""
-        if self.billing is None:
+        if self.billing is not None and self.uses_play:
+            try:
+                await self.billing.restore_purchases(timeout=STORE_TIMEOUT)
+            except Exception:
+                logger.debug("restore_purchases failed", exc_info=True)
             return
         try:
-            await self.billing.restore_purchases(timeout=STORE_TIMEOUT)
+            await self.license.refresh()
+        except LicenseUnavailable:
+            logger.info("Nothing to restore: no saved license")
         except Exception:
-            logger.debug("restore_purchases failed", exc_info=True)
+            logger.debug("Kiri restore failed", exc_info=True)
+
+    # -- Kiri License surface ------------------------------------------------
+
+    async def kiri_catalog(self):
+        """Products offered by the license Worker, or [] when offline."""
+        try:
+            return await self.license.fetch_catalog()
+        except LicenseUnavailable as ex:
+            logger.info("License catalog unavailable: %s", ex)
+            return []
+        except Exception:
+            logger.debug("License catalog failed", exc_info=True)
+            return []
+
+    async def kiri_checkout(self, product_id: str, email: str):
+        """Create a hosted payment and save the recovery ID."""
+        checkout = await self.license.checkout(product_id, email)
+        self._notify_listeners()
+        return checkout
+
+    async def kiri_restore(self, recovery_id: str):
+        """Redeem a recovery ID; raises LicenseUnavailable with a reason."""
+        status = await self.license.restore(recovery_id)
+        if status.unlocks:
+            await self._activate()
+        self._notify_listeners()
+        return status
+
+    async def kiri_check_status(self):
+        """Re-check the saved entitlement, keeping the local token offline."""
+        status = await self.license.refresh()
+        if status is not None and status.unlocks:
+            await self._activate()
+        self._notify_listeners()
+        return status
 
     def _is_android(self) -> bool:
         try:
