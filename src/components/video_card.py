@@ -21,6 +21,22 @@ def _format_size(size_bytes: int) -> str:
         return f"{size_bytes / (1024 * 1024 * 1024):.2f} GB"
 
 
+def _preview(video: LocalVideo) -> Control:
+    """Frame preview when a thumbnail exists, movie icon otherwise."""
+    fallback = ft.Icon(
+        ft.Icons.MOVIE_CREATION_OUTLINED, size=36, color=ft.Colors.PRIMARY
+    )
+    if not video.thumbnail:
+        return fallback
+    return ft.Image(
+        src=video.thumbnail,
+        height=64,
+        fit=ft.BoxFit.COVER,
+        border_radius=10,
+        error_content=fallback,
+    )
+
+
 def VideoCard(
     video: LocalVideo,
     on_play: Callable[[str], None],
@@ -44,11 +60,7 @@ def VideoCard(
                         ],
                         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                     ),
-                    ft.Icon(
-                        ft.Icons.MOVIE_CREATION_OUTLINED,
-                        size=36,
-                        color=ft.Colors.PRIMARY,
-                    ),
+                    _preview(video),
                     ft.Text(
                         video.name,
                         size=12,

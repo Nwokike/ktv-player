@@ -102,6 +102,20 @@ def LocalScreen() -> Control:
         except Exception:
             pass
 
+    async def _prewarm(videos):
+        # Android frame previews (no-op elsewhere); the grid upgrades itself
+        # on completion via one page update.
+        from flet import context
+
+        from services.video_thumbnails import prewarm_thumbnails
+
+        try:
+            filled = await prewarm_thumbnails(videos, context.page)
+            if filled:
+                logger.info("Prepared %d video thumbnails", filled)
+        except Exception:
+            logger.debug("Thumbnail prewarm failed", exc_info=True)
+
     async def _scan():
         set_is_scanning(True)
         try:
@@ -115,6 +129,9 @@ def LocalScreen() -> Control:
             result = await asyncio.to_thread(scan_videos, paths)
             logger.info("Scan found %d folders", len(result))
             set_folders(result)
+            videos = [v for folder in result for v in folder.videos]
+            if videos:
+                asyncio.create_task(_prewarm(videos))
         except Exception:
             logger.exception("Scan failed")
             set_folders([])
