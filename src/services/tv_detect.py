@@ -28,11 +28,17 @@ def is_tv_device() -> bool:
     global _tv_cache
     if _tv_cache is not None:
         return _tv_cache
-    _tv_cache = _detect()
-    return _tv_cache
+    detected = _detect()
+    # A False produced because no activity was reachable yet is NOT a
+    # verdict — caching it would pin the app to "phone" for the whole
+    # session and let TV ads through.
+    if detected is not None:
+        _tv_cache = detected
+    return bool(detected)
 
 
-def _detect() -> bool:
+def _detect() -> bool | None:
+    """True/False, or None when detection could not run at all."""
     try:
         from jnius import autoclass
     except Exception:
@@ -56,4 +62,4 @@ def _detect() -> bool:
             return result
         except Exception as ex:
             logger.debug("TV detection: %s unavailable: %s", cls_name, ex)
-    return False
+    return None

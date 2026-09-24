@@ -145,7 +145,10 @@ def set_auto_pip(enabled: bool, aspect: float | None = None) -> bool:
         return True
     except Exception as ex:
         global _auto_pip_warned
-        first_line = str(ex).splitlines()[0]
+        # str(ex) can be empty (a Java throwable with no message), and
+        # splitlines() then returns [] — indexing it would raise inside
+        # the except block.
+        first_line = (str(ex).splitlines() or [""])[0]
         if not _auto_pip_warned:
             _auto_pip_warned = True
             logger.warning(

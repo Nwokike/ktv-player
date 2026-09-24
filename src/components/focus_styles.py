@@ -39,8 +39,10 @@ def card_button_style(
             ),
         },
         overlay_color={
-            ControlState.FOCUSED: Colors.with_opacity(0.2, AppColors.PRIMARY),
-            ControlState.HOVERED: Colors.with_opacity(0.1, AppColors.PRIMARY),
+            ControlState.FOCUSED: Colors.with_opacity(overlay_alpha, Colors.PRIMARY),
+            ControlState.HOVERED: Colors.with_opacity(
+                overlay_alpha / 2, Colors.PRIMARY
+            ),
             ControlState.DEFAULT: Colors.TRANSPARENT,
         },
         elevation=0,
