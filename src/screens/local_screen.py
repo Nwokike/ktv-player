@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import os
 
 import flet as ft
 from flet import Control
@@ -256,6 +257,60 @@ def LocalScreen() -> Control:
 
         page = context.page
 
+        def _on_video_long_press(v):
+            asyncio.create_task(_video_menu(v))
+
+        async def _video_menu(v):
+            page = context.page
+
+            async def _play(e=None):
+                page.pop_dialog()
+                on_play(v.path)
+
+            async def _delete(e=None):
+                page.pop_dialog()
+                await _delete_video(v, page)
+
+            async def _cancel(e=None):
+                page.pop_dialog()
+
+            page.show_dialog(
+                ft.AlertDialog(
+                    title=ft.Text(v.name, size=15, weight=ft.FontWeight.BOLD),
+                    content=ft.Text(
+                        "Play this video, or delete it from the device?",
+                        size=12,
+                    ),
+                    actions=[
+                        ft.TextButton("Play", on_click=_play),
+                        ft.TextButton(
+                            "Delete",
+                            icon=ft.Icons.DELETE_OUTLINE,
+                            style=ft.ButtonStyle(color=ft.Colors.RED_400),
+                            on_click=_delete,
+                        ),
+                        ft.TextButton("Cancel", on_click=_cancel),
+                    ],
+                )
+            )
+
+        async def _delete_video(v, page):
+            from utils.notifications import notify, notify_warning
+
+            def _remove():
+                os.remove(v.path)
+
+            try:
+                await asyncio.to_thread(_remove)
+            except FileNotFoundError:
+                notify("Already removed")
+            except OSError as ex:
+                # Android scoped storage can refuse files the app doesn't own.
+                notify_warning(f"Delete failed: {ex}")
+                return
+            notify(f"Deleted {v.name}")
+            await _scan()
+
         tiles: list[Control] = []
         for idx, f in enumerate(filtered_folders):
             is_c = f.path in custom_paths
@@ -265,6 +320,7 @@ def LocalScreen() -> Control:
                     on_play=on_play,
                     is_custom=is_c,
                     on_remove_custom=lambda p: asyncio.create_task(_async_remove(p)),
+                    on_long_press_video=_on_video_long_press,
                 )
             )
             # Insert banner ad after the 5th folder (index 4)

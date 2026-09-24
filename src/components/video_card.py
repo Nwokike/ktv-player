@@ -40,8 +40,14 @@ def _preview(video: LocalVideo) -> Control:
 def VideoCard(
     video: LocalVideo,
     on_play: Callable[[str], None],
+    on_long_press: Callable[[LocalVideo], None] | None = None,
 ) -> Control:
-    return attach_focus_pop(
+    """Local video tile.
+
+    When `on_long_press` is given the card becomes long-pressable (MX Player
+    style) — the folder screen uses it for the Play/Delete menu.
+    """
+    button = attach_focus_pop(
         ft.FilledButton(
             height=140,
             on_click=lambda e: on_play(video.path),
@@ -79,4 +85,10 @@ def VideoCard(
                 spacing=4,
             ),
         )
+    )
+    if on_long_press is None:
+        return button
+    return ft.GestureDetector(
+        content=button,
+        on_long_press=lambda e: on_long_press(video),
     )
