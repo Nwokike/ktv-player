@@ -78,14 +78,17 @@ jobs:
           (cd build/flutter/android && SERIOUS_PYTHON_SITE_PACKAGES="$PWD/../../site-packages" ./gradlew assembleDebug --no-daemon)
       - name: Dump manifest + badging facts
         run: |
-          AAPT=$(find "${ANDROID_HOME:-$HOME/Android}" -name aapt -type f 2>/dev/null | sort -V | tail -1)
           APK=$(find build/flutter -name "app-debug.apk" -not -path "*/intermediates/*" | head -1)
           echo "=== APK: $APK ==="
-          BADGING=$("$AAPT" dump badging "$APK")
-          echo "=== badging (sdk/features/native) ==="
-          echo "$BADGING" | grep -E "^package:|sdkVersion|targetSdkVersion|uses-feature|native-code|launchable-activity" || true
-          echo "=== manifest: TV / PiP / network ==="
-          "$AAPT" dump xmltree "$APK" AndroidManifest.xml | grep -iE "leanback|picture_in_picture|INTERNET|ACCESS_NETWORK_STATE" | sort -u || true
+          AAPT=$(find "${ANDROID_HOME:-$HOME/Android}" -name aapt -type f 2>/dev/null | sort -V | tail -1)
+          if [ -n "$AAPT" ]; then
+            echo "=== badging (sdk/features/native) ==="
+            "$AAPT" dump badging "$APK" | grep -E "^package:|sdkVersion|targetSdkVersion|uses-feature|native-code|launchable-activity" || true
+            echo "=== manifest: TV / PiP / network ==="
+            "$AAPT" dump xmltree "$APK" AndroidManifest.xml | grep -iE "leanback|picture_in_picture|INTERNET|ACCESS_NETWORK_STATE" | sort -u || true
+          else
+            echo "(no aapt binary on this runner — the merged manifest below is authoritative)"
+          fi
           echo "=== merged manifest source (build output) ==="
           MERGED=$(find build/flutter/android -path "*intermediates*" -name "AndroidManifest.xml" | grep -iE "merged|processDebug" | head -1)
           echo "${MERGED:-<none found>}"
@@ -93,42 +96,20 @@ jobs:
 
       # This job exists because 2.0.5 vanished from the Android TV catalog:
       # Play hides apps whose <uses-feature> flags no TV device satisfies.
-      # Printing the dump is evidence; asserting on it is the gate.
+      # Printing the dump is evidence; asserting on it is the gate. The
+      # checks live in tools/check_manifest.py (unit-tested) and read the
+      # merged manifest — aapt/aapt2 binaries are not present in every
+      # runner image, and grepping badging text is how a check silently
+      # becomes a no-op.
       - name: Assert TV device-catalog facts
         run: |
-          AAPT=$(find "${ANDROID_HOME:-$HOME/Android}" -name aapt -type f 2>/dev/null | sort -V | tail -1)
-          APK=$(find build/flutter -name "app-debug.apk" -not -path "*/intermediates/*" | head -1)
-          BADGING=$("$AAPT" dump badging "$APK")
-
-          fail() { echo "MANIFEST AUDIT FAILED: $1"; exit 1; }
-
-          # Leanback must be REQUIRED — optional means phones-only listings.
-          echo "$BADGING" | grep -q "uses-feature:'android.software.leanback'" \
-            || fail "android.software.leanback is not a required uses-feature (TV apps get hidden)"
-          if echo "$BADGING" | grep -q "uses-feature-not-required:'android.software.leanback'"; then
-            fail "leanback is marked not-required — the TV listing will not appear"
+          MERGED=$(find build/flutter/android -path "*intermediates*" -name "AndroidManifest.xml" | grep -iE "merged|processDebug" | head -1)
+          if [ -z "$MERGED" ]; then
+            echo "ERROR: no merged AndroidManifest.xml found — the gate cannot verify the TV catalog"
+            exit 1
           fi
-
-          echo "$BADGING" | grep -q "leanback-launchable-activity" \
-            || fail "no LEANBACK_LAUNCHER activity (TV home screen cannot launch the app)"
-
-          # interstitials/IMA need the network permissions.
-          echo "$BADGING" | grep -q "android.permission.INTERNET" \
-            || fail "INTERNET permission missing (IMA cannot request ads)"
-          echo "$BADGING" | grep -q "android.permission.ACCESS_NETWORK_STATE" \
-            || fail "ACCESS_NETWORK_STATE permission missing (IMA cannot request ads)"
-
-          # minSdk 24 is flet's floor; Play requires a modern target.
-          echo "$BADGING" | grep -Eq "sdkVersion:'2[4-9]|sdkVersion:'[3-9][0-9]" \
-            || fail "unexpected minSdkVersion (expected >= 24)"
-          echo "$BADGING" | grep -Eq "targetSdkVersion:'3[3-9]|targetSdkVersion:'[4-9][0-9]" \
-            || fail "targetSdkVersion below 33 — Play will refuse the upload"
-
-          # Every advertised ABI must actually be in the APK.
-          for abi in arm64-v8a armeabi-v7a x86_64; do
-            echo "$BADGING" | grep -q "$abi" || fail "native-code missing $abi"
-          done
-          echo "Manifest audit passed: TV-capable, network-enabled, 3 ABIs."
+          echo "checking $MERGED"
+          uv run python tools/check_manifest.py "$MERGED"
 
   # ─── 0. Create Release Tag & Placeholder ───────────────
   prepare-release:
@@ -308,7 +289,7 @@ jobs:
           # fails deep inside gradle with an unreadable AAR error.
           grep -q "isCoreLibraryDesugaringEnabled" "$GRADLE" || { echo "ERROR: desugaring flag patch did not apply"; exit 1; }
           grep -q "coreLibraryDesugaring" "$GRADLE" || { echo "ERROR: desugar_jdk_libs dependency missing"; exit 1; }
-          grep -n "resolvedMinSdk =" "$GRADLE"
+          grep -n "resolvedMinSdk =" "$GRADLE" || true
           test -d "$SERIOUS_PYTHON_SITE_PACKAGES" || { echo "ERROR: $SERIOUS_PYTHON_SITE_PACKAGES missing"; exit 1; }
           (cd build/flutter/android && ./gradlew assembleRelease -Psplit-per-abi=true)
           rm -rf build/apk
@@ -319,12 +300,16 @@ jobs:
           for abi in arm64-v8a armeabi-v7a x86_64; do
             mv -f "build/apk/app-${abi}-release.apk" "build/apk/ktv-${abi}.apk" 2>/dev/null || true
           done
-          # Hard-fail if the PiP flag didn't make it into the merged manifest
-          AAPT=$(find "${ANDROID_HOME:-$HOME/Android}" -name aapt -type f 2>/dev/null | sort -V | tail -1)
-          for f in build/apk/*.apk; do
-            "$AAPT" dump xmltree "$f" AndroidManifest.xml | grep -q supportsPictureInPicture \
-              || { echo "ERROR: supportsPictureInPicture missing in $f"; exit 1; }
-          done
+          # Hard-fail if the TV banner / PiP / optional-mic patches did not
+          # reach the merged manifest. Same checker the audit job uses — no
+          # dependence on aapt being installed on the runner image.
+          MERGED=$(find build/flutter/android -path "*intermediates*" -name "AndroidManifest.xml" | grep -iE "merged" | head -1)
+          if [ -z "$MERGED" ]; then
+            echo "ERROR: no merged release manifest found"
+            exit 1
+          fi
+          uv run python tools/check_manifest.py "$MERGED" \
+            --require-banner --require-pip --allow-optional-mic
           ls -lh build/apk/
           echo "Rebuilt split APKs with TV banner (320x180), icon (512x512) and PiP enabled"
       - name: Upload directly to GitHub Release
@@ -405,7 +390,7 @@ jobs:
           # fails deep inside gradle with an unreadable AAR error.
           grep -q "isCoreLibraryDesugaringEnabled" "$GRADLE" || { echo "ERROR: desugaring flag patch did not apply"; exit 1; }
           grep -q "coreLibraryDesugaring" "$GRADLE" || { echo "ERROR: desugar_jdk_libs dependency missing"; exit 1; }
-          grep -n "resolvedMinSdk =" "$GRADLE"
+          grep -n "resolvedMinSdk =" "$GRADLE" || true
           (cd build/flutter/android && ./gradlew bundleRelease)
           rm -rf build/aab
           mkdir -p build/aab
@@ -413,12 +398,15 @@ jobs:
           # README links ktv.aab — stage under the historical name so the
           # release always carries exactly one authoritative set.
           mv -f build/aab/app-release.aab build/aab/ktv.aab 2>/dev/null || true
-          # Hard-fail if the PiP flag didn't make it into the merged manifest
-          AAPT=$(find "${ANDROID_HOME:-$HOME/Android}" -name aapt -type f 2>/dev/null | sort -V | tail -1)
-          for f in build/aab/*.aab; do
-            unzip -p "$f" base/manifest/AndroidManifest.xml | strings | grep -q supportsPictureInPicture \
-              || { echo "ERROR: supportsPictureInPicture missing in $f"; exit 1; }
-          done
+          # Same manifest gate as the split-APK job (the aapt/unzip variant
+          # broke whenever the runner image lacked aapt).
+          MERGED=$(find build/flutter/android -path "*intermediates*" -name "AndroidManifest.xml" | grep -iE "merged" | head -1)
+          if [ -z "$MERGED" ]; then
+            echo "ERROR: no merged release manifest found"
+            exit 1
+          fi
+          uv run python tools/check_manifest.py "$MERGED" \
+            --require-banner --require-pip --allow-optional-mic
           ls -lh build/aab/
           echo "Rebuilt AAB with TV banner (320x180), icon (512x512) and PiP enabled"
       - name: Upload directly to GitHub Release
