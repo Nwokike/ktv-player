@@ -74,6 +74,10 @@ jobs:
           # fails deep inside gradle with an unreadable AAR error.
           grep -q "isCoreLibraryDesugaringEnabled" "$GRADLE" || { echo "ERROR: desugaring flag patch did not apply"; exit 1; }
           grep -q "coreLibraryDesugaring" "$GRADLE" || { echo "ERROR: desugar_jdk_libs dependency missing"; exit 1; }
+          # Patch before gradle, exactly like the release jobs (minus the
+          # release-only banner/PiP) so the audit judges the shipped manifest.
+          MANIFEST=build/flutter/android/app/src/main/AndroidManifest.xml
+          bash tools/patch_android_manifest.sh "$MANIFEST"
           test -d build/site-packages || { echo "ERROR: build/site-packages missing"; exit 1; }
           (cd build/flutter/android && SERIOUS_PYTHON_SITE_PACKAGES="$PWD/../../site-packages" ./gradlew assembleDebug --no-daemon)
       - name: Dump manifest + badging facts
@@ -109,7 +113,7 @@ jobs:
             exit 1
           fi
           echo "checking $MERGED"
-          uv run python tools/check_manifest.py "$MERGED"
+          python3 tools/check_manifest.py "$MERGED"
 
   # ─── 0. Create Release Tag & Placeholder ───────────────
   prepare-release:
@@ -255,19 +259,9 @@ jobs:
           mkdir -p "$RES/drawable-xhdpi" "$RES/mipmap-xxxhdpi"
           cp src/assets/tv_banner.png "$RES/drawable-xhdpi/banner.png"
           cp src/assets/icon.png "$RES/mipmap-xxxhdpi/ic_launcher.png"
-          # NOTE: flet 0.86 writes <application> with attributes on following
-          # lines, so the tag is '<application' followed by a newline — a
-          # trailing space in the pattern would never match.
-          # TV device-catalog hygiene: a library manifest declares
-          # android.hardware.microphone as REQUIRED, which would exclude
-          # TV boxes without a mic from the Play listing (like PiP did).
-          # Force it optional with tools:replace.
-          # tools:replace below is meaningless (and the merge fails) unless
-          # the manifest root declares the namespace.
-          grep -q 'xmlns:tools' "$MANIFEST" ||             sed -i '0,/<manifest/{s|<manifest|<manifest xmlns:tools="http://schemas.android.com/tools"|}' "$MANIFEST"
-          grep -q 'android:banner' "$MANIFEST" ||           sed -i 's|<application|<uses-feature android:name="android.hardware.microphone" android:required="false" tools:replace="android:required" />
-          <application android:banner="@drawable/banner"|' "$MANIFEST"
-          grep -q 'supportsPictureInPicture' "$MANIFEST" ||           sed -i 's|<activity|<activity android:supportsPictureInPicture="true"|g' "$MANIFEST"
+          # TV + PiP manifest patches live in one script so the audit
+          # job validates exactly what the release jobs ship.
+          bash tools/patch_android_manifest.sh "$MANIFEST" --release
           grep -n "supportsPictureInPicture" "$MANIFEST"
           # Remove the unpatched APKs from the first `flet build` step so stale
           # ones can never be staged if the rebuild doesn't regenerate them.
@@ -308,7 +302,7 @@ jobs:
             echo "ERROR: no merged release manifest found"
             exit 1
           fi
-          uv run python tools/check_manifest.py "$MERGED" \
+          python3 tools/check_manifest.py "$MERGED" \
             --require-banner --require-pip --allow-optional-mic
           ls -lh build/apk/
           echo "Rebuilt split APKs with TV banner (320x180), icon (512x512) and PiP enabled"
@@ -364,19 +358,9 @@ jobs:
           mkdir -p "$RES/drawable-xhdpi" "$RES/mipmap-xxxhdpi"
           cp src/assets/tv_banner.png "$RES/drawable-xhdpi/banner.png"
           cp src/assets/icon.png "$RES/mipmap-xxxhdpi/ic_launcher.png"
-          # NOTE: flet 0.86 writes <application> with attributes on following
-          # lines, so the tag is '<application' followed by a newline — a
-          # trailing space in the pattern would never match.
-          # TV device-catalog hygiene: a library manifest declares
-          # android.hardware.microphone as REQUIRED, which would exclude
-          # TV boxes without a mic from the Play listing (like PiP did).
-          # Force it optional with tools:replace.
-          # tools:replace below is meaningless (and the merge fails) unless
-          # the manifest root declares the namespace.
-          grep -q 'xmlns:tools' "$MANIFEST" ||             sed -i '0,/<manifest/{s|<manifest|<manifest xmlns:tools="http://schemas.android.com/tools"|}' "$MANIFEST"
-          grep -q 'android:banner' "$MANIFEST" ||           sed -i 's|<application|<uses-feature android:name="android.hardware.microphone" android:required="false" tools:replace="android:required" />
-          <application android:banner="@drawable/banner"|' "$MANIFEST"
-          grep -q 'supportsPictureInPicture' "$MANIFEST" ||           sed -i 's|<activity|<activity android:supportsPictureInPicture="true"|g' "$MANIFEST"
+          # TV + PiP manifest patches live in one script so the audit
+          # job validates exactly what the release jobs ship.
+          bash tools/patch_android_manifest.sh "$MANIFEST" --release
           grep -n "supportsPictureInPicture" "$MANIFEST"
           # flet-ima (Google IMA video ads) requires core-library
           # desugaring, which Flet's template doesn't enable. Guarded seds
@@ -405,7 +389,7 @@ jobs:
             echo "ERROR: no merged release manifest found"
             exit 1
           fi
-          uv run python tools/check_manifest.py "$MERGED" \
+          python3 tools/check_manifest.py "$MERGED" \
             --require-banner --require-pip --allow-optional-mic
           ls -lh build/aab/
           echo "Rebuilt AAB with TV banner (320x180), icon (512x512) and PiP enabled"
