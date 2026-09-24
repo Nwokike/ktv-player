@@ -32,10 +32,11 @@
 
 | Variant | Download | Notes |
 | :--- | :---: | :--- |
-| 📱 **Universal** (all devices) | [**ktv.apk**](https://github.com/Nwokike/ktv-player/releases/latest/download/ktv.apk) | Single APK working across all architectures |
-| 📱 **ARM64** (most phones) | [**ktv-arm64-v8a.apk**](https://github.com/Nwokike/ktv-player/releases/latest/download/ktv-arm64-v8a.apk) | Modern 64-bit Android devices |
-| 📱 **ARMv7** (older phones) | [**ktv-armeabi-v7a.apk**](https://github.com/Nwokike/ktv-player/releases/latest/download/ktv-armeabi-v7a.apk) | Legacy 32-bit Android devices |
+| 📱 **ARM64** (most phones/TVs) | [**ktv-arm64-v8a.apk**](https://github.com/Nwokike/ktv-player/releases/latest/download/ktv-arm64-v8a.apk) | Modern 64-bit Android devices — grab this one unless you know otherwise |
+| 📱 **ARMv7** (older phones/TV boxes) | [**ktv-armeabi-v7a.apk**](https://github.com/Nwokike/ktv-player/releases/latest/download/ktv-armeabi-v7a.apk) | Legacy 32-bit Android devices |
 | 💻 **x86_64** (emulators/ChromeOS) | [**ktv-x86_64.apk**](https://github.com/Nwokike/ktv-player/releases/latest/download/ktv-x86_64.apk) | Android emulators & Chromebooks |
+
+> No universal APK: per-architecture builds are ~3× smaller and install faster.
 
 ---
 
