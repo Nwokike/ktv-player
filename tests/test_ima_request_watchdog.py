@@ -27,11 +27,33 @@ TAG = (
 
 
 def _player(ima_tag: str = TAG) -> ImmersivePlayer:
+    """A player with a pre-built ad container, as the request path leaves it."""
     player = ImmersivePlayer(resource="https://example.com/v.mp4", ima_tag=ima_tag)
-    player.ima_view = object()
+    player.ima_view = _View()
     slot = _Slot()
+    slot.height = None
+    slot.expand = True
     player._ima_slot = slot
+    player.controls.insert(max(len(player.controls) - 1, 0), slot)
     return player
+
+
+class _View:
+    def __init__(self):
+        self.destroyed = False
+
+    async def destroy(self):
+        self.destroyed = True
+
+
+def _attach_mobile_page(player) -> None:
+    """Give the player a page that reports a mobile platform (IMA is
+    Android/iOS only, so `_ima_create_view` refuses anything else)."""
+    from types import SimpleNamespace
+
+    player._mock_page = SimpleNamespace(
+        platform=SimpleNamespace(is_mobile=lambda: True)
+    )
 
 
 class _Slot:
@@ -58,41 +80,50 @@ def test_vast_host_is_reported_for_diagnostics():
     assert _vast_host(None) == "none"
 
 
-def test_request_expands_the_ad_container():
-    """A zero-height container gave the SDK nothing to load into."""
-    player = _player()
-    player._ima_expand_slot_for_request()
+def test_the_ad_container_is_created_sized_for_the_request():
+    """Flutter builds no platform view for an empty size, so the container
+    must exist with real dimensions before request_ads() is called."""
+    player = ImmersivePlayer(resource="https://example.com/v.mp4", ima_tag=TAG)
+    _attach_mobile_page(player)
+    assert player.ima_view is None  # nothing is mounted over the video
+    view = player._ima_create_view()
+    assert view is not None
+    assert player._ima_slot is not None
     assert player._ima_slot.height is None
     assert player._ima_slot.expand is True
+    assert player._ima_slot in player.controls
 
 
-def test_collapsing_restores_the_zero_height_slot():
+@pytest.mark.asyncio
+async def test_teardown_removes_the_container_from_the_tree():
     player = _player()
-    player._ima_set_slot_visible(True)
-    player._ima_set_slot_visible(False)
-    assert player._ima_slot.height == 0
-    assert player._ima_slot.expand is False
+    slot = player._ima_slot
+    view = player.ima_view
+    await player._ima_teardown_view("test")
+    assert view.destroyed is True
+    assert slot not in player.controls
+    assert player.ima_view is None
 
 
 # -- watchdog ---------------------------------------------------------------
 
 
 @pytest.mark.asyncio
-async def test_watchdog_collapses_the_slot_when_no_ad_starts(monkeypatch):
+async def test_watchdog_removes_the_container_when_no_ad_starts(monkeypatch):
     player = _player()
     monkeypatch.setattr(
         "components.player.immersive_player._IMA_REQUEST_WATCHDOG_S", 0.01
     )
-    player._ima_expand_slot_for_request()
     player._arm_ima_request_watchdog()
 
     task = player._ima_watchdog_task
     assert task is not None
     await asyncio.wait_for(task, timeout=2.0)
 
-    # No ad ever started: the video must not stay behind a black slot.
-    assert player._ima_slot.height == 0
-    assert player._ima_slot.expand is False
+    # No ad ever started: the platform view must not be left covering the
+    # video for the rest of the session.
+    assert player.ima_view is None
+    assert player._ima_slot is None
 
 
 @pytest.mark.asyncio
@@ -101,7 +132,6 @@ async def test_watchdog_does_not_collapse_a_playing_ad(monkeypatch):
     monkeypatch.setattr(
         "components.player.immersive_player._IMA_REQUEST_WATCHDOG_S", 0.01
     )
-    player._ima_expand_slot_for_request()
     player._ima_ad_active = True  # an ad is on screen
     player._arm_ima_request_watchdog()
     await asyncio.wait_for(player._ima_watchdog_task, timeout=2.0)
@@ -115,7 +145,6 @@ async def test_an_ad_event_cancels_the_watchdog(monkeypatch):
     monkeypatch.setattr(
         "components.player.immersive_player._IMA_REQUEST_WATCHDOG_S", 0.05
     )
-    player._ima_expand_slot_for_request()
     player._arm_ima_request_watchdog()
     task = player._ima_watchdog_task
 
@@ -123,7 +152,8 @@ async def test_an_ad_event_cancels_the_watchdog(monkeypatch):
     await player._on_ima_ad_event(_event(AdEventType.STARTED))
     await _settle(task)
     assert task.cancelled() or task.done()
-    assert player._ima_slot.expand is True
+    # The ad is playing, so the container must still be there.
+    assert player.ima_view is not None
 
 
 @pytest.mark.asyncio
@@ -168,20 +198,14 @@ async def _settle(task) -> None:
 
 @pytest.mark.asyncio
 async def test_teardown_destroys_the_view_and_cancels_the_watchdog():
-    destroyed = asyncio.Event()
-
-    class _View:
-        async def destroy(self):
-            destroyed.set()
-
     player = _player()
-    player.ima_view = _View()
+    view = player.ima_view
     player._arm_ima_request_watchdog()
     watchdog = player._ima_watchdog_task
 
     await player.teardown()
 
-    assert destroyed.is_set()
+    assert view.destroyed is True
     assert player._ima_destroyed is True
     await _settle(watchdog)
     assert watchdog is None or watchdog.cancelled() or watchdog.done()
@@ -191,12 +215,12 @@ async def test_teardown_destroys_the_view_and_cancels_the_watchdog():
 async def test_teardown_is_idempotent():
     calls = []
 
-    class _View:
+    class _CountingView:
         async def destroy(self):
             calls.append(1)
 
     player = _player()
-    player.ima_view = _View()
+    player.ima_view = _CountingView()
     await player.teardown()
     await player.teardown()
     assert len(calls) == 1

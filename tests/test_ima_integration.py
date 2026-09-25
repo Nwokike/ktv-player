@@ -71,7 +71,6 @@ def _player(page, tv=False, ad_service=None, ima_tag="tag", **kw):
             **kw,
         )
         p._mock_page = page
-        # The IMA view is created on mount (the page only exists then).
         p.did_mount()
     p.update = mock.Mock()
     p.video.play = mock.AsyncMock()
@@ -85,8 +84,6 @@ def _player(page, tv=False, ad_service=None, ima_tag="tag", **kw):
     p._arm_auto_pip = mock.Mock()
     p._disarm_auto_pip = mock.Mock()
     p._disable_auto_pip = mock.Mock()
-    if p.ima_view is not None:
-        p.ima_view = _ima()  # swap the real view for a mock
     return p
 
 
@@ -97,23 +94,30 @@ def _run_task_fns(page):
 # --- View construction ---
 
 
-def test_phone_has_ima_view(page):
-    """IMA is on every mobile build — the phone is the test rig with logs."""
+def test_phone_arms_no_ad_container_until_a_request(page):
+    """Nothing is mounted over the video while ordinary content plays.
+
+    The platform view composites opaquely, and Flutter only creates it once
+    the layout is non-empty — so it exists for the ad cycle, not the
+    session.
+    """
     p = _player(page, tv=False)
-    assert p.ima_view is not None
-    assert len(p.controls) == 4  # black, video, ima, overlay
+    assert p.ima_view is None
+    assert len(p.controls) == 3  # black, video, overlay
 
 
-def test_tv_has_ima_view_in_stack(page):
+def test_tv_creates_a_sized_ad_container_on_request(page):
     p = _player(page, tv=True)
-    assert p.ima_view is not None
-    assert len(p.controls) == 4  # + bounded IMA container, overlay still last
+    view = p._ima_create_view()
+    assert view is not None
+    assert len(p.controls) == 4  # + the IMA container, overlay still last
     from flet_ima import ImaAdsView
 
     assert p.controls[-1] is p.overlay
-    # The stack holds the real view created on mount (the attribute is
-    # swapped for a mock after construction by the helper).
     assert isinstance(p.controls[2].content, ImaAdsView)
+    # Sized: an empty layout would never create the native container.
+    assert p.controls[2].height is None
+    assert p.controls[2].expand is True
 
 
 def test_no_tag_disables_ima(page):
