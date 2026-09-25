@@ -24,6 +24,7 @@ from collections.abc import Callable
 import flet as ft
 from flet_billing import Billing, PurchaseStatus
 
+from core.channel import CHANNEL
 from core.state import state
 from database.manager import db_manager
 from services.kiri_license import KiriLicenseService, LicenseUnavailable
@@ -49,6 +50,13 @@ class PremiumService:
       Play will not sell to a sideloaded build no matter what the app does,
       so those surfaces get the Worker instead.
 
+    On the ``play`` channel (the AAB that ships through the Play Store)
+    premium does not exist at all: no Billing attach, no worker requests,
+    no purchase UI. The Play Console in use has no Google Payments merchant
+    profile, so there is nothing to sell with — and an unapproved external
+    checkout button inside a Play-distributed build is a policy violation.
+    Everything stays in the code, dormant, for the day that changes.
+
     Both paths end in the same place: ``state.is_premium = True``, which is
     the single flag every ad surface in the app already checks.
     """
@@ -66,6 +74,11 @@ class PremiumService:
         self._play_unlocked = False
         self._listeners: list[Callable[[], None]] = []
         self.license = KiriLicenseService(on_change=self._recompute_premium)
+        if CHANNEL == "play":
+            # Free-only build: no entitlement can be granted, so no
+            # purchase surface of any kind is wired up.
+            logger.info("Play channel build — premium disabled, free tier with ads")
+            return
         if self._billing_supported():
             self.billing = Billing(on_purchase_updated=self._on_purchases)
             # Service auto-registers against context.page (flet
@@ -138,6 +151,11 @@ class PremiumService:
         a paid app keeps premium with no network at all. Neither one alone
         is enough to unlock the other channel.
         """
+        if CHANNEL == "play":
+            # Free-only build: no cached entitlement from any channel may
+            # unlock it, not even one left over from a direct install.
+            state.is_premium = False
+            return
         try:
             self._play_unlocked = await db_manager.get_setting("premium") == "true"
         except Exception:
@@ -155,6 +173,8 @@ class PremiumService:
         first frame (AppController._post_render_startup), never before it.
         A failed store check never downgrades the local flag.
         """
+        if CHANNEL == "play":
+            return
         if self.billing is not None:
             if await self._play_can_bill():
                 self.backend = "play"
@@ -287,8 +307,17 @@ class PremiumService:
 
     # -- Kiri License surface ------------------------------------------------
 
+    def _premium_disabled(self) -> bool:
+        """True on the play channel, where no purchase may ever start."""
+        if CHANNEL == "play":
+            logger.info("Purchase ignored: the Play build has no premium")
+            return True
+        return False
+
     async def kiri_catalog(self):
         """Products offered by the license Worker, or [] when offline."""
+        if self._premium_disabled():
+            return []
         try:
             return await self.license.fetch_catalog()
         except LicenseUnavailable as ex:
@@ -300,12 +329,16 @@ class PremiumService:
 
     async def kiri_checkout(self, product_id: str, email: str):
         """Create a hosted payment and save the recovery ID."""
+        if self._premium_disabled():
+            raise LicenseUnavailable("Premium is not available in this build")
         checkout = await self.license.checkout(product_id, email)
         self._notify_listeners()
         return checkout
 
     async def kiri_restore(self, recovery_id: str):
         """Redeem a recovery ID; raises LicenseUnavailable with a reason."""
+        if self._premium_disabled():
+            raise LicenseUnavailable("Premium is not available in this build")
         status = await self.license.restore(recovery_id)
         # Not _activate(): a Kiri license must never write the Play cache
         # flag, or a lapsed subscription would stay unlocked forever.
@@ -314,6 +347,8 @@ class PremiumService:
 
     async def kiri_check_status(self):
         """Re-check the saved entitlement, keeping the local token offline."""
+        if self._premium_disabled():
+            return None
         status = await self.license.refresh()
         self._recompute_premium()
         return status

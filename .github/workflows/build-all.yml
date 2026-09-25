@@ -300,6 +300,9 @@ jobs:
           FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           FLET_ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
+          # Channel marker: the AAB that ships to Play is the "play" build —
+          # free tier with ads, no premium of any kind (core/channel.py).
+          echo 'CHANNEL = "play"' > src/core/channel.py
           # First flet pass may fail on IMA's desugaring
           # requirement; the patch+rebuild step below is the real build.
           set +e

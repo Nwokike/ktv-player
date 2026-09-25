@@ -7,6 +7,7 @@ import flet as ft
 from flet import Control
 
 from channels.provider import channel_provider
+from core.channel import CHANNEL
 from core.constants import (
     APP_NAME,
     APP_VERSION,
@@ -810,7 +811,13 @@ def SettingsScreen() -> Control:
     controls.extend([localization, data_mgmt, terminal])
     if banner_2:
         controls.append(banner_2)
-    controls.append(premium)
+    # The play channel (the Play Store AAB) has no premium at all: the
+    # console behind it has no Google Payments merchant profile, and an
+    # external-checkout button inside a Play-distributed build is a policy
+    # violation. Not even a disabled card — nothing to declare, nothing to
+    # reach, ads stay on. See core/channel.py.
+    if CHANNEL != "play":
+        controls.append(premium)
     controls.append(about)
 
     return ft.ListView(
