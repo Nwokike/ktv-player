@@ -140,11 +140,18 @@ class HLSProxy:
             ),
         )
 
-        self._server = await asyncio.start_server(
-            self._handle_client,
-            host=self.host,
-            port=self.requested_port,
-        )
+        try:
+            self._server = await asyncio.start_server(
+                self._handle_client,
+                host=self.host,
+                port=self.requested_port,
+            )
+        except BaseException:
+            # Socket bind failed (or startup was cancelled): close the
+            # client we already created, or it leaks for the process.
+            await self._http_client.aclose()
+            self._http_client = None
+            raise
 
         sockets = self._server.sockets
         if sockets:
@@ -161,7 +168,12 @@ class HLSProxy:
         """Stop the proxy server cleanly."""
         if self._server:
             self._server.close()
-            await self._server.wait_closed()
+            try:
+                # wait_closed() waits for every active connection, and a
+                # live segment stream would never finish — bound it.
+                await asyncio.wait_for(self._server.wait_closed(), timeout=2.0)
+            except (TimeoutError, asyncio.CancelledError):
+                logger.debug("Proxy server still draining after 2s — continuing")
             self._server = None
 
         if self._http_client:
@@ -344,7 +356,14 @@ class HLSProxy:
             )
             return
 
-        resp = await self._http_client.get(target_url, headers=upstream_headers)
+        try:
+            resp = await self._http_client.get(target_url, headers=upstream_headers)
+        except httpx.HTTPError as ex:
+            logger.warning("Upstream playlist request failed: %s", ex)
+            await self._send_response(
+                writer, 502, "text/plain", b"Upstream unavailable"
+            )
+            return
         if resp.status_code != 200:
             await self._send_response(
                 writer,
@@ -533,7 +552,14 @@ class HLSProxy:
         req = self._http_client.build_request(
             "GET", target_url, headers=upstream_headers
         )
-        resp = await self._http_client.send(req, stream=True)
+        try:
+            resp = await self._http_client.send(req, stream=True)
+        except httpx.HTTPError as ex:
+            logger.warning("Upstream stream request failed: %s", ex)
+            await self._send_response(
+                writer, 502, "text/plain", b"Upstream unavailable"
+            )
+            return
 
         try:
             status_line = f"HTTP/1.1 {resp.status_code} {resp.reason_phrase}\r\n"
@@ -563,6 +589,10 @@ class HLSProxy:
                 raise
             except (ConnectionResetError, BrokenPipeError):
                 pass
+            except httpx.HTTPError as ex:
+                # Upstream died mid-segment: the headers are already out,
+                # so the only honest answer is to end the stream.
+                logger.warning("Upstream stream failed mid-segment: %s", ex)
         finally:
             await resp.aclose()
 

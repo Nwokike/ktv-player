@@ -130,7 +130,18 @@ class LivelinessChecker:
                 client = self._get_http_client()
                 try:
                     resp = await client.head(url, timeout=check_timeout)
-                    is_live = resp.status_code < 400
+                    # 405/501 mean the server refuses HEAD — not that the
+                    # stream is down. Retry as a ranged GET before calling
+                    # the channel offline.
+                    if resp.status_code in (405, 501):
+                        resp = await client.get(
+                            url,
+                            headers={"Range": "bytes=0-0"},
+                            timeout=check_timeout,
+                        )
+                    is_live = resp.status_code in (200, 204, 206, 301, 302, 304) or (
+                        resp.status_code < 400 and resp.status_code != 405
+                    )
                 except Exception:
                     resp = await client.get(
                         url,

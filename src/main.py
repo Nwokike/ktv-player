@@ -921,7 +921,20 @@ async def main(page: ft.Page):
         with contextlib.suppress(Exception):
             from services.http_client import close_http_client
 
-            # The proxy owns a listening socket and a separate HTTP client;
+            # Position writes started from sync lifecycle hooks (will_unmount)
+        # outlive their caller; await them or the write is lost with the loop.
+        try:
+            from components.player.immersive_player import _orphan_tasks
+
+            if _orphan_tasks:
+                await asyncio.wait_for(
+                    asyncio.gather(*list(_orphan_tasks), return_exceptions=True),
+                    timeout=2.0,
+                )
+        except Exception:
+            logger.debug("Pending position writes could not be awaited", exc_info=True)
+
+        # The proxy owns a listening socket and a separate HTTP client;
         # without this it stayed alive after the session closed.
         try:
             if getattr(controller, "hls_proxy", None) is not None:

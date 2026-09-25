@@ -37,6 +37,9 @@ _cache_dir_initialized = False
 _last_evict_time = 0.0
 _last_failed_evict_time = 0.0
 _FAILED_LOGO_TTL = 300  # Don't retry failed logos for 5 minutes
+# A hostile or broken host must not be able to make the app buffer an
+# unbounded body: refuse anything past this and treat it as a failure.
+LOGO_MAX_BYTES = 2 * 1024 * 1024
 _FAILED_LOGO_EVICT_INTERVAL = 60.0  # Evict stale failed entries every 60s
 
 
@@ -104,7 +107,9 @@ def get_cached_logo(logo_url: str) -> str | None:
     return None
 
 
-async def _download_one(logo_url: str) -> str | None:
+async def _download_one(
+    logo_url: str, http_client: httpx.AsyncClient | None = None
+) -> str | None:
     if not logo_url or logo_url == "/icon.png":
         return None
 
@@ -115,12 +120,27 @@ async def _download_one(logo_url: str) -> str | None:
     try:
         from services.http_client import get_http_client
 
-        client = get_http_client()
+        # The caller's client wins: download_logo() has always accepted one
+        # and never passed it down, so the parameter was dead.
+        client = http_client or get_http_client()
         logo_timeout = httpx.Timeout(LOGO_DOWNLOAD_TIMEOUT, connect=3.0, read=4.0)
-        resp = await client.get(logo_url, timeout=logo_timeout)
-        resp.raise_for_status()
+        # Streamed, capped read: `resp.content` buffers the whole body
+        # in memory first, which a 50MB response would make visible on
+        # low-memory Android devices.
+        buf = bytearray()
+        async with client.stream("GET", logo_url, timeout=logo_timeout) as resp:
+            resp.raise_for_status()
+            async for chunk in resp.aiter_bytes(65536):
+                buf.extend(chunk)
+                if len(buf) > LOGO_MAX_BYTES:
+                    logger.warning(
+                        "Refusing oversized logo (%d bytes): %s", len(buf), logo_url
+                    )
+                    _failed_logos[logo_url] = time.time()
+                    return None
+        content = bytes(buf)
 
-        detected = _detect_image_type(resp.content)
+        detected = _detect_image_type(content)
         if detected is None:
             _failed_logos[logo_url] = time.time()
             return None
@@ -132,7 +152,7 @@ async def _download_one(logo_url: str) -> str | None:
             with open(path, "wb") as f:
                 f.write(data)
 
-        await asyncio.to_thread(_write_file, cached_path, resp.content)
+        await asyncio.to_thread(_write_file, cached_path, content)
         return cached_path
     except Exception:
         _failed_logos[logo_url] = time.time()
@@ -204,15 +224,12 @@ def enqueue_logo_download(logo_url: str):
     _evict_stale_failed_logos()
     _ensure_queue()
 
-    async def _enqueue():
-        try:
-            await _logo_queue.put(logo_url)
-        except Exception:
-            logger.debug("Failed to enqueue logo download: %s", logo_url)
-
+    # Non-blocking insert: the old create_task was untracked, so shutdown
+    # could neither cancel nor await it.
     try:
-        loop = asyncio.get_running_loop()
-        loop.create_task(_enqueue())
+        _logo_queue.put_nowait(logo_url)
+    except asyncio.QueueFull:
+        logger.debug("Logo queue full, dropping: %s", logo_url)
     except RuntimeError:
         pass
 
@@ -226,7 +243,7 @@ async def download_logo(
 
     _ensure_cache_dir()
     await _evict_oldest_if_needed()
-    return await _download_one(logo_url)
+    return await _download_one(logo_url, http_client)
 
 
 async def resolve_logo(logo_url: str) -> str:

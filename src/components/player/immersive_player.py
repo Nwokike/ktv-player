@@ -1,6 +1,7 @@
 import asyncio
 import contextlib
 import logging
+import os
 import time
 from collections.abc import Callable
 from typing import Any
@@ -28,6 +29,11 @@ _WATCHDOG_SECONDS = 20.0
 # _maybe_save_position_periodically).
 _POSITION_SAVE_INTERVAL = 10.0
 
+# Position saves started from will_unmount (a sync hook) can outlive the
+# page. They are tracked so app shutdown can await them instead of
+# leaving the write to a loop that is about to close.
+_orphan_tasks: set = set()
+
 
 def _short_variant_label(variant: dict) -> str:
     """Compact chip label: '1280x720' → '720p', else bandwidth."""
@@ -38,6 +44,96 @@ def _short_variant_label(variant: dict) -> str:
     if bandwidth >= 1_000_000:
         return f"{bandwidth / 1_000_000:.0f}M"
     return f"V{(variant.get('index') or 0) + 1}"
+
+
+def _android_activity_ref():
+    """Resolve the running Android activity, or None off-device."""
+    from jnius import autoclass
+
+    candidates = [
+        os.getenv("MAIN_ACTIVITY_HOST_CLASS_NAME"),
+        "ng.kiri.ktvplayer.MainActivity",
+        "net.flet.MainActivity",
+        "com.flet.flet_android.MainActivity",
+    ]
+    for cls_name in candidates:
+        if not cls_name:
+            continue
+        try:
+            host = autoclass(cls_name)
+            activity = getattr(host, "mActivity", None) or getattr(
+                host, "mCurrentActivity", None
+            )
+            if activity:
+                return activity
+        except Exception as ex:
+            logger.debug("Activity candidate %s unavailable: %s", cls_name, ex)
+    return None
+
+
+def _save_screenshot_android(
+    img_bytes: bytes, filename: str, mime_type: str
+) -> str | None:
+    """Insert the snapshot into MediaStore (API 29+ scoped storage).
+
+    Returns the content URI string on success, or None when the caller
+    should fall back to a direct filesystem write.
+    """
+    try:
+        from jnius import autoclass
+
+        activity = _android_activity_ref()
+        if activity is None:
+            return None
+        resolver = activity.getContentResolver()
+        ContentValues = autoclass("android.content.ContentValues")
+        image_media = autoclass("android.provider.MediaStore$Images$Media")
+
+        values = ContentValues()
+        values.put("_display_name", filename)
+        values.put("mime_type", mime_type)
+        values.put("relative_path", "Pictures/KTVPlayer")
+        values.put("is_pending", 1)
+        uri = resolver.insert(image_media.EXTERNAL_CONTENT_URI, values)
+        if uri is None:
+            return None
+        try:
+            out = resolver.openOutputStream(uri)
+            if out is None:
+                resolver.delete(uri, None, None)
+                return None
+            try:
+                out.write(img_bytes)
+                out.flush()
+            finally:
+                out.close()
+            pending = ContentValues()
+            pending.put("is_pending", 0)
+            resolver.update(uri, pending, None, None)
+        except Exception:
+            with contextlib.suppress(Exception):
+                resolver.delete(uri, None, None)
+            return None
+        logger.info("Screenshot saved to MediaStore: %s", filename)
+        return str(uri.toString())
+    except Exception as ex:
+        # Falls through to the legacy direct-write path.
+        logger.debug("MediaStore screenshot path unavailable: %s", ex)
+        return None
+
+
+def _scan_for_gallery(filepath: str) -> None:
+    """Ask Android to index the file so it shows in Gallery/Photos."""
+    try:
+        from jnius import autoclass
+
+        activity = _android_activity_ref()
+        if activity is None:
+            return
+        scanner = autoclass("android.media.MediaScannerConnection")
+        scanner.scanFile(activity, [filepath], None, None)
+    except Exception as ex:
+        logger.debug("MediaScannerConnection scan failed: %s", ex)
 
 
 class ImmersivePlayer(ft.Stack):
@@ -283,11 +379,13 @@ class ImmersivePlayer(ft.Stack):
                 pos_sec = 0.0
             try:
                 loop = asyncio.get_running_loop()
-                loop.create_task(
+                task = loop.create_task(
                     db_manager.update_history_position(
                         self.source_url, pos_sec, self._last_duration
                     )
                 )
+                _orphan_tasks.add(task)
+                task.add_done_callback(_orphan_tasks.discard)
             except RuntimeError:
                 pass
 
@@ -411,15 +509,6 @@ class ImmersivePlayer(ft.Stack):
                 include_libass_subtitles=inc_subs,
             )
             if img_bytes:
-                # Save to public Pictures/KTVPlayer directory on mobile/desktop
-                if os.path.exists("/storage/emulated/0"):
-                    pictures_dir = "/storage/emulated/0/Pictures/KTVPlayer"
-                else:
-                    user_home = os.path.expanduser("~")
-                    pictures_dir = os.path.join(user_home, "Pictures", "KTVPlayer")
-
-                os.makedirs(pictures_dir, exist_ok=True)
-
                 import datetime
                 import re
 
@@ -429,56 +518,37 @@ class ImmersivePlayer(ft.Stack):
                 timestamp = datetime.datetime.now(tz=datetime.UTC).strftime(
                     "%Y-%m-%d_%H-%M-%S"
                 )
-
                 ext = "jpg" if fmt == "image/jpeg" else "png"
                 filename = f"{safe_title}_{timestamp}.{ext}"
-                filepath = os.path.join(pictures_dir, filename)
+                mime_type = "image/jpeg" if ext == "jpg" else "image/png"
 
-                def _write_and_scan():
-                    with open(filepath, "wb") as f:
-                        f.write(img_bytes)
+                # Android scoped storage: writing straight into
+                # /storage/emulated/0/Pictures is denied on API 29+, which
+                # is why snapshots silently failed there. MediaStore is the
+                # supported route; the direct write remains the fallback
+                # for desktop and older Android.
+                saved_path = await asyncio.to_thread(
+                    _save_screenshot_android, img_bytes, filename, mime_type
+                )
 
-                    # Scan file so Android Gallery / Google Photos indexes it immediately
-                    try:
-                        from jnius import autoclass  # type: ignore[import-not-found]
+                if saved_path is None:
+                    if os.path.exists("/storage/emulated/0"):
+                        pictures_dir = "/storage/emulated/0/Pictures/KTVPlayer"
+                    else:
+                        user_home = os.path.expanduser("~")
+                        pictures_dir = os.path.join(user_home, "Pictures", "KTVPlayer")
+                    os.makedirs(pictures_dir, exist_ok=True)
+                    filepath = os.path.join(pictures_dir, filename)
 
-                        candidate_classes = [
-                            os.getenv("MAIN_ACTIVITY_HOST_CLASS_NAME"),
-                            "ng.kiri.ktvplayer.MainActivity",
-                            "net.flet.MainActivity",
-                            "com.flet.flet_android.MainActivity",
-                        ]
-                        activity = None
-                        for cls_name in candidate_classes:
-                            if not cls_name:
-                                continue
-                            try:
-                                host = autoclass(cls_name)
-                                activity = getattr(host, "mActivity", None) or getattr(
-                                    host, "mCurrentActivity", None
-                                )
-                                if activity:
-                                    break
-                            except Exception as ex:
-                                logger.debug(
-                                    "Candidate activity %s unavailable for MediaScanner: %s",
-                                    cls_name,
-                                    ex,
-                                )
+                    def _write_and_scan():
+                        with open(filepath, "wb") as f:
+                            f.write(img_bytes)
+                        _scan_for_gallery(filepath)
 
-                        if activity:
-                            MediaScannerConnection = autoclass(
-                                "android.media.MediaScannerConnection"
-                            )
-                            MediaScannerConnection.scanFile(
-                                activity, [filepath], None, None
-                            )
-                    except Exception as ex:
-                        logger.debug("MediaScannerConnection scan failed: %s", ex)
+                    await asyncio.to_thread(_write_and_scan)
+                    saved_path = filepath
 
-                await asyncio.to_thread(_write_and_scan)
-
-                notify(f"📸 Snapshot saved to Pictures/KTVPlayer: {filename}")
+                notify(f"📸 Snapshot saved to {saved_path}")
             else:
                 notify_warning("Unable to capture video snapshot.")
         except Exception as ex:
@@ -632,11 +702,13 @@ class ImmersivePlayer(ft.Stack):
             pos_sec = 0.0
         try:
             loop = asyncio.get_running_loop()
-            loop.create_task(
+            task = loop.create_task(
                 db_manager.update_history_position(
                     self.source_url, pos_sec, self._last_duration
                 )
             )
+            _orphan_tasks.add(task)
+            task.add_done_callback(_orphan_tasks.discard)
         except RuntimeError:
             pass
 

@@ -29,11 +29,12 @@ class AdService:
         self._preload_retry_count: int = 0
         self._ad_closed_event: asyncio.Event | None = None
         self._ad_loaded_event: asyncio.Event | None = None
-        # Fail closed until UMP actually answers: banners are built during
-        # the first render, before _post_render_startup runs the consent
-        # flow, and starting True meant ad requests could go out in a
-        # regulated region before consent existed.
-        self._can_request_ads: bool = False
+        # Sherlock's model (the standard for ads/consent in these apps):
+        # open by default, closed only when flet_ads itself is missing, and
+        # an error during UMP falls back to allowing ads with a warning —
+        # a failed consent call is not a denial.
+        self._can_request_ads: bool = True
+        self._shown_interstitial = None
         self._consent_manager = None
         self._is_shutting_down: bool = False
 
@@ -51,7 +52,8 @@ class AdService:
     async def gather_consent(self):
         """Run UMP consent flow. Only shows UI in regulated regions (EEA/UK)."""
         if not _HAS_FLET_ADS:
-            self._can_request_ads = True
+            logger.info("flet_ads not available — ads disabled this build")
+            self._can_request_ads = False
             return
         try:
             if not self.page.platform.is_mobile():
@@ -71,27 +73,42 @@ class AdService:
             await self._consent_manager.load_and_show_consent_form_if_required()
             self._can_request_ads = await self._consent_manager.can_request_ads()
         except Exception as e:
-            # Fail closed: a consent flow we could not complete is not a
-            # consent to serve ads. flet_ads treats this flag as the gate
-            # for every ad request.
-            logger.warning("UMP consent flow failed — ads withheld: %s", e)
-            self._can_request_ads = False
+            # Sherlock's policy: a failed UMP call is not a refusal, so
+            # allow ads and say why. (Only an explicit can_request_ads()
+            # answer of False disables them.)
+            logger.warning("UMP consent flow failed, defaulting to allow ads: %s", e)
+            self._can_request_ads = True
 
-    async def show_privacy_options(self):
-        """Show privacy options form if required by regulation (GDPR)."""
+    async def show_privacy_options(self) -> str:
+        """Open the UMP privacy options form if regulation requires it.
+
+        Returns an honest outcome the UI can surface — never a silent no-op
+        (Sherlock's contract):
+          "form_shown" | "not_required" | "no_manager" | "error:<message>"
+        """
         if not self._consent_manager:
-            return
+            logger.warning("Privacy options requested but consent manager is missing")
+            return "no_manager"
         try:
             status = (
                 await self._consent_manager.get_privacy_options_requirement_status()
             )
-            if status == fta.PrivacyOptionsRequirementStatus.REQUIRED:
-                await self._consent_manager.show_privacy_options_form()
-                self._can_request_ads = await self._consent_manager.can_request_ads()
-        except Exception:
-            pass
-
-    # ── Ad Controls ───────────────────────────────────────────────────────────
+        except Exception as e:
+            logger.warning("Privacy options status check failed: %s", e)
+            return f"error:{e}"
+        if status != fta.PrivacyOptionsRequirementStatus.REQUIRED:
+            logger.info("Privacy options form not required (status=%s)", status)
+            return "not_required"
+        try:
+            await self._consent_manager.show_privacy_options_form()
+            self._can_request_ads = await self._consent_manager.can_request_ads()
+            logger.info(
+                "Privacy options form shown, can_request_ads=%s", self._can_request_ads
+            )
+            return "form_shown"
+        except Exception as e:
+            logger.warning("Privacy options form failed to open: %s", e)
+            return f"error:{e}"
 
     def _create_ad_container(self, ad_control: ft.Control) -> ft.Control:
         return ft.Container(
@@ -130,7 +147,9 @@ class AdService:
                 unit_id=self.get_banner_unit_id(),
                 width=300,
                 height=250,
-                on_error=lambda e: None,
+                on_error=lambda e: logger.warning(
+                    "BannerAd load error: %s", getattr(e, "data", e)
+                ),
             )
             return self._create_ad_container(ad)
         except Exception:
@@ -149,7 +168,9 @@ class AdService:
                 unit_id=self.get_banner_unit_id(),
                 width=320,
                 height=100,
-                on_error=lambda e: None,
+                on_error=lambda e: logger.warning(
+                    "BannerAd load error: %s", getattr(e, "data", e)
+                ),
             )
             return self._create_ad_container(ad)
         except Exception:
@@ -168,7 +189,9 @@ class AdService:
                 unit_id=self.get_banner_unit_id(),
                 width=320,
                 height=50,
-                on_error=lambda e: None,
+                on_error=lambda e: logger.warning(
+                    "BannerAd load error: %s", getattr(e, "data", e)
+                ),
             )
             return self._create_ad_container(ad)
         except Exception:
@@ -188,7 +211,7 @@ class AdService:
                 return
 
             logger.info("Preloading new InterstitialAd...")
-            self.interstitial = fta.InterstitialAd(
+            ad = fta.InterstitialAd(
                 unit_id=self.get_interstitial_unit_id(),
                 on_load=lambda e: (
                     logger.info("Interstitial ad preloaded successfully"),
@@ -200,6 +223,12 @@ class AdService:
                 ),
                 on_close=self._handle_close,
             )
+            # Keep-alive: Flet's session drops unreferenced services after
+            # every event, which can unregister an ad nobody has displayed
+            # yet (the reason preloaded ads could vanish).
+            if ad not in self.page.services:
+                self.page.services.append(ad)
+            self.interstitial = ad
             self._preload_retry_count = 0
         except Exception:
             logger.exception("Failed to preload InterstitialAd")
@@ -216,7 +245,7 @@ class AdService:
     def _handle_preload_error(self, on_close: Callable | None = None):
         self.interstitial = None
         if self._preload_retry_count < AD_PRELOAD_MAX_RETRIES:
-            self.page.run_task(self._retry_preload, on_close)
+            self._retry_task = self.page.run_task(self._retry_preload, on_close)
 
     async def _retry_preload(self, on_close: Callable | None = None):
         self._preload_retry_count += 1
@@ -227,10 +256,19 @@ class AdService:
     async def close(self):
         """Cancel pending retries and release resources."""
         self._is_shutting_down = True
+        for ad in (self.interstitial, self._shown_interstitial):
+            if ad is not None:
+                _release_service(self.page.services, ad)
+        retry = getattr(self, "_retry_task", None)
+        if retry is not None and not retry.done():
+            retry.cancel()
         self.interstitial = None
+        self._shown_interstitial = None
 
     async def _handle_close(self, e):
         logger.info("Interstitial ad closed by user")
+        _release_service(self.page.services, self._shown_interstitial)
+        self._shown_interstitial = None
         self.interstitial = None
 
         if self._ad_closed_event is not None:
@@ -268,6 +306,9 @@ class AdService:
             if self.interstitial:
                 try:
                     logger.info("Showing preloaded interstitial ad...")
+                    # Strong ref until on_close: without it Flet's service GC
+                    # can unregister the ad mid-display.
+                    self._shown_interstitial = self.interstitial
                     self._ad_closed_event = asyncio.Event()
                     await self.interstitial.show()
                     try:
@@ -283,7 +324,9 @@ class AdService:
                     logger.exception("Failed to show preloaded interstitial ad")
                     if self._ad_closed_event is not None:
                         self._ad_closed_event.set()
+                    _release_service(self.page.services, self.interstitial)
                     self.interstitial = None
+                    self._shown_interstitial = None
 
         # If no ad is preloaded (or it failed), load and show a fresh ad on-demand
         logger.info("No preloaded ad ready. Loading fresh ad on-demand...")
@@ -307,6 +350,10 @@ class AdService:
 
         def handle_close(e):
             logger.info("On-demand ad closed by user")
+            _release_service(
+                self.page.services, getattr(self, "_shown_interstitial", None)
+            )
+            self._shown_interstitial = None
             ad_closed.set()
             # Start preloading a new background ad for the next playback session
             self.page.run_task(self.preload_interstitial)
@@ -318,6 +365,9 @@ class AdService:
                 on_error=handle_error,
                 on_close=handle_close,
             )
+            if fresh_ad not in self.page.services:
+                self.page.services.append(fresh_ad)
+            self._shown_interstitial = fresh_ad
             # Wait up to 10 seconds for the ad to load and show. If it fails or takes
             # too long, timeout and let the video play so the user isn't stuck.
             try:
@@ -328,3 +378,12 @@ class AdService:
         except Exception:
             logger.exception("Failed to create on-demand interstitial ad")
             return False
+
+
+def _release_service(services: list, item) -> None:
+    """Drop a spent service from the keep-alive list so Flet's service GC
+    can unregister it; harmless if it is already gone (Sherlock pattern)."""
+    try:
+        services.remove(item)
+    except (ValueError, AttributeError):
+        pass

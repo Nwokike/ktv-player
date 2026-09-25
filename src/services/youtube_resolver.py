@@ -290,7 +290,7 @@ async def _fetch_live_page(
     """Fetch a /live (or any YouTube) page and return
     (video_id, api_key, base_js_url, embedded player_response)."""
     try:
-        r = await client.get(url, headers=_page_headers(), cookies=_CONSENT_COOKIES)
+        r = await client.get(url, headers=_page_headers())
     except Exception as e:
         logger.warning("YouTube page fetch failed: %s", e)
         return None, None, None, None
@@ -349,7 +349,11 @@ async def resolve_youtube_url(url: str) -> str:
     js_url = None
     page_response = None
 
-    async with httpx.AsyncClient(timeout=15, follow_redirects=True) as client:
+    # Cookies belong on the client: per-request `cookies=` is deprecated in
+    # httpx 0.28 and emits a DeprecationWarning on every call.
+    async with httpx.AsyncClient(
+        timeout=15, follow_redirects=True, cookies=_CONSENT_COOKIES
+    ) as client:
         if not video_id or "/live" in url:
             video_id, api_key, js_url, page_response = await _fetch_live_page(
                 client, url
