@@ -13,6 +13,8 @@ logger = logging.getLogger("LocalScreen")
 # these two guards live at module scope. Scans serialize (the last one wins,
 # none overlap) and thumbnail prewarming is cancelled rather than leaked.
 _SCAN_LOCK = asyncio.Lock()
+# How long to wait for the user to answer Android's delete-consent dialog.
+_CONSENT_WAIT_POLLS = 20
 _prewarm_task: asyncio.Task | None = None
 
 from components.empty_state import EmptyState
@@ -314,11 +316,26 @@ def LocalScreen() -> Control:
                 )
             )
 
+        async def _await_consent_delete(content_uri: str) -> bool:
+            """Wait for the user to answer the system delete dialog.
+
+            The dialog is a separate activity, so the answer cannot come back
+            through a callback we own — the only reliable signal is the row
+            disappearing from MediaStore. Polled for 20s, which covers a
+            deliberate read-and-tap, and a decline simply ends the wait.
+            """
+            from services.local_scanner import media_store_exists
+
+            for _ in range(_CONSENT_WAIT_POLLS):
+                await asyncio.sleep(1.0)
+                if not await asyncio.to_thread(media_store_exists, content_uri):
+                    return True
+            return False
+
         async def _delete_video(v, page):
             from services.local_scanner import (
                 delete_local_file,
                 delete_media_store_video,
-                media_store_exists,
                 request_media_store_delete,
             )
             from utils.notifications import notify, notify_warning
@@ -332,15 +349,16 @@ def LocalScreen() -> Control:
                 )
             if not deleted and v.content_uri:
                 # Android 11+ refuses deletes of media this app doesn't own
-                # unless the user approves in the system dialog.
+                # unless the user approves in the system dialog. The answer
+                # arrives when the user taps Allow, not when the dialog
+                # opens — so poll for it rather than deciding after a fixed
+                # pause, which reported "Android kept a copy" for deletes
+                # that had actually succeeded a second later.
                 requested = await asyncio.to_thread(
                     request_media_store_delete, v.content_uri
                 )
                 if requested:
-                    await asyncio.sleep(1.5)
-                    deleted = not await asyncio.to_thread(
-                        media_store_exists, v.content_uri
-                    )
+                    deleted = await _await_consent_delete(v.content_uri)
             if not deleted and v.path:
                 deleted = await asyncio.to_thread(delete_local_file, v.path)
             if not deleted:

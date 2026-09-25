@@ -33,6 +33,9 @@ _IMA_PROGRESS_INTERVAL = 0.2
 # request that never produces an event must not leave a black rectangle
 # over the video.
 _IMA_REQUEST_WATCHDOG_S = 8.0
+# Time for the ad-container resize to reach the client before the SDK's
+# deferred request_ads() is evaluated against it.
+_IMA_LAYOUT_SETTLE_S = 0.5
 
 
 def _vast_host(tag: str | None) -> str:
@@ -773,10 +776,16 @@ class ImmersivePlayer(ft.Stack):
         # the request. An earlier build requested into a zero-height slot
         # and the SDK never produced an event at all.
         self._ima_expand_slot_for_request()
+        # `update()` only queues the patch (Flet 1.0.1 has no awaited
+        # update on a control), and the Dart side defers request_ads()
+        # until the native view is laid out. Requesting in the same tick
+        # meant the SDK was asked before the resize reached it, and it
+        # stayed silent: no event, no ad manager, no error.
+        await asyncio.sleep(_IMA_LAYOUT_SETTLE_S)
         logger.info(
             "IMA: requesting pre-roll (tag_host=%s container=expanded duration=%s)",
             _vast_host(self._ima_tag),
-            f"{self._last_duration:.1f}s" if self._last_duration > 0 else "live",
+            f"{self._last_duration:.1f}s" if self._last_duration > 0 else "unknown",
         )
         self._arm_ima_request_watchdog()
         try:

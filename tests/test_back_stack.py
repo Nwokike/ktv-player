@@ -165,3 +165,53 @@ def test_controller_methods_exposes_modal_methods():
     assert inspect.iscoroutinefunction(methods.push_modal)
     assert inspect.iscoroutinefunction(methods.close_modal)
     assert callable(methods.pop_modal)
+
+
+# -- View.controls is not always a list -------------------------------------
+# A device log captured the crash this guards:
+#   main.py view_pop -> _player_in_top_view
+#   TypeError: 'Component' object is not iterable
+# Flet types View.controls as a list, but hands back a bare Component when a
+# view has a single child, and iterating that kills the back press.
+
+
+class _SingleChildView:
+    def __init__(self, child):
+        self.controls = child
+        self.route = "/"
+
+
+def test_view_children_normalises_a_single_component():
+    child = mock.MagicMock()
+    assert AppController._view_children(_SingleChildView(child)) == [child]
+
+
+def test_view_children_passes_through_a_list():
+    children = [mock.MagicMock(), mock.MagicMock()]
+    view = mock.MagicMock()
+    view.controls = children
+    assert AppController._view_children(view) == children
+
+
+def test_view_children_handles_a_view_with_none():
+    view = mock.MagicMock()
+    view.controls = None
+    assert AppController._view_children(view) == []
+
+
+def test_back_press_does_not_crash_on_a_single_child_view():
+    """The regression, end to end: a back press with a non-list view."""
+    controller = AppController(fake_page())
+    player = mock.MagicMock()
+    player._is_closing = False
+    player._position_saved = False
+    view = _SingleChildView(player)
+    view.route = "/play"
+    controller.page.views = [view]
+
+    with mock.patch.object(
+        AppController, "_find_immersive_player", return_value=player
+    ):
+        controller._handle_back()  # must not raise
+
+    assert player._is_closing is True

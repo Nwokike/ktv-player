@@ -347,11 +347,27 @@ class AppController:
 
         self._handle_shell_back()
 
+    @staticmethod
+    def _view_children(view) -> list:
+        """The view's children as a list.
+
+        `View.controls` is typed as a list, but Flet hands back a bare
+        `Component` when a view holds exactly one child (the dashboard does).
+        Iterating that directly raises `TypeError: 'Component' object is not
+        iterable` — which is a crash on every back press.
+        """
+        children = getattr(view, "controls", None)
+        if children is None:
+            return []
+        if isinstance(children, (list, tuple)):
+            return list(children)
+        return [children]
+
     def _player_in_top_view(self) -> ImmersivePlayer | None:
         """The ImmersivePlayer in the topmost view, if any."""
         if not self.page.views:
             return None
-        for control in getattr(self.page.views[-1], "controls", None) or []:
+        for control in self._view_children(self.page.views[-1]):
             player = self._find_immersive_player(control)
             if player:
                 return player
@@ -585,7 +601,7 @@ class AppController:
             # was cleared at launch) — closing it returns to the caller.
             # Checked BEFORE the plain pop branch: the underlay makes
             # len(views) > 1 true for deep links too.
-            player = self._find_immersive_player(self.page.views[-1].controls[0])
+            player = self._player_in_top_view()
             if player and not (
                 getattr(player, "_is_closing", False)
                 and getattr(player, "_position_saved", False)
@@ -802,7 +818,7 @@ class AppController:
         may only have a moment — better a late checkpoint than none."""
         if not self.page.views:
             return
-        for ctrl in self.page.views[-1].controls:
+        for ctrl in self._view_children(self.page.views[-1]):
             player = self._find_immersive_player(ctrl)
             if player and not getattr(player, "_is_closing", False):
                 try:
