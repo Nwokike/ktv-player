@@ -67,8 +67,10 @@ class LicenseClaims:
 
 
 def _b64url_decode(value: str) -> bytes:
+    if not isinstance(value, str):
+        raise TypeError("base64url value must be text")
     padded = value + "=" * ((-len(value)) % 4)
-    return base64.urlsafe_b64decode(padded)
+    return base64.b64decode(padded, altchars=b"-_", validate=True)
 
 
 def _point_add(p1, p2):
@@ -92,7 +94,12 @@ def _point_add(p1, p2):
 
 def _public_point_from_spki(public_key: str) -> tuple[int, int]:
     """Pull the uncompressed public point out of a base64url SPKI blob."""
-    der = _b64url_decode(public_key)
+    if not isinstance(public_key, str):
+        raise TokenRejected("bad_public_key", "public key must be text")
+    try:
+        der = _b64url_decode(public_key)
+    except Exception as ex:  # binascii.Error, ValueError, TypeError
+        raise TokenRejected("bad_public_key", "not valid base64url") from ex
     if len(der) < 65 or der[-65] != 0x04:
         raise TokenRejected("bad_public_key", "not a P-256 SPKI public key")
     x = int.from_bytes(der[-64:-32], "big")
@@ -177,6 +184,19 @@ def verify_token(
     if not _verify_signature(public_key, payload_b64.encode("utf-8"), signature):
         raise TokenRejected("bad_signature")
 
+    # Every numeric claim is validated here: a signed token carrying a
+    # string or non-finite `exp` must be rejected as malformed, not raise
+    # a ValueError/OverflowError into the settings handler.
+    try:
+        issued_at_raw = claims_raw.get("iat")
+        expires_raw = claims_raw.get("exp")
+        if issued_at_raw is not None and type(issued_at_raw) is not int:
+            raise ValueError("iat must be an integer")
+        if expires_raw is not None and type(expires_raw) is not int:
+            raise ValueError("exp must be an integer or null")
+    except ValueError as ex:
+        raise TokenRejected("malformed_claims", str(ex)) from ex
+
     if claims_raw.get("iss") != ISSUER:
         raise TokenRejected("bad_issuer", str(claims_raw.get("iss")))
     if claims_raw.get("app") != app_id:
@@ -190,7 +210,7 @@ def verify_token(
 
     expires_at = claims_raw.get("exp")
     current = time.time() if now is None else now
-    if expires_at is not None and float(expires_at) <= current:
+    if expires_at is not None and int(expires_at) <= current:
         raise TokenRejected("expired", str(expires_at))
 
     return LicenseClaims(

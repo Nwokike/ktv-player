@@ -250,7 +250,6 @@ class ImmersivePlayer(ft.Stack):
             alignment=ft.Alignment.CENTER,
             title=self.title or "KTV Player",
             controls=self._build_controls(),
-            on_load=lambda e: self._hide_overlay(),
             on_duration_change=self._on_duration_change,
             on_position_change=self._on_pos_change,
             on_error=self._on_error,
@@ -569,38 +568,48 @@ class ImmersivePlayer(ft.Stack):
 
         await cycle_speed(self)
 
+    @staticmethod
+    def _event_seconds(value) -> float | None:
+        """Seconds from an on_position/on_duration event payload.
+
+        flet-video 1.0.1 delivers a `flet.Duration` (flet_video/video.py
+        documents it as such), and `Duration` has no __float__ — coercing
+        one with float() raised TypeError, which the old bare `except`
+        swallowed. That is why position/duration stayed at 0.0 and every
+        close logged "position save skipped ... dur=0.0 pos=0.0": resume
+        never had a value to save.
+        """
+        if isinstance(value, ft.Duration):
+            return float(value.in_seconds)
+        if isinstance(value, bool):
+            return None
+        if isinstance(value, (int, float)):
+            # Older event shapes sent milliseconds or microseconds.
+            val = float(value)
+            if val > 1_000_000:
+                return val / 1_000_000.0
+            if val > 1_000:
+                return val / 1_000.0
+            return val
+        return None
+
     def _on_duration_change(self, e: ft.ControlEvent | None = None):
         if not self._overlay_hidden:
             self._hide_overlay()
-        if e and hasattr(e, "data") and e.data:
-            try:
-                val = float(e.data)
-                if val > 1_000_000:
-                    self._last_duration = val / 1_000_000.0
-                elif val > 1_000:
-                    self._last_duration = val / 1_000.0
-                elif val > 0:
-                    self._last_duration = val
-            except Exception:
-                pass
+        if e and getattr(e, "data", None) is not None:
+            seconds = self._event_seconds(e.data)
+            if seconds is not None:
+                self._last_duration = seconds
         self._check_and_trigger_seek()
 
     def _on_pos_change(self, e: ft.ControlEvent | None = None):
         if not self._overlay_hidden:
             self._hide_overlay()
-        if e and hasattr(e, "data") and e.data:
-            try:
-                val = float(e.data)
-                if val > 1_000_000:
-                    self._last_position = val / 1_000_000.0
-                elif val > 1_000:
-                    self._last_position = val / 1_000.0
-                elif val > 0:
-                    self._last_position = val
-            except Exception:
-                pass
+        if e and getattr(e, "data", None) is not None:
+            seconds = self._event_seconds(e.data)
+            if seconds is not None:
+                self._last_position = seconds
         self._check_and_trigger_seek()
-        self._maybe_save_position_periodically()
 
     def _maybe_save_position_periodically(self):
         """Throttled VOD-only checkpoint save (~every 10s). Android can kill

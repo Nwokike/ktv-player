@@ -29,7 +29,11 @@ class AdService:
         self._preload_retry_count: int = 0
         self._ad_closed_event: asyncio.Event | None = None
         self._ad_loaded_event: asyncio.Event | None = None
-        self._can_request_ads: bool = True
+        # Fail closed until UMP actually answers: banners are built during
+        # the first render, before _post_render_startup runs the consent
+        # flow, and starting True meant ad requests could go out in a
+        # regulated region before consent existed.
+        self._can_request_ads: bool = False
         self._consent_manager = None
         self._is_shutting_down: bool = False
 
@@ -67,8 +71,11 @@ class AdService:
             await self._consent_manager.load_and_show_consent_form_if_required()
             self._can_request_ads = await self._consent_manager.can_request_ads()
         except Exception as e:
-            logger.warning("UMP consent flow failed, defaulting to allow ads: %s", e)
-            self._can_request_ads = True
+            # Fail closed: a consent flow we could not complete is not a
+            # consent to serve ads. flet_ads treats this flag as the gate
+            # for every ad request.
+            logger.warning("UMP consent flow failed — ads withheld: %s", e)
+            self._can_request_ads = False
 
     async def show_privacy_options(self):
         """Show privacy options form if required by regulation (GDPR)."""

@@ -168,6 +168,9 @@ class HLSProxy:
             await self._http_client.aclose()
             self._http_client = None
 
+        # A stale port would keep handing out URLs for a dead proxy.
+        self.port = None
+
         logger.info("HLSProxy stopped")
 
     def get_proxy_url(
@@ -554,7 +557,11 @@ class HLSProxy:
                 async for chunk in resp.aiter_bytes(chunk_size=262144):
                     writer.write(chunk)
                     await writer.drain()
-            except (ConnectionResetError, BrokenPipeError, asyncio.CancelledError):
+            except asyncio.CancelledError:
+                # CancelledError is a BaseException: swallowing it leaves
+                # the task running past shutdown.
+                raise
+            except (ConnectionResetError, BrokenPipeError):
                 pass
         finally:
             await resp.aclose()

@@ -23,6 +23,7 @@ import sys
 from types import SimpleNamespace
 from unittest import mock
 
+import flet as ft
 import pytest
 
 import main as main_mod
@@ -228,10 +229,15 @@ class TestDeepLinkCloseExitsToCaller:
             "double back must not schedule a second close"
         )
 
-    def test_view_pop_proceeds_when_closing_but_unsaved(self, fake_page):
-        """The race fix: a player marked closing by the route_change
-        stop-branch (which used to stop without saving) must still get its
-        awaited save when view_pop lands afterwards."""
+    def test_view_pop_does_not_double_schedule_an_in_flight_close(self, fake_page):
+        """A close already in flight must not be scheduled a second time.
+
+        `_position_saved` stays False for live streams and short playback,
+        so the old guard (`closing and not saved` → schedule) let a second
+        back press start a second `_close_player_with_save`; the first one
+        popped /play and the second popped the dashboard underneath it.
+        `_is_closing` alone means "a close task is running".
+        """
         controller = main_mod.AppController(fake_page)
 
         player = SimpleNamespace(
@@ -251,10 +257,9 @@ class TestDeepLinkCloseExitsToCaller:
             find.return_value = player
             controller.view_pop(None)
 
-        assert len(fake_page._run_task_calls) == 1
-        fn, args, _kwargs = fake_page._run_task_calls[0]
-        assert fn == controller._close_player_with_save
-        assert args[0] is player
+        assert len(fake_page._run_task_calls) == 0, (
+            "a second close-save was scheduled for a player already closing"
+        )
 
     def test_view_pop_skips_when_close_already_saved(self, fake_page):
         controller = main_mod.AppController(fake_page)
@@ -526,3 +531,65 @@ class TestExitAppHelper:
     def test_exit_app_no_activity_returns_false(self):
         with mock.patch.object(pip_service, "_get_activity", return_value=None):
             assert pip_service.exit_app() is False
+
+
+class TestEventParsing:
+    """flet-video 1.0.1 delivers ft.Duration, not a number.
+
+    (Imported here so the class-level docstring reads first.)
+
+    The old handler did `float(e.data)`, which raises TypeError for a
+    Duration; a bare `except` swallowed it, so `_last_position` and
+    `_last_duration` stayed at 0.0 forever — the exact `dur=0.0 pos=0.0`
+    that appeared in every "position save skipped" log line on device.
+    """
+
+    @staticmethod
+    def _player():
+        from components.player.immersive_player import ImmersivePlayer
+
+        return ImmersivePlayer(resource="http://example.com/vod.mp4")
+
+    @pytest.mark.parametrize(
+        ("payload", "expected"),
+        [
+            (ft.Duration(seconds=120), 120.0),
+            (ft.Duration(minutes=9), 540.0),
+            (90_000, 90.0),  # legacy ms
+            (90, 90.0),  # legacy seconds
+        ],
+    )
+    def test_event_payloads_become_seconds(self, payload, expected):
+        player = self._player()
+        player._overlay_hidden = True
+        player._check_and_trigger_seek = lambda: None
+
+        event = SimpleNamespace(data=payload)
+        player._on_pos_change(event)
+        assert player._last_position == expected
+
+        player._on_duration_change(event)
+        assert player._last_duration == expected
+
+    def test_unusable_payloads_leave_state_untouched(self):
+        player = self._player()
+        player._overlay_hidden = True
+        player._check_and_trigger_seek = lambda: None
+        player._last_position = 7.0
+
+        for payload in (None, "garbage", object()):
+            player._on_pos_change(SimpleNamespace(data=payload))
+
+        assert player._last_position == 7.0
+
+    def test_a_zero_duration_is_recorded(self):
+        """A reset to zero must land: the old `elif val > 0` kept the
+        previous duration stale across playlist swaps."""
+        player = self._player()
+        player._overlay_hidden = True
+        player._check_and_trigger_seek = lambda: None
+        player._last_duration = 600.0
+
+        player._on_duration_change(SimpleNamespace(data=ft.Duration(seconds=0)))
+
+        assert player._last_duration == 0.0

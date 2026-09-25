@@ -154,14 +154,16 @@ async def prewarm_thumbnails(videos, page, limit: int = _PREWARM_LIMIT) -> int:
     suppressed when nothing changed.
     """
     pending = []
+    changed = 0
     for video in list(videos)[:limit]:
         if not video.thumbnail:
             cached = get_cached_thumbnail(video)
             if cached:
                 video.thumbnail = cached
+                changed += 1
             else:
                 pending.append(video)
-    filled = 0
+    filled = changed
     if pending:
         sem = asyncio.Semaphore(_EXTRACT_CONCURRENCY)
 
@@ -177,7 +179,7 @@ async def prewarm_thumbnails(videos, page, limit: int = _PREWARM_LIMIT) -> int:
         results = await asyncio.gather(
             *(_one(v) for v in pending), return_exceptions=True
         )
-        filled = sum(1 for r in results if r is True)
+        filled += sum(1 for r in results if r is True)
     if filled and page is not None:
         try:
             # Async update keeps the grid responsive on TV.

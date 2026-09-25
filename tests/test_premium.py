@@ -36,6 +36,9 @@ def _with_platform(page, mobile: bool = True):
 def test_banner_ad_getters_hidden_when_premium(fake_page):
     _with_platform(fake_page)
     svc = AdService(fake_page)
+    # Consent now starts closed (fail-closed until UMP answers), so grant
+    # it explicitly to exercise the premium gate itself.
+    svc._can_request_ads = True
 
     state.is_premium = False
     assert svc.get_standard_banner_ad() is not None

@@ -167,10 +167,14 @@ def _ensure_queue():
 
 def shutdown_workers():
     """Cancel all background logo download workers. Call on app exit."""
+    global _logo_workers_started
     for task in _logo_worker_tasks:
         if not task.done():
             task.cancel()
     _logo_worker_tasks.clear()
+    # Same reason as liveliness: the started-flag must drop, or no worker
+    # is ever started again in this process.
+    _logo_workers_started = False
 
 
 def _evict_stale_failed_logos():

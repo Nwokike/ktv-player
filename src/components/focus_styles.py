@@ -56,10 +56,13 @@ def attach_focus_pop(control, *, scale: float = 1.04):
     visible) focus cue; this adds a small depth pop on top where the
     control tree allows mutation.
 
-    Best-effort by design: Flet 1.0 freezes declarative component trees,
-    where property assignment raises "Frozen controls cannot be updated",
-    and headless tests build cards with no page. The pop is a silent
-    no-op in those contexts; the border/overlay still guides the D-pad.
+    NOTE (verified against Flet 1.0.1): once mounted, a declarative
+    control is frozen — `control.scale = ...` raises "Frozen controls
+    cannot be updated." and `update()` raises "Frozen control cannot be
+    updated.", both swallowed below. So this pop never visibly applies in
+    practice, and the FOCUSED border/overlay from `card_button_style` is
+    what actually guides the D-pad. The handler is kept only so the
+    call sites stay uniform.
 
     Args:
         control: the focusable control (e.g. the card's FilledButton).

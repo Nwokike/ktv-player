@@ -176,6 +176,7 @@ class KiriLicenseService:
             logger.info("Cached Kiri license rejected (%s)", ex.reason)
             self._unlocked = False
             self.claims = None
+            self._notify_change()
             return False
         self.claims = claims
         await self._apply(claims.status, claims)
@@ -223,7 +224,14 @@ class KiriLicenseService:
             ) from ex
         if response.status_code >= 400:
             raise LicenseUnavailable(self._error_message(response, "Checkout failed"))
-        payload = response.json()
+        try:
+            payload = response.json()
+        except Exception as ex:
+            raise LicenseUnavailable(
+                "The license service returned invalid JSON"
+            ) from ex
+        if not isinstance(payload, dict):
+            raise LicenseUnavailable("The license service returned an invalid response")
         checkout = Checkout(
             recovery_id=str(payload.get("recovery_id") or ""),
             checkout_url=str(payload.get("checkout_url") or ""),
@@ -285,7 +293,14 @@ class KiriLicenseService:
                 self._notify_change()
             raise LicenseUnavailable(self._error_message(response, "Restore failed"))
 
-        payload = response.json()
+        try:
+            payload = response.json()
+        except Exception as ex:
+            raise LicenseUnavailable(
+                "The license service returned invalid JSON"
+            ) from ex
+        if not isinstance(payload, dict):
+            raise LicenseUnavailable("The license service returned an invalid response")
         status = str(payload.get("status") or "unknown")
         token = payload.get("token") if issue_token else None
         claims: LicenseClaims | None = None

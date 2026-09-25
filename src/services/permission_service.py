@@ -13,7 +13,14 @@ async def request_storage_permission(page: ft.Page) -> bool:
         return True
 
     try:
-        if not page.platform.is_mobile():
+        # is_mobile() is False for ANDROID_TV — TVs need the same runtime
+        # media permissions phones do, so excluding them skipped the prompt
+        # entirely and left scanning to luck.
+        if page.platform not in (
+            ft.PagePlatform.ANDROID,
+            ft.PagePlatform.ANDROID_TV,
+            ft.PagePlatform.IOS,
+        ):
             return True
     except Exception:
         return True
@@ -50,7 +57,10 @@ async def request_storage_permission(page: ft.Page) -> bool:
         except Exception as e:
             logger.debug("Permission.STORAGE request exception: %s", e)
 
-        return True
+        # Nothing was granted. Reporting True here told callers the scan
+        # could proceed when Android had said no.
+        logger.info("Storage permission not granted (user declined or denied)")
+        return False
     except Exception as ex:
         logger.warning("Runtime permission request failed: %s", ex)
-        return True
+        return False

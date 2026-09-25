@@ -74,10 +74,14 @@ def drain_queue():
 
 def shutdown_workers():
     """Cancel all background liveliness workers. Call on app exit."""
+    global _workers_started
     for task in _worker_tasks:
         if not task.done():
             task.cancel()
     _worker_tasks.clear()
+    # Without this, _ensure_queue() still believes workers are running and
+    # never starts replacements — every later check would queue forever.
+    _workers_started = False
 
 
 def enqueue_liveliness_check(url: str):

@@ -374,10 +374,14 @@ class AppController:
         return None
 
     def _begin_player_close(self, player: ImmersivePlayer) -> None:
-        """Run the awaited close-save once, no matter how many paths ask."""
-        if getattr(player, "_is_closing", False) and getattr(
-            player, "_position_saved", False
-        ):
+        """Run the awaited close-save once, no matter how many paths ask.
+
+        `_is_closing` alone is the in-progress flag: `_position_saved` is
+        False for live streams and short playback, so gating on it let a
+        second back press schedule a second close — and the second one
+        popped whatever view was underneath.
+        """
+        if getattr(player, "_is_closing", False):
             logger.info("close-path: close already in flight, skipping duplicate")
             return
         logger.info("close-path: scheduling close-save")
@@ -607,7 +611,10 @@ class AppController:
                 self._begin_player_close(player)
                 return
             self.page.run_task(self._exit_to_caller)
-        elif len(self.page.views) > 1 and self.page.views[-1].route == "/play":
+        elif (
+            len(self.page.views) > 1
+            and getattr(self.page.views[-1], "route", None) == "/play"
+        ):
             self._is_player_closing = True
             self.page.views.pop()
             self.page.update()
@@ -914,7 +921,14 @@ async def main(page: ft.Page):
         with contextlib.suppress(Exception):
             from services.http_client import close_http_client
 
-            await close_http_client()
+            # The proxy owns a listening socket and a separate HTTP client;
+        # without this it stayed alive after the session closed.
+        try:
+            if getattr(controller, "hls_proxy", None) is not None:
+                await controller.hls_proxy.stop()
+        except Exception:
+            logger.debug("HLS proxy shutdown failed", exc_info=True)
+        await close_http_client()
         with contextlib.suppress(Exception):
             await db_manager.close()
 
