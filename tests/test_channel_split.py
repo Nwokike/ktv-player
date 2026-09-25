@@ -19,6 +19,7 @@ import pytest
 import core.channel
 from core.state import state
 from services.premium_service import PremiumService
+from tests.license_fixtures import TOKENS
 
 PLAY_CHANNEL = 'CHANNEL = "play"'
 
@@ -35,6 +36,24 @@ def _clean_state():
     state.reset()
     yield
     state.reset()
+
+
+@pytest.fixture
+def store():
+    """In-memory settings table for the license service."""
+    values: dict[str, str] = {}
+
+    async def get_setting(key, default=None):
+        return values.get(key, default)
+
+    async def set_setting(key, value):
+        values[key] = str(value)
+
+    dbm = mock.AsyncMock()
+    dbm.get_setting.side_effect = get_setting
+    dbm.set_setting.side_effect = set_setting
+    with mock.patch("services.kiri_license.db_manager", dbm):
+        yield values
 
 
 def _page(mobile: bool = True):
@@ -67,12 +86,11 @@ def test_marker_file_contains_no_conditional():
 # -- service on the play channel --------------------------------------------
 
 
-def test_play_build_attaches_no_billing(_play_channel):
+def test_play_build_has_no_premium_surface(_play_channel):
     svc = PremiumService(_page(mobile=True))
-    assert svc.billing is None
     assert svc.backend == "none"
     assert svc.available is False
-    assert svc.uses_play is False
+    assert not hasattr(svc, "billing"), "Play Billing is gone from this build"
     assert _page(mobile=True).services == []
 
 
@@ -83,10 +101,7 @@ async def test_play_build_reconcile_is_a_no_op(_play_channel):
     http = mock.Mock()
     with (
         mock.patch("services.kiri_license.get_http_client", http),
-        mock.patch("services.premium_service.db_manager") as dbm,
     ):
-        dbm.get_setting = mock.AsyncMock(return_value="")
-        dbm.set_setting = mock.AsyncMock()
         await svc.reconcile()
     assert http.get.call_count == 0
     assert http.post.call_count == 0
@@ -97,7 +112,6 @@ async def test_play_build_cannot_start_any_purchase(_play_channel):
     from services.kiri_license import LicenseUnavailable
 
     svc = PremiumService(_page())
-    assert await svc.buy() is False
     assert await svc.kiri_catalog() == []
     with pytest.raises(LicenseUnavailable):
         await svc.kiri_checkout("lifetime", "buyer@example.com")
@@ -107,18 +121,13 @@ async def test_play_build_cannot_start_any_purchase(_play_channel):
 
 
 @pytest.mark.asyncio
-async def test_play_build_never_reads_a_cached_token(_play_channel):
+async def test_play_build_never_reads_a_cached_token(_play_channel, store):
     """Even a token left from a direct install must not unlock the AAB."""
-    dbm = mock.AsyncMock()
-
-    async def get_setting(key, default=None):
-        return "true" if key == "premium" else "token"
-
-    dbm.get_setting.side_effect = get_setting
+    store["kiri_token"] = TOKENS["LIFETIME"]
     svc = PremiumService(_page())
-    with mock.patch("services.premium_service.db_manager", dbm):
-        await svc.load_local()
+    await svc.load_local()
     assert state.is_premium is False
+    assert svc.license.unlocked is False
 
 
 @pytest.mark.asyncio

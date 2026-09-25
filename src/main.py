@@ -439,14 +439,8 @@ class AppController:
         except Exception:
             logger.warning("Premium reconciliation failed", exc_info=True)
 
-        # UMP consent + interstitial preload — skipped for premium users
-        # and while the AdMob master switch is off (IMA video ads are then
-        # the only ad surface).
-        # Read the switch live: an import-time binding would ignore a
-        # runtime flip (and every test that patches the constant).
-        from core import constants
-
-        if constants.ADS_MOB_ENABLED and not state.is_premium:
+        # UMP consent + interstitial preload — never for premium users.
+        if not state.is_premium:
             try:
                 await self.ad_service.gather_consent()
                 await self.ad_service.preload_interstitial()

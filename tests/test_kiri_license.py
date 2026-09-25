@@ -302,149 +302,56 @@ def _page(mobile: bool):
     return page
 
 
-def _premium_service(page, billing=None):
-    with mock.patch("services.premium_service.Billing", return_value=billing):
-        return PremiumService(page)
+def _premium_service(page):
+    return PremiumService(page)
 
 
 @pytest.mark.asyncio
-async def test_desktop_falls_back_to_the_license_worker(store):
+async def test_desktop_offers_the_kiri_channel(store):
+    """Desktop and direct builds get the Worker; nothing else."""
     svc = _premium_service(_page(mobile=False))
     assert svc.backend == "kiri"
-    assert svc.uses_play is False
-    # A purchase cannot be started without a browser flow on Kiri.
-    assert await svc.buy() is False
-
-
-@pytest.mark.asyncio
-async def test_sideloaped_android_uses_kiri_until_play_proves_itself(store):
-    billing = mock.MagicMock()
-    billing.is_available = mock.AsyncMock(return_value=False)
-    svc = _premium_service(_page(mobile=True), billing)
-
-    await svc.reconcile()
-
-    assert svc.backend == "kiri"
-    assert svc.uses_play is False
-
-
-@pytest.mark.asyncio
-async def test_play_installed_switches_the_backend_to_play(store):
-    billing = mock.MagicMock()
-    billing.is_available = mock.AsyncMock(return_value=True)
-    billing.query_products = mock.AsyncMock(
-        return_value=SimpleNamespace(error=None, products=[])
-    )
-    billing.query_past_purchases = mock.AsyncMock(
-        return_value=SimpleNamespace(purchases=[])
-    )
-    billing.restore_purchases = mock.AsyncMock(return_value=None)
-    svc = _premium_service(_page(mobile=True), billing)
-
-    await svc.reconcile()
-
-    assert svc.backend == "play"
-    assert svc.uses_play is True
-    billing.restore_purchases.assert_awaited()
+    assert svc.available is True
+    assert not hasattr(svc, "billing")
 
 
 @pytest.mark.asyncio
 async def test_cached_license_is_applied_on_the_boot_path(store):
-    """Premium must survive a cold, offline start from the signed token."""
+    """Premium survives a cold, offline start from the signed token."""
     store["kiri_token"] = TOKENS["LIFETIME"]
-    dbm = mock.AsyncMock()
-
-    async def get_setting(key, default=None):
-        return store.get(key, default)
-
-    async def set_setting(key, value):
-        store[key] = str(value)
-
-    dbm.get_setting.side_effect = get_setting
-    dbm.set_setting.side_effect = set_setting
-
     svc = _premium_service(_page(mobile=False))
-    svc.license.public_key = PUBLIC_KEY
-    with mock.patch("services.premium_service.db_manager", dbm):
-        await svc.load_local()
-
+    svc.license.public_key = PUBLIC_KEY  # fixtures are signed with this key
+    await svc.load_local()
     assert state.is_premium is True
-
-
-# -- channel separation -----------------------------------------------------
-# A Kiri license is unlocked by a signed token only. It must never write the
-# Play `premium=true` cache, or a lapsed subscription would keep ad-free
-# access forever; and a Play cache must not unlock the Kiri channel.
 
 
 @pytest.mark.asyncio
-async def test_kiri_restore_does_not_write_the_play_cache_flag(store):
+async def test_kiri_restore_writes_no_plain_flag(store):
+    """The Kiri entitlement lives in the signed token, never in a bare
+    `premium=true` setting that could outlive a lapsed license."""
     svc = _premium_service(_page(mobile=False))
     svc.license.public_key = PUBLIC_KEY
-    with (
-        mock.patch(
-            "services.kiri_license.get_http_client",
-            return_value=_http("post", _response(_restore_body()), []),
-        ),
-        mock.patch("services.premium_service.db_manager") as dbm,
+    with mock.patch(
+        "services.kiri_license.get_http_client",
+        return_value=_http("post", _response(_restore_body()), []),
     ):
-        dbm.get_setting = mock.AsyncMock(return_value="")
-        dbm.set_setting = mock.AsyncMock()
         await svc.kiri_restore("KIRI-L-abc123")
-        written = {c.args for c in dbm.set_setting.await_args_list}
+
     assert state.is_premium is True
-    assert ("premium", "true") not in written
+    assert store.get("premium") is None
+    assert "kiri_token" in store
 
 
 @pytest.mark.asyncio
 async def test_a_lapsed_kiri_license_drops_premium(store):
-    """A stale token must not survive on the Play cache flag."""
-    dbm = mock.AsyncMock()
-    values: dict[str, str] = {}
-
-    async def get_setting(key, default=None):
-        return values.get(key, default)
-
-    async def set_setting(key, value):
-        values[key] = str(value)
-
-    dbm.get_setting.side_effect = get_setting
-    dbm.set_setting.side_effect = set_setting
-
+    """A token that no longer verifies must not keep ad-free access."""
     svc = _premium_service(_page(mobile=False))
     svc.license.public_key = PUBLIC_KEY
+
     store["kiri_token"] = TOKENS["LIFETIME"]
-    with mock.patch("services.premium_service.db_manager", dbm):
-        await svc.load_local()
-        assert state.is_premium is True
-
-        # The subscription lapses; the cached token no longer verifies.
-        store["kiri_token"] = TOKENS["EXPIRED"]
-        await svc.load_local()
-
-    assert state.is_premium is False
-
-
-@pytest.mark.asyncio
-async def test_play_cache_alone_does_not_unlock_the_kiri_channel(store):
-    """A Play purchase must not stand in for a Kiri license."""
-    dbm = mock.AsyncMock()
-
-    async def get_setting(key, default=None):
-        return "true" if key == "premium" else None
-
-    async def set_setting(key, value):
-        return None
-
-    dbm.get_setting.side_effect = get_setting
-    dbm.set_setting.side_effect = set_setting
-
-    svc = _premium_service(_page(mobile=False))
-    svc.license.public_key = PUBLIC_KEY
-    with mock.patch("services.premium_service.db_manager", dbm):
-        await svc.load_local()
-
-    assert svc.license.unlocked is False
-    assert svc._play_unlocked is True
-    # The union still unlocks the app, because Play did.
+    await svc.load_local()
     assert state.is_premium is True
+
+    store["kiri_token"] = TOKENS["EXPIRED"]
+    await svc.load_local()
+    assert state.is_premium is False

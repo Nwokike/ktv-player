@@ -7,13 +7,15 @@ from typing import Any
 
 import flet as ft
 import flet_video as fv
-from flet_ima import AdEventType, ImaAdsView
 
-from core.constants import IMA_TEST_TAG
-from core.state import state
 from core.theme import AppColors
 from database.manager import db_manager
 from services.youtube_resolver import is_youtube_url
+from utils.notifications import (
+    register_fullscreen_toast,
+    set_fullscreen_toast_active,
+    unregister_fullscreen_toast,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -25,31 +27,6 @@ _WATCHDOG_SECONDS = 20.0
 # Periodic VOD position checkpoint interval (see
 # _maybe_save_position_periodically).
 _POSITION_SAVE_INTERVAL = 10.0
-
-# IMA (video ads): upstream recommends feeding content progress every
-# ~200ms so VMAP mid-roll cue points can fire.
-_IMA_PROGRESS_INTERVAL = 0.2
-# How long the ad container stays expanded waiting for an ad to start. A
-# request that never produces an event must not leave a black rectangle
-# over the video.
-_IMA_REQUEST_WATCHDOG_S = 8.0
-# Time for the ad-container resize to reach the client before the SDK's
-# deferred request_ads() is evaluated against it.
-_IMA_LAYOUT_SETTLE_S = 0.5
-
-
-def _vast_host(tag: str | None) -> str:
-    """Host that serves the VAST — the single most useful fact when an ad
-    request silently produces no events (a blocked host looks exactly like
-    a broken SDK otherwise)."""
-    if not tag:
-        return "none"
-    try:
-        from urllib.parse import urlparse
-
-        return urlparse(tag).netloc or "unknown"
-    except Exception:
-        return "unknown"
 
 
 def _short_variant_label(variant: dict) -> str:
@@ -74,7 +51,6 @@ class ImmersivePlayer(ft.Stack):
         muted: bool = False,
         http_headers: dict | None = None,
         ad_service: Any | None = None,
-        ima_tag: str = IMA_TEST_TAG,
         show_favorite: bool = True,
         hls_proxy: Any | None = None,
         source_url: str = "",
@@ -89,23 +65,6 @@ class ImmersivePlayer(ft.Stack):
         self.title = title
         self.http_headers = http_headers or {}
         self.ad_service = ad_service
-
-        # IMA video ads (Android TV only — phones keep the AdMob
-        # interstitial; AdService suppresses all AdMob surfaces on TV).
-        # The native ad view must be IN the tree before request_ads(). It is
-        # created in did_mount() (the page only exists once the control is
-        # attached — building it here produced no ads on any device); the
-        # request fires on the first duration tick (content metadata known)
-        # with a 2s fallback for live streams.
-        self._ima_tag = ima_tag
-        self.ima_view: ImaAdsView | None = None
-        self._ima_requested = False
-        self._ima_t0 = 0.0
-        self._ima_destroyed = False
-        self._ima_ad_active = False
-        self._last_ima_push = 0.0
-        self._ima_slot = None
-        self._ima_watchdog_task: asyncio.Task | None = None
         # Deep-link plays (ktv://) hide the in-player favorite star
         self.show_favorite_button = show_favorite
         self.expand = True
@@ -290,109 +249,34 @@ class ImmersivePlayer(ft.Stack):
             fit=ft.BoxFit.CONTAIN,
             alignment=ft.Alignment.CENTER,
             title=self.title or "KTV Player",
-            # Per-mode controls: media_kit's fullscreen route re-renders the
-            # ACTIVE set, so the theater bar is a dedicated, larger control
-            # set instead of the old in-player toast-chip workaround.
-            controls={
-                fv.VideoControlsMode.NORMAL: self._build_controls(),
-                fv.VideoControlsMode.FULLSCREEN: self._build_controls(
-                    variant="fullscreen"
-                ),
-            },
+            controls=self._build_controls(),
             on_load=lambda e: self._hide_overlay(),
             on_duration_change=self._on_duration_change,
             on_position_change=self._on_pos_change,
             on_error=self._on_error,
             on_complete=self._on_complete,
+            on_enter_fullscreen=self._on_enter_fullscreen,
+            on_exit_fullscreen=self._on_exit_fullscreen,
         )
 
         self.controls = [
             ft.Container(expand=True, bgcolor=ft.Colors.BLACK),
             self.video,
+            self.overlay,
         ]
-        if self.ima_view is not None:
-            # Native IMA container: the expanding Container gives the
-            # platform view a bounded size; overlay stays topmost.
-            self.controls.append(
-                ft.Container(expand=True, content=self.ima_view, visible=True)
-            )
-        self.controls.append(self.overlay)
 
     # --- Controls ---
 
     def did_mount(self):
         super().did_mount()
-
-    def _ima_create_view(self):
-        """Build the ad view and give it a real, laid-out container.
-
-        Two hard constraints, both from the Flutter/IMA side:
-
-        - Flutter does not create the Android platform view while its size
-          is empty (`platform_view.dart`: `if (!size.isEmpty)`), and the IMA
-          container is only created on `onContainerAdded`. A zero-height slot
-          therefore never produces a container, and `request_ads()` stays
-          queued forever — no events, no error, nothing.
-        - Once created, the platform view composites opaquely over the
-          video, so it must not exist while ordinary content is on screen.
-
-        So the view is created for the ad request and destroyed when the ad
-        cycle ends, rather than living for the whole session.
-        """
-        if self.ima_view is not None or not self._ima_tag:
-            return self.ima_view
-        if not self._ima_supported(self._ima_tag):
-            return None
-        self.ima_view = ImaAdsView(
-            ad_tag_url=self._ima_tag,
-            content_title=self.title,
-            debug_mode=True,  # surface the SDK's own logs in the Play build
-            on_ad_event=self._on_ima_ad_event,
-            on_ad_error=self._on_ima_error,
-            on_ads_loaded=self._on_ima_loaded,
-            on_ads_load_error=self._on_ima_error,
-        )
-        slot = ft.Container(height=None, expand=True, content=self.ima_view)
-        self._ima_slot = slot
-        if self.controls and self.controls[-1] is self.overlay:
-            self.controls.insert(len(self.controls) - 1, slot)
-        else:
-            self.controls.append(slot)
-        logger.info("IMA: ad container created and laid out (pre-roll ready)")
-        with contextlib.suppress(Exception):
-            self.update()
-        return self.ima_view
-
-    async def _ima_teardown_view(self, reason: str) -> None:
-        """Destroy the SDK and take the container out of the tree.
-
-        Without this the platform view keeps compositing an opaque
-        rectangle over the content for the rest of the session.
-        """
-        view, slot = self.ima_view, self._ima_slot
-        self.ima_view = None
-        self._ima_slot = None
-        self._ima_destroyed = True
-        if view is not None:
-            try:
-                await asyncio.wait_for(view.destroy(), timeout=5.0)
-            except TimeoutError:
-                logger.warning("IMA: destroy timed out (%s)", reason)
-            except Exception as ex:
-                logger.debug("IMA: destroy skipped (%s): %s", reason, ex)
-        if slot is not None and slot in self.controls:
-            self.controls.remove(slot)
-        logger.info("IMA: ad container removed (%s)", reason)
+        # The toast chip was created by build_player_controls() in __init__
+        register_fullscreen_toast(self.toast_chip, self.toast_text)
 
     def will_unmount(self):
         super().will_unmount()
+        unregister_fullscreen_toast()
         self._cancel_watchdog()
         self._disable_auto_pip()
-        if self.ima_view is not None and not self._ima_destroyed:
-            page = self.safe_page
-            if page is not None:
-                with contextlib.suppress(Exception):
-                    page.run_task(self._ima_destroy)
         # Save position if not already saved
         if self.source_url and self._last_duration > 0 and self._last_position > 3:
             pos_sec = self._last_position
@@ -497,10 +381,18 @@ class ImmersivePlayer(ft.Stack):
         except Exception as ex:
             logger.debug("Entering PiP failed: %s", ex)
 
-    def _build_controls(self, variant: str = "normal") -> fv.AdaptiveVideoControls:
+    async def _on_enter_fullscreen(self, e):
+        """Track fullscreen for in-player toast notifications."""
+        set_fullscreen_toast_active(True)
+
+    async def _on_exit_fullscreen(self, e):
+        """Track exiting fullscreen for in-player toast notifications."""
+        set_fullscreen_toast_active(False)
+
+    def _build_controls(self) -> fv.AdaptiveVideoControls:
         from components.player.controls import build_player_controls
 
-        return build_player_controls(self, variant)
+        return build_player_controls(self)
 
     async def _pick_subtitles(self):
         from components.player.handlers import pick_subtitles
@@ -612,14 +504,8 @@ class ImmersivePlayer(ft.Stack):
         # never be a dead end, not even during the pre-roll ad.
         self._show_progress("Loading stream...")
 
-        # Show interstitial ad before playback, unless player was already
-        # closed — or IMA owns the pre-roll on this platform. Whether IMA is
-        # in play is a capability question, not "does the view exist right
-        # now": the ad container is built for the request and removed when
-        # the cycle ends, so keying this on its presence would stack the
-        # AdMob interstitial on top of the video pre-roll.
-        ima_owns_preroll = self._ima_supported(self._ima_tag)
-        if self.ad_service and not self._is_closing and not ima_owns_preroll:
+        # Show interstitial ad before playback, unless player was already closed
+        if self.ad_service and not self._is_closing:
             try:
                 await asyncio.wait_for(
                     self.ad_service.show_interstitial(),
@@ -665,14 +551,6 @@ class ImmersivePlayer(ft.Stack):
             ]
             self.video.update()
             await self.video.play()
-            # IMA pre-roll: requested on the first duration tick (so
-            # content_duration_ms is set for VMAP mid-rolls); the 2s
-            # fallback covers metadata-light/live streams. Never blocks.
-            if self._ima_supported(self._ima_tag) and not state.is_premium:
-                page = self.safe_page
-                if page is not None:
-                    with contextlib.suppress(Exception):
-                        page.run_task(self._ima_request_soon)
             self._start_watchdog()
             playing = await self.video.is_playing()
             if playing:
@@ -706,11 +584,6 @@ class ImmersivePlayer(ft.Stack):
             except Exception:
                 pass
         self._check_and_trigger_seek()
-        if self.ima_view is not None and not state.is_premium:
-            page = self.safe_page
-            if page is not None:
-                with contextlib.suppress(Exception):
-                    page.run_task(self._ima_maybe_request)
 
     def _on_pos_change(self, e: ft.ControlEvent | None = None):
         if not self._overlay_hidden:
@@ -728,7 +601,6 @@ class ImmersivePlayer(ft.Stack):
                 pass
         self._check_and_trigger_seek()
         self._maybe_save_position_periodically()
-        self._maybe_push_ima_progress()
 
     def _maybe_save_position_periodically(self):
         """Throttled VOD-only checkpoint save (~every 10s). Android can kill
@@ -744,7 +616,6 @@ class ImmersivePlayer(ft.Stack):
             or not self.source_url
             or self._last_duration <= 0
             or self._last_position <= 3
-            or self._ima_ad_active
         ):
             return
         pos_sec = self._last_position
@@ -759,252 +630,6 @@ class ImmersivePlayer(ft.Stack):
             )
         except RuntimeError:
             pass
-
-    # --- IMA video ads (Android / iOS) ---
-
-    def _ima_supported(self, tag: str) -> bool:
-        """IMA is enabled on every mobile build with a tag configured.
-
-        (Phone and TV alike: the phone build is the test rig with readable
-        logs; desktop is excluded — no IMA platform upstream.)
-        """
-        if not tag:
-            return False
-        page = self.safe_page
-        if page is None:
-            return False
-        try:
-            return bool(page.platform.is_mobile())
-        except Exception:
-            return False
-
-    async def _ima_request_soon(self):
-        """Fallback request when duration metadata never arrives (live)."""
-        await asyncio.sleep(2.0)
-        await self._ima_maybe_request(force=True)
-
-    async def _ima_maybe_request(self, force: bool = False):
-        """Request the pre-roll once, with the container laid out first."""
-        if self._ima_requested or self._is_closing or state.is_premium:
-            return
-        if not force and self._last_duration <= 0:
-            return
-        self._ima_requested = True
-        self._ima_t0 = time.monotonic()
-        self._ima_destroyed = False
-
-        view = self._ima_create_view()
-        if view is None:
-            self._ima_requested = False
-            return
-        if self._last_duration > 0:
-            try:
-                view.content_duration_ms = int(self._last_duration * 1000)
-                view.update()
-            except Exception:
-                pass
-
-        # The platform view is created asynchronously after the layout, and
-        # the IMA container only exists once it is. Give it that beat before
-        # asking for ads, or the request is queued against a container that
-        # does not exist yet.
-        await asyncio.sleep(_IMA_LAYOUT_SETTLE_S)
-        logger.info(
-            "IMA: requesting pre-roll (tag_host=%s container=sized duration=%s)",
-            _vast_host(self._ima_tag),
-            f"{self._last_duration:.1f}s" if self._last_duration > 0 else "unknown",
-        )
-        self._arm_ima_request_watchdog()
-        try:
-            await asyncio.wait_for(view.request_ads(), timeout=10.0)
-            logger.info(
-                "IMA: request_ads returned in %.2fs — waiting for ad events",
-                self._ima_elapsed(),
-            )
-        except TimeoutError:
-            logger.warning(
-                "IMA: request_ads timed out after %.1fs (tag_host=%s)",
-                self._ima_elapsed(),
-                _vast_host(self._ima_tag),
-            )
-        except Exception as ex:
-            self._ima_requested = False
-            logger.warning("IMA: request_ads failed: %s", ex)
-
-    def _arm_ima_request_watchdog(self) -> None:
-        """Collapse the ad slot if the request never becomes an ad.
-
-        Without this a failed request would leave a black rectangle over
-        the video until the user backs out.
-        """
-        self._cancel_ima_watchdog()
-
-        async def _watch():
-            await asyncio.sleep(_IMA_REQUEST_WATCHDOG_S)
-            if self._ima_ad_active or self._ima_destroyed or self._is_closing:
-                return
-            logger.warning(
-                "IMA: no ad started within %.0fs — removing the ad container",
-                _IMA_REQUEST_WATCHDOG_S,
-            )
-            await self._ima_teardown_view("no ad within watchdog window")
-
-        try:
-            self._ima_watchdog_task = asyncio.create_task(_watch())
-        except RuntimeError:
-            # No running loop (headless tests): nothing to watch.
-            self._ima_set_slot_visible(False)
-
-    def _cancel_ima_watchdog(self) -> None:
-        task = self._ima_watchdog_task
-        self._ima_watchdog_task = None
-        if task is not None and not task.done():
-            task.cancel()
-
-    def _on_ima_loaded(self, e):
-        logger.info(
-            "IMA: ads loaded +%.1fs (cue points=%s ms)",
-            self._ima_elapsed(),
-            getattr(e, "cue_points_ms", []),
-        )
-
-    def _ima_elapsed(self) -> float:
-        """Seconds since the IMA request was sent (ad-pipeline telemetry)."""
-        return time.monotonic() - self._ima_t0 if self._ima_t0 else 0.0
-
-    def _on_ima_error(self, e):
-        page = self.safe_page
-        if page is not None and self.ima_view is not None:
-            page.run_task(self._ima_teardown_view, f"error: {getattr(e, 'code', '')}")
-        logger.warning(
-            "IMA error: code=%s type=%s message=%s",
-            getattr(e, "code", ""),
-            getattr(e, "type", ""),
-            getattr(e, "message", ""),
-        )
-        # An error can arrive AFTER contentPauseRequested (e.g. the ad host
-        # dies mid-pod). Without this the content stayed paused forever, and
-        # checkpoints + the progress feed stayed suppressed by the stale
-        # ad-active flag — a frozen frame with no resume.
-        was_ad_active = self._ima_ad_active
-        self._ima_ad_active = False
-        if (
-            was_ad_active
-            and not self._is_closing
-            and not self._ima_destroyed
-            and not self._content_finished()
-        ):
-            page = self.safe_page
-            if page is not None:
-                page.run_task(self._resume_content_after_ad)
-
-    async def _resume_content_after_ad(self):
-        with contextlib.suppress(Exception):
-            await self.video.play()
-
-    def _content_finished(self) -> bool:
-        """True when the VOD has run to its end (no post-roll resume)."""
-        return bool(
-            self._last_duration > 0 and self._last_position >= (self._last_duration - 5)
-        )
-
-    def _ima_set_slot_visible(self, visible: bool):
-        slot = self._ima_slot
-        if slot is None:
-            return
-        if visible:
-            # Fill the stack while an ad is on screen; zero height otherwise
-            # so the idle platform view composites nothing over the video.
-            slot.height = None
-            slot.expand = True
-        else:
-            slot.height = 0
-            slot.expand = False
-        with contextlib.suppress(Exception):
-            self.update()
-
-    async def _on_ima_ad_event(self, e):
-        t = getattr(e, "type", "")
-        # Any event at all means the SDK answered, so the "no ad arrived"
-        # watchdog has done its job and must not collapse a live ad.
-        if t in (AdEventType.STARTED.value, AdEventType.LOADED.value):
-            self._cancel_ima_watchdog()
-        if t == AdEventType.STARTED.value:
-            self._ima_set_slot_visible(True)
-        logger.info(
-            "IMA event %s (+%.1fs) ad=%s",
-            t,
-            self._ima_elapsed(),
-            getattr(e, "ad", None) or "-",
-        )
-        if t == AdEventType.STARTED.value:
-            logger.info("IMA: ad started playing")
-        elif t == AdEventType.COMPLETE.value:
-            logger.info("IMA: ad completed")
-        if t == AdEventType.LOADED.value:
-            if self.ima_view is not None and not (
-                self._is_closing or self._ima_destroyed
-            ):
-                with contextlib.suppress(Exception):
-                    await self.ima_view.start()
-        elif t == AdEventType.CONTENT_PAUSE_REQUESTED.value:
-            # An ad is about to cover the content — pause it (the SDK
-            # owns the screen until contentResumeRequested).
-            self._ima_ad_active = True
-            with contextlib.suppress(Exception):
-                await self.video.pause()
-        elif t == AdEventType.CONTENT_RESUME_REQUESTED.value:
-            self._ima_ad_active = False
-            with contextlib.suppress(Exception):
-                await self.video.play()
-            await self._ima_teardown_view("content resumed")
-        elif t == AdEventType.ALL_ADS_COMPLETED.value:
-            # Breakout plays (post-roll) land here: the ad is over, but
-            # resuming a finished VOD would restart it from the top.
-            self._ima_ad_active = False
-            if not self._content_finished():
-                with contextlib.suppress(Exception):
-                    await self.video.play()
-            await self._ima_teardown_view("all ads completed")
-
-    def _maybe_push_ima_progress(self):
-        """Throttled ~200ms content-progress feed so cue points can fire."""
-        if self.ima_view is None or self._ima_destroyed or self._ima_ad_active:
-            return
-        if self._last_duration <= 0:
-            return
-        now = time.monotonic()
-        if now - self._last_ima_push < _IMA_PROGRESS_INTERVAL:
-            return
-        self._last_ima_push = now
-        page = self.safe_page
-        if page is None:
-            return
-        with contextlib.suppress(Exception):
-            page.run_task(
-                self.ima_view.set_content_progress,
-                int(self._last_position * 1000),
-                int(self._last_duration * 1000),
-            )
-
-    async def teardown(self) -> None:
-        """Release platform resources while still attached to the page.
-
-        The controller closes players by popping their view, which detaches
-        every control inside it — and a detached control cannot invoke a
-        method ("Control must be added to the page first"). So IMA, the
-        only control here that owns a native view, is destroyed *before*
-        the pop; will_unmount is the fallback for paths that never get
-        here.
-        """
-        self._cancel_ima_watchdog()
-        await self._ima_destroy()
-
-    async def _ima_destroy(self):
-        """Last-resort teardown for paths that never reached the ad lifecycle."""
-        if self.ima_view is None:
-            return
-        await self._ima_teardown_view("teardown")
 
     def _check_and_trigger_seek(self):
         # After media is ready / first tick, consume any pending one-shot seek target —
@@ -1402,13 +1027,6 @@ class ImmersivePlayer(ft.Stack):
             return
         self._start_watchdog()
         self._arm_auto_pip()
-        # A failed ad request clears the latch in _ima_maybe_request, so the
-        # retry is the next chance at a pre-roll for this playback.
-        if self._ima_supported(self._ima_tag) and not self._ima_requested:
-            self._ima_requested = False
-            page = self.safe_page
-            if page is not None:
-                page.run_task(self._ima_request_soon)
 
     async def _save_current_position(self) -> None:
         """Capture and save playback position on player close for VOD streams."""
@@ -1451,17 +1069,6 @@ class ImmersivePlayer(ft.Stack):
     def _on_complete(self, e: ft.ControlEvent):
         # Video finished — nothing is playing, so PiP auto-enter is disarmed.
         self._disarm_auto_pip()
-        if (
-            self.ima_view is not None
-            and self._last_duration > 0
-            and self._last_position >= (self._last_duration - 5)
-        ):
-            # VOD reached its end — tell IMA so a post-roll can play.
-            # Live/reconnect paths deliberately skip content_complete().
-            page = self.safe_page
-            if page is not None:
-                with contextlib.suppress(Exception):
-                    page.run_task(self.ima_view.content_complete)
         if self.source_url:
             with contextlib.suppress(Exception):
                 loop = asyncio.get_running_loop()
@@ -1484,7 +1091,6 @@ class ImmersivePlayer(ft.Stack):
         self._cancel_watchdog()
         self._disarm_auto_pip()
         await self._save_current_position()
-        await self._ima_destroy()
         try:
             if self.video:
                 # 1. Async stop first — proper player cleanup

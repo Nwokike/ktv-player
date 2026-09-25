@@ -517,14 +517,9 @@ def SettingsScreen() -> Control:
     # snapshot taken at build time (which left "Upgrade" showing to users
     # who had already paid).
     is_premium, set_is_premium = ft.use_state(core_state.is_premium)
-    price, set_price = ft.use_state(
-        getattr(premium_service, "price", None) if premium_service else None
-    )
-    buying, set_buying = ft.use_state(False)
 
     def _sync_premium():
         set_is_premium(core_state.is_premium)
-        set_price(getattr(premium_service, "price", None) if premium_service else None)
 
     def _watch_premium(e=None):
         if premium_service is None:
@@ -539,57 +534,14 @@ def SettingsScreen() -> Control:
 
     ft.on_mounted(_watch_premium)
 
-    async def _buy_premium(e=None):
-        if buying:
-            return
-        if not premium_service or not premium_service.available:
-            notify_warning("Billing is not available on this platform")
-            return
-        set_buying(True)
-        try:
-            started = await premium_service.buy()
-            _sync_premium()
-            if started:
-                notify("Opening Google Play purchase…")
-                return
-            # Snackbars are easy to miss (especially on a TV) — this is a real
-            # blocker for the user, so it gets a dialog.
-            page_obj.show_dialog(
-                ft.AlertDialog(
-                    title=ft.Text(
-                        "Premium unavailable", size=15, weight=ft.FontWeight.BOLD
-                    ),
-                    content=ft.Text(
-                        "This premium product isn't available in the store yet. "
-                        "If it was just created in Play Console, give the "
-                        "listing a few minutes and try again.",
-                        size=12,
-                    ),
-                    actions=[
-                        ft.TextButton("OK", on_click=lambda e: page_obj.pop_dialog())
-                    ],
-                )
-            )
-        finally:
-            set_buying(False)
-
-    async def _restore_premium(e=None):
-        if not premium_service or not premium_service.available:
-            notify_warning("Billing is not available on this platform")
-            return
-        await premium_service.restore_purchases()
-        _sync_premium()
-        notify("Restore requested — re-checking your purchases")
-
     # -- Kiri License (the backend for installs Play cannot bill) -----------
 
-    uses_play = bool(getattr(premium_service, "uses_play", False))
     products, set_products = ft.use_state([])
     recovery_id, set_recovery_id = ft.use_state("")
     license_busy, set_license_busy = ft.use_state(False)
 
     async def _load_license(e=None):
-        if not premium_service or uses_play:
+        if not premium_service or not premium_service.available:
             return
         set_products(await premium_service.kiri_catalog())
         set_recovery_id(await premium_service.license.recovery_id())
@@ -714,7 +666,7 @@ def SettingsScreen() -> Control:
         )
 
     _kiri_rows: list = []
-    if not uses_play and not is_premium:
+    if not is_premium:
         _kiri_rows = [
             *[_kiri_product_row(p) for p in products],
             *(
@@ -759,7 +711,7 @@ def SettingsScreen() -> Control:
                 subtitle=(
                     "Ads removed · thank you!"
                     if is_premium
-                    else f"One-time unlock, remove all ads{f' — {price}' if price else ''}"
+                    else "Remove all ads with a Kiri License purchase"
                 ),
                 trailing=ft.Icon(
                     ft.Icons.CHECK_CIRCLE if is_premium else ft.Icons.CIRCLE_OUTLINED,
@@ -767,40 +719,14 @@ def SettingsScreen() -> Control:
                     color=(AppColors.PRIMARY if is_premium else AppColors.grey_dim()),
                 ),
             ),
-            *(
-                []
-                if is_premium
-                else (
-                    []
-                    if uses_play
-                    else [
-                        _setting_row(
-                            leading=ft.Icon(
-                                ft.Icons.SHOPPING_CART,
-                                size=18,
-                                color=AppColors.PRIMARY,
-                            ),
-                            title="Upgrade",
-                            subtitle="Buy once — ads gone everywhere, forever",
-                            trailing=ft.FilledButton(
-                                "Upgrade", on_click=_buy_premium, disabled=buying
-                            ),
-                        )
-                    ]
-                )
-            ),
-            # Kiri License rows only exist when Play cannot bill this
-            # install (direct APK, desktop). Google policy forbids an
-            # external checkout button inside a Play-distributed build.
-            *([] if uses_play or is_premium else _kiri_rows),
+            # Kiri rows are absent from the Play build entirely — that
+            # guard sits in the list assembly below (CHANNEL check).
+            *([] if is_premium else _kiri_rows),
             _setting_row(
                 leading=ft.Icon(ft.Icons.RESTORE, size=18, color=AppColors.PRIMARY),
                 title="Restore purchases",
                 subtitle="Re-check ownership (new device / reinstall)",
-                trailing=ft.OutlinedButton(
-                    "Restore",
-                    on_click=_restore_premium if uses_play else _ask_recovery_id,
-                ),
+                trailing=ft.OutlinedButton("Restore", on_click=_ask_recovery_id),
             ),
         ],
     )

@@ -8,19 +8,8 @@ from core.theme import AppColors
 from utils.favorites import toggle_favorite
 
 
-def build_player_controls(
-    player_inst, variant: str = "normal"
-) -> fv.AdaptiveVideoControls:
-    """Build adaptive player controls for touch and TV/Desktop modes.
-
-    Args:
-        player_inst: the ImmersivePlayer the controls drive.
-        variant: `"normal"` for the in-page bar, `"fullscreen"` for the
-            dedicated theater bar (wired via `VideoControlsMode.FULLSCREEN`).
-    """
-    if variant == "fullscreen":
-        return _build_fullscreen_controls(player_inst)
-
+def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
+    """Build adaptive player controls for touch and TV/Desktop modes."""
     speed_container = ft.Container(
         content=player_inst.speed_text,
         padding=ft.Padding(6, 3, 6, 3),
@@ -43,6 +32,35 @@ def build_player_controls(
         player_inst.title or "Now Playing",
         color=ft.Colors.WHITE,
         weight=ft.FontWeight.W_500,
+    )
+
+    # In-player toast chip. It lives INSIDE the video controls because the
+    # fullscreen route (pushed by media_kit on the root navigator, above the
+    # whole Flet page tree) re-renders these same controls — the only Flet
+    # surface visible in fullscreen. Overlays placed next to the Video in a
+    # Stack are covered in fullscreen; this chip is not.
+    toast_text = ft.Text(
+        "",
+        color=ft.Colors.WHITE,
+        size=13,
+        weight=ft.FontWeight.W_500,
+        max_lines=1,
+        overflow=ft.TextOverflow.ELLIPSIS,
+    )
+    toast_chip = ft.Container(
+        content=toast_text,
+        bgcolor=ft.Colors.with_opacity(0.85, ft.Colors.BLACK),
+        border_radius=8,
+        padding=ft.Padding(12, 6, 12, 6),
+        visible=False,
+    )
+    player_inst.toast_chip = toast_chip
+    player_inst.toast_text = toast_text
+
+    # Toast overlays the title slot so it needs no extra bar width
+    title_slot = ft.Stack(
+        controls=[title_text, toast_chip],
+        alignment=ft.Alignment.CENTER,
     )
 
     # Quality button (in bottom controls alongside speed/settings): appears
@@ -235,7 +253,7 @@ def build_player_controls(
             top_button_bar_margin=ft.Margin(16, 35, 16, 0),
             top_button_bar=[
                 back_btn,
-                title_text,
+                title_slot,
             ],
             bottom_button_bar=[
                 fv.VideoPositionIndicator(
@@ -269,7 +287,7 @@ def build_player_controls(
             ],
             top_button_bar=[
                 back_btn,
-                title_text,
+                title_slot,
             ],
             bottom_button_bar=[
                 fv.VideoVolumeButton(slider_width=80, icon_color=ft.Colors.WHITE),
@@ -292,95 +310,5 @@ def build_player_controls(
             seek_bar_hover_height=8,
             volume_bar_active_color=AppColors.PRIMARY,
             controls_hover_duration=ft.Duration(seconds=4),
-        ),
-    )
-
-
-def _build_fullscreen_controls(player_inst) -> fv.AdaptiveVideoControls:
-    """Dedicated theater bar for `VideoControlsMode.FULLSCREEN`.
-
-    Replaces the old in-player toast-chip workaround: the per-mode controls
-    dict gives fullscreen its own visible bar (the normal set is no longer
-    the surface that has to survive the fullscreen route media_kit pushes
-    above the Flet tree).
-
-    Minimal on purpose — back, title, big play/pause, position, exit — and
-    built from fresh controls so no mutable refs (speed/quality/audio/fav)
-    are shared with the normal set.
-    """
-    back_btn = ft.IconButton(
-        icon=ft.Icons.ARROW_BACK_IOS_NEW_ROUNDED,
-        icon_color=ft.Colors.WHITE,
-        icon_size=24,
-        tooltip="Back",
-        on_click=lambda e: player_inst.page.run_task(player_inst._on_back, e),
-    )
-    title_text = ft.Text(
-        player_inst.title or "Now Playing",
-        color=ft.Colors.WHITE,
-        size=18,
-        weight=ft.FontWeight.W_500,
-        max_lines=1,
-        overflow=ft.TextOverflow.ELLIPSIS,
-    )
-    return fv.AdaptiveVideoControls(
-        # --- Mobile (touch) ---
-        material=fv.MaterialVideoControls(
-            visible_on_mount=True,
-            display_seek_bar=True,
-            controls_transition_duration=ft.Duration(milliseconds=300),
-            seek_bar_position_color=AppColors.PRIMARY,
-            button_bar_button_color=ft.Colors.WHITE,
-            button_bar_button_size=24.0,
-            primary_button_bar=[
-                fv.VideoSpacer(flex=2),
-                fv.VideoPlayOrPauseButton(icon_size=72.0),
-                fv.VideoSpacer(flex=2),
-            ],
-            top_button_bar=[
-                back_btn,
-                title_text,
-            ],
-            bottom_button_bar=[
-                fv.VideoPositionIndicator(
-                    text_style=ft.TextStyle(size=14, color=ft.Colors.WHITE),
-                ),
-                fv.VideoSpacer(),
-                fv.VideoFullscreenButton(icon_color=ft.Colors.WHITE, icon_size=24.0),
-            ],
-        ),
-        # --- Desktop / TV (keyboard + D-pad) ---
-        material_desktop=fv.MaterialDesktopVideoControls(
-            visible_on_mount=True,
-            display_seek_bar=True,
-            modify_volume_on_scroll=False,
-            # Play/pause-on-tap stays off (user request) and the
-            # double-press fullscreen toggle stays off as in the normal bar.
-            toggle_fullscreen_on_double_press=False,
-            play_and_pause_on_tap=False,
-            hide_mouse_on_controls_removal=False,
-            button_bar_button_size=24.0,
-            primary_button_bar=[
-                fv.VideoSpacer(flex=2),
-                fv.VideoPlayOrPauseButton(icon_size=44.0),
-                fv.VideoSpacer(flex=2),
-            ],
-            top_button_bar=[
-                back_btn,
-                title_text,
-            ],
-            bottom_button_bar=[
-                fv.VideoVolumeButton(slider_width=80, icon_color=ft.Colors.WHITE),
-                fv.VideoSpacer(),
-                fv.VideoPositionIndicator(
-                    text_style=ft.TextStyle(size=14, color=ft.Colors.WHITE),
-                ),
-                fv.VideoSpacer(),
-                fv.VideoFullscreenButton(icon_color=ft.Colors.WHITE, icon_size=24.0),
-            ],
-            seek_bar_position_color=AppColors.PRIMARY,
-            seek_bar_buffer_color=ft.Colors.with_opacity(0.5, ft.Colors.WHITE),
-            seek_bar_hover_height=8,
-            volume_bar_active_color=AppColors.PRIMARY,
         ),
     )

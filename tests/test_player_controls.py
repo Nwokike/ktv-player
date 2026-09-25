@@ -2,8 +2,6 @@
 
 from unittest import mock
 
-import flet as ft
-
 from components.player.controls import build_player_controls
 
 
@@ -48,87 +46,6 @@ def test_fav_button_hidden_when_show_favorite_false():
     assert isinstance(controls, fv.AdaptiveVideoControls)
     assert not _fav_buttons(controls.material.bottom_button_bar)
     assert not _fav_buttons(controls.material_desktop.bottom_button_bar)
-
-
-def test_no_toast_stack_in_top_bars():
-    """The toast-chip workaround is gone: top bars show the title directly.
-
-    The dedicated fullscreen control set (VideoControlsMode.FULLSCREEN)
-    replaced the chip that used to live in a Stack over the title.
-    """
-    player = mock.MagicMock()
-    player.speed_text = mock.MagicMock()
-    player.show_favorite_button = True
-    controls = build_player_controls(player)
-    for bar in (
-        controls.material.top_button_bar,
-        controls.material_desktop.top_button_bar,
-    ):
-        assert not any(isinstance(c, ft.Stack) for c in bar)
-
-
-def test_fullscreen_variant_has_bigger_controls_and_minimal_bar():
-    import flet_video as fv
-
-    player = mock.MagicMock()
-    player.speed_text = mock.MagicMock()
-    player.title = "Some Channel"
-    full = build_player_controls(player, variant="fullscreen")
-    assert isinstance(full, fv.AdaptiveVideoControls)
-    # Bigger play/pause than the normal set (48 mobile / 32 desktop).
-    mobile_play = next(
-        c
-        for c in full.material.primary_button_bar
-        if isinstance(c, fv.VideoPlayOrPauseButton)
-    )
-    desktop_play = next(
-        c
-        for c in full.material_desktop.primary_button_bar
-        if isinstance(c, fv.VideoPlayOrPauseButton)
-    )
-    assert mobile_play.icon_size > 48.0
-    assert desktop_play.icon_size > 32.0
-    # Minimal bar: no quality/audio/favorite controls in fullscreen.
-    for bar in (
-        full.material.bottom_button_bar,
-        full.material_desktop.bottom_button_bar,
-    ):
-        assert player.quality_btn not in bar
-        assert player.audio_btn not in bar
-        assert not _fav_buttons(bar)
-
-
-def test_fullscreen_and_normal_sets_are_independent():
-    """Two sets must not share control instances (one parent each)."""
-    import flet_video as fv
-
-    player = mock.MagicMock()
-    player.speed_text = mock.MagicMock()
-    normal = build_player_controls(player)
-    full = build_player_controls(player, variant="fullscreen")
-    assert isinstance(normal, fv.AdaptiveVideoControls)
-    assert isinstance(full, fv.AdaptiveVideoControls)
-    # The fullscreen set must not mount the normal set's buttons.
-    assert all(
-        c is not player.speed_text
-        for bar in (
-            full.material.bottom_button_bar,
-            full.material_desktop.bottom_button_bar,
-        )
-        for c in bar
-    )
-
-
-def test_immersive_player_wires_fullscreen_controls_mode():
-    """Source contract: the Video gets a NORMAL/FULLSCREEN controls dict."""
-    import inspect
-
-    from components.player.immersive_player import ImmersivePlayer
-
-    source = inspect.getsource(ImmersivePlayer)
-    assert "fv.VideoControlsMode.NORMAL" in source
-    assert "fv.VideoControlsMode.FULLSCREEN" in source
-    assert "toast_chip" not in source
 
 
 def test_desktop_controls_have_no_skip_buttons():
