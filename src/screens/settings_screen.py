@@ -512,10 +512,9 @@ def SettingsScreen() -> Control:
 
     # -- 6. Premium (remove-ads) -------------------------------------------
     premium_service = getattr(page_obj, "premium", None)
-    # The Play purchase stream lands asynchronously — often while this very
-    # screen is still open — so the card follows the service instead of a
-    # snapshot taken at build time (which left "Upgrade" showing to users
-    # who had already paid).
+    # The license verdict can change while this screen is open (purchase,
+    # restore, expiry), so the card follows the service instead of a
+    # snapshot taken at build time.
     is_premium, set_is_premium = ft.use_state(core_state.is_premium)
 
     def _sync_premium():

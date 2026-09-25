@@ -104,10 +104,10 @@ class AppController:
         self.update_service = UpdateService()
         self._loading_lock = asyncio.Lock()
 
-        # Premium (remove-ads): the local entitlement flag is read here (a
-        # single DB row, instant), but the Play round-trips are deferred to
-        # _post_render_startup — a slow store connection must not hold the
-        # first frame hostage. page.premium mirrors the page.file_picker
+        # Premium (remove-ads): the signed license token is verified here
+        # (offline, instant), but the Worker reconciliation is deferred to
+        # _post_render_startup so a slow network cannot hold the first frame
+        # hostage. page.premium mirrors the page.file_picker
         # pattern so SettingsScreen can reach the service.
         self.premium = PremiumService(self.page)
         self.page.premium = self.premium
@@ -794,8 +794,8 @@ class AppController:
         """Persist position (awaited), then stop playback and pop/exit."""
         await self._persist_player_position(player)
 
-        # Release native resources (the IMA ad view) while the control tree
-        # is still attached: a popped view detaches its controls, and a
+        # Release any native resources the player owns while the control
+        # tree is still attached: a popped view detaches its controls, and a
         # detached control cannot invoke methods on the Dart side.
         teardown = getattr(player, "teardown", None)
         if callable(teardown):

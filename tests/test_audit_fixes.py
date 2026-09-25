@@ -21,6 +21,24 @@ def _clean_state():
     state.reset()
 
 
+@pytest.fixture
+def store():
+    """In-memory settings table for the license service."""
+    values: dict[str, str] = {}
+
+    async def get_setting(key, default=None):
+        return values.get(key, default)
+
+    async def set_setting(key, value):
+        values[key] = str(value)
+
+    dbm = mock.AsyncMock()
+    dbm.get_setting.side_effect = get_setting
+    dbm.set_setting.side_effect = set_setting
+    with mock.patch("services.kiri_license.db_manager", dbm):
+        yield values
+
+
 # 1. The Restore button passed an event to a zero-argument handler, which
 #    raised TypeError the moment it was tapped on a direct build.
 def test_settings_restore_handlers_accept_an_event():
@@ -112,6 +130,14 @@ async def test_a_rejected_token_drops_a_standing_unlock():
         await svc.restore("KIRI-L-x")
 
     assert svc.unlocked is False, "a bad token left the previous unlock in place"
+    # ...and the app-wide flag must follow, or ads return while licensed.
+    from services.premium_service import PremiumService
+
+    premium = PremiumService(mock.MagicMock())
+    premium.license = svc
+    svc.on_change = premium._recompute_premium
+    premium._recompute_premium()
+    assert state.is_premium is False
 
 
 # 4. Back on a pushed overlay (recently-watched) must pop it, not exit.
@@ -160,3 +186,79 @@ class _FakePage:
 class SimplePlatform:
     def is_mobile(self):
         return True
+
+
+# 7. An authoritative refusal from the Worker must drop premium, not keep
+#    it. Only a transport failure may preserve the local verdict.
+@pytest.mark.asyncio
+async def test_an_http_refusal_drops_premium():
+    from services.kiri_license import KiriLicenseService
+    from services.premium_service import PremiumService
+
+    svc = KiriLicenseService(public_key=PUBLIC_KEY)
+    svc._unlocked = True
+
+    response = mock.Mock()
+    response.status_code = 404
+    response.json.return_value = {"message": "license_not_found"}
+
+    async def post(*args, **kwargs):
+        return response
+
+    client = mock.Mock()
+    client.post = post
+
+    premium = PremiumService(mock.MagicMock())
+    premium.license = svc
+    dbm = mock.AsyncMock()
+    dbm.get_setting.return_value = "KIRI-L-abc"
+    with (
+        mock.patch("services.kiri_license.get_http_client", return_value=client),
+        mock.patch("services.kiri_license.db_manager", dbm),
+    ):
+        await premium.reconcile()
+
+    assert svc.unlocked is False
+    assert state.is_premium is False, "a 404 from the Worker kept premium"
+
+
+# 8. A token returned with a revoked status must not be cached — next boot
+#    would verify it and re-unlock.
+@pytest.mark.asyncio
+async def test_a_revoked_status_does_not_persist_the_token(store):
+    from services.kiri_license import KiriLicenseService
+
+    svc = KiriLicenseService(public_key=PUBLIC_KEY, on_change=lambda: None)
+    body = {
+        "recovery_id": "KIRI-L-x",
+        "product": "lifetime",
+        "status": "revoked",
+        "token": TOKENS["LIFETIME"],
+    }
+    response = mock.Mock()
+    response.status_code = 200
+    response.json.return_value = body
+
+    async def post(*args, **kwargs):
+        return response
+
+    client = mock.Mock()
+    client.post = post
+    with mock.patch("services.kiri_license.get_http_client", return_value=client):
+        status = await svc.restore("KIRI-L-x")
+
+    assert status.unlocks is False
+    assert svc.unlocked is False
+    assert store.get("kiri_token") in ("", None), (
+        "a revoked license left a verifiable token behind for next boot"
+    )
+
+
+# 9. The refusal classifier must not treat a throttle as a revocation.
+def test_rate_limit_is_not_a_refusal():
+    from services.kiri_license import status_refusal
+
+    assert status_refusal(403) is True
+    assert status_refusal(404) is True
+    assert status_refusal(429) is False, "a throttled check must not revoke"
+    assert status_refusal(500) is False, "a server fault is transport"

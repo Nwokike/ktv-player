@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 class PremiumService:
-    """Owns the Kiri license and the persisted ``premium`` flag."""
+    """Owns the Kiri license and derives the ``premium`` flag from it."""
 
     def __init__(self, page):
         self.page = page
@@ -112,9 +112,13 @@ class PremiumService:
         try:
             await self.license.refresh()
         except LicenseUnavailable as ex:
-            logger.info("Kiri license refresh skipped: %s", ex)
+            logger.info("Kiri license refresh: %s", ex)
         except Exception:
             logger.debug("Kiri license refresh failed", exc_info=True)
+        finally:
+            # Re-derive even on failure: a refusal or a rejected token has
+            # already cleared the license, and state.is_premium must follow.
+            self._recompute_premium()
 
     # -- Kiri License surface ------------------------------------------------
 

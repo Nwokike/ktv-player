@@ -43,6 +43,16 @@ class LicenseUnavailable(Exception):
     """The license service could not be reached or refused the request."""
 
 
+def status_refusal(code: int) -> bool:
+    """HTTP codes meaning "this entitlement is not valid" — not transport.
+
+    400 malformed request, 402 payment not valid, 403 app not entitled,
+    404 license not found. 429 is deliberately excluded: a throttled
+    check must never revoke a real license.
+    """
+    return code in (400, 402, 403, 404)
+
+
 @dataclass(frozen=True)
 class LicenseProduct:
     id: str
@@ -155,6 +165,10 @@ class KiriLicenseService:
         token = await db_manager.get_setting(SETTING_TOKEN, "")
         if not token:
             self._unlocked = False
+            # Without the token there is nothing left to verify, so the old
+            # claims must not be reused by a later status reply.
+            self.claims = None
+            self._notify_change()
             return False
         try:
             claims = verify_token(token, self.public_key, self.app_id)
@@ -235,6 +249,11 @@ class KiriLicenseService:
             return None
         return await self._query("/status", recovery_id, issue_token=False)
 
+    def _notify_change(self) -> None:
+        """Report a verdict change so the app-wide flag cannot go stale."""
+        if self.on_change is not None:
+            self.on_change()
+
     async def _query(
         self, path: str, recovery_id: str, *, issue_token: bool
     ) -> LicenseStatus:
@@ -252,6 +271,18 @@ class KiriLicenseService:
                 f"Could not reach the license service: {ex}"
             ) from ex
         if response.status_code >= 400:
+            # The Worker answers entitlement questions here (402 payment not
+            # valid, 403 app not entitled, 404 license not found). That is
+            # the server refusing, not the network failing — so a standing
+            # unlock is dropped rather than preserved by accident.
+            if status_refusal(response.status_code):
+                logger.info(
+                    "License refused with HTTP %s — dropping unlock",
+                    response.status_code,
+                )
+                self._unlocked = False
+                self.claims = None
+                self._notify_change()
             raise LicenseUnavailable(self._error_message(response, "Restore failed"))
 
         payload = response.json()
@@ -268,14 +299,25 @@ class KiriLicenseService:
                 logger.warning("Kiri license token rejected: %s", ex.reason)
                 self._unlocked = False
                 self.claims = None
+                self._notify_change()
                 raise LicenseUnavailable(
                     "The license service returned a token this app could not verify"
                 ) from ex
-            await self._store(
-                recovery_id=str(payload.get("recovery_id") or recovery_id),
-                token=token,
-                product=str(payload.get("product") or ""),
-            )
+            if status in ("active", "grace"):
+                await self._store(
+                    recovery_id=str(payload.get("recovery_id") or recovery_id),
+                    token=token,
+                    product=str(payload.get("product") or ""),
+                )
+            else:
+                # A valid token for a revoked/expired license must not be
+                # cached: next launch would verify it and re-unlock.
+                logger.info("Not caching token for status=%s", status)
+                await self._store(
+                    recovery_id=str(payload.get("recovery_id") or recovery_id),
+                    token="",
+                    product=str(payload.get("product") or ""),
+                )
         else:
             await self._store(
                 recovery_id=str(payload.get("recovery_id") or recovery_id),
@@ -287,7 +329,13 @@ class KiriLicenseService:
         # refresh wipes the cache with None and unlocks nothing.
         if claims is not None:
             self.claims = claims
-        await self._apply(status, claims if claims is not None else self.claims)
+        effective = claims if claims is not None else self.claims
+        if status not in ("active", "grace"):
+            # Revoked/expired: the claims must not outlive the verdict, or
+            # the next status-only reply could re-unlock from them.
+            self.claims = None
+            effective = None
+        await self._apply(status, effective)
         return LicenseStatus(
             status=status,
             product=str(payload.get("product") or ""),
