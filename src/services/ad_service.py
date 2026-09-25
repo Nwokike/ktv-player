@@ -242,12 +242,7 @@ class AdService:
         )
 
     async def show_interstitial(self) -> bool:
-        if (
-            not _HAS_FLET_ADS
-            or state.is_premium
-            or not self.page.platform.is_mobile()
-            or state.is_premium
-        ):
+        if not _HAS_FLET_ADS or state.is_premium or not self.page.platform.is_mobile():
             return False
 
         # If we have a preloaded ad, wait for it to actually finish loading

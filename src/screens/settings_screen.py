@@ -590,7 +590,7 @@ def SettingsScreen() -> Control:
         finally:
             set_license_busy(False)
 
-    def _ask_recovery_id():
+    def _ask_recovery_id(e=None):
         field = ft.TextField(
             label="Recovery ID",
             hint_text=recovery_id or "KIRI-L-...",
@@ -630,7 +630,7 @@ def SettingsScreen() -> Control:
             _sync_premium()
             notify(
                 "Premium unlocked — ads removed"
-                if status.unlocks
+                if core_state.is_premium
                 else f"License status: {status.status}"
             )
         except Exception as ex:

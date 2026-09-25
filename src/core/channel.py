@@ -15,10 +15,10 @@ the marker is decided by which pipeline built the artifact — not by a
 runtime guess.
 
 Why a marker at all: the Play Console in use has no Google Payments
-merchant profile, so in-app products cannot even be created. Play
-Billing stays in the code, dormant; the day a merchant profile exists
-on an account we can use, the products are created and this marker is
-the only thing to change.
+merchant profile, so in-app products cannot even be created — and there
+is nothing half-built waiting behind this flag. The day a merchant profile
+exists on an account we can use, Play Billing gets added back to the build
+rather than switched on.
 """
 
 CHANNEL = "direct"

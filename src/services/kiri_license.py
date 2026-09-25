@@ -94,9 +94,8 @@ class KiriLicenseService:
         # rotation (and the test fixtures, which are signed with their own
         # throwaway pair) is a constructor argument, not a monkeypatch.
         self.public_key = public_key
-        # This service owns its own entitlement only. The app-wide premium
-        # flag is the union of this and the Play purchase, and only
-        # PremiumService knows both — so it is told, not set here.
+        # This service owns its own entitlement only: it reports the verdict
+        # and lets PremiumService mirror it into the app-wide flag.
         self.on_change = on_change
         self.products: list[LicenseProduct] = []
         self.claims: LicenseClaims | None = None
@@ -131,10 +130,9 @@ class KiriLicenseService:
     async def _apply(self, status: str, claims: LicenseClaims | None) -> None:
         """Record a verified entitlement and let the app re-evaluate.
 
-        Deliberately does NOT set `state.is_premium`: that flag is the union
-        of the Play purchase and this license, and only PremiumService knows
-        both. Setting it here would let a lapsed license keep ad-free
-        access through the Play cache flag.
+        Deliberately does NOT set `state.is_premium` itself: the caller
+        re-derives it from a single source of truth, so an entitlement can
+        only be granted or dropped in one place.
         """
         self._unlocked = status in ("active", "grace") and claims is not None
         logger.info(
@@ -265,8 +263,11 @@ class KiriLicenseService:
                 claims = verify_token(token, self.public_key, self.app_id)
             except TokenRejected as ex:
                 # A token we cannot verify is a token we do not honour, even
-                # if the server said the license is active.
+                # if the server said the license is active — and one that was
+                # previously trusted must be dropped, not kept on the shelf.
                 logger.warning("Kiri license token rejected: %s", ex.reason)
+                self._unlocked = False
+                self.claims = None
                 raise LicenseUnavailable(
                     "The license service returned a token this app could not verify"
                 ) from ex
@@ -280,8 +281,13 @@ class KiriLicenseService:
                 recovery_id=str(payload.get("recovery_id") or recovery_id),
                 product=str(payload.get("product") or ""),
             )
-        self.claims = claims
-        await self._apply(status, claims or self.claims)
+        # A fresh verified token replaces the cache; a status-only reply
+        # (which carries no token by design) reuses the one we already
+        # verified — the assignment must come after that read, or every
+        # refresh wipes the cache with None and unlocks nothing.
+        if claims is not None:
+            self.claims = claims
+        await self._apply(status, claims if claims is not None else self.claims)
         return LicenseStatus(
             status=status,
             product=str(payload.get("product") or ""),

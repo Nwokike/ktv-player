@@ -102,12 +102,12 @@ class PremiumService:
         """Refresh the entitlement with the Worker.
 
         A network round-trip, so this runs *after* the first frame
-        (AppController._post_render_startup), never before it. A failed
-        refresh never downgrades the local verdict.
+        (AppController._post_render_startup), never before it. It runs
+        even while unlocked: the Worker is authoritative when reachable,
+        so a refunded or revoked license must land. Only a network failure
+        keeps the local verdict.
         """
         if CHANNEL == "play":
-            return
-        if self.license.unlocked:
             return
         try:
             await self.license.refresh()

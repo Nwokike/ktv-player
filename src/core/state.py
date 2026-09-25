@@ -25,8 +25,9 @@ class AppState:
     update_available: bool = False
     update_data: dict | None = None
 
-    # Premium (remove-ads) unlock — persisted as settings["premium"] and
-    # reconciled at boot by services.premium_service.PremiumService.
+    # Premium (remove-ads) unlock — derived at boot from the verified Kiri
+    # License token (services.kiri_license / license_token), never from a
+    # bare setting.
     is_premium: bool = False
 
     def __init__(self):

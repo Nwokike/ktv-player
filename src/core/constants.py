@@ -158,10 +158,10 @@ MAX_HISTORY_ITEMS = 20
 AD_PRELOAD_RETRY_DELAY = 30
 AD_PRELOAD_MAX_RETRIES = 5
 # --- Kiri License (license.kiri.ng) -------------------------------------
-# External checkout for the platforms Google Play cannot serve: direct APK
-# installs, Windows and Linux. The Worker owns the payment policy; this app
-# only holds a recovery ID and a signed entitlement token. Play Billing
-# still wins whenever Play can actually bill the install.
+# The only checkout in this build: direct APK installs, Windows and Linux.
+# The Worker owns the payment policy; this app only holds a recovery ID and
+# a signed entitlement token. Google Play Billing is not part of this build
+# (no merchant profile on the console in use) — see core/channel.py.
 KIRI_LICENSE_BASE_URL = "https://license.kiri.ng"
 # Matches LICENSE_PUBLIC_KEY in kiri-license/wrangler.toml. Public by
 # design — it verifies tokens offline and can never sign anything.

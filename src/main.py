@@ -602,8 +602,9 @@ class AppController:
             ):
                 # Closing but not yet saved (e.g. a close raced in) — still
                 # run the awaited close-save so the position is persisted.
-                player._is_closing = True
-                self.page.run_task(self._close_player_with_save, player)
+                # Shared guard: this path used to schedule a second close
+                # alongside view_pop and could pop /play onto /blank.
+                self._begin_player_close(player)
                 return
             self.page.run_task(self._exit_to_caller)
         elif len(self.page.views) > 1 and self.page.views[-1].route == "/play":
@@ -658,7 +659,7 @@ class AppController:
         if route != "/play" and self.page.views:
             for v in self.page.views:
                 if v.route == "/play":
-                    for ctrl in v.controls:
+                    for ctrl in self._view_children(v):
                         player = self._find_immersive_player(ctrl)
                         if player and not (
                             getattr(player, "_is_closing", False)
@@ -738,8 +739,11 @@ class AppController:
             found = AppController._find_immersive_player(control.content)
             if found:
                 return found
-        if hasattr(control, "controls") and control.controls:
-            for child in control.controls:
+        children = getattr(control, "controls", None)
+        if children is not None:
+            for child in (
+                children if isinstance(children, (list, tuple)) else [children]
+            ):
                 found = AppController._find_immersive_player(child)
                 if found:
                     return found
@@ -763,6 +767,19 @@ class AppController:
                 getattr(player, "_is_closing", False),
             )
             self._begin_player_close(player)
+            return
+
+        top_route = getattr(self.page.views[-1], "route", "")
+        if (
+            top_route
+            and top_route not in ("/", "", "/play", "/blank")
+            # A pushed overlay (recently-watched, ...): back closes it, the
+            # way 2.1.0 did, rather than exiting from underneath it.
+            and len(self.page.views) > 1
+        ):
+            logger.info("close-path: view_pop on overlay %s", top_route)
+            self.page.views.pop()
+            self.page.update()
             return
 
         logger.info("close-path: view_pop on a shell view")
@@ -880,7 +897,7 @@ async def main(page: ft.Page):
         with contextlib.suppress(Exception):
             if controller.page.views:
                 for v in controller.page.views:
-                    for ctrl in v.controls:
+                    for ctrl in controller._view_children(v):
                         player = controller._find_immersive_player(ctrl)
                         if player:
                             player._is_closing = True

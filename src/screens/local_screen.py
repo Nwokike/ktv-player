@@ -328,8 +328,14 @@ def LocalScreen() -> Control:
 
             for _ in range(_CONSENT_WAIT_POLLS):
                 await asyncio.sleep(1.0)
-                if not await asyncio.to_thread(media_store_exists, content_uri):
+                exists = await asyncio.to_thread(media_store_exists, content_uri)
+                if exists is False:
                     return True
+                if exists is None:
+                    # Could not query (activity gone, provider error) — that
+                    # is not proof of a delete, so stop claiming one.
+                    logger.info("Delete verification unavailable — using rescan")
+                    return False
             return False
 
         async def _delete_video(v, page):

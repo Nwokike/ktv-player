@@ -216,9 +216,16 @@ def scan_videos(
                 name=folder_name,
                 path=folder_key,
             )
-        # Avoid duplicate video paths
-        if not any(v.path == vid.path for v in folder_map[folder_key].videos):
+        # Avoid duplicate video paths — but the duplicate is the one with the
+        # delete handle, so keep its content_uri on the entry we keep,
+        # otherwise deleting a merged row falls back to a blocked file delete.
+        existing = next(
+            (v for v in folder_map[folder_key].videos if v.path == vid.path), None
+        )
+        if existing is None:
             folder_map[folder_key].videos.append(vid)
+        elif vid.content_uri and not existing.content_uri:
+            existing.content_uri = vid.content_uri
 
     valid_folders = [f for f in folder_map.values() if len(f.videos) > 0]
     result = sorted(valid_folders, key=lambda f: f.name.lower())
@@ -414,8 +421,12 @@ def request_media_store_delete(content_uri: str) -> bool:
         return False
 
 
-def media_store_exists(content_uri: str) -> bool:
-    """Whether the row is still in MediaStore (confirms a consented delete)."""
+def media_store_exists(content_uri: str) -> bool | None:
+    """Whether the row is still in MediaStore (confirms a consented delete).
+
+    `None` means "could not ask" — a failed query must never be reported as
+    a successful delete, which is what a plain False would do to the caller.
+    """
     if not content_uri:
         return False
     try:
@@ -423,19 +434,19 @@ def media_store_exists(content_uri: str) -> bool:
 
         activity = _android_activity(autoclass)
         if not activity:
-            return False
+            return None
         Uri = autoclass("android.net.Uri")
         cursor = activity.getContentResolver().query(
             Uri.parse(content_uri), None, None, None, None
         )
         if cursor is None:
-            return False
+            return None
         try:
             return bool(cursor.getCount() > 0)
         finally:
             cursor.close()
     except Exception:
-        return False
+        return None
 
 
 def delete_local_file(path: str) -> bool:
