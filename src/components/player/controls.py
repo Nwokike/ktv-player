@@ -16,8 +16,12 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
         border_radius=4,
         ink=True,
         on_click=lambda e: player_inst.page.run_task(player_inst._cycle_speed),
+        # Hidden until duration metadata arrives: live streams never get a
+        # duration, so the chip never appears for a channel.
+        visible=getattr(player_inst, "speed_available", True),
     )
     speed_container.tab_index = 0
+    player_inst.speed_container = speed_container
 
     back_btn = ft.IconButton(
         icon=ft.Icons.ARROW_BACK_IOS_NEW_ROUNDED,

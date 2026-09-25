@@ -292,6 +292,11 @@ class ImmersivePlayer(ft.Stack):
         # Speed control
         self._speed_idx = 2  # index of 1.0 in speeds list
         self._speeds = [0.25, 0.5, 1.0, 1.25, 1.5, 2.0]
+        # Playback speed is a VOD/local feature. A live stream never
+        # reports a duration, so the speed chip stays hidden there — the
+        # inverse of how favorites are offered only for channels.
+        self.speed_available = False
+        self.speed_container = None
         self.speed_text = ft.Text(
             "1.0x",
             size=11,
@@ -670,7 +675,21 @@ class ImmersivePlayer(ft.Stack):
             seconds = self._event_seconds(e.data)
             if seconds is not None:
                 self._last_duration = seconds
+                if seconds > 0 and not self.speed_available:
+                    self.speed_available = True
+                    self._show_speed_control()
         self._check_and_trigger_seek()
+
+    def _show_speed_control(self):
+        """Reveal the speed chip once duration metadata proves VOD."""
+        container = self.speed_container
+        if container is None:
+            return
+        try:
+            container.visible = True
+            self.update()
+        except Exception:
+            logger.debug("Could not reveal the speed control", exc_info=True)
 
     def _on_pos_change(self, e: ft.ControlEvent | None = None):
         if not self._overlay_hidden:

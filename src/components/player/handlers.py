@@ -11,7 +11,16 @@ logger = logging.getLogger(__name__)
 
 
 async def cycle_speed(player_inst):
-    """Cycle playback speed between 0.5x, 1.0x, 1.25x, 1.5x, 2.0x."""
+    """Cycle playback speed between 0.5x, 1.0x, 1.25x, 1.5x, 2.0x.
+
+    Refuses on a live stream: playback rate on content with no seekable
+    timeline does nothing useful and desyncs a live edge.
+    """
+    if not getattr(player_inst, "speed_available", True):
+        from utils.notifications import notify
+
+        notify("Playback speed isn't available on live channels")
+        return
     player_inst._speed_idx = (player_inst._speed_idx + 1) % len(player_inst._speeds)
     rate = player_inst._speeds[player_inst._speed_idx]
     player_inst.video.playback_rate = rate

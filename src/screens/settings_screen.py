@@ -144,9 +144,14 @@ def _setting_row(
     leading: Control,
     title: str,
     subtitle: str,
-    trailing: Control,
+    trailing: Control | None = None,
 ) -> ft.Container:
-    """A single-line setting: [icon+text] ---- [control]."""
+    """A single-line setting: [icon+text] ---- [control].
+
+    `trailing` is optional: omitting it used to raise TypeError mid-render
+    (the exception killed the whole Settings tab for non-premium users,
+    with nothing logged — Flet's update scheduler swallows it).
+    """
     return ft.Container(
         content=ft.Row(
             controls=[
@@ -165,7 +170,7 @@ def _setting_row(
                     spacing=12,
                     expand=True,
                 ),
-                trailing,
+                *([trailing] if trailing is not None else []),
             ],
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
@@ -665,7 +670,9 @@ def SettingsScreen() -> Control:
         )
 
     _kiri_rows: list = []
-    if not is_premium:
+    # Built only where the card is shown: assembling these on the play
+    # channel still executed the raise, even though the card was discarded.
+    if CHANNEL != "play" and not is_premium:
         _kiri_rows = [
             *[_kiri_product_row(p) for p in products],
             *(
