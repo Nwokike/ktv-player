@@ -60,6 +60,11 @@ def get_cached_thumbnail(video) -> str | None:
 def _extract_sync(video_path: str, out_path: str, content_uri: str = "") -> bool:
     """Grab one frame via MediaMetadataRetriever. Runs in a worker thread.
 
+    This is an Android feature: Android ships MediaMetadataRetriever in the
+    APK, and nothing else on any platform is required to exist for it.
+    Desktop keeps the movie icon (documented, intentional) rather than
+    taking on a frame decoder that most systems do not have installed.
+
     Prefers the MediaStore content URI: under scoped storage a raw path can
     be unreadable even with media permission granted. Falls back to the path
     (and to the URI failing) so nothing regresses on devices where either

@@ -12,6 +12,7 @@ dependencies = [
     "httpx[http2]>=0.28.1",
 ]
 
+
 [tool.flet]
 org = "ng.kiri"
 product = "KTV Player"
