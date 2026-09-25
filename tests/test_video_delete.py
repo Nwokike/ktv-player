@@ -76,3 +76,45 @@ def test_local_screen_wires_long_press_to_folder_tiles():
     assert "on_video_menu=" in src
     assert "async def _video_menu" in src
     assert "show_dialog" in src
+
+
+def test_windows_defaults_are_merged_with_storage_paths(monkeypatch):
+    r"""StoragePaths must never replace the desktop defaults.
+
+    On Windows `StoragePaths` answers with Downloads only, so the old
+    `if paths: return paths` short-circuit skipped `get_default_scan_paths()`
+    — the only place C:\Users\<who>\Videos is listed. A machine with 1354
+    videos there scanned as "0 folders".
+    """
+    import asyncio
+
+    from screens import local_screen
+
+    class _FakeStoragePaths:
+        async def get_downloads_directory(self):
+            return "C:/Users/me/Downloads"
+
+        async def get_external_storage_directory(self):
+            return None
+
+        async def get_external_storage_directories(self):
+            return []
+
+    import flet
+
+    monkeypatch.setattr(flet, "StoragePaths", _FakeStoragePaths, raising=False)
+    monkeypatch.setattr(
+        local_screen,
+        "get_default_scan_paths",
+        lambda: [
+            "C:/Users/me/Videos",
+            "C:/Users/me/Downloads",
+            "C:/Users/me/Desktop",
+        ],
+    )
+    paths = asyncio.run(local_screen._get_storage_paths())
+
+    assert "C:/Users/me/Videos" in paths, "Videos library was skipped"
+    assert "C:/Users/me/Desktop" in paths
+    # No duplicates from the merge.
+    assert len(paths) == len(set(paths))

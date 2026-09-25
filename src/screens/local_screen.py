@@ -67,6 +67,13 @@ async def _get_storage_paths() -> list[str]:
         except Exception:
             pass
 
+        # Merge, never replace: on Windows StoragePaths answers with just
+        # Downloads, and returning early skipped get_default_scan_paths()
+        # — the only place Videos/Desktop are listed. That is why a machine
+        # with 1354 videos in \Videos scanned as "0 folders".
+        for extra in get_default_scan_paths():
+            if extra not in paths:
+                paths.append(extra)
         if paths:
             return paths
     except Exception as ex:
