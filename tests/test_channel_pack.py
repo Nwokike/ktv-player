@@ -353,3 +353,92 @@ async def test_favorites_orphans_are_kept_silent(monkeypatch):
         assert state.favorites == ["http://gone"]
     finally:
         state.favorites = old_favs
+
+
+# -- Windows cache corruption regression (the "Home stuck loading" bug) -----
+# Text-mode writes doubled the pack's CRLF into \r\r\n on Windows; reading
+# that back interleaved a blank line after every line, the URL check saw "",
+# and the playlist parsed to ZERO channels: Home sat on its loading state
+# until the user found the Refresh button. Three layers pinned here.
+
+
+def test_write_cache_never_doubles_windows_line_endings(tmp_path):
+    from channels import provider
+    from services.m3u_parser import parse_m3u_text
+
+    body = (
+        "#EXTM3U\r\n"
+        '#EXTINF:-1 tvg-id="a.us@SD" group-title="News",US News\r\n'
+        "https://example.com/x.m3u8\r\n"
+    )
+    target = tmp_path / "cache.m3u8"
+    provider._write_cache(body, str(target))
+    raw = target.read_bytes()
+    assert b"\r\r" not in raw, "Windows text mode must not double CRs on disk"
+    back = provider._read_cache_file(str(target))
+    # The reader normalizes newlines; content must be intact and parseable.
+    assert back == body.replace("\r\n", "\n")
+    assert len(parse_m3u_text(back, default_group="General")) == 1
+
+
+def test_parser_survives_blank_lines_between_extinf_and_url():
+    from services.m3u_parser import parse_m3u_text
+
+    clean = (
+        "#EXTM3U\n"
+        '#EXTINF:-1 tvg-id="b.ng@SD" group-title="News",NG News\n'
+        "https://example.com/y.m3u8\n"
+    )
+    poisoned = clean.replace("\n", "\n\n")  # legacy Windows write output
+    for text in (clean, poisoned):
+        channels = parse_m3u_text(text, default_group="General")
+        assert len(channels) == 1, repr(text[:60])
+        assert channels[0]["url"] == "https://example.com/y.m3u8"
+
+
+def test_zero_channel_cache_self_heals_instead_of_dead_home(tmp_path, monkeypatch):
+    """A poisoned cache is discarded and refetched, never served forever."""
+    import asyncio
+    from unittest import mock
+
+    from channels import provider
+    from services.m3u_parser import parse_m3u_text
+
+    cache_dir = tmp_path / "cache"
+    cache_dir.mkdir()
+    monkeypatch.setattr(provider, "_CACHE_DIR", str(cache_dir))
+    monkeypatch.setattr(
+        provider, "_CACHE_FILE", str(cache_dir / "cached_playlist.m3u8")
+    )
+    # Poison: an error page that is >100 chars but parses to zero channels.
+    (cache_dir / "cached_playlist.m3u8").write_text(
+        "<html><body>Service unavailable " + "x" * 120 + "</body></html>",
+        encoding="utf-8",
+    )
+
+    good = (
+        "#EXTM3U\n"
+        '#EXTINF:-1 group-title="Ghana",GH One\n'
+        "https://example.com/good.m3u8\n" + "# padding " * 12
+    )
+    response = mock.Mock()
+    response.text = good
+    response.raise_for_status = mock.Mock()
+    client = mock.Mock()
+    client.get = mock.AsyncMock(return_value=response)
+    monkeypatch.setattr(provider, "get_http_client", lambda: client)
+
+    from core.state import state
+
+    old_tier = state.is_premium
+    state.is_premium = False
+    try:
+        service = provider.ChannelProvider()
+        channels = asyncio.run(service.get_all_channels())
+    finally:
+        state.is_premium = old_tier
+
+    assert len(channels) == 1, "poisoned cache must trigger a refetch"
+    assert channels[0]["url"] == "https://example.com/good.m3u8"
+    replaced = provider._read_cache_file()
+    assert replaced and len(parse_m3u_text(replaced, default_group="General")) == 1

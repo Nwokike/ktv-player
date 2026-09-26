@@ -35,8 +35,16 @@ def parse_m3u_text(text: str, default_group: str = "Custom") -> list[dict]:
             tvg_id_match = _TVG_ID_RE.search(meta)
 
             i += 1
-            while i < len(lines) and lines[i].strip().startswith("#"):
-                i += 1
+            # Skip comment lines AND blank lines: a legacy cache written
+            # with Windows newline translation interleaves a blank after
+            # every line, and without this the URL check saw "" instead of
+            # the stream URL and the whole playlist parsed to zero channels.
+            while i < len(lines):
+                stripped = lines[i].strip()
+                if not stripped or stripped.startswith("#"):
+                    i += 1
+                    continue
+                break
 
             if i < len(lines):
                 url = lines[i].strip()

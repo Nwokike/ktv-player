@@ -37,12 +37,19 @@ def _current_tier() -> str:
 
 
 def _write_cache(text: str, path: str | None = None) -> None:
-    """Write playlist text to cache file atomically (tmp + rename)."""
+    """Write playlist text to cache file atomically (tmp + rename).
+
+    newline="" is load-bearing on Windows: text mode would translate
+    every \\n to \\r\\n, turning the pack's own CRLF into \\r\\r\\n. Read
+    back through universal newlines, that doubles every line break into a
+    blank line, the parser sees an empty URL line, and the whole playlist
+    parses to ZERO channels (Home then sits on the loading state forever).
+    """
     target = path or _CACHE_FILE
     os.makedirs(_CACHE_DIR, exist_ok=True)
     fd, tmp_path = tempfile.mkstemp(dir=_CACHE_DIR, suffix=".tmp")
     try:
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="") as f:
             f.write(text)
         os.replace(tmp_path, target)
     except Exception:
@@ -99,6 +106,18 @@ class ChannelProvider:
             cached_text = None if force else _read_cache_file(cache_path)
             should_refresh = True
 
+            # A cache that parses to zero channels is poisoned (an error
+            # page, truncated junk, or a legacy newline-corrupted file):
+            # discard it and refetch instead of serving an empty grid on
+            # every launch until the user finds the Refresh button.
+            if cached_text and not self._parse(cached_text, tier):
+                logger.warning(
+                    "Playlist cache parsed to 0 channels; discarding %s", cache_path
+                )
+                cached_text = None
+                with contextlib.suppress(OSError):
+                    os.remove(cache_path)
+
             if cached_text:
                 file_age = time.time() - os.path.getmtime(cache_path)
                 if file_age < self.CACHE_DURATION:
@@ -150,12 +169,22 @@ class ChannelProvider:
                             )
 
                     if fetched_text:
-                        await asyncio.to_thread(_write_cache, fetched_text, cache_path)
-                        self._channels = self._parse(fetched_text, tier)
-                        logger.info(
-                            "Master playlist fetched successfully: %d channels parsed",
-                            len(self._channels),
-                        )
+                        fetched_channels = self._parse(fetched_text, tier)
+                        if fetched_channels:
+                            self._channels = fetched_channels
+                            await asyncio.to_thread(
+                                _write_cache, fetched_text, cache_path
+                            )
+                            logger.info(
+                                "Master playlist fetched successfully: %d channels parsed",
+                                len(self._channels),
+                            )
+                        else:
+                            # Never persist text that parses to nothing
+                            # (an HTML error page would poison the cache).
+                            logger.warning(
+                                "Fetched playlist parsed to 0 channels; not caching"
+                            )
                     else:
                         # Fallback to cache if available
                         if not self._channels and cached_text:
