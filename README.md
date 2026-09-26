@@ -36,7 +36,6 @@
 | 📱 **ARMv7** (older phones/TV boxes) | [**ktv-armeabi-v7a.apk**](https://github.com/Nwokike/ktv-player/releases/latest/download/ktv-armeabi-v7a.apk) | Legacy 32-bit Android devices |
 | 💻 **x86_64** (emulators/ChromeOS) | [**ktv-x86_64.apk**](https://github.com/Nwokike/ktv-player/releases/latest/download/ktv-x86_64.apk) | Android emulators & Chromebooks |
 
-> No universal APK: per-architecture builds are ~3× smaller and install faster.
 
 ---
 
