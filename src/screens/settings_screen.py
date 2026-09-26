@@ -630,7 +630,7 @@ def SettingsScreen() -> Control:
             # Flutterwave hosts the payment; the app never sees card data.
             # kiri_checkout already started the watcher — no manual step.
             await ft.UrlLauncher().launch_url(checkout.checkout_url)
-            notify("Complete the payment — this screen unlocks itself when it lands")
+            notify("Complete the payment. This screen unlocks itself when it lands")
         except Exception as ex:
             notify_warning(str(ex) or "Could not start the payment")
         finally:
@@ -649,7 +649,7 @@ def SettingsScreen() -> Control:
                     [
                         field,
                         ft.Text(
-                            "Your recovery ID is shown on the payment receipt. "
+                            "Your recovery ID is in your receipt email. "
                             "It is also stored on this device.",
                             size=11,
                         ),
@@ -675,7 +675,7 @@ def SettingsScreen() -> Control:
             set_recovery_id(status.recovery_id)
             _sync_premium()
             notify(
-                "Premium unlocked — ads removed"
+                "Premium unlocked. Ads removed."
                 if core_state.is_premium
                 else f"License status: {status.status}"
             )

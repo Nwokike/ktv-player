@@ -235,7 +235,7 @@ class PremiumService:
                     status.product,
                     status.status,
                 )
-                notify("Premium unlocked — ads removed")
+                notify("Premium unlocked. Ads removed.")
                 return
         logger.info("Checkout watcher timed out — Restore purchases remains available")
 
