@@ -11,13 +11,61 @@ from services.iptv_service import iptv_service
 logger = logging.getLogger(__name__)
 
 
+async def _reconcile_favorites(channels: list[dict]) -> None:
+    """Re-key saved favorites after a playlist swap (URL-keyed storage).
+
+    Best effort by exact channel name: the premium pack serves different
+    stream URLs, so a star would otherwise silently vanish from the grid.
+    Unmatched favorites are never deleted; the user is only told when
+    something actually moved (a routine playlist refresh must not nag).
+    """
+    try:
+        stored = await db_manager.get_favorites()
+        if not stored:
+            return
+        live_urls = {c.get("url", "") for c in channels if c.get("url")}
+        url_by_name: dict[str, str] = {}
+        for c in channels:
+            name = c.get("name", "")
+            if name and c.get("url") and name not in url_by_name:
+                url_by_name[name] = c["url"]
+
+        remapped = 0
+        orphaned = 0
+        for fav in stored:
+            old = fav.get("url", "")
+            if not old or old in live_urls:
+                continue
+            new = url_by_name.get(fav.get("name", ""))
+            if new and await db_manager.remap_favorite_url(old, new):
+                remapped += 1
+            else:
+                orphaned += 1
+
+        if remapped:
+            state.favorites = list(await db_manager.get_favorite_urls())
+            from utils.notifications import notify
+
+            if orphaned:
+                notify(
+                    f"Updated {remapped} saved channels; "
+                    f"{orphaned} are not in the new list."
+                )
+            else:
+                notify(f"Updated {remapped} saved channels for the new list.")
+        elif orphaned:
+            logger.info("%d saved channels are not in the current playlist", orphaned)
+    except Exception:
+        logger.debug("Favorite re-key failed", exc_info=True)
+
+
 async def load_all_channels(page_obj, loading_lock, force: bool = False):
     """Fetch and merge built-in, custom, and playlist channels into global state."""
     async with loading_lock:
         try:
             if force:
                 channel_provider._channels = []
-            built_in = await channel_provider.get_all_channels()
+            built_in = await channel_provider.get_all_channels(force=force)
 
             # Build merged list from scratch with URL-based deduplication
             merged: list[dict] = []
@@ -100,6 +148,7 @@ async def load_all_channels(page_obj, loading_lock, force: bool = False):
                         )
 
             state.set_channels(merged)
+            await _reconcile_favorites(merged)
         except RuntimeError as e:
             if "destroyed session" in str(e):
                 logger.debug("Session destroyed during channel load — safe to ignore")

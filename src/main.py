@@ -37,6 +37,9 @@ class AppController:
         self.page = page
         self.ad_service: AdService | None = None
         self.premium: PremiumService | None = None
+        # Which playlist tier the grid was last loaded under (None until
+        # the first premium listener event records it).
+        self._playlist_tier: str | None = None
         self.liveliness: LivelinessChecker | None = None
         self._loading_lock: asyncio.Lock | None = None
         # Separate from _loading_lock: channel loading must never block or
@@ -111,6 +114,9 @@ class AppController:
         # pattern so SettingsScreen can reach the service.
         self.premium = PremiumService(self.page)
         self.page.premium = self.premium
+        # Records the current tier (None -> first value never reloads) and
+        # forces a channel reload whenever premium flips free<->premium.
+        self.premium.add_listener(self._on_premium_tier_change)
         await self.premium.load_local()
 
         # Load saved state
@@ -472,7 +478,24 @@ class AppController:
     async def load_channels(self, force=False):
         from core.app_loader import load_all_channels
 
-        await load_all_channels(self.page, self._loading_lock)
+        # force must survive this hop: it is the only way a tier flip
+        # refetches instead of short-circuiting on the in-memory list
+        # (it was silently dropped here before).
+        await load_all_channels(self.page, self._loading_lock, force=force)
+
+    def _on_premium_tier_change(self) -> None:
+        """Refetch the base playlist the moment the tier flips.
+
+        Premium unlocks swap the playlist source and its cache file;
+        without this the grid keeps serving the free list until restart,
+        because the provider's in-memory list short-circuits every fetch.
+        """
+        tier = "premium" if state.is_premium else "free"
+        previous, self._playlist_tier = self._playlist_tier, tier
+        if previous is None or previous == tier or not state.channels:
+            return
+        logger.info("Playlist tier %s -> %s: forcing channel reload", previous, tier)
+        self.page.run_task(self.load_channels, True)
 
     # --- Playback ---
 

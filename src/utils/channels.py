@@ -1,6 +1,35 @@
 """Channel utility functions for components components."""
 
 
+def country_of(c: dict) -> str:
+    """Country folder for a channel: canonical field when the source was
+    normalized (free base, premium pack), legacy group-title guess for
+    anything else (hand-built lists, older call paths)."""
+    if "country" in c:
+        return c["country"]
+    parts = [p.strip() for p in c.get("group", "General").split(";")]
+    return parts[0] if c.get("country_code") else "Global"
+
+
+def categories_of(c: dict) -> list[str]:
+    """Every category a channel belongs to.
+
+    Normalized channels carry the full tag list (the premium pack is a
+    tag-set taxonomy where a channel legitimately sits in several
+    categories); legacy channels keep the old single-value derivation so
+    existing behaviour and tests hold.
+    """
+    if "categories" in c:
+        return c["categories"]
+    parts = [p.strip() for p in c.get("group", "General").split(";")]
+    category = (
+        parts[-1]
+        if len(parts) > 1
+        else (parts[0] if not c.get("country_code") else "General")
+    )
+    return [category] if category else []
+
+
 def extract_countries(channels: list[dict]) -> list[str]:
     """Derive sorted country list from channel data. Returns strings."""
     seen = set()
@@ -8,9 +37,7 @@ def extract_countries(channels: list[dict]) -> list[str]:
     for c in channels:
         if c.get("is_custom"):
             continue
-        original_group = c.get("group", "General")
-        parts = [p.strip() for p in original_group.split(";")]
-        country = parts[0] if c.get("country_code") else "Global"
+        country = country_of(c)
         if country and country not in seen:
             seen.add(country)
             result.append(country)
@@ -24,9 +51,7 @@ def extract_country_dicts(channels: list[dict]) -> list[dict]:
     for c in channels:
         if c.get("is_custom"):
             continue
-        original_group = c.get("group", "General")
-        parts = [p.strip() for p in original_group.split(";")]
-        country = parts[0] if c.get("country_code") else "Global"
+        country = country_of(c)
         if country and country != "Other" and country not in seen:
             seen.add(country)
             result.append({"name": country})
@@ -57,16 +82,10 @@ def extract_categories(channels: list[dict]) -> list[str]:
     for c in channels:
         if c.get("is_custom"):
             continue
-        original_group = c.get("group", "General")
-        parts = [p.strip() for p in original_group.split(";")]
-        category = (
-            parts[-1]
-            if len(parts) > 1
-            else (parts[0] if not c.get("country_code") else "General")
-        )
-        if category and category.lower() != "general" and category not in seen:
-            seen.add(category)
-            result.append(category)
+        for category in categories_of(c):
+            if category.lower() != "general" and category not in seen:
+                seen.add(category)
+                result.append(category)
     return sorted(result)
 
 
@@ -78,31 +97,27 @@ def extract_country_counts(channels: list[dict]) -> dict[str, int]:
     for c in channels:
         if c.get("is_custom"):
             continue
-        original_group = c.get("group", "General")
-        parts = [p.strip() for p in original_group.split(";")]
-        country = parts[0] if c.get("country_code") else "Global"
+        country = country_of(c)
         if country:
             counts[country] += 1
     return dict(counts)
 
 
 def extract_category_counts(channels: list[dict]) -> dict[str, int]:
-    """Derive mapping of category names to channel counts from channel data."""
+    """Derive mapping of category names to channel counts from channel data.
+
+    A premium-pack channel counts under EVERY one of its tags, so no
+    category disappears just because it was not the last segment.
+    """
     from collections import Counter
 
     counts: Counter[str] = Counter()
     for c in channels:
         if c.get("is_custom"):
             continue
-        original_group = c.get("group", "General")
-        parts = [p.strip() for p in original_group.split(";")]
-        category = (
-            parts[-1]
-            if len(parts) > 1
-            else (parts[0] if not c.get("country_code") else "General")
-        )
-        if category and category.lower() != "general":
-            counts[category] += 1
+        for category in categories_of(c):
+            if category.lower() != "general":
+                counts[category] += 1
     return dict(counts)
 
 

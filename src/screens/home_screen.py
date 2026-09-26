@@ -19,7 +19,7 @@ from core.constants import (
     LBL_NO_CHANNELS_FOUND,
     LBL_NO_CHANNELS_HINT,
 )
-from hooks.apply_filters import _default_filters, apply_filters
+from hooks.apply_filters import _default_filters, apply_filters, reconcile_filters
 from hooks.use_debounce import use_debounce
 from state.app_state import AppStateCtx
 from state.controller_ctx import ControllerMethodsCtx
@@ -83,11 +83,39 @@ def HomeScreen() -> Control:
         lambda: extract_custom_group_counts(state.channels),
         [state.channels_hash],
     )
+    available_countries = ft.use_memo(
+        lambda: extract_country_counts(built_in_channels),
+        [state.channels_hash],
+    )
+    available_categories = ft.use_memo(
+        lambda: extract_category_counts(built_in_channels),
+        [state.channels_hash],
+    )
+
+    # A playlist swap can delete the folder a stored selection points at;
+    # exact-match filtering would then return zero channels forever with
+    # no error. Reconcile as pure data, then sync the reset back into
+    # state once so the pill label and the filter dict cannot disagree.
+    filters_eff = ft.use_memo(
+        lambda: reconcile_filters(
+            filters, available_countries, available_categories, custom_playlists
+        ),
+        [filters, available_countries, available_categories, custom_playlists],
+    )
+
+    def _sync_reconciled():
+        if filters != filters_eff:
+            from utils.notifications import notify
+
+            set_filters(filters_eff)
+            notify("Your channel list was updated. Check your filters.")
+
+    ft.use_effect(_sync_reconciled, [filters_eff])
 
     # Filtered visible channels
     visible = ft.use_memo(
-        lambda: apply_filters(state.channels, filters, favorites_set),
-        [state.channels_hash, filters, favorites_set],
+        lambda: apply_filters(state.channels, filters_eff, favorites_set),
+        [state.channels_hash, filters_eff, favorites_set],
     )
 
     # ---- Liveliness: filter-driven priority system ----
@@ -278,8 +306,8 @@ def HomeScreen() -> Control:
     filter_bar = FilterBar(
         filters=filters,
         on_change=on_filters_updated,
-        available_countries=extract_country_counts(built_in_channels),
-        available_categories=extract_category_counts(built_in_channels),
+        available_countries=available_countries,
+        available_categories=available_categories,
         user_country=state.user_country,
         custom_playlists=custom_playlists,
         total_count=len(visible),

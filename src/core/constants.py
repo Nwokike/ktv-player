@@ -1,3 +1,5 @@
+import base64
+
 APP_NAME = "KTV Player"
 APP_VERSION = "2.2.0"
 APP_BUILD_NUMBER = 19
@@ -8,6 +10,17 @@ UPDATE_CONFIG_URL = (
     "https://raw.githubusercontent.com/Nwokike/ktv-player/main/version.json"
 )
 GITHUB_RELEASES_URL = "https://github.com/Nwokike/ktv-player/releases/latest"
+
+# Premium channel pack source (the iptv-org index). Stored base64-encoded
+# on purpose: the raw aggregator URL never sits in plaintext in the repo,
+# and only premium non-Play builds ever decode and fetch it.
+_PREMIUM_PACK_URL_B64 = "aHR0cHM6Ly9pcHR2LW9yZy5naXRodWIuaW8vaXB0di9pbmRleC5tM3U="
+
+
+def premium_pack_url() -> str:
+    """Decoded URL of the premium channel pack playlist."""
+    return base64.b64decode(_PREMIUM_PACK_URL_B64).decode("utf-8")
+
 
 # Error messages
 ERR_NETWORK = "Stream unavailable or network timeout."

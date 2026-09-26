@@ -4,9 +4,13 @@ current APP_VERSION in sync when bumping (guarded by tests)."""
 
 CHANGELOG: dict[str, str] = {
     "2.2.0": (
-        "- Premium removes all ads — bought through your own Flutterwave "
-        "checkout (works on APK, Windows and Linux)\n"
-        "- The Play Store build is free-only: no purchase UI, ads on\n"
+        "- Premium unlocks the channel pack (the top channels in every "
+        "field) and removes ads on phones. Bought through your own "
+        "Flutterwave checkout (APK, Windows, Linux)\n"
+        "- Payments finish themselves: pay in the browser, the app "
+        "unlocks on its own, and your receipt email carries the recovery "
+        "ID\n"
+        "- The Play Store build is free-only: ads on, no purchase UI\n"
         "- Back button behaves: a tab returns Home, Home exits, a video "
         "saves its position\n"
         "- Deleting a local video now asks Android for permission and "

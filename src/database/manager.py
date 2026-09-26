@@ -236,6 +236,23 @@ class DatabaseManager:
         async with self._lock:
             return list(self._data.get("favorites", []))
 
+    async def remap_favorite_url(self, old_url: str, new_url: str) -> bool:
+        """Re-key one favorite onto a new stream URL (playlist swap).
+
+        Favorites are URL-keyed, so when the source changes underneath
+        them the star silently disappears from the grid. Returns True
+        when the entry moved; unmatched favorites are never deleted.
+        """
+        async with self._lock:
+            favs = self._data.setdefault("favorites", [])
+            for fav in favs:
+                if fav.get("url") == old_url:
+                    fav["url"] = new_url
+                    self._dirty = True
+                    await self._save_now()
+                    return True
+            return False
+
     async def get_favorite_urls(self) -> set[str]:
         async with self._lock:
             return {f["url"] for f in self._data.get("favorites", []) if "url" in f}

@@ -52,8 +52,17 @@ class AppState:
 
     def set_channels(self, channels: list[dict]):
         self.channels = list(channels)  # copy, not direct reference
+        # Hash covers taxonomy too, not just URLs: a playlist swap that
+        # reuses stream URLs but renames every group must still bump the
+        # hash, or every use_memo (pills, grid, counts) keeps serving the
+        # old folders. country is included because it can change while
+        # url+group stay identical (tvg-id remapping).
         self.channels_hash = (
-            sum(hash(c.get("url", "")) for c in self.channels) % 10_000_000
+            sum(
+                hash(f"{c.get('url', '')}|{c.get('group', '')}|{c.get('country', '')}")
+                for c in self.channels
+            )
+            % 10_000_000
         )
 
     def is_favorite(self, url: str) -> bool:

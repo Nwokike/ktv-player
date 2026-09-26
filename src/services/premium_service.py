@@ -29,7 +29,7 @@ from collections.abc import Callable
 from core.channel import CHANNEL
 from core.state import state
 from services.kiri_license import KiriLicenseService, LicenseUnavailable
-from utils.notifications import notify
+from utils.notifications import notify, premium_unlocked_message
 
 logger = logging.getLogger(__name__)
 
@@ -235,7 +235,7 @@ class PremiumService:
                     status.product,
                     status.status,
                 )
-                notify("Premium unlocked. Ads removed.")
+                notify(premium_unlocked_message(self.page))
                 return
         logger.info("Checkout watcher timed out — Restore purchases remains available")
 

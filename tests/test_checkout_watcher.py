@@ -314,21 +314,39 @@ def test_premium_subtitle_is_honest_about_renewal():
 
     from screens.settings_screen import _premium_subtitle
 
-    assert (
-        _premium_subtitle(False, None) == "Remove all ads with a Kiri License purchase"
+    pack = (
+        "the premium channel pack: the top channels in every field "
+        "and more country support"
     )
+
+    # Free, phone (ads exist): both benefits, in the owner's wording.
+    assert (
+        _premium_subtitle(False, None, has_ads=True)
+        == f"Remove all ads and unlock {pack}"
+    )
+    # Free, Android TV / desktop (no ads ever): never claim "no ads".
+    assert _premium_subtitle(False, None, has_ads=False) == f"Unlock {pack}"
 
     claims = mock.Mock()
     claims.paid_through = 1793009434726  # 26 Oct 2026 UTC
     claims.product = "monthly"
-    assert _premium_subtitle(True, claims) == (
-        "Ads removed · active until 26 Oct 2026 · renews monthly"
+    assert _premium_subtitle(True, claims, has_ads=True) == (
+        "Ads removed · premium channels unlocked · "
+        "active until 26 Oct 2026 · renews monthly"
+    )
+    assert _premium_subtitle(True, claims, has_ads=False) == (
+        "Premium channels unlocked · active until 26 Oct 2026 · renews monthly"
     )
 
     claims.product = "yearly"
-    assert "renews yearly" in _premium_subtitle(True, claims)
+    assert "renews yearly" in _premium_subtitle(True, claims, has_ads=True)
 
     lifetime = mock.Mock()
     lifetime.paid_through = None
     lifetime.product = "lifetime"
-    assert _premium_subtitle(True, lifetime) == "Ads removed · thank you!"
+    assert _premium_subtitle(True, lifetime, has_ads=True) == (
+        "Ads removed · premium channels unlocked · thank you!"
+    )
+    assert _premium_subtitle(True, lifetime, has_ads=False) == (
+        "Premium channels unlocked · thank you!"
+    )

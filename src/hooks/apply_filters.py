@@ -12,6 +12,42 @@ HomeScreen and other views. The filter dict contract:
     }
 """
 
+from utils.channels import categories_of, country_of
+
+
+def reconcile_filters(
+    filters: dict,
+    available_countries: dict,
+    available_categories: dict,
+    available_custom: dict | None = None,
+) -> dict:
+    """Reset selections whose folder no longer exists after a playlist swap.
+
+    Pure and total: without it a saved country that vanished from the new
+    source makes exact-match filtering return ZERO channels forever, with
+    no error and no way back except manually re-picking a folder. Custom
+    groups keep their sentinels ("none"/"all"/"single").
+    """
+    out = dict(filters)
+
+    country = out.get("country", "all")
+    if country != "all" and country not in available_countries:
+        out["country"] = "all"
+
+    category = out.get("category", "all")
+    if category != "all" and category not in available_categories:
+        out["category"] = "all"
+
+    custom = out.get("custom", "none")
+    custom_ok = {"none", "all", "single"}
+    if (
+        available_custom is not None
+        and custom not in custom_ok
+        and custom not in available_custom
+    ):
+        out["custom"] = "none"
+    return out
+
 
 def _default_filters(user_country: str = "") -> dict:
     if not user_country:
@@ -63,22 +99,16 @@ def _matches(c: dict, filters: dict, favorites_set: set[str]) -> bool:
         if country != "all":
             if is_custom:
                 return False
-            parts = [p.strip() for p in c.get("group", "General").split(";")]
-            channel_country = parts[0] if c.get("country_code") else "Global"
-            if channel_country != country:
+            if country_of(c) != country:
                 return False
 
         category = filters.get("category", "all")
         if category != "all":
             if is_custom:
                 return False
-            parts = [p.strip() for p in c.get("group", "General").split(";")]
-            channel_category = (
-                parts[-1]
-                if len(parts) > 1
-                else (parts[0] if not c.get("country_code") else "General")
-            )
-            if channel_category != category and c.get("group") != category:
+            # Membership, not "last segment": a premium-pack channel sits
+            # in every tag it carries, and a full-group match still works.
+            if category not in categories_of(c) and c.get("group") != category:
                 return False
 
     return True

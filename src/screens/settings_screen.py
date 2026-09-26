@@ -47,7 +47,13 @@ from core.theme import AppColors
 from database.manager import db_manager
 from state.app_state import AppStateCtx
 from state.controller_ctx import ControllerMethodsCtx
-from utils.notifications import notify, notify_warning
+from utils.channels import extract_countries
+from utils.notifications import (
+    notify,
+    notify_warning,
+    page_has_ads,
+    premium_unlocked_message,
+)
 from utils.theme_utils import toggle_theme as _toggle_theme_util
 
 logger = logging.getLogger("SettingsScreen")
@@ -68,18 +74,25 @@ _MONTHS = (
 )
 
 
-def _premium_subtitle(is_premium, claims) -> str:
-    """Premium row subtitle — the honest renewal state from signed claims.
+def _premium_subtitle(is_premium, claims, has_ads: bool = True) -> str:
+    """Premium row subtitle: honest benefits for this platform.
 
-    Derived from the cached token (`exp`-guarded, so this stays truthful
-    offline): paid-through only exists on renewing plans, so its absence
-    is what marks a lifetime license.
+    The channel pack is the benefit everywhere; "no ads" is claimed only
+    where ads are actually requested (phones). paid-through comes from the
+    signed token (exp-guarded), so the dates stay truthful offline, and
+    its absence marks a lifetime license.
     """
+    pack = "the premium channel pack: the top channels in every field and more country support"
     if not is_premium:
-        return "Remove all ads with a Kiri License purchase"
+        return f"Remove all ads and unlock {pack}" if has_ads else f"Unlock {pack}"
+    base = (
+        "Ads removed · premium channels unlocked"
+        if has_ads
+        else "Premium channels unlocked"
+    )
     paid_through = getattr(claims, "paid_through", None)
     if not paid_through:
-        return "Ads removed · thank you!"
+        return f"{base} · thank you!"
     product = str(getattr(claims, "product", "") or "")
     renewal = {"monthly": "renews monthly", "yearly": "renews yearly"}.get(
         product, "renews automatically"
@@ -88,8 +101,8 @@ def _premium_subtitle(is_premium, claims) -> str:
         moment = time.gmtime(int(paid_through) / 1000)
         label = f"{moment.tm_mday} {_MONTHS[moment.tm_mon - 1]} {moment.tm_year}"
     except (TypeError, ValueError, OverflowError, OSError):
-        return "Ads removed · thank you!"
-    return f"Ads removed · active until {label} · {renewal}"
+        return f"{base} · thank you!"
+    return f"{base} · active until {label} · {renewal}"
 
 
 _SECTIONS = [
@@ -359,9 +372,17 @@ def SettingsScreen() -> Control:
         ],
     )
 
-    # 2. Localization
-    countries = channel_provider.get_countries()
-    country_names = [c.get("name", "") for c in countries if c.get("name")]
+    # 2. Localization — same derived list as the Home country pill, so the
+    # picker can never offer a folder the grid does not have (a playlist
+    # swap used to leave this list stale while the pill changed).
+    country_names = extract_countries(
+        [c for c in state.channels if not c.get("is_custom", False)]
+    )
+    if not country_names:
+        # Before the first channel load: provider reads its tier cache.
+        country_names = [
+            c.get("name", "") for c in channel_provider.get_countries() if c.get("name")
+        ]
     if "Other" not in country_names:
         country_names.append("Other")
     current = state.user_country
@@ -675,7 +696,7 @@ def SettingsScreen() -> Control:
             set_recovery_id(status.recovery_id)
             _sync_premium()
             notify(
-                "Premium unlocked. Ads removed."
+                premium_unlocked_message(page_obj)
                 if core_state.is_premium
                 else f"License status: {status.status}"
             )
@@ -761,6 +782,7 @@ def SettingsScreen() -> Control:
                     getattr(premium_service.license, "claims", None)
                     if premium_service
                     else None,
+                    has_ads=page_has_ads(page_obj),
                 ),
                 trailing=ft.Icon(
                     ft.Icons.CHECK_CIRCLE if is_premium else ft.Icons.CIRCLE_OUTLINED,

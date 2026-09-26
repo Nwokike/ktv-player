@@ -137,3 +137,24 @@ def notify_warning(msg: str, persist: bool = False) -> None:
 
 def notify_error(msg: str, persist: bool = False) -> None:
     _dispatch(msg, bgcolor=AppColors.ERROR, persist=persist)
+
+
+def page_has_ads(page) -> bool:
+    """True where ads are actually requested (mirrors ad_service gates).
+
+    Only ANDROID/IOS phones show ads: Android TV is its own platform and
+    desktop/web never request any, so claiming "no ads" there would be a
+    lie. Unknown page -> assume ads (most installs are phone APKs).
+    """
+    try:
+        return bool(page.platform.is_mobile())
+    except Exception:
+        return True
+
+
+def premium_unlocked_message(page) -> str:
+    """Platform-honest unlock toast. Phones lose ads; everyone gets the
+    premium channel pack."""
+    if page_has_ads(page):
+        return "Premium unlocked. Ads removed."
+    return "Premium unlocked. Premium channels added."
