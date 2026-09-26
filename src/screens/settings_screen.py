@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import time
 
 import flet as ft
 from flet import Control
@@ -50,6 +51,46 @@ from utils.notifications import notify, notify_warning
 from utils.theme_utils import toggle_theme as _toggle_theme_util
 
 logger = logging.getLogger("SettingsScreen")
+
+_MONTHS = (
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+)
+
+
+def _premium_subtitle(is_premium, claims) -> str:
+    """Premium row subtitle — the honest renewal state from signed claims.
+
+    Derived from the cached token (`exp`-guarded, so this stays truthful
+    offline): paid-through only exists on renewing plans, so its absence
+    is what marks a lifetime license.
+    """
+    if not is_premium:
+        return "Remove all ads with a Kiri License purchase"
+    paid_through = getattr(claims, "paid_through", None)
+    if not paid_through:
+        return "Ads removed · thank you!"
+    product = str(getattr(claims, "product", "") or "")
+    renewal = {"monthly": "renews monthly", "yearly": "renews yearly"}.get(
+        product, "renews automatically"
+    )
+    try:
+        moment = time.gmtime(int(paid_through) / 1000)
+        label = f"{moment.tm_mday} {_MONTHS[moment.tm_mon - 1]} {moment.tm_year}"
+    except (TypeError, ValueError, OverflowError, OSError):
+        return "Ads removed · thank you!"
+    return f"Ads removed · active until {label} · {renewal}"
+
 
 _SECTIONS = [
     {"key": "appearance", "title": "Appearance", "icon": ft.Icons.PALETTE},
@@ -587,8 +628,9 @@ def SettingsScreen() -> Control:
             checkout = await premium_service.kiri_checkout(product_id, email)
             set_recovery_id(checkout.recovery_id)
             # Flutterwave hosts the payment; the app never sees card data.
+            # kiri_checkout already started the watcher — no manual step.
             await ft.UrlLauncher().launch_url(checkout.checkout_url)
-            notify("Complete the payment, then tap Restore with your code")
+            notify("Complete the payment — this screen unlocks itself when it lands")
         except Exception as ex:
             notify_warning(str(ex) or "Could not start the payment")
         finally:
@@ -714,10 +756,11 @@ def SettingsScreen() -> Control:
                     color=AppColors.PRIMARY if is_premium else AppColors.grey_dim(),
                 ),
                 title="KTV Premium",
-                subtitle=(
-                    "Ads removed · thank you!"
-                    if is_premium
-                    else "Remove all ads with a Kiri License purchase"
+                subtitle=_premium_subtitle(
+                    is_premium,
+                    getattr(premium_service.license, "claims", None)
+                    if premium_service
+                    else None,
                 ),
                 trailing=ft.Icon(
                     ft.Icons.CHECK_CIRCLE if is_premium else ft.Icons.CIRCLE_OUTLINED,

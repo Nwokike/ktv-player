@@ -159,6 +159,18 @@ class AppController:
             if getattr(e, "data", None) == "hidden":
                 logger.info("close-path: lifecycle hidden -> checkpoint save")
                 _controller._save_top_player_position()
+            # Coming back to the foreground is the moment that matters: the
+            # user often returns from the browser mid-checkout or after a
+            # renewal. Typed state — the event carries e.state, not data
+            # (data == "hidden" above matches nothing on flet 1.0.1; kept
+            # for the original intent, untouched).
+            if getattr(e, "state", None) in (
+                ft.AppLifecycleState.RESUME,
+                ft.AppLifecycleState.SHOW,
+            ):
+                premium = getattr(_controller, "premium", None)
+                if premium is not None:
+                    page.run_task(premium.reconcile_if_due)
             if _previous_lifecycle is not None:
                 result = _previous_lifecycle(e)
                 if hasattr(result, "__await__"):
@@ -442,6 +454,10 @@ class AppController:
             await self.premium.reconcile()
         except Exception:
             logger.warning("Premium reconciliation failed", exc_info=True)
+        # Steady-state check: renewals re-arm the token, revokes land, and
+        # expiry is noticed even in a session left open for weeks. Hourly —
+        # see premium_service for why not more often.
+        self.premium.start_reconcile_loop()
 
         # UMP consent + interstitial preload — never for premium users.
         if not state.is_premium:
@@ -915,6 +931,9 @@ async def main(page: ft.Page):
 
         shutdown_liveliness()
         shutdown_logos()
+        with contextlib.suppress(Exception):
+            if controller.premium:
+                controller.premium.shutdown()
         with contextlib.suppress(Exception):
             if controller.ad_service:
                 await controller.ad_service.close()
