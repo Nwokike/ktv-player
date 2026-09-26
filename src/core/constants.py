@@ -10,6 +10,11 @@ UPDATE_CONFIG_URL = (
     "https://raw.githubusercontent.com/Nwokike/ktv-player/main/version.json"
 )
 GITHUB_RELEASES_URL = "https://github.com/Nwokike/ktv-player/releases/latest"
+GITHUB_REPO_URL = "https://github.com/Nwokike/ktv-player"
+# applicationId = org ng.kiri + product slug from the flet build flags,
+# the same id the Kiri license uses (KIRI_LICENSE_APP_ID).
+PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=ng.kiri.ktvplayer"
+CONTACT_EMAIL = "hello@kiri.ng"
 
 # Premium channel pack source (the iptv-org index). Stored base64-encoded
 # on purpose: the raw aggregator URL never sits in plaintext in the repo,

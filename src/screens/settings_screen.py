@@ -12,8 +12,10 @@ from core.channel import CHANNEL
 from core.constants import (
     APP_NAME,
     APP_VERSION,
+    CONTACT_EMAIL,
     ERR_CLEAR_HISTORY_FAILED,
     ERR_RESET_LIBRARY_FAILED,
+    GITHUB_REPO_URL,
     LBL_ACTIVITY_TERMINAL,
     LBL_CLEAR,
     LBL_CLEAR_HISTORY,
@@ -39,6 +41,7 @@ from core.constants import (
     LBL_TERMINAL_DESC,
     LBL_USAGE_AGREEMENT_BUTTON,
     LBL_USAGE_AGREEMENT_TITLE,
+    PLAY_STORE_URL,
     TERMS_TEXT,
 )
 from core.logger_handler import MemoryLogHandler
@@ -72,6 +75,26 @@ _MONTHS = (
     "Nov",
     "Dec",
 )
+
+
+def _is_store_device(page) -> bool:
+    """Phones and TV are the Play audience; desktop has no Play listing."""
+    try:
+        return page.platform in (
+            ft.PagePlatform.ANDROID,
+            ft.PagePlatform.IOS,
+            ft.PagePlatform.ANDROID_TV,
+        )
+    except Exception:
+        return False
+
+
+def _rate_url(page) -> str:
+    return PLAY_STORE_URL if _is_store_device(page) else GITHUB_REPO_URL
+
+
+def _rate_subtitle(page) -> str:
+    return "Rate us on Google Play" if _is_store_device(page) else "Star us on GitHub"
 
 
 def _premium_subtitle(is_premium, claims, has_ads: bool = True) -> str:
@@ -199,12 +222,14 @@ def _setting_row(
     title: str,
     subtitle: str,
     trailing: Control | None = None,
+    on_click=None,
 ) -> ft.Container:
     """A single-line setting: [icon+text] ---- [control].
 
     `trailing` is optional: omitting it used to raise TypeError mid-render
     (the exception killed the whole Settings tab for non-premium users,
     with nothing logged — Flet's update scheduler swallows it).
+    `on_click` makes the whole row tappable (Contact developer, Rate).
     """
     return ft.Container(
         content=ft.Row(
@@ -230,6 +255,8 @@ def _setting_row(
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
         ),
         padding=ft.Padding(4, 10, 4, 10),
+        ink=on_click is not None,
+        on_click=on_click,
     )
 
 
@@ -523,10 +550,52 @@ def SettingsScreen() -> Control:
     )
 
     # 5. About
+    # page_obj is assigned further down; this block resolves the page from
+    # the context directly so construction order cannot bite.
+    about_page = ft.context.page
+
+    def _launch_url(url: str):
+        async def _run():
+            await ft.UrlLauncher().launch_url(url)
+
+        about_page.run_task(_run)
+
+    def _on_contact(e=None):
+        _launch_url(f"mailto:{CONTACT_EMAIL}")
+
+    def _on_rate(e=None):
+        _launch_url(_rate_url(about_page))
+
     about = _section_card(
         "About",
         ft.Icons.INFO,
         [
+            _setting_row(
+                leading=ft.Icon(
+                    ft.Icons.MAIL_OUTLINE, size=18, color=AppColors.PRIMARY
+                ),
+                title="Contact developer",
+                subtitle=CONTACT_EMAIL,
+                trailing=ft.Icon(
+                    ft.Icons.OPEN_IN_NEW_ROUNDED,
+                    size=15,
+                    color=AppColors.grey_dim(),
+                ),
+                on_click=_on_contact,
+            ),
+            _setting_row(
+                leading=ft.Icon(
+                    ft.Icons.STAR_ROUNDED, size=18, color=AppColors.PRIMARY
+                ),
+                title="Rate 5 stars",
+                subtitle=_rate_subtitle(about_page),
+                trailing=ft.Icon(
+                    ft.Icons.OPEN_IN_NEW_ROUNDED,
+                    size=15,
+                    color=AppColors.grey_dim(),
+                ),
+                on_click=_on_rate,
+            ),
             ft.Container(
                 content=ft.Row(
                     controls=[

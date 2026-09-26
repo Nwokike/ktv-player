@@ -135,3 +135,36 @@ def test_setting_row_accepts_a_missing_trailing():
         subtitle="s",
     )
     assert row is not None
+
+
+def test_contact_and_rate_rows_use_the_device_guard():
+    """Phones and TV rate on the Play Store; everything else stars GitHub."""
+    import inspect
+    from unittest import mock
+
+    import flet as ft
+
+    from core.constants import GITHUB_REPO_URL, PLAY_STORE_URL
+    from screens.settings_screen import SettingsScreen, _rate_subtitle, _rate_url
+
+    def page_on(platform):
+        page = mock.Mock()
+        page.platform = platform
+        return page
+
+    assert _rate_url(page_on(ft.PagePlatform.ANDROID)) == PLAY_STORE_URL
+    assert _rate_url(page_on(ft.PagePlatform.IOS)) == PLAY_STORE_URL
+    assert _rate_url(page_on(ft.PagePlatform.ANDROID_TV)) == PLAY_STORE_URL
+    assert _rate_url(page_on(ft.PagePlatform.WINDOWS)) == GITHUB_REPO_URL
+    assert _rate_url(page_on(ft.PagePlatform.LINUX)) == GITHUB_REPO_URL
+    assert "Google Play" in _rate_subtitle(page_on(ft.PagePlatform.ANDROID_TV))
+    assert "GitHub" in _rate_subtitle(page_on(ft.PagePlatform.WINDOWS))
+
+    src = inspect.getsource(SettingsScreen)
+    assert "Contact developer" in src
+    assert "mailto:" in src and "CONTACT_EMAIL" in src
+    assert "Rate 5 stars" in src
+    # The address itself lives in constants, referenced by name.
+    from core import constants as core_constants
+
+    assert core_constants.CONTACT_EMAIL == "hello@kiri.ng"
