@@ -7,6 +7,7 @@ every tag counted as a category, and the upgrade guards that stop a
 swap from stranding a saved filter or a favorite.
 """
 
+import asyncio
 import inspect
 
 import pytest
@@ -442,3 +443,134 @@ def test_zero_channel_cache_self_heals_instead_of_dead_home(tmp_path, monkeypatc
     assert channels[0]["url"] == "https://example.com/good.m3u8"
     replaced = provider._read_cache_file()
     assert replaced and len(parse_m3u_text(replaced, default_group="General")) == 1
+
+
+# -- premium = pack + base YouTube tier (best of both worlds) ---------------
+
+PACK_TEXT = (
+    "#EXTM3U\n"
+    '#EXTINF:-1 tvg-id="A.ng@SD" tvg-logo="x" group-title="News",Pack One\n'
+    "https://pack.example/1.m3u8\n"
+    '#EXTINF:-1 tvg-id="B.us@SD" tvg-logo="y" group-title="Movies",Pack Two\n'
+    "https://pack.example/2.m3u8\n"
+)
+
+FREE_TEXT = (
+    "#EXTM3U\n"
+    '#EXTINF:-1 tvg-country="AL" tvg-logo="z" group-title="Albania",Euronews Albania\n'
+    "https://www.youtube.com/@EuronewsAlbania/live\n"
+    '#EXTINF:-1 tvg-country="NG" group-title="Nigeria",Some Clip\n'
+    "https://youtu.be/dQw4w9WgXcQ\n"
+    '#EXTINF:-1 tvg-country="GH" group-title="Ghana",Ghana Direct\n'
+    "https://gh.example/live.m3u8\n"
+)
+
+
+def _split_http(text_by_host):
+    """http client whose get() answers by host, recording call order."""
+    from unittest import mock
+
+    calls = []
+
+    async def get(url, timeout=None):
+        calls.append(str(url))
+        response = mock.Mock()
+        response.raise_for_status = mock.Mock()
+        for host, text in text_by_host.items():
+            if host in str(url):
+                response.text = text
+                return response
+        response.text = "<html>not found but long enough to pass " + "x" * 100
+        return response
+
+    client = mock.Mock()
+    client.get = mock.AsyncMock(side_effect=get)
+    return client, calls
+
+
+def test_premium_composes_pack_plus_base_youtube_only(monkeypatch, tmp_path):
+    from channels import provider
+    from core.state import state
+    from utils.channels import extract_country_counts
+
+    monkeypatch.setattr(provider, "_CACHE_DIR", str(tmp_path))
+    monkeypatch.setattr(provider, "_CACHE_FILE", str(tmp_path / "free.m3u8"))
+    client, calls = _split_http(
+        {"iptv-org": PACK_TEXT, "Free-TV": FREE_TEXT, "nwokike.github.io": FREE_TEXT}
+    )
+    monkeypatch.setattr(provider, "get_http_client", lambda: client)
+
+    old_tier = state.is_premium
+    state.is_premium = True
+    try:
+        channels = asyncio.run(provider.ChannelProvider().get_all_channels())
+    finally:
+        state.is_premium = old_tier
+
+    names = [c["name"] for c in channels]
+    # Pack entries first, then ONLY the base's YouTube entries.
+    assert names == ["Pack One", "Pack Two", "Euronews Albania", "Some Clip"], names
+    assert all("youtube" not in c["url"] or c in channels[2:] for c in channels), (
+        "non-YouTube base channels must not leak into premium"
+    )
+    assert len(calls) == 2, "premium fetches pack and base exactly once each"
+    # YouTube channels keep their countries; the excluded base channel's
+    # country must not appear in the premium taxonomy.
+    countries = extract_country_counts(channels)
+    assert "Albania" in countries and "Nigeria" in countries
+    assert "Ghana" not in countries
+
+
+def test_free_tier_stays_base_only(monkeypatch, tmp_path):
+    from channels import provider
+    from core.state import state
+
+    monkeypatch.setattr(provider, "_CACHE_DIR", str(tmp_path))
+    monkeypatch.setattr(provider, "_CACHE_FILE", str(tmp_path / "free.m3u8"))
+    client, calls = _split_http({"Free-TV": FREE_TEXT, "nwokike.github.io": FREE_TEXT})
+    monkeypatch.setattr(provider, "get_http_client", lambda: client)
+
+    old_tier = state.is_premium
+    state.is_premium = False
+    try:
+        channels = asyncio.run(provider.ChannelProvider().get_all_channels())
+    finally:
+        state.is_premium = old_tier
+
+    assert [c["name"] for c in channels] == [
+        "Euronews Albania",
+        "Some Clip",
+        "Ghana Direct",
+    ]
+    assert all("iptv-org" not in u for u in calls), "free tier must not fetch the pack"
+
+
+def test_premium_composes_from_two_caches_without_network(monkeypatch, tmp_path):
+    from unittest import mock
+
+    from channels import provider
+    from core.state import state
+
+    monkeypatch.setattr(provider, "_CACHE_DIR", str(tmp_path))
+    free_cache = tmp_path / "cached_playlist.m3u8"
+    monkeypatch.setattr(provider, "_CACHE_FILE", str(free_cache))
+    free_cache.write_text(FREE_TEXT, encoding="utf-8")
+    (tmp_path / "cached_playlist.premium.m3u8").write_text(PACK_TEXT, encoding="utf-8")
+
+    factory = mock.Mock(side_effect=AssertionError("network used despite fresh caches"))
+    monkeypatch.setattr(provider, "get_http_client", factory)
+
+    old_tier = state.is_premium
+    state.is_premium = True
+    try:
+        channels = asyncio.run(provider.ChannelProvider().get_all_channels())
+    finally:
+        state.is_premium = old_tier
+
+    assert not factory.called, "fresh caches must short-circuit all network"
+    assert [c["name"] for c in channels] == [
+        "Pack One",
+        "Pack Two",
+        "Euronews Albania",
+        "Some Clip",
+    ]
