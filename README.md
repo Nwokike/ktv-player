@@ -12,7 +12,7 @@
   <a href="https://play.google.com/store/apps/details?id=ng.kiri.ktvplayer"><img src="https://img.shields.io/badge/Google_Play-Android-3DDC84?style=for-the-badge&logo=google-play&logoColor=white" alt="Google Play Store" /></a>
   <a href="https://github.com/Nwokike/ktv-player/releases/latest"><img src="https://img.shields.io/badge/Download_Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows" /></a>
   <a href="https://github.com/Nwokike/ktv-player/releases/latest"><img src="https://img.shields.io/badge/Download_Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux" /></a>
-  <img src="https://img.shields.io/badge/Built_with-Flet_0.86-00B0FF?style=for-the-badge&logo=flutter&logoColor=white" alt="Flet" />
+  <img src="https://img.shields.io/badge/Built_with-Flet_1.0-00B0FF?style=for-the-badge&logo=flutter&logoColor=white" alt="Flet" />
   <img src="https://img.shields.io/badge/Python-3.14-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
 </p>
 
@@ -82,14 +82,30 @@
 
 <table>
   <tr>
+    <td width="50%"><img src="screenshots/mobile_home_light.png" width="280" alt="Mobile Home" /></td>
+    <td width="50%"><img src="screenshots/mobile_search_light.png" width="280" alt="Mobile Search" /></td>
+  </tr>
+  <tr>
+    <td align="center"><em>Home on mobile: your country channels first, live status on every card, paged for fast scrolling</em></td>
+    <td align="center"><em>Search in one keystroke across every channel you have</em></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
     <td width="50%"><img src="screenshots/mobile_view.png" width="280" alt="Mobile Light Mode" /></td>
     <td width="50%"><img src="screenshots/mobile_view_dark_mode.png" width="280" alt="Mobile Dark Mode" /></td>
   </tr>
   <tr>
     <td align="center"><em>Compact mobile layout with live stream indicators</em></td>
-    <td align="center"><em>Full dark mode — easy on the eyes for late-night watching</em></td>
+    <td align="center"><em>Full dark mode for late-night watching</em></td>
   </tr>
 </table>
+
+<p align="center">
+  <img src="screenshots/mobile_settings_dark.png" width="280" alt="Mobile Settings" />
+</p>
+<p align="center"><em>Settings: region focus, data controls, and premium status at a glance</em></p>
 
 ---
 
