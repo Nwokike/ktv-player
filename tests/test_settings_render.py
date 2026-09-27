@@ -168,3 +168,14 @@ def test_contact_and_rate_rows_use_the_device_guard():
     from core import constants as core_constants
 
     assert core_constants.CONTACT_EMAIL == "hello@kiri.ng"
+
+    # Cross-promo: same device guard, Play listing vs kiri.ng showcase.
+    from core.constants import KIRI_APPS_PLAY_URL, KIRI_APPS_URL
+    from screens.settings_screen import _more_apps_subtitle, _more_apps_url
+
+    assert _more_apps_url(page_on(ft.PagePlatform.ANDROID)) == KIRI_APPS_PLAY_URL
+    assert _more_apps_url(page_on(ft.PagePlatform.ANDROID_TV)) == KIRI_APPS_PLAY_URL
+    assert _more_apps_url(page_on(ft.PagePlatform.WINDOWS)) == KIRI_APPS_URL
+    assert "Google Play" in _more_apps_subtitle(page_on(ft.PagePlatform.IOS))
+    assert "CollabShell" in _more_apps_subtitle(page_on(ft.PagePlatform.LINUX))
+    assert "More apps from Kiri" in src
