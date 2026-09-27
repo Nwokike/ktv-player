@@ -4,9 +4,10 @@ current APP_VERSION in sync when bumping (guarded by tests)."""
 
 CHANGELOG: dict[str, str] = {
     "2.2.0": (
-        "- Premium unlocks the channel pack (the top channels in every "
-        "field) and removes ads on phones. Bought through your own "
-        "Flutterwave checkout (APK, Windows, Linux)\n"
+        "- Premium unlocks the channel pack (10,000+ channels across "
+        "177 countries, the top channels in every field) and removes ads "
+        "on phones. Bought through your own Flutterwave checkout (APK, "
+        "Windows, Linux)\n"
         "- Payments finish themselves: pay in the browser, the app "
         "unlocks on its own, and your receipt email carries the recovery "
         "ID\n"

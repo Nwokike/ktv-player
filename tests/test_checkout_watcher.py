@@ -315,8 +315,8 @@ def test_premium_subtitle_is_honest_about_renewal():
     from screens.settings_screen import _premium_subtitle
 
     pack = (
-        "the premium channel pack: the top channels in every field "
-        "and more country support"
+        "the premium channel pack: 10,000+ channels across 177 countries, "
+        "top channels in every field"
     )
 
     # Free, phone (ads exist): both benefits, in the owner's wording.

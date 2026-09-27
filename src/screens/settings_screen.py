@@ -105,7 +105,7 @@ def _premium_subtitle(is_premium, claims, has_ads: bool = True) -> str:
     signed token (exp-guarded), so the dates stay truthful offline, and
     its absence marks a lifetime license.
     """
-    pack = "the premium channel pack: the top channels in every field and more country support"
+    pack = "the premium channel pack: 10,000+ channels across 177 countries, top channels in every field"
     if not is_premium:
         return f"Remove all ads and unlock {pack}" if has_ads else f"Unlock {pack}"
     base = (
