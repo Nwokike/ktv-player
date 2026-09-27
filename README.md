@@ -118,6 +118,16 @@
 | Liveliness | TTL-bounded cache (500 entries, 5-min expiry) |
 | Local Scan | `pathlib` recursive walk with `.nomedia` support |
 
+## Storage layout
+
+The app keeps three separate stores, following Flet's storage contract (documented in `.flet/README.md` when running under `flet run`):
+
+- **`FLET_APP_STORAGE_DATA`** — durable state that survives app updates: the JSON database (favorites, history, settings, license), crash logs. Writes are atomic: a temp file beside the target, then a rename.
+- **`FLET_APP_STORAGE_CACHE`** — rebuildable data the OS may purge at any time: playlist caches (free and premium), channel logos, video thumbnails, and liveliness verdicts. Everything here self-heals: a purged playlist refetches on the next launch, a purged logo re-downloads, a missing verdict re-probes within minutes.
+- **`FLET_APP_STORAGE_TEMP`** — throwaway scratch (Python's `tempfile` points here automatically). Reserved for staged downloads; nothing durable is ever written there. Atomic-write temp files deliberately live beside their targets instead, because renaming across two directories fails when the locations are on different filesystems.
+
+Snapshots never touch app storage: they go to the system gallery (MediaStore on Android, Pictures on desktop).
+
 ## Local Video Playback
 
 KTV Player now plays videos stored on your device. The Local tab automatically discovers all video files across your device storage, grouped by folder — just like MX Player.

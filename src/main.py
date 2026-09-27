@@ -147,10 +147,12 @@ class AppController:
             len(state.history),
         )
 
-        # Restore liveliness cache from DB
+        # Restore liveliness verdicts (cache-dir store; a legacy DB copy is
+        # migrated on first load)
         from services.liveliness import liveliness_cache
+        from services.liveliness_store import load_cache
 
-        cached_entries = await db_manager.load_liveliness_cache()
+        cached_entries = await load_cache()
         liveliness_cache.load_from_db(cached_entries)
 
         # Lifecycle safety net: when the app is hidden (minimize, home),

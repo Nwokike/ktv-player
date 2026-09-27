@@ -149,8 +149,14 @@ async def _download_one(
         cached_path = os.path.join(LOGO_CACHE_DIR, f"{safe_name}.{detected}")
 
         def _write_file(path: str, data: bytes):
-            with open(path, "wb") as f:
+            # Write beside the target, then rename: a crash mid-download
+            # must never leave a half-written image being served as a logo
+            # for the next week (cache files are content-addressed and
+            # only expire by TTL).
+            partial = path + ".part"
+            with open(partial, "wb") as f:
                 f.write(data)
+            os.replace(partial, path)
 
         await asyncio.to_thread(_write_file, cached_path, content)
         return cached_path

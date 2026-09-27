@@ -33,9 +33,9 @@ async def _liveliness_worker():
                 await checker.check_single(url)
                 dirty = liveliness_cache.drain_dirty()
                 if dirty:
-                    from database.manager import db_manager
+                    from services.liveliness_store import save_batch
 
-                    await db_manager.save_liveliness_batch(dirty)
+                    await save_batch(dirty)
             except Exception:
                 logger.exception("Liveliness check failed for %s", url)
             finally:
@@ -182,12 +182,13 @@ class LivelinessChecker:
             if not is_last:
                 await asyncio.sleep(0.05)
 
-        # Persist dirty cache entries to DB
+        # Persist dirty verdicts to the cache-dir store (cache-class data
+        # must not rewrite the durable database after every probe batch)
         dirty = liveliness_cache.drain_dirty()
         if dirty:
-            from database.manager import db_manager
+            from services.liveliness_store import save_batch
 
-            await db_manager.save_liveliness_batch(dirty)
+            await save_batch(dirty)
 
     async def close(self):
         pass

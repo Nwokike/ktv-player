@@ -258,14 +258,9 @@ class DatabaseManager:
             return {f["url"] for f in self._data.get("favorites", []) if "url" in f}
 
     # --- Liveliness Cache ---
-
-    async def save_liveliness_batch(self, entries: list[tuple[str, bool, int]]):
-        async with self._lock:
-            cache = self._data.setdefault("liveliness_cache", {})
-            for url, is_live, updated_at in entries:
-                cache[url] = [is_live, updated_at]
-            self._dirty = True
-            await self._save_now()
+    # Probes moved to services/liveliness_store.py (cache-class data).
+    # load/clear remain here: the store imports the legacy copy once on
+    # migration and then removes it from the durable database.
 
     async def load_liveliness_cache(self) -> dict[str, tuple[bool, float]]:
         async with self._lock:

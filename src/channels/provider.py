@@ -14,8 +14,12 @@ from services.youtube_resolver import is_youtube_url
 logger = logging.getLogger(__name__)
 
 _cache_env = os.getenv("FLET_APP_STORAGE_CACHE")
+# Playlist caches are rebuildable, so they belong under the CACHE dir
+# (FLET_APP_STORAGE_CACHE) per the storage contract — including the
+# env-less fallback, which used to land in storage/data and mix
+# cache-class files with durable state.
 _CACHE_DIR = (
-    os.path.join(_cache_env, "data") if _cache_env else os.path.join("storage", "data")
+    os.path.join(_cache_env, "data") if _cache_env else os.path.join("storage", "cache")
 )
 _CACHE_FILE = os.path.join(_CACHE_DIR, "cached_playlist.m3u8")
 
