@@ -37,6 +37,12 @@ def setup_logging(level: int = logging.DEBUG) -> None:
 
     logging.captureWarnings(True)
 
+    # On Windows the console can be gone before the last shutdown logs
+    # flush (OSError Errno 22 printed as "--- Logging error ---"). The
+    # records are already swallowed by logging; this only stops the scary
+    # traceback noise on close. Real log records are unaffected.
+    logging.raiseExceptions = False
+
     logging.getLogger("flet").setLevel(logging.INFO)
     logging.getLogger("flet_controls").setLevel(logging.WARNING)
     logging.getLogger("flet_transport").setLevel(logging.WARNING)

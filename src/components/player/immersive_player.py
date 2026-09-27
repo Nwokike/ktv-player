@@ -292,16 +292,28 @@ class ImmersivePlayer(ft.Stack):
         # Speed control
         self._speed_idx = 2  # index of 1.0 in speeds list
         self._speeds = [0.25, 0.5, 1.0, 1.25, 1.5, 2.0]
-        # Playback speed is a VOD/local feature. A live stream never
-        # reports a duration, so the speed chip stays hidden there — the
-        # inverse of how favorites are offered only for channels.
-        self.speed_available = False
+        # The rule is source-based, not metadata-based: speed is for
+        # everything EXCEPT channels. show_favorite is only true for
+        # channel plays, so local files, downloads and deep links all get
+        # the speed chip while live channels never do. No duration math.
+        self.speed_available = not show_favorite
         self.speed_container = None
         self.speed_text = ft.Text(
             "1.0x",
             size=11,
             color=ft.Colors.WHITE,
             weight=ft.FontWeight.W_600,
+        )
+
+        # Snap flash: a brief white flash confirming favorite toggles and
+        # snapshots. The fullscreen toast chip is unreliable on mobile, so
+        # feedback lands on the video surface itself. Plain visibility
+        # toggle on a solid palette color (ft.Color does not exist in
+        # flet 1.0.1, and a hex8 string once crashed the constructor).
+        self.flash_box = ft.Container(
+            expand=True,
+            bgcolor=ft.Colors.WHITE,
+            visible=False,
         )
 
         self.video = fv.Video(
@@ -363,6 +375,7 @@ class ImmersivePlayer(ft.Stack):
             ft.Container(expand=True, bgcolor=ft.Colors.BLACK),
             self.video,
             self.overlay,
+            self.flash_box,
         ]
 
     # --- Controls ---
@@ -371,6 +384,34 @@ class ImmersivePlayer(ft.Stack):
         super().did_mount()
         # The toast chip was created by build_player_controls() in __init__
         register_fullscreen_toast(self.toast_chip, self.toast_text)
+
+    def snap_flash(self) -> None:
+        """Brief white flash: confirmation for favorite and snapshot.
+
+        The in-controls toast chip does not reliably render inside native
+        fullscreen on mobile, so these actions confirm visually instead.
+        """
+        try:
+            self.flash_box.visible = True
+            self.update()
+        except Exception:
+            logger.debug("snap flash failed", exc_info=True)
+            return
+        try:
+            loop = asyncio.get_running_loop()
+            task = loop.create_task(self._hide_flash())
+            _orphan_tasks.add(task)
+            task.add_done_callback(_orphan_tasks.discard)
+        except RuntimeError:
+            pass
+
+    async def _hide_flash(self) -> None:
+        await asyncio.sleep(0.12)
+        try:
+            self.flash_box.visible = False
+            self.update()
+        except Exception:
+            logger.debug("snap flash hide failed", exc_info=True)
 
     def will_unmount(self):
         super().will_unmount()
@@ -554,6 +595,7 @@ class ImmersivePlayer(ft.Stack):
                     saved_path = filepath
 
                 notify(f"📸 Snapshot saved to {saved_path}")
+                self.snap_flash()
             else:
                 notify_warning("Unable to capture video snapshot.")
         except Exception as ex:
@@ -675,21 +717,7 @@ class ImmersivePlayer(ft.Stack):
             seconds = self._event_seconds(e.data)
             if seconds is not None:
                 self._last_duration = seconds
-                if seconds > 0 and not self.speed_available:
-                    self.speed_available = True
-                    self._show_speed_control()
         self._check_and_trigger_seek()
-
-    def _show_speed_control(self):
-        """Reveal the speed chip once duration metadata proves VOD."""
-        container = self.speed_container
-        if container is None:
-            return
-        try:
-            container.visible = True
-            self.update()
-        except Exception:
-            logger.debug("Could not reveal the speed control", exc_info=True)
 
     def _on_pos_change(self, e: ft.ControlEvent | None = None):
         if not self._overlay_hidden:

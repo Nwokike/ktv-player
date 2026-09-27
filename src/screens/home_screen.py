@@ -92,22 +92,45 @@ def HomeScreen() -> Control:
         [state.channels_hash],
     )
 
+    # No channel data is NOT evidence that a folder died: on first render
+    # the channels are still loading, and reconciling against empty maps
+    # used to wipe the saved country on every launch (and toast about it).
+    # Reconcile only once channels are loaded.
+    channels_loaded = bool(state.channels)
+
     # A playlist swap can delete the folder a stored selection points at;
     # exact-match filtering would then return zero channels forever with
     # no error. Reconcile as pure data, then sync the reset back into
     # state once so the pill label and the filter dict cannot disagree.
     filters_eff = ft.use_memo(
-        lambda: reconcile_filters(
-            filters, available_countries, available_categories, custom_playlists
+        lambda: (
+            filters
+            if not channels_loaded
+            else reconcile_filters(
+                filters, available_countries, available_categories, custom_playlists
+            )
         ),
-        [filters, available_countries, available_categories, custom_playlists],
+        [
+            filters,
+            channels_loaded,
+            available_countries,
+            available_categories,
+            custom_playlists,
+        ],
     )
 
-    def _sync_reconciled():
-        if filters != filters_eff:
-            from utils.notifications import notify
+    # One reset notice per real event (a swap that removed the selected
+    # folder), never per launch and never per render.
+    reset_notified = use_ref(False)
 
-            set_filters(filters_eff)
+    def _sync_reconciled():
+        if not channels_loaded or filters == filters_eff:
+            return
+        from utils.notifications import notify
+
+        set_filters(filters_eff)
+        if not reset_notified.current:
+            reset_notified.current = True
             notify("Your channel list was updated. Check your filters.")
 
     ft.use_effect(_sync_reconciled, [filters_eff])
@@ -187,6 +210,10 @@ def HomeScreen() -> Control:
             try:
                 await controller.play_stream(url, title)
             except Exception:
+                # Log before notifying: the snackbar is best-effort and
+                # silent when it fails, which once hid a play click that
+                # produced zero output at all.
+                logger.exception("play_stream failed for %s", url)
                 from utils.notifications import notify_error
 
                 notify_error(ERR_PLAYBACK_FAILED)

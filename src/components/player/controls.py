@@ -167,6 +167,12 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
         else:
             notify("Removed from Favorites")
 
+        # The fullscreen toast chip is unreliable on mobile, so confirm
+        # the toggle with a snap flash on the video surface itself.
+        snap = getattr(player_inst, "snap_flash", None)
+        if callable(snap):
+            snap()
+
         # Call the async db save in background
         toggle_favorite(player_inst.resource, state)
 

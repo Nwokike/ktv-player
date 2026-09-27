@@ -574,3 +574,27 @@ def test_premium_composes_from_two_caches_without_network(monkeypatch, tmp_path)
         "Euronews Albania",
         "Some Clip",
     ]
+
+
+# -- the every-launch country wipe (reconcile must trust empty data) --------
+
+
+def test_reconcile_never_resets_when_channel_data_is_missing():
+    """Empty maps mean 'still loading', not 'folder gone'.
+
+    Reconciling against {} on first render wiped the saved country on
+    every launch and toasted about it every single time.
+    """
+    filters = {**_default_filters(), "country": "Nigeria", "category": "News"}
+    assert reconcile_filters(filters, {}, {}, {}) == filters
+
+
+def test_home_gates_reconcile_on_loaded_channels():
+    """The mount effect must not touch filters until channels exist."""
+    import inspect
+
+    from screens.home_screen import HomeScreen
+
+    src = inspect.getsource(HomeScreen)
+    assert "channels_loaded = bool(state.channels)" in src
+    assert "if not channels_loaded" in src

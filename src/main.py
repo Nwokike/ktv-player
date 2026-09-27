@@ -515,7 +515,14 @@ class AppController:
             return
 
         async with self._play_lock:
-            await self._do_play_stream(url, title, referer, headers, from_deep_link)
+            # Entry + failure logging: the first statements in the play
+            # path, so a click can never produce zero output again.
+            logger.info("play_stream: %s", url)
+            try:
+                await self._do_play_stream(url, title, referer, headers, from_deep_link)
+            except Exception:
+                logger.exception("play_stream failed for %s", url)
+                raise
 
     async def _do_play_stream(
         self,

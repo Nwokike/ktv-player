@@ -15,6 +15,11 @@ GITHUB_REPO_URL = "https://github.com/Nwokike/ktv-player"
 # the same id the Kiri license uses (KIRI_LICENSE_APP_ID).
 PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=ng.kiri.ktvplayer"
 CONTACT_EMAIL = "hello@kiri.ng"
+# Cross-promotion: store devices open the Play developer listing (every
+# Kiri app in one place); everything else opens the kiri.ng showcase
+# that links each repo with live demos and downloads.
+KIRI_APPS_PLAY_URL = "https://play.google.com/store/apps/dev?id=5797833969564243342"
+KIRI_APPS_URL = "https://kiri.ng/projects"
 
 # Premium channel pack source (the iptv-org index). Stored base64-encoded
 # on purpose: the raw aggregator URL never sits in plaintext in the repo,

@@ -1,8 +1,10 @@
-"""Playback speed is a VOD/local feature — never a live one.
+"""Playback speed is for everything EXCEPT channels.
 
-The inverse of favorites (which are offered only for channels): the user
-noticed this after adding downloads and speeding up a live channel, where
-there is no seekable timeline to speed up.
+The rule is source-based: show_favorite is only true for channel plays,
+so channels get no speed chip and everything else (local files,
+downloads, deep links) always does. Duration metadata used to gate this
+and was removed: some live channels report a duration, some VOD does not,
+and neither says anything about whether speeding makes sense.
 """
 
 from types import SimpleNamespace
@@ -25,7 +27,21 @@ def _player(speed_available: bool = False):
     return player
 
 
-def test_speed_chip_is_built_hidden_until_duration_arrives():
+def test_speed_follows_the_source_from_construction():
+    """No duration math: the source decides at open time."""
+    channel = ImmersivePlayer(resource="http://example.com/live.m3u8")
+    assert channel.speed_available is False, "channels never get speed"
+
+    local = ImmersivePlayer(resource="file:///videos/movie.mp4", show_favorite=False)
+    assert local.speed_available is True, "local files always get speed"
+
+    deep_link = ImmersivePlayer(
+        resource="https://example.com/stream.m3u8", show_favorite=False
+    )
+    assert deep_link.speed_available is True
+
+
+def test_speed_chip_is_built_hidden_for_a_channel():
     from components.player.controls import build_player_controls
 
     player = _player(speed_available=False)
@@ -35,7 +51,7 @@ def test_speed_chip_is_built_hidden_until_duration_arrives():
     assert player.speed_container.visible is False
 
 
-def test_speed_chip_is_visible_for_content_with_duration():
+def test_speed_chip_is_visible_when_available():
     from components.player.controls import build_player_controls
 
     player = _player(speed_available=True)
@@ -44,27 +60,28 @@ def test_speed_chip_is_visible_for_content_with_duration():
     assert player.speed_container.visible is True
 
 
-def test_duration_metadata_reveals_the_chip():
+def test_duration_metadata_does_not_govern_speed():
+    """A live channel reporting a duration must still not get speed."""
     player = _player(speed_available=False)
     player.speed_container = mock.MagicMock()
     player.update = mock.Mock()
 
     player._on_duration_change(SimpleNamespace(data=ft.Duration(seconds=600)))
 
-    assert player.speed_available is True
-    player.speed_container.visible = True
-    player.update.assert_called()
+    assert player.speed_available is False
+    player.update.assert_not_called()
 
 
 def test_live_stream_keeps_the_chip_hidden():
     """A live HLS playlist reports no duration at all."""
     player = _player(speed_available=False)
     player.speed_container = mock.MagicMock()
+    player.speed_container.visible = False
 
     player._on_duration_change(SimpleNamespace(data=ft.Duration(seconds=0)))
 
     assert player.speed_available is False
-    player.speed_container.visible = not True  # never touched
+    assert player.speed_container.visible is False  # duration never touched it
 
 
 @pytest.mark.asyncio

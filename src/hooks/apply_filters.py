@@ -30,21 +30,23 @@ def reconcile_filters(
     """
     out = dict(filters)
 
+    # An empty map means "not loaded yet", not "folder gone". Only a real
+    # selection that vanished from real data gets reset.
     country = out.get("country", "all")
-    if country != "all" and country not in available_countries:
+    if country != "all" and available_countries and country not in available_countries:
         out["country"] = "all"
 
     category = out.get("category", "all")
-    if category != "all" and category not in available_categories:
+    if (
+        category != "all"
+        and available_categories
+        and category not in available_categories
+    ):
         out["category"] = "all"
 
     custom = out.get("custom", "none")
     custom_ok = {"none", "all", "single"}
-    if (
-        available_custom is not None
-        and custom not in custom_ok
-        and custom not in available_custom
-    ):
+    if available_custom and custom not in custom_ok and custom not in available_custom:
         out["custom"] = "none"
     return out
 

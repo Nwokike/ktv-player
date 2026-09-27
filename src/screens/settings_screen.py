@@ -16,6 +16,8 @@ from core.constants import (
     ERR_CLEAR_HISTORY_FAILED,
     ERR_RESET_LIBRARY_FAILED,
     GITHUB_REPO_URL,
+    KIRI_APPS_PLAY_URL,
+    KIRI_APPS_URL,
     LBL_ACTIVITY_TERMINAL,
     LBL_CLEAR,
     LBL_CLEAR_HISTORY,
@@ -95,6 +97,20 @@ def _rate_url(page) -> str:
 
 def _rate_subtitle(page) -> str:
     return "Rate us on Google Play" if _is_store_device(page) else "Star us on GitHub"
+
+
+def _more_apps_url(page) -> str:
+    """Store devices open the Play developer listing; everything else
+    the kiri.ng showcase that links every repo with downloads."""
+    return KIRI_APPS_PLAY_URL if _is_store_device(page) else KIRI_APPS_URL
+
+
+def _more_apps_subtitle(page) -> str:
+    return (
+        "All our apps on Google Play"
+        if _is_store_device(page)
+        else "Sherlock, DDGS, CollabShell and more"
+    )
 
 
 def _premium_subtitle(is_premium, claims, has_ads: bool = True) -> str:
@@ -566,6 +582,9 @@ def SettingsScreen() -> Control:
     def _on_rate(e=None):
         _launch_url(_rate_url(about_page))
 
+    def _on_more_apps(e=None):
+        _launch_url(_more_apps_url(about_page))
+
     about = _section_card(
         "About",
         ft.Icons.INFO,
@@ -595,6 +614,19 @@ def SettingsScreen() -> Control:
                     color=AppColors.grey_dim(),
                 ),
                 on_click=_on_rate,
+            ),
+            _setting_row(
+                leading=ft.Icon(
+                    ft.Icons.APPS_ROUNDED, size=18, color=AppColors.PRIMARY
+                ),
+                title="More apps from Kiri",
+                subtitle=_more_apps_subtitle(about_page),
+                trailing=ft.Icon(
+                    ft.Icons.OPEN_IN_NEW_ROUNDED,
+                    size=15,
+                    color=AppColors.grey_dim(),
+                ),
+                on_click=_on_more_apps,
             ),
             ft.Container(
                 content=ft.Row(
