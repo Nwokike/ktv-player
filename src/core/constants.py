@@ -2,7 +2,7 @@ import base64
 
 APP_NAME = "KTV Player"
 APP_VERSION = "2.2.0"
-APP_BUILD_NUMBER = 19
+APP_BUILD_NUMBER = 20
 
 # Update service — version metadata is served from this repo's main branch
 # (a normal commit to version.json publishes it; no CI change needed).

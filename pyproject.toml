@@ -49,7 +49,11 @@ key_store = "../../../../kiri_keystore.jks"
 key_alias = "upload"
 
 [tool.flet.android.feature]
-"android.software.leanback" = true
+# leanback = false means "declare, don't require". Setting it true excludes
+# every phone, tablet and Chromebook from the Play device catalog (build 19
+# lost 13,295 devices that way). TVs stay covered by touchscreen = false and
+# the LEANBACK_LAUNCHER intent, which this flag does not control.
+"android.software.leanback" = false
 "android.hardware.touchscreen" = false
 "android.software.picture_in_picture" = false
 
