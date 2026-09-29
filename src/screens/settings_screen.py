@@ -37,6 +37,7 @@ from core.constants import (
     LBL_LOG_COPIED,
     LBL_LOG_NEWER,
     LBL_LOG_NEWEST,
+    LBL_LOG_NO_NEW,
     LBL_LOG_OLDER,
     LBL_LOG_REFRESH,
     LBL_NO_ACTIVITY_LOG,
@@ -187,10 +188,21 @@ def _build_logs_dialog(page: ft.Page) -> ft.AlertDialog:
     )
 
     async def _scroll(delta: float) -> None:
-        # Overshoot is safe: Android's clamping physics snaps past-the-end
-        # offsets back to the real edge ("Newest" relies on this).
         try:
             await log_col.scroll_to(delta=delta, duration=120)
+        except Exception:
+            pass
+
+    async def _to_end() -> None:
+        # offset=-1 is flet's documented "jump to the very end".
+        try:
+            await log_col.scroll_to(offset=-1, duration=120)
+        except Exception:
+            pass
+
+    async def _to_start() -> None:
+        try:
+            await log_col.scroll_to(offset=0, duration=120)
         except Exception:
             pass
 
@@ -207,9 +219,9 @@ def _build_logs_dialog(page: ft.Page) -> ft.AlertDialog:
         elif k in ("up", "arrowup", "dpadup"):
             await _scroll(-160)
         elif k == "end":
-            await _scroll(100000)
+            await _to_end()
         elif k == "home":
-            await _scroll(-100000)
+            await _to_start()
 
     async def _copy(e=None):
         try:
@@ -226,14 +238,22 @@ def _build_logs_dialog(page: ft.Page) -> ft.AlertDialog:
         page.update()
 
     async def _refresh(e=None):
-        log_text.value = _compose()
+        new_value = _compose()
+        if new_value == log_text.value:
+            # A refresh that changes nothing must SAY so, or the button
+            # looks broken when the log simply has no new lines yet.
+            notify(LBL_LOG_NO_NEW)
+            return
+        log_text.value = new_value
         page.update()
+        await asyncio.sleep(0.15)
+        await _to_end()
 
     async def _prepare() -> None:
         # Open showing the NEWEST lines (the answer is always at the end):
         # wait for the dialog to lay out first, then jump down.
         await asyncio.sleep(0.5)
-        await _scroll(100000)
+        await _to_end()
 
     page.run_task(_prepare)
 
@@ -251,7 +271,7 @@ def _build_logs_dialog(page: ft.Page) -> ft.AlertDialog:
             ),
             ft.TextButton(
                 LBL_LOG_NEWEST,
-                on_click=lambda e: asyncio.create_task(_scroll(100000)),
+                on_click=lambda e: asyncio.create_task(_to_end()),
             ),
             ft.TextButton(
                 LBL_LOG_REFRESH,
@@ -260,6 +280,8 @@ def _build_logs_dialog(page: ft.Page) -> ft.AlertDialog:
             ),
         ],
         spacing=6,
+        run_spacing=4,
+        wrap=True,
         run_alignment=ft.CrossAxisAlignment.CENTER,
     )
 

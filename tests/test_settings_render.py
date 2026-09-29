@@ -205,6 +205,8 @@ def test_logs_dialog_scrolls_via_keys_and_buttons():
     buttons = [c for c in nav.controls if isinstance(c, ft.TextButton)]
     assert [b.content for b in buttons] == ["Older", "Newer", "Newest", "Refresh"]
     assert all(b.on_click is not None for b in buttons)
+    # A narrow TV window must wrap the row, not clip the last buttons.
+    assert nav.wrap is True
 
     log_box = body.controls[2].content
     assert log_box.scroll == ft.ScrollMode.AUTO
