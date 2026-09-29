@@ -179,3 +179,33 @@ def test_contact_and_rate_rows_use_the_device_guard():
     assert "Google Play" in _more_apps_subtitle(page_on(ft.PagePlatform.IOS))
     assert "CollabShell" in _more_apps_subtitle(page_on(ft.PagePlatform.LINUX))
     assert "More apps from Kiri" in src
+
+
+def test_logs_dialog_scrolls_via_keys_and_buttons():
+    """The TV remote cannot wheel-scroll, so the terminal needs three
+    explicit paths: a focus-grabbing key listener (laptop arrows + TV
+    D-pad), nav buttons (Older/Newer/Newest/Refresh), and a scrollable
+    log column that opens jumped to the newest lines."""
+    from unittest import mock
+
+    import flet as ft
+
+    from screens.settings_screen import _build_logs_dialog
+
+    with mock.patch("services.device_info.get_device_summary", return_value="DEVICE"):
+        dlg = _build_logs_dialog(_Page())
+
+    listener = dlg.content.content
+    assert isinstance(listener, ft.KeyboardListener)
+    assert listener.autofocus is True
+    assert listener.on_key_down is not None
+
+    body = listener.content
+    nav = body.controls[1]
+    buttons = [c for c in nav.controls if isinstance(c, ft.TextButton)]
+    assert [b.content for b in buttons] == ["Older", "Newer", "Newest", "Refresh"]
+    assert all(b.on_click is not None for b in buttons)
+
+    log_box = body.controls[2].content
+    assert log_box.scroll == ft.ScrollMode.AUTO
+    assert log_box.expand is True
