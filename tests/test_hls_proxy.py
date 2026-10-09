@@ -1,5 +1,7 @@
 """Unit tests for HLSProxy and deep link parsing in KTV Player."""
 
+from unittest import mock
+
 import pytest
 
 from core.deeplink import parse_deep_link
@@ -254,3 +256,81 @@ class TestRewritePinning:
             variant=99,
         )
         assert out.count("#EXT-X-STREAM-INF") == 0  # no variant index 99 kept
+
+
+class TestPhase4ProxyHardening:
+    """Reason table, 400 paths, SESSION-KEY, conditional headers, stop."""
+
+    @pytest.mark.asyncio
+    async def test_send_response_known_reasons(self):
+        from services.hls_proxy import HLSProxy
+
+        proxy = HLSProxy()
+        for code, phrase in [
+            (200, "OK"),
+            (206, "Partial Content"),
+            (403, "Forbidden"),
+            (502, "Bad Gateway"),
+            (503, "Service Unavailable"),
+            (405, "Method Not Allowed"),
+            (416, "Range Not Satisfiable"),
+        ]:
+            writer = mock.MagicMock()
+            writer.drain = mock.AsyncMock()
+            await proxy._send_response(writer, code, "text/plain", b"x")
+            head = writer.write.call_args[0][0].decode("latin1")
+            assert f"HTTP/1.1 {code} {phrase}" in head, head
+
+    @pytest.mark.asyncio
+    async def test_send_response_prefers_upstream_phrase(self):
+        from services.hls_proxy import HLSProxy
+
+        proxy = HLSProxy()
+        writer = mock.MagicMock()
+        writer.drain = mock.AsyncMock()
+        await proxy._send_response(
+            writer, 502, "text/plain", b"x", reason_phrase="CDN Edge Error"
+        )
+        head = writer.write.call_args[0][0].decode("latin1")
+        assert "502 CDN Edge Error" in head
+
+    def test_session_key_rewritten(self):
+        from services.hls_proxy import HLSProxy
+
+        proxy = HLSProxy()
+        proxy.port = 9999
+        content = (
+            "#EXTM3U\n"
+            '#EXT-X-SESSION-KEY:METHOD=AES-128,URI="https://cdn.example/key"\n'
+            "#EXTINF:6.0,\n"
+            "seg1.ts\n"
+        )
+        out = proxy._rewrite_m3u8(
+            content, "https://cdn.example/master.m3u8", None, {}, None, None
+        )
+        assert "/key?url=" in out
+        assert "https://cdn.example/key" not in out
+
+    def test_looks_like_playlist(self):
+        from services.hls_proxy import HLSProxy
+
+        assert HLSProxy._looks_like_playlist("https://h/x.m3u8") is True
+        assert HLSProxy._looks_like_playlist("https://h/x.m3u8?tok=1") is True
+        assert HLSProxy._looks_like_playlist("https://h/seg1.ts") is False
+        # Extension-less manifest: assumed playlist (fetch-time CT decides).
+        assert HLSProxy._looks_like_playlist("https://h/manifest?tok=1") is True
+
+    def test_insecure_hosts_mount_logged(self):
+        from services.hls_proxy import HLSProxy
+
+        proxy = HLSProxy(insecure_hosts={"selfsigned.example"})
+        assert "selfsigned.example" in proxy.insecure_hosts
+        assert HLSProxy().insecure_hosts == set()
+
+    @pytest.mark.asyncio
+    async def test_stop_without_start_is_quiet(self):
+        from services.hls_proxy import HLSProxy
+
+        proxy = HLSProxy()
+        await proxy.stop()  # must not raise, must not claim "stopped" falsely
+        assert proxy.port is None

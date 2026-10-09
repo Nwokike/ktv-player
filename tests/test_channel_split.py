@@ -117,7 +117,10 @@ async def test_play_build_cannot_start_any_purchase(_play_channel):
         await svc.kiri_checkout("lifetime", "buyer@example.com")
     with pytest.raises(LicenseUnavailable):
         await svc.kiri_restore("KIRI-L-anything")
-    assert await svc.kiri_check_status() is None
+    # kiri_check_status was deleted (Phase 5): it used the non-issuing
+    # /status path, which can never re-arm an expired token — renewals need
+    # restore(). No status surface remains on the Play build.
+    assert not hasattr(svc, "kiri_check_status")
 
 
 @pytest.mark.asyncio

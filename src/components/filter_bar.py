@@ -1,10 +1,18 @@
-"""FilterBar — sticky row of filter chips for the Home/Local screens.
+"""FilterBar — sticky row of filter pills for the Home screen.
 
 Country / Category / Custom are PopupMenuButton triggers that render as
-compact outlined pills (icon + label + chevron). Clicking opens a popup
-menu. Fav is an OutlinedButton toggle. The + is an IconButton.
+compact outlined pills (icon + label + chevron). Fav is a Container pill
+toggle and + is a Container pill: both stay Containers deliberately —
+they are reachable by D-pad focus as-is (ink + on_click), so swapping
+in a Button would buy nothing and would change the measured visuals.
+
+`compact` is a per-render snapshot of the page width (no resize
+subscription): rotating or resizing keeps the pills from the width the
+bar was built at until the next rebuild. Documented, not fixed — a
+width listener would rebuild the bar on every frame of a resize.
 """
 
+import logging
 from collections.abc import Callable
 
 import flet as ft
@@ -13,13 +21,15 @@ from flet import Control
 from core.constants import LBL_ADD_CONTENT_SHORT
 from core.tokens import FONT_LG, FONT_MD, ICON_MD, ICON_SM, SPACING_XS
 
+logger = logging.getLogger(__name__)
+
 # Transparent wrapper so PopupMenuButton adds no visible chrome
 _TRIGGER_STYLE = ft.ButtonStyle(
     bgcolor=ft.Colors.TRANSPARENT,
     elevation=0,
     shadow_color=ft.Colors.TRANSPARENT,
     overlay_color=ft.Colors.with_opacity(0.06, ft.Colors.WHITE),
-    padding=ft.Padding(0, 0, 0, 0),
+    padding=ft.Padding.all(0),
     shape=ft.RoundedRectangleBorder(radius=8),
 )
 
@@ -27,7 +37,7 @@ _TRIGGER_STYLE = ft.ButtonStyle(
 _MENU_BG = ft.Colors.SURFACE
 _MENU_SHADOW = ft.Colors.with_opacity(0.15, ft.Colors.BLACK)
 _MENU_ELEVATION = 4
-_MENU_PADDING = ft.Padding(0, 4, 0, 4)
+_MENU_PADDING = ft.Padding.symmetric(vertical=4)
 _MENU_SHAPE = ft.RoundedRectangleBorder(radius=8)
 
 
@@ -37,8 +47,9 @@ def _pill(
     is_selected: bool,
     show_arrow: bool = True,
     compact: bool = True,
+    tooltip: str = "",
 ) -> ft.Control:
-    """Compact outlined pill: icon + text + chevron."""
+    """Compact outlined pill: icon + text + chevron (TV-minimum 48px tall)."""
     border_color = (
         ft.Colors.PRIMARY
         if is_selected
@@ -51,9 +62,15 @@ def _pill(
     )
     font_size = FONT_MD if compact else FONT_LG
     icon_size = ICON_SM if compact else ICON_MD
-    pad = ft.Padding(8, 4, 8, 4) if compact else ft.Padding(12, 6, 12, 6)
+    # Vertical padding keeps the pill at the ~48px touch target: compact
+    # text (12px) + 2x8 vertical + border ~= 44-48px on density 1 screens.
+    pad = (
+        ft.Padding.symmetric(horizontal=8, vertical=8)
+        if compact
+        else ft.Padding.symmetric(horizontal=12, vertical=10)
+    )
 
-    controls = [
+    controls: list[ft.Control] = [
         ft.Icon(icon, size=icon_size),
         ft.Text(label, size=font_size, no_wrap=True),
     ]
@@ -70,6 +87,7 @@ def _pill(
         border=ft.Border.all(1, border_color),
         border_radius=8,
         bgcolor=bg,
+        tooltip=tooltip or None,
     )
 
 
@@ -80,22 +98,44 @@ def FilterBar(
     available_countries: list[str] | dict[str, int],
     available_categories: list[str] | dict[str, int],
     user_country: str,
-    custom_playlists: list[str] | None = None,
+    custom_playlists: list[str] | dict[str, int] | None = None,
     total_count: int = 0,
-    on_add_content: Callable[[], None] | None = None,
+    on_add_content: Callable[..., None] | None = None,
 ) -> Control:
-    """Render filter pills: Country / Category / Custom / Fav / +."""
+    """Render filter pills: Country / Category / Custom / Fav / +.
+
+    `total_count` is accepted for API stability but intentionally not
+    rendered — the grid header already shows "N channels" and a second
+    count in the bar would double-report. `on_add_content` is
+    event-tolerant: popup-menu clicks always pass an event, callers pass
+    none — both work.
+    """
 
     def _fire(partial: dict):
         if callable(on_change):
             on_change(partial)
+
+    def _invoke_add_content(e=None):
+        # Flet always passes the click event from PopupMenuItem; direct
+        # callers (header +, Container +) pass none. Accepting both keeps
+        # one callback working for every pill.
+        if not callable(on_add_content):
+            return
+        try:
+            on_add_content(e) if e is not None else on_add_content()
+        except TypeError:
+            logger.debug("on_add_content arity fallback", exc_info=True)
+            try:
+                on_add_content()
+            except TypeError:
+                on_add_content(e)
 
     # Responsive: bigger pills on TV/widescreen (>600px)
     try:
         from flet import context
 
         _page_width = context.page.width or 0
-    except Exception:
+    except (RuntimeError, AttributeError):
         _page_width = 0
     _compact = _page_width <= 600
 
@@ -105,7 +145,8 @@ def FilterBar(
 
     is_dict = isinstance(available_countries, dict)
     sorted_countries = sorted(
-        available_countries.keys() if is_dict else available_countries
+        available_countries.keys() if is_dict else available_countries,
+        key=str.casefold,
     )
 
     def _country_label(name: str) -> str:
@@ -128,6 +169,7 @@ def FilterBar(
         country_items.append(
             ft.PopupMenuItem(
                 content=ft.Text(f"{_default_country}{suffix}", size=FONT_MD),
+                checked=current_country == _default_country,
                 on_click=lambda e, u=_default_country: _fire(
                     {"country": u, "category": "all", "custom": "none", **_RESET}
                 ),
@@ -138,6 +180,7 @@ def FilterBar(
         country_items.append(
             ft.PopupMenuItem(
                 content=ft.Text(_country_label(c_name), size=FONT_MD),
+                checked=current_country == c_name,
                 on_click=lambda e, c=c_name: _fire(
                     {"country": c, "category": "all", "custom": "none", **_RESET}
                 ),
@@ -147,10 +190,11 @@ def FilterBar(
     country_items.insert(
         0,
         ft.PopupMenuItem(
-            content=ft.Text("Cancel", size=FONT_MD),
+            content=ft.Text("All Countries", size=FONT_MD),
+            checked=current_country == "all",
             on_click=lambda e: _fire(
                 {
-                    "country": _default_country or "all",
+                    "country": "all",
                     "category": "all",
                     "custom": "none",
                     **_RESET,
@@ -163,8 +207,9 @@ def FilterBar(
         content=_pill(
             country_label,
             ft.Icons.PUBLIC,
-            current_country != _default_country,
+            current_country != "all",
             compact=_compact,
+            tooltip=f"Filter by country (currently {country_label})",
         ),
         items=country_items,
         menu_position=ft.PopupMenuPosition.UNDER,
@@ -182,20 +227,24 @@ def FilterBar(
 
     category_items: list[ft.PopupMenuItem] = []
     if isinstance(available_categories, dict):
-        for cat, count in sorted(available_categories.items(), key=lambda x: x[0]):
+        for cat, count in sorted(
+            available_categories.items(), key=lambda x: str(x[0]).casefold()
+        ):
             category_items.append(
                 ft.PopupMenuItem(
                     content=ft.Text(f"{cat} ({count})", size=FONT_MD),
+                    checked=current_category == cat,
                     on_click=lambda e, c=cat: _fire(
                         {"category": c, "country": "all", "custom": "none", **_RESET}
                     ),
                 )
             )
     else:
-        for cat in available_categories:
+        for cat in sorted(available_categories, key=str.casefold):
             category_items.append(
                 ft.PopupMenuItem(
                     content=ft.Text(cat, size=FONT_MD),
+                    checked=current_category == cat,
                     on_click=lambda e, c=cat: _fire(
                         {"category": c, "country": "all", "custom": "none", **_RESET}
                     ),
@@ -205,7 +254,8 @@ def FilterBar(
     category_items.insert(
         0,
         ft.PopupMenuItem(
-            content=ft.Text("Cancel", size=FONT_MD),
+            content=ft.Text("All Categories", size=FONT_MD),
+            checked=current_category == "all",
             on_click=lambda e: _fire({"category": "all", "custom": "none", **_RESET}),
         ),
     )
@@ -216,6 +266,7 @@ def FilterBar(
             ft.Icons.CATEGORY,
             current_category != "all",
             compact=_compact,
+            tooltip=f"Filter by category (currently {category_label})",
         ),
         items=category_items,
         menu_position=ft.PopupMenuPosition.UNDER,
@@ -238,6 +289,7 @@ def FilterBar(
     custom_items: list[ft.PopupMenuItem] = [
         ft.PopupMenuItem(
             content=ft.Text("Single Channels", size=FONT_MD),
+            checked=current_custom == "single",
             on_click=lambda e: _fire(
                 {"custom": "single", "country": "all", "category": "all", **_RESET}
             ),
@@ -245,12 +297,17 @@ def FilterBar(
     ]
     if custom_playlists:
         is_custom_dict = isinstance(custom_playlists, dict)
-        playlists_keys = custom_playlists.keys() if is_custom_dict else custom_playlists
+        playlists_keys = (
+            sorted(custom_playlists.keys(), key=str.casefold)
+            if is_custom_dict
+            else sorted(custom_playlists, key=str.casefold)
+        )
         for pl in playlists_keys:
             label_text = f"{pl} ({custom_playlists[pl]})" if is_custom_dict else pl
             custom_items.append(
                 ft.PopupMenuItem(
                     content=ft.Text(label_text, size=FONT_MD),
+                    checked=current_custom == pl,
                     on_click=lambda e, g=pl: _fire(
                         {"custom": g, "country": "all", "category": "all", **_RESET}
                     ),
@@ -260,14 +317,15 @@ def FilterBar(
         custom_items.append(
             ft.PopupMenuItem(
                 content=ft.Text(LBL_ADD_CONTENT_SHORT, size=FONT_MD),
-                on_click=lambda e: on_add_content(),
+                on_click=_invoke_add_content,
             )
         )
 
     custom_items.insert(
         0,
         ft.PopupMenuItem(
-            content=ft.Text("Cancel", size=FONT_MD),
+            content=ft.Text("All", size=FONT_MD),
+            checked=current_custom == "none",
             on_click=lambda e: _fire(
                 {"custom": "none", "country": "all", "category": "all", **_RESET}
             ),
@@ -280,6 +338,7 @@ def FilterBar(
             ft.Icons.FOLDER_SPECIAL,
             current_custom != "none",
             compact=_compact,
+            tooltip=f"Custom playlists (currently {custom_label})",
         ),
         items=custom_items,
         menu_position=ft.PopupMenuPosition.UNDER,
@@ -294,46 +353,30 @@ def FilterBar(
     # ---- 4. Fav (single-click toggle, no dropdown — same pill style) ----
     fav_selected = filters.get("fav_only", False)
     fav_label = "Fav"
-    fav_border = (
-        ft.Colors.PRIMARY
-        if fav_selected
-        else ft.Colors.with_opacity(0.3, ft.Colors.OUTLINE_VARIANT)
-    )
-    fav_bg = (
-        ft.Colors.with_opacity(0.08, ft.Colors.PRIMARY)
-        if fav_selected
-        else ft.Colors.TRANSPARENT
-    )
 
-    fav_btn = ft.Container(
-        content=ft.Row(
-            controls=[
-                ft.Icon(
-                    ft.Icons.STAR if fav_selected else ft.Icons.STAR_BORDER,
-                    size=ICON_SM,
-                ),
-                ft.Text(fav_label, size=FONT_MD, no_wrap=True),
-            ],
-            spacing=2,
-            vertical_alignment=ft.CrossAxisAlignment.CENTER,
-        ),
-        padding=ft.Padding(8, 4, 8, 4),
-        border=ft.Border.all(1, fav_border),
-        border_radius=8,
-        bgcolor=fav_bg,
-        on_click=lambda e: _fire(
-            {
-                "fav_only": not fav_selected,
-                "country": "all",
-                "category": "all",
-                "custom": "none",
-                "search": "",
-            }
-        ),
-        ink=True,
+    fav_btn = _pill(
+        fav_label,
+        ft.Icons.STAR if fav_selected else ft.Icons.STAR_BORDER,
+        fav_selected,
+        show_arrow=False,
+        compact=_compact,
+        tooltip="Show favorites only" if not fav_selected else "Showing favorites",
     )
+    # Reuse the shared pill so Fav matches the other pills' sizing in both
+    # compact and wide modes (it previously hardcoded compact metrics and
+    # drifted on TV widths). Still a Container pill — see module docstring.
+    fav_btn.on_click = lambda e: _fire(
+        {
+            "fav_only": not fav_selected,
+            "country": "all",
+            "category": "all",
+            "custom": "none",
+            "search": "",
+        }
+    )
+    fav_btn.ink = True
 
-    # ---- 5. + (add) — same PopupMenuButton style ----
+    # ---- 5. + (add) — same pill style ----
     controls_row: list[Control] = [
         country_btn,
         category_btn,
@@ -341,23 +384,17 @@ def FilterBar(
         fav_btn,
     ]
     if callable(on_add_content):
-        controls_row.append(
-            ft.Container(
-                content=ft.Row(
-                    controls=[
-                        ft.Text("+", size=FONT_MD, no_wrap=True),
-                    ],
-                    vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                ),
-                padding=ft.Padding(8, 4, 8, 4),
-                border=ft.Border.all(
-                    1, ft.Colors.with_opacity(0.3, ft.Colors.OUTLINE_VARIANT)
-                ),
-                border_radius=8,
-                on_click=lambda e: on_add_content(),
-                ink=True,
-            )
+        add_btn = _pill(
+            "+",
+            ft.Icons.ADD,
+            False,
+            show_arrow=False,
+            compact=_compact,
+            tooltip="Add a playlist or single channel",
         )
+        add_btn.on_click = _invoke_add_content
+        add_btn.ink = True
+        controls_row.append(add_btn)
 
     return ft.Container(
         content=ft.Row(

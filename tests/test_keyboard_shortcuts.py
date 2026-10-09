@@ -221,3 +221,105 @@ def test_cleanup_on_remount_prevents_handler_nesting():
         assert mock_page.on_keyboard_event is original
     finally:
         cleanup()
+
+
+def _install_handler(mock_page, **kwargs):
+    """Install and return (handler, cleanup) like a mount would."""
+    from unittest import mock as _mock
+
+    with _mock.patch("flet.on_mounted") as mock_mounted:
+        use_keyboard_shortcuts(**kwargs)
+        installer = mock_mounted.call_args[0][0]
+        clean = installer()
+    return mock_page.on_keyboard_event, clean
+
+
+def test_cmd_k_fires_search_on_macos():
+    """Cmd+K (meta) works like Ctrl+K."""
+    import asyncio as _aio
+
+    mock_page, cleanup = _mock_context_page()
+    try:
+        order = []
+        handler, _clean = _install_handler(
+            mock_page,
+            controller=mock.MagicMock(),
+            on_search=lambda: order.append("search"),
+        )
+
+        async def _run():
+            e = mock.Mock()
+            e.ctrl = False
+            e.meta = True
+            e.key = "k"
+            await handler(e)
+
+        _aio.run(_run())
+        assert order == ["search"]
+    finally:
+        cleanup()
+
+
+def test_alt_escape_does_not_pop():
+    """Alt+Escape is not a back press."""
+    import asyncio as _aio
+
+    mock_page, cleanup = _mock_context_page()
+    try:
+        controller = mock.MagicMock()
+        handler, _clean = _install_handler(mock_page, controller=controller)
+
+        async def _run():
+            e = mock.Mock()
+            e.key = "Escape"
+            e.ctrl = False
+            e.meta = False
+            e.shift = False
+            e.alt = True
+            await handler(e)
+
+        _aio.run(_run())
+        controller.pop_views.assert_not_called()
+    finally:
+        cleanup()
+
+
+def test_none_key_does_not_crash():
+    """Malformed event with key=None passes through to previous handler."""
+    import asyncio as _aio
+
+    mock_page, cleanup = _mock_context_page()
+    try:
+        previous = mock.MagicMock()
+        mock_page.on_keyboard_event = previous
+        handler, _clean = _install_handler(mock_page, controller=mock.MagicMock())
+
+        async def _run():
+            e = mock.Mock()
+            e.key = None
+            e.ctrl = False
+            e.meta = False
+            e.shift = False
+            e.alt = False
+            await handler(e)
+
+        _aio.run(_run())
+        assert previous.called
+    finally:
+        cleanup()
+
+
+def test_cleanup_keeps_newer_handler():
+    """Unmount never clobbers a handler installed after ours (identity guard)."""
+    mock_page, cleanup = _mock_context_page()
+    try:
+        original = mock.MagicMock()
+        mock_page.on_keyboard_event = original
+        handler, clean = _install_handler(mock_page, controller=mock.MagicMock())
+        assert mock_page.on_keyboard_event is handler
+        newer = mock.MagicMock()
+        mock_page.on_keyboard_event = newer
+        clean()
+        assert mock_page.on_keyboard_event is newer
+    finally:
+        cleanup()

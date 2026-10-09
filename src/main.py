@@ -1,12 +1,19 @@
 """KTV Player — main entry point and AppController."""
 
+from __future__ import annotations
+
 import asyncio
 import contextlib
 import logging
 import os
 import urllib.parse
+from typing import TYPE_CHECKING
 
 import flet as ft
+
+if TYPE_CHECKING:
+    from services.update_service import UpdateService
+    from state.controller_ctx import ControllerMethods
 
 import core.logger_handler  # noqa: F401
 from components.player.immersive_player import ImmersivePlayer
@@ -29,7 +36,31 @@ from services.premium_service import PremiumService
 
 logger = logging.getLogger(__name__)
 
+import anyio
+
 from core.url_validator import _is_valid_play_url, is_local_media_url
+
+
+def merge_cdn_headers(
+    url: str, headers: dict | None, referer: str | None
+) -> tuple[dict, str | None]:
+    """Per-key CDN header merge for a stream URL.
+
+    Override keys fill gaps; caller-supplied keys are preserved (the old
+    replace-or-nothing dropped every caller header whenever an override
+    matched). Referer prefers the explicit arg, then caller headers, then
+    the override default.
+    """
+    merged = dict(headers or {})
+    referer_header = referer or merged.get("Referer")
+    for pattern, hdrs in CDN_HEADER_OVERRIDES.items():
+        if pattern in url:
+            for k, v in hdrs.items():
+                merged.setdefault(k, v)
+            if not referer_header:
+                referer_header = hdrs.get("Referer")
+            break
+    return merged, referer_header
 
 
 class AppController:
@@ -46,8 +77,9 @@ class AppController:
         # drop a playback request. v2.0.2 (549503a) made play_stream share
         # the loading lock, so a cold-start deep link was silently dropped
         # while the loader fetched remote playlists — a permanent blank
-        # screen. This lock only suppresses duplicate concurrent plays.
-        self._play_lock: asyncio.Lock | None = None
+        # screen. This lock only suppresses duplicate concurrent plays
+        # (locked-then-return TRUE drop, never wait-then-play).
+        self._play_lock: asyncio.Lock = asyncio.Lock()
         self._is_player_closing: bool = False
         # True while a deep-linked video is the only view — closing it exits
         # to the calling app instead of popping to a cleared view stack.
@@ -56,6 +88,9 @@ class AppController:
         # Explicit modal name stack so _handle_back can pop the
         # topmost dialog before popping a view.
         self._modal_stack: list[str] = []
+        self.file_picker: ft.FilePicker | None = None
+        self.update_service: UpdateService | None = None
+        self._controller_methods: ControllerMethods | None = None
 
     async def init(self):
         import sys
@@ -71,7 +106,8 @@ class AppController:
         )
 
         self.hls_proxy = HLSProxy()
-        await self.hls_proxy.start()
+        # Socket bind deferred post-render (see _start_deferred_io): awaiting
+        # it here held the first frame hostage on slow binds.
 
         self.page.title = APP_NAME
         self.page.padding = 0
@@ -95,11 +131,9 @@ class AppController:
         file_picker = ft.FilePicker()
         self.page.services.append(file_picker)
         self.page.file_picker = file_picker
+        self.file_picker = file_picker
 
         # Init services
-        await db_manager.init_db()
-        logger.info("Database storage initialized successfully")
-
         self.ad_service = AdService(self.page)
         self.liveliness = LivelinessChecker(self.page)
         from services.update_service import UpdateService
@@ -110,16 +144,18 @@ class AppController:
         # Premium (remove-ads): the signed license token is verified here
         # (offline, instant), but the Worker reconciliation is deferred to
         # _post_render_startup so a slow network cannot hold the first frame
-        # hostage. page.premium mirrors the page.file_picker
-        # pattern so SettingsScreen can reach the service.
+        # hostage.
         self.premium = PremiumService(self.page)
-        self.page.premium = self.premium
         # Records the current tier (None -> first value never reloads) and
         # forces a channel reload whenever premium flips free<->premium.
         self.premium.add_listener(self._on_premium_tier_change)
         await self.premium.load_local()
 
-        # Load saved state
+        # Load saved state. init_db stays pre-render: it is a single local JSON
+        # read that every load below depends on (deferring it would boot with
+        # empty state and never re-read). Only the socket bind is deferred.
+        await db_manager.init_db()
+        logger.info("Database storage initialized successfully")
         saved_country = await db_manager.get_setting("user_country")
         if saved_country:
             state.user_country = saved_country
@@ -135,7 +171,7 @@ class AppController:
 
         # Load favorites into state — convert set from DB to list for ObservableList support
         urls = await db_manager.get_favorite_urls()
-        state.favorites = list(urls)
+        state.favorites = sorted(urls)
 
         # Load history
         state.history = await db_manager.get_history()
@@ -155,23 +191,26 @@ class AppController:
         cached_entries = await load_cache()
         liveliness_cache.load_from_db(cached_entries)
 
-        # Lifecycle safety net: when the app is hidden (minimize, home),
-        # persist the top player's position best-effort. Covers the exits
-        # flet doesn't hook with an event (Android killing the app while
-        # hidden) — pairs with the 10s in-play checkpoints.
+        # Lifecycle safety net: when the app leaves the foreground (minimize,
+        # home, background), persist the top player's position best-effort.
+        # Covers the exits flet doesn't hook with an event (Android killing
+        # the app while hidden) — pairs with the 10s in-play checkpoints.
+        # flet 1.0.1 carries e.state (AppLifecycleState); there is no e.data.
         page = self.page
         _controller = self
         _previous_lifecycle = page.on_app_lifecycle_state_change
 
         def _on_lifecycle_save(e):
-            if getattr(e, "data", None) == "hidden":
-                logger.info("close-path: lifecycle hidden -> checkpoint save")
+            if getattr(e, "state", None) in (
+                ft.AppLifecycleState.HIDE,
+                ft.AppLifecycleState.PAUSE,
+                ft.AppLifecycleState.DETACH,
+            ):
+                logger.info("close-path: lifecycle background -> checkpoint save")
                 _controller._save_top_player_position()
             # Coming back to the foreground is the moment that matters: the
             # user often returns from the browser mid-checkout or after a
-            # renewal. Typed state — the event carries e.state, not data
-            # (data == "hidden" above matches nothing on flet 1.0.1; kept
-            # for the original intent, untouched).
+            # renewal.
             if getattr(e, "state", None) in (
                 ft.AppLifecycleState.RESUME,
                 ft.AppLifecycleState.SHOW,
@@ -214,6 +253,7 @@ class AppController:
         self.page.render(lambda: ControllerMethodsCtx(methods, lambda: AppShell()))
         logger.info("AppShell frontend mounted successfully")
         self._ensure_back_underlay()
+        self.page.run_task(self._start_deferred_io)
         self.page.run_task(self._post_render_startup)
 
         # Connectivity service — replaces DNS-probe polling with native listener
@@ -248,11 +288,11 @@ class AppController:
             state.update_data = update_info
             logger.info(
                 "Update available: v%s (build %s, type=%s)",
-                update_info.get("version"),
-                update_info.get("build_number"),
-                update_info.get("type"),
+                update_info.version,
+                update_info.build_number,
+                update_info.type,
             )
-            if update_info.get("mandatory"):
+            if update_info.mandatory:
                 self.open_version_dialog()
         elif notify_if_latest:
             from core.constants import APP_VERSION
@@ -294,6 +334,29 @@ class AppController:
             except Exception:
                 pass
 
+    @staticmethod
+    def _is_player_error(err_data: object) -> bool:
+        """True when a global error comes from player teardown (stop/close/
+        reconnect paths), as opposed to an unrelated failure that merely
+        coincides with an open player. The old check suppressed EVERYTHING
+        while any /play view existed — including network failures the user
+        should see."""
+        text = str(err_data or "")
+        markers = (
+            "video",
+            "player",
+            "play",
+            "media",
+            "mpv",
+            "stream",
+            "track",
+            "seek",
+            "pip",
+            "picture",
+        )
+        lowered = text.lower()
+        return any(m in lowered for m in markers)
+
     def _on_global_error(self, e):
         err_data = e.data if hasattr(e, "data") else str(e)
         # Suppress errors from the video player stopping (e.g., during back press)
@@ -301,9 +364,15 @@ class AppController:
             logger.debug("Global error during player close (suppressed): %s", err_data)
             self._is_player_closing = False
             return
-        if self.page.views and any(v.route == "/play" for v in self.page.views):
+        if (
+            self.page.views
+            and any(v.route == "/play" for v in self.page.views)
+            and self._is_player_error(err_data)
+        ):
             logger.debug("Global error during playback (suppressed): %s", err_data)
             return
+        # A /play view exists but this error isn't the player's: the user
+        # should see it (previously swallowed unconditionally).
         logger.error("Global error: %s", err_data)
         try:
             from utils.notifications import notify_warning
@@ -315,14 +384,17 @@ class AppController:
     async def push_modal(self, name: str) -> None:
         """Push a named modal onto the stack. Call from
         AddCustomContentDialog (or future dialogs) on open."""
+        if self._modal_stack and self._modal_stack[-1] == name:
+            return
         self._modal_stack.append(name)
         self.page.update()
 
     async def close_modal(self) -> None:
         """Pop the top modal from the stack. Call from
         AddCustomContentDialog on_dismiss and _dismiss."""
-        if self._modal_stack:
-            self._modal_stack.pop()
+        if not self._modal_stack:
+            return
+        self._modal_stack.pop()
         self.page.update()
 
     async def pop_modal(self, name: str) -> None:
@@ -330,8 +402,9 @@ class AppController:
 
         Useful when a dialog is dismissed via a non-standard path
         and the caller knows exactly which modal to remove."""
-        if name in self._modal_stack:
-            self._modal_stack.remove(name)
+        if name not in self._modal_stack:
+            return
+        self._modal_stack.remove(name)
         self.page.update()
 
     def _handle_back(self):
@@ -392,6 +465,20 @@ class AppController:
             if player:
                 return player
         return None
+
+    @staticmethod
+    def _close_already_saved(player: ImmersivePlayer) -> bool:
+        """Single close-guard predicate for every back path.
+
+        A close is done when the player is closing AND its position is saved.
+        `_is_closing` alone is the in-flight flag; `_position_saved` alone is
+        False for live/short playback. route_change, view_pop, _handle_back and
+        _close_player all funnel through here so the guards can't drift apart.
+        """
+        return bool(
+            getattr(player, "_is_closing", False)
+            and getattr(player, "_position_saved", False)
+        )
 
     def _begin_player_close(self, player: ImmersivePlayer) -> None:
         """Run the awaited close-save once, no matter how many paths ask.
@@ -456,6 +543,20 @@ class AppController:
         except Exception:
             logger.debug("Could not install the back underlay", exc_info=True)
 
+    async def _start_deferred_io(self) -> None:
+        """HLS socket bind, deferred past the first frame.
+
+        Degraded fallback: proxy failure → direct streams (the proxy URL
+        builder already falls back to the original URL).
+        """
+        if self.hls_proxy is not None:
+            try:
+                await self.hls_proxy.start()
+            except Exception:
+                logger.warning(
+                    "HLS proxy failed to start; using direct streams", exc_info=True
+                )
+
     async def _post_render_startup(self) -> None:
         """Startup work that must not block the first frame."""
         try:
@@ -509,9 +610,9 @@ class AppController:
         headers: dict | None = None,
         from_deep_link: bool = False,
     ):
-        if not self._play_lock:
-            self._play_lock = asyncio.Lock()
-
+        # _play_lock is built in __init__ (never lazily: two concurrent
+        # entrants could each build their own). Distinct from _loading_lock:
+        # channel loading must never block or drop a playback request.
         if self._play_lock.locked():
             logger.info("play_stream locked, ignoring duplicate request")
             return
@@ -523,8 +624,10 @@ class AppController:
             try:
                 await self._do_play_stream(url, title, referer, headers, from_deep_link)
             except Exception:
+                # Swallowed after logging: _on_global_error notifies for
+                # non-player errors, and re-raising here produced a second
+                # ERR_NETWORK toast for the same single play failure.
                 logger.exception("play_stream failed for %s", url)
-                raise
 
     async def _do_play_stream(
         self,
@@ -574,26 +677,25 @@ class AppController:
         with contextlib.suppress(Exception):
             await db_manager.save_history(url, title)
 
-        headers = headers or {}
-        referer_header = referer or headers.get("Referer")
-
-        for pattern, hdrs in CDN_HEADER_OVERRIDES.items():
-            if pattern in url:
-                if not headers:
-                    headers = hdrs
-                if not referer_header:
-                    referer_header = hdrs.get("Referer")
-                break
+        headers, referer_header = merge_cdn_headers(url, headers, referer)
 
         resource_url = url
         if self.hls_proxy and (
             referer_header or headers or any(p in url for p in CDN_HEADER_OVERRIDES)
         ):
-            resource_url = self.hls_proxy.get_proxy_url(
-                target_url=url,
-                referer=referer_header,
-                headers=headers,
-            )
+            try:
+                resource_url = self.hls_proxy.get_proxy_url(
+                    target_url=url,
+                    referer=referer_header,
+                    headers=headers,
+                )
+            except Exception:
+                # Deferred bind failed (port is None): degrade to the direct
+                # stream instead of aborting the play silently.
+                logger.warning(
+                    "Proxy URL build failed; playing direct", exc_info=True
+                )
+                resource_url = url
 
         # Create player view immediately so the screen isn't blank.
         # Wrap ImmersivePlayer in a FocusScope so Escape/Back while
@@ -639,6 +741,17 @@ class AppController:
         # Playback (ad is handled inside player.start_playback)
         await self._safe_start_playback(player)
 
+    def _push_blank_underlay(self) -> None:
+        """Append the /blank underlay (shared by ktv:// and /?url= fallback).
+
+        One helper so the two deep-link branches can't drift apart again
+        (the fallback once omitted it, stranding single-view stacks where
+        system back exits without any Python event — and no position save).
+        """
+        self.page.views.append(
+            ft.View(route="/blank", bgcolor=ft.Colors.BLACK, padding=0)
+        )
+
     def _close_player(self):
         if not self.page.views:
             return
@@ -648,14 +761,9 @@ class AppController:
             # Checked BEFORE the plain pop branch: the underlay makes
             # len(views) > 1 true for deep links too.
             player = self._player_in_top_view()
-            if player and not (
-                getattr(player, "_is_closing", False)
-                and getattr(player, "_position_saved", False)
-            ):
+            if player and not self._close_already_saved(player):
                 # Closing but not yet saved (e.g. a close raced in) — still
                 # run the awaited close-save so the position is persisted.
-                # Shared guard: this path used to schedule a second close
-                # alongside view_pop and could pop /play onto /blank.
                 self._begin_player_close(player)
                 return
             self.page.run_task(self._exit_to_caller)
@@ -663,9 +771,16 @@ class AppController:
             len(self.page.views) > 1
             and getattr(self.page.views[-1], "route", None) == "/play"
         ):
-            self._is_player_closing = True
-            self.page.views.pop()
-            self.page.update()
+            # No bare pop without save: route every close through the awaited
+            # close-save (teardown + persist + playlist clear). _begin guards
+            # the double-schedule; with_save no-ops when already saved.
+            player = self._player_in_top_view()
+            if player is not None:
+                self._begin_player_close(player)
+            else:
+                self._is_player_closing = True
+                self.page.views.pop()
+                self.page.update()
 
     async def _exit_to_caller(self):
         """Finish the app after a deep-linked video closes. The deep-link
@@ -685,13 +800,11 @@ class AppController:
 
         # Reset PiP auto-enter before finishing so the activity can never
         # re-enter PiP once the app is gone.
-        await asyncio.to_thread(pip_service.set_auto_pip, False)
-        exited = await asyncio.to_thread(pip_service.exit_app)
+        await anyio.to_thread.run_sync(pip_service.set_auto_pip, False)
+        exited = await anyio.to_thread.run_sync(pip_service.exit_app)
         if not exited:
-            try:
+            with contextlib.suppress(Exception):
                 await self.page.window.close()
-            except Exception:
-                pass
 
     # --- Deep Link ---
 
@@ -716,14 +829,10 @@ class AppController:
                 if v.route == "/play":
                     for ctrl in self._view_children(v):
                         player = self._find_immersive_player(ctrl)
-                        if player and not (
-                            getattr(player, "_is_closing", False)
-                            and getattr(player, "_position_saved", False)
-                        ):
+                        if player and not self._close_already_saved(player):
                             logger.info(
                                 "close-path: route_change away from /play -> close-save"
                             )
-                            player._is_closing = True
                             player._is_final_error = True
                             # Route through the awaited close-save so the
                             # position is persisted BEFORE playback stops.
@@ -731,7 +840,7 @@ class AppController:
                             # saving, which made view_pop's "already
                             # closing" guard skip its save whenever this
                             # event won the back-press race.
-                            self.page.run_task(self._close_player_with_save, player)
+                            self._begin_player_close(player)
                     break
 
         # 1. Deep Link from external apps or web browsers (ktv://)
@@ -746,9 +855,7 @@ class AppController:
             # without any Python event, so no close path can save the
             # resume position). A view beneath the player keeps system
             # back on the view_pop path: awaited save, then exit-to-caller.
-            self.page.views.append(
-                ft.View(route="/blank", bgcolor=ft.Colors.BLACK, padding=0)
-            )
+            self._push_blank_underlay()
             self._handle_deep_link(route)
             return
 
@@ -774,6 +881,10 @@ class AppController:
                 logger.info("Deep link fallback detected via query parameter")
                 state.is_deep_link_launch = True
                 self.page.views.clear()
+                # Same underlay as ktv:// (shared helper — the fallback once
+                # omitted it, leaving a single-view stack where system back
+                # exits without a save).
+                self._push_blank_underlay()
                 reconstructed = f"ktv://play?url={query_params['url'][0]}"
                 if "title" in query_params:
                     reconstructed += f"&title={query_params['title'][0]}"
@@ -811,9 +922,7 @@ class AppController:
         player = self._player_in_top_view()
 
         if player:
-            if getattr(player, "_is_closing", False) and getattr(
-                player, "_position_saved", False
-            ):
+            if self._close_already_saved(player):
                 # A close already ran and saved this position.
                 logger.info("close-path: view_pop skipped (already closing+saved)")
                 return
@@ -945,8 +1054,10 @@ async def main(page: ft.Page):
     # Graceful shutdown: cancel background workers and close resources
     # when the page closes (app exit).
     async def _on_close(e=None):
-        from services.liveliness_checker import shutdown_workers as shutdown_liveliness
-        from services.logo_cache import shutdown_workers as shutdown_logos
+        from services.liveliness_checker import (
+            ashutdown_workers as ashutdown_liveliness,
+        )
+        from services.logo_cache import ashutdown_workers as ashutdown_logos
 
         # Stop any active video player before tearing down services
         with contextlib.suppress(Exception):
@@ -961,11 +1072,20 @@ async def main(page: ft.Page):
                             player.video.playlist = []
                             player.video.update()
 
-        shutdown_liveliness()
-        shutdown_logos()
+        # Drained + JOINED pool shutdowns: queued probes/downloads finish,
+        # and an in-flight persist is shielded inside the worker, so no
+        # verdict or write is lost before db_manager.close() below.
+        try:
+            await ashutdown_liveliness()
+        except Exception:
+            logger.debug("Liveliness shutdown failed", exc_info=True)
+        try:
+            await ashutdown_logos()
+        except Exception:
+            logger.debug("Logo cache shutdown failed", exc_info=True)
         with contextlib.suppress(Exception):
             if controller.premium:
-                controller.premium.shutdown()
+                await controller.premium.ashutdown()
         with contextlib.suppress(Exception):
             if controller.ad_service:
                 await controller.ad_service.close()
@@ -992,7 +1112,18 @@ async def main(page: ft.Page):
                 await controller.hls_proxy.stop()
         except Exception:
             logger.debug("HLS proxy shutdown failed", exc_info=True)
-        await close_http_client()
+        # The SFX module documents "released only on teardown" — this is
+        # that teardown (previously promised but never called).
+        try:
+            from utils.sfx import release as release_sfx
+
+            release_sfx()
+        except Exception:
+            logger.debug("SFX release failed", exc_info=True)
+        # Both closes share one suppress: if close_http_client raises, the
+        # DB write must still happen (it was previously skipped).
+        with contextlib.suppress(Exception):
+            await close_http_client()
         with contextlib.suppress(Exception):
             await db_manager.close()
 

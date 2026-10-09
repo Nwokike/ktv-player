@@ -1,8 +1,8 @@
 import base64
 
 APP_NAME = "KTV Player"
-APP_VERSION = "2.2.0"
-APP_BUILD_NUMBER = 20
+APP_VERSION = "2.3.0"
+APP_BUILD_NUMBER = 21
 
 # Update service — version metadata is served from this repo's main branch
 # (a normal commit to version.json publishes it; no CI change needed).
@@ -34,6 +34,7 @@ def premium_pack_url() -> str:
 
 # Error messages
 ERR_NETWORK = "Stream unavailable or network timeout."
+ERR_OPEN_LINK = "Could not open that link on this device."
 ERR_PLAYBACK = "Playback error. Retrying..."
 ERR_ADD_CONTENT = "Failed to add content."
 ERR_PLAYBACK_FAILED = "Playback failed"
@@ -167,6 +168,19 @@ TERMS_TEXT = (
 # Network
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 VALID_STREAM_SCHEMES = ("http://", "https://", "rtsp://", "rtmp://", "rtp://", "mms://")
+MAX_URL_LENGTH = 4096
+SENSITIVE_PATHS = (
+    "/etc/",
+    "/proc/",
+    "/sys/",
+    "/dev/",
+    "c:/windows",
+    "c:/system",
+    "/data/data/",
+    "/data/user/",
+    "/root/",
+    "/private/",
+)
 CDN_HEADER_OVERRIDES = {
     "owocdn.top": {"User-Agent": USER_AGENT, "Referer": "https://kwik.cx/"},
     "uwucdn.top": {"User-Agent": USER_AGENT, "Referer": "https://kwik.cx/"},
@@ -176,9 +190,6 @@ CDN_HEADER_OVERRIDES = {
 # Numeric constants
 PAGE_SIZE = 24
 AD_ROW_INTERVAL = 24
-LIVELINESS_BATCH_SIZE = 10
-LIVELINESS_UPDATE_INTERVAL = 3
-LIVELINESS_SEMAPHORE = 8
 LOGO_CACHE_MAX_FILES = 200
 LOGO_DOWNLOAD_TIMEOUT = 5.0
 ADD_CONTENT_COOLDOWN = 5.0
@@ -201,6 +212,8 @@ KIRI_LICENSE_PUBLIC_KEY = (
 # checkout, restore and status — a temporary install id would orphan
 # purchases on reinstall.
 KIRI_LICENSE_APP_ID = "ng.kiri.ktvplayer"
+# Scalar seconds (kept for compat); the service builds an explicit 4-tuple
+# from it so pool acquisition stays tight (scalar 15 widened pool to 15s).
 KIRI_LICENSE_TIMEOUT = 15.0
 STREAM_RECONNECT_MAX = 5
 LOCAL_SCAN_CACHE_TTL = 60.0

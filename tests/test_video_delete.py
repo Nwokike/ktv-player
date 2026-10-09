@@ -3,8 +3,6 @@
 import inspect
 from types import SimpleNamespace
 
-import flet as ft
-
 from components.video_card import VideoCard
 from screens import local_screen
 from services.local_scanner import LocalVideo
@@ -14,29 +12,38 @@ def _video():
     return LocalVideo(name="a.mp4", path="/videos/a.mp4", size=10)
 
 
+def _gestures(card):
+    import flet as _ft
+
+    from tests.flet_tree import walk as _walk
+
+    return [c for c in _walk(card) if isinstance(c, _ft.GestureDetector)]
+
+
 def test_card_wraps_gesture_detector_when_long_press_given():
     hit = []
     v = _video()
     card = VideoCard(video=v, on_play=lambda p: None, on_long_press=hit.append)
-    assert isinstance(card, ft.GestureDetector)
-    card.on_long_press(SimpleNamespace())
+    detectors = _gestures(card)
+    assert detectors, "expected a GestureDetector layer with long-press"
+    detectors[0].on_long_press(SimpleNamespace())
     assert hit == [v]
 
 
 def test_card_stays_plain_button_without_long_press():
     card = VideoCard(video=_video(), on_play=lambda p: None)
-    assert isinstance(card, ft.FilledButton)
+    assert _gestures(card) == []
 
 
 def test_delete_flow_uses_mediastore_then_rescans(tmp_path):
     """Delete goes through MediaStore (the scanner's source of truth) with a
-    file fallback, then rescans."""
+    file fallback, then rescans in background (grid-preserving)."""
     src = inspect.getsource(local_screen.LocalScreen)
     assert "async def _delete_video" in src
     assert "delete_media_store_video" in src
     assert "delete_media_store_video, v.content_uri" in src
     assert "delete_local_file" in src
-    assert "await _scan()" in src
+    assert "_scan(page, background=True)" in src
 
 
 def test_delete_local_file_removes_and_reports(tmp_path):

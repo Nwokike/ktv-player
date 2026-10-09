@@ -42,22 +42,22 @@ class TestCheckForUpdate:
         }
         svc = UpdateService()
         with mock.patch(
-            "services.update_service.httpx.AsyncClient",
+            "services.update_service.get_http_client",
             return_value=_client(_resp(json_data=data)),
         ):
             result = await svc.check_for_update()
         assert result is not None
-        assert result["version"] == "2.2.0"
-        assert result["build_number"] == APP_BUILD_NUMBER + 1
-        assert result["github_url"] == "https://example.com/releases"
-        assert result["playstore_url"] is None
+        assert result.version == "2.2.0"
+        assert result.build_number == APP_BUILD_NUMBER + 1
+        assert result.github_url == "https://example.com/releases"
+        assert result.playstore_url is None
 
     @pytest.mark.asyncio
     async def test_equal_build_returns_none(self):
         """Dormant manifest: build_number == current -> no update."""
         svc = UpdateService()
         with mock.patch(
-            "services.update_service.httpx.AsyncClient",
+            "services.update_service.get_http_client",
             return_value=_client(_resp(json_data={"build_number": APP_BUILD_NUMBER})),
         ):
             assert await svc.check_for_update() is None
@@ -66,7 +66,7 @@ class TestCheckForUpdate:
     async def test_older_build_returns_none(self):
         svc = UpdateService()
         with mock.patch(
-            "services.update_service.httpx.AsyncClient",
+            "services.update_service.get_http_client",
             return_value=_client(_resp(json_data={"build_number": 1})),
         ):
             assert await svc.check_for_update() is None
@@ -81,12 +81,12 @@ class TestCheckForUpdate:
         }
         svc = UpdateService()
         with mock.patch(
-            "services.update_service.httpx.AsyncClient",
+            "services.update_service.get_http_client",
             return_value=_client(_resp(json_data=data)),
         ):
             result = await svc.check_for_update()
-        assert result["type"] == "announcement"
-        assert result["title"] == "News"
+        assert result.type == "announcement"
+        assert result.title == "News"
 
     @pytest.mark.asyncio
     async def test_playstore_url_forwarded_when_published(self):
@@ -96,17 +96,17 @@ class TestCheckForUpdate:
         }
         svc = UpdateService()
         with mock.patch(
-            "services.update_service.httpx.AsyncClient",
+            "services.update_service.get_http_client",
             return_value=_client(_resp(json_data=data)),
         ):
             result = await svc.check_for_update()
-        assert result["playstore_url"].startswith("https://play.google.com")
+        assert result.playstore_url.startswith("https://play.google.com")
 
     @pytest.mark.asyncio
     async def test_http_error_returns_none(self):
         svc = UpdateService()
         with mock.patch(
-            "services.update_service.httpx.AsyncClient",
+            "services.update_service.get_http_client",
             return_value=_client(_resp(status_code=404)),
         ):
             assert await svc.check_for_update() is None
@@ -116,7 +116,7 @@ class TestCheckForUpdate:
         """Offline devices must never see an error from the check."""
         svc = UpdateService()
         with mock.patch(
-            "services.update_service.httpx.AsyncClient",
+            "services.update_service.get_http_client",
             return_value=_client(error=OSError("no network")),
         ):
             assert await svc.check_for_update() is None
@@ -131,3 +131,71 @@ class TestChangelogGuard:
 
     def test_notes_for_unknown_version_falls_back(self):
         assert notes_for("0.0.0") != ""
+
+
+class TestPhase4UpdateNormalize:
+    @pytest.mark.asyncio
+    async def test_string_false_mandatory_is_not_mandatory(self):
+        """bool("false") is True — string payloads must parse explicitly."""
+        from unittest import mock
+
+        from services.update_service import UpdateService
+
+        data = {
+            "build_number": APP_BUILD_NUMBER + 1,
+            "version": "9.9.9",
+            "mandatory": "false",
+        }
+        svc = UpdateService()
+        with mock.patch(
+            "services.update_service.get_http_client",
+            return_value=_client(_resp(json_data=data)),
+        ):
+            result = await svc.check_for_update()
+        assert result is not None
+        assert result.mandatory is False
+
+    @pytest.mark.asyncio
+    async def test_same_build_announcement_delivers(self):
+        """Announcements display even when the build is not newer."""
+        from unittest import mock
+
+        from services.update_service import UpdateService
+
+        data = {
+            "build_number": APP_BUILD_NUMBER,
+            "type": "announcement",
+            "title": "Heads up",
+            "release_notes": "hello",
+        }
+        svc = UpdateService()
+        with mock.patch(
+            "services.update_service.get_http_client",
+            return_value=_client(_resp(json_data=data)),
+        ):
+            result = await svc.check_for_update()
+        assert result is not None
+        assert result.type == "announcement"
+        assert result.title == "Heads up"
+
+    @pytest.mark.asyncio
+    async def test_returns_update_info_not_dict(self):
+        from unittest import mock
+
+        from services.update_service import UpdateInfo, UpdateService
+
+        data = {"build_number": APP_BUILD_NUMBER + 1, "version": "9.9.9"}
+        svc = UpdateService()
+        with mock.patch(
+            "services.update_service.get_http_client",
+            return_value=_client(_resp(json_data=data)),
+        ):
+            result = await svc.check_for_update()
+        assert isinstance(result, UpdateInfo)
+        assert isinstance(result.to_dict(), dict)
+
+    def test_non_https_config_rejected(self):
+        from services.update_service import UpdateService
+
+        with pytest.raises(ValueError):
+            UpdateService(config_url="http://example.com/version.json")

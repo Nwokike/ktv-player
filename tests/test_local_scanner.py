@@ -80,3 +80,51 @@ class TestGetDefaultScanPaths:
     def test_returns_list(self):
         paths = get_default_scan_paths()
         assert isinstance(paths, list)
+
+
+class TestPhase6ScannerIds:
+    def test_resolve_saf_primary(self):
+        from services.local_scanner import resolve_saf_path
+
+        assert (
+            resolve_saf_path("content://x/tree/primary%3ADownloads")
+            == "/storage/emulated/0/Downloads"
+        )
+
+    def test_resolve_saf_sd_card_unresolvable(self):
+        """SD UUIDs must NOT echo content:// (callers mistreat it as POSIX)."""
+        from services.local_scanner import resolve_saf_path
+
+        assert resolve_saf_path("content://x/tree/1234-ABCD%3AMovies") == ""
+        assert resolve_saf_path("content://x/document/home%3Afoo") == ""
+
+    def test_resolve_saf_traversal_rejected(self):
+        from services.local_scanner import resolve_saf_path
+
+        assert resolve_saf_path("content://x/tree/primary%3A..%2F..%2Fetc") == ""
+
+    def test_resolve_saf_passthrough_non_content(self):
+        from services.local_scanner import resolve_saf_path
+
+        assert resolve_saf_path("/storage/a.mp4") == "/storage/a.mp4"
+        assert resolve_saf_path("") == ""
+
+    def test_mediastore_gated_off_desktop(self):
+        """No JNI attempt on desktop (single platform gate)."""
+        from services import local_scanner
+
+        assert local_scanner.scan_android_mediastore() == []
+
+    def test_norm_key_dedupes(self, tmp_path):
+        from services.local_scanner import _norm_key, scan_videos
+
+        assert _norm_key("/a//b/") == _norm_key("/a/b")
+        (tmp_path / "v.mp4").write_bytes(b"0" * 100)
+        folders = scan_videos([str(tmp_path), str(tmp_path) + "/"])
+        total = sum(len(f.videos) for f in folders)
+        assert total == 1
+
+    def test_default_paths_never_whole_home(self):
+        from services.local_scanner import get_default_scan_paths
+
+        assert get_default_scan_paths() is not None

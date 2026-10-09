@@ -112,7 +112,9 @@ def test_premium_channel_gets_a_real_country_and_every_tag():
     (ch,) = normalize_premium([{"group": "News", "url": "u", "tvg_id": "ACNN.ng@SD"}])
     assert ch["country"] == "Nigeria"
     assert ch["categories"] == ["News"]
-    assert ch["country_code"] == "M3U"
+    # Real ISO code now (was the "M3U" sentinel): flags + code search work,
+    # and utils/channels.py only ever tests truthiness, so behavior is unchanged.
+    assert ch["country_code"] == "ng"
 
     (multi,) = normalize_premium(
         [
@@ -239,11 +241,11 @@ def test_channels_hash_moves_when_only_the_group_changes():
 
 
 def test_cache_paths_are_tier_qualified():
-    from channels.provider import _CACHE_FILE
+    from channels.provider import _cache_file
 
-    assert _cache_path("free") == _CACHE_FILE
+    assert _cache_path("free") == _cache_file()
     premium = _cache_path("premium")
-    assert premium != _CACHE_FILE
+    assert premium != _cache_file()
     assert premium.endswith("cached_playlist.premium.m3u8")
 
 
@@ -407,10 +409,7 @@ def test_zero_channel_cache_self_heals_instead_of_dead_home(tmp_path, monkeypatc
 
     cache_dir = tmp_path / "cache"
     cache_dir.mkdir()
-    monkeypatch.setattr(provider, "_CACHE_DIR", str(cache_dir))
-    monkeypatch.setattr(
-        provider, "_CACHE_FILE", str(cache_dir / "cached_playlist.m3u8")
-    )
+    monkeypatch.setattr(provider, "_cache_dir", lambda: str(cache_dir))
     # Poison: an error page that is >100 chars but parses to zero channels.
     (cache_dir / "cached_playlist.m3u8").write_text(
         "<html><body>Service unavailable " + "x" * 120 + "</body></html>",
@@ -422,11 +421,31 @@ def test_zero_channel_cache_self_heals_instead_of_dead_home(tmp_path, monkeypatc
         '#EXTINF:-1 group-title="Ghana",GH One\n'
         "https://example.com/good.m3u8\n" + "# padding " * 12
     )
-    response = mock.Mock()
-    response.text = good
-    response.raise_for_status = mock.Mock()
+
+    class _StreamCM:
+        def __init__(self, text):
+            self._text = text
+            self._resp = mock.Mock()
+            self._resp.raise_for_status = mock.Mock()
+
+        async def __aenter__(self):
+            return self._resp
+
+        async def __aexit__(self, *exc):
+            return False
+
+        async def aiter_bytes(self, chunk_size=65536):
+            data = self._text.encode("utf-8")
+            for i in range(0, len(data), chunk_size):
+                yield data[i : i + chunk_size]
+
+    def _stream(method, url, timeout=None, headers=None, **kwargs):
+        cm = _StreamCM(good)
+        cm._resp.aiter_bytes = cm.aiter_bytes
+        return cm
+
     client = mock.Mock()
-    client.get = mock.AsyncMock(return_value=response)
+    client.stream = mock.Mock(side_effect=_stream)
     monkeypatch.setattr(provider, "get_http_client", lambda: client)
 
     from core.state import state
@@ -467,24 +486,53 @@ FREE_TEXT = (
 
 
 def _split_http(text_by_host):
-    """http client whose get() answers by host, recording call order."""
+    """http client whose get()/stream() answer by host, recording call order."""
     from unittest import mock
 
     calls = []
 
-    async def get(url, timeout=None):
+    def _text_for(url):
+        for host, text in text_by_host.items():
+            if host in str(url):
+                return text
+        return "<html>not found but long enough to pass " + "x" * 100
+
+    async def get(url, timeout=None, headers=None, **kwargs):
         calls.append(str(url))
         response = mock.Mock()
         response.raise_for_status = mock.Mock()
-        for host, text in text_by_host.items():
-            if host in str(url):
-                response.text = text
-                return response
-        response.text = "<html>not found but long enough to pass " + "x" * 100
+        response.text = _text_for(url)
         return response
+
+    class _StreamCM:
+        """Async context manager mimicking client.stream() for one response."""
+
+        def __init__(self, text):
+            self._text = text
+            self._resp = mock.Mock()
+            self._resp.raise_for_status = mock.Mock()
+
+        async def __aenter__(self):
+            return self._resp
+
+        async def __aexit__(self, *exc):
+            return False
+
+        async def aiter_bytes(self, chunk_size=65536):
+            data = self._text.encode("utf-8")
+            for i in range(0, len(data), chunk_size):
+                yield data[i : i + chunk_size]
+
+    def stream(method, url, timeout=None, headers=None, **kwargs):
+        calls.append(str(url))
+        cm = _StreamCM(_text_for(url))
+        # aiter_bytes lives on the response the CM yields.
+        cm._resp.aiter_bytes = cm.aiter_bytes
+        return cm
 
     client = mock.Mock()
     client.get = mock.AsyncMock(side_effect=get)
+    client.stream = mock.Mock(side_effect=stream)
     return client, calls
 
 
@@ -493,8 +541,7 @@ def test_premium_composes_pack_plus_base_youtube_only(monkeypatch, tmp_path):
     from core.state import state
     from utils.channels import extract_country_counts
 
-    monkeypatch.setattr(provider, "_CACHE_DIR", str(tmp_path))
-    monkeypatch.setattr(provider, "_CACHE_FILE", str(tmp_path / "free.m3u8"))
+    monkeypatch.setattr(provider, "_cache_dir", lambda: str(tmp_path))
     client, calls = _split_http(
         {"iptv-org": PACK_TEXT, "Free-TV": FREE_TEXT, "nwokike.github.io": FREE_TEXT}
     )
@@ -525,8 +572,7 @@ def test_free_tier_stays_base_only(monkeypatch, tmp_path):
     from channels import provider
     from core.state import state
 
-    monkeypatch.setattr(provider, "_CACHE_DIR", str(tmp_path))
-    monkeypatch.setattr(provider, "_CACHE_FILE", str(tmp_path / "free.m3u8"))
+    monkeypatch.setattr(provider, "_cache_dir", lambda: str(tmp_path))
     client, calls = _split_http({"Free-TV": FREE_TEXT, "nwokike.github.io": FREE_TEXT})
     monkeypatch.setattr(provider, "get_http_client", lambda: client)
 
@@ -551,9 +597,8 @@ def test_premium_composes_from_two_caches_without_network(monkeypatch, tmp_path)
     from channels import provider
     from core.state import state
 
-    monkeypatch.setattr(provider, "_CACHE_DIR", str(tmp_path))
+    monkeypatch.setattr(provider, "_cache_dir", lambda: str(tmp_path))
     free_cache = tmp_path / "cached_playlist.m3u8"
-    monkeypatch.setattr(provider, "_CACHE_FILE", str(free_cache))
     free_cache.write_text(FREE_TEXT, encoding="utf-8")
     (tmp_path / "cached_playlist.premium.m3u8").write_text(PACK_TEXT, encoding="utf-8")
 

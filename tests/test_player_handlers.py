@@ -1,6 +1,7 @@
 """Tests for player handler logic."""
 
 import asyncio
+import types
 from unittest import mock
 
 import flet as ft
@@ -9,6 +10,8 @@ import pytest
 from components.player.handlers import (
     cycle_speed,
     handle_stream_complete,
+    open_player_settings,
+    open_quality_picker,
     reconnect_stream,
 )
 
@@ -24,14 +27,24 @@ class TestCycleSpeed:
         player._speeds = [0.25, 0.5, 1.0, 1.25, 1.5, 2.0]
         player.video = mock.MagicMock()
         player.speed_text = mock.MagicMock()
+        player.speed_texts = [player.speed_text]
+        # Bind the REAL _branch_controls: AsyncMock turns every method call
+        # into a coroutine, and the handler iterates its return value.
+        from components.player.immersive_player import ImmersivePlayer
+
+        player._branch_controls = types.MethodType(
+            ImmersivePlayer._branch_controls, player
+        )
 
         await cycle_speed(player)
 
         assert player._speed_idx == 3
         assert player.video.playback_rate == 1.25
         assert player.speed_text.value == "1.25x"
-        assert player.video.update.called
-        assert player.speed_text.update.called
+        # Single update: speed_text lives inside video.controls, so
+        # video.update() already pushes it (no child .update() storm).
+        player.video.update.assert_called_once()
+        player.speed_text.update.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_cycle_speed_wraps_around(self):
@@ -41,6 +54,14 @@ class TestCycleSpeed:
         player._speeds = [0.25, 0.5, 1.0, 1.25, 1.5, 2.0]
         player.video = mock.MagicMock()
         player.speed_text = mock.MagicMock()
+        player.speed_texts = [player.speed_text]
+        # Bind the REAL _branch_controls: AsyncMock turns every method call
+        # into a coroutine, and the handler iterates its return value.
+        from components.player.immersive_player import ImmersivePlayer
+
+        player._branch_controls = types.MethodType(
+            ImmersivePlayer._branch_controls, player
+        )
 
         await cycle_speed(player)
 
@@ -57,6 +78,12 @@ class TestCycleSpeed:
         player.video = mock.MagicMock()
         player.video.update.side_effect = Exception("UI gone")
         player.speed_text = mock.MagicMock()
+        player.speed_texts = [player.speed_text]
+        from components.player.immersive_player import ImmersivePlayer
+
+        player._branch_controls = types.MethodType(
+            ImmersivePlayer._branch_controls, player
+        )
 
         # Must not raise
         await cycle_speed(player)
@@ -73,6 +100,8 @@ class TestHandleStreamComplete:
         player.resource = "http://example.com/stream"
         player._reconnect_count = 0
         player.page = mock.MagicMock()
+        # Mirror the real player: safe_page resolves to page when mounted.
+        player.safe_page = player.page
 
         handle_stream_complete(player, mock.MagicMock())
 
@@ -194,7 +223,8 @@ class TestPlaybackStatesAndWatchdog:
         p._show_final_error = mock.Mock()
         p._show_progress("Loading stream...")
         p._start_watchdog(timeout=0.05)
-        await asyncio.sleep(0.12)
+        # Await the watchdog task itself — deterministic, no sleep margin.
+        await asyncio.wait_for(asyncio.shield(p._watchdog_task), timeout=2)
         p._show_final_error.assert_called_once()
 
     @pytest.mark.asyncio
@@ -203,8 +233,11 @@ class TestPlaybackStatesAndWatchdog:
         p._show_final_error = mock.Mock()
         p._show_progress("Loading stream...")
         p._start_watchdog(timeout=0.05)
+        task = p._watchdog_task
         p._hide_overlay()  # on_load / first position tick
-        await asyncio.sleep(0.12)
+        # Cancellation is synchronous: no sleep needed.
+        assert p._watchdog_task is None
+        await asyncio.gather(task, return_exceptions=True)
         p._show_final_error.assert_not_called()
 
     @pytest.mark.asyncio
@@ -285,6 +318,7 @@ class TestVodResumeAndPositionTracking:
 
     @pytest.mark.asyncio
     async def test_completion_resets_position(self):
+        from components.player.immersive_player import _orphan_tasks
         from database.manager import db_manager
 
         p = self._player("http://example.com/movie.mp4")
@@ -293,5 +327,152 @@ class TestVodResumeAndPositionTracking:
             db_manager, "update_history_position", new_callable=mock.AsyncMock
         ) as mock_update:
             p._on_complete(mock.MagicMock())
-            await asyncio.sleep(0.05)
+            # The reset rides the tracked orphan task — join it, no sleep.
+            pending = [t for t in list(_orphan_tasks)]
+            if pending:
+                await asyncio.wait_for(
+                    asyncio.gather(*pending, return_exceptions=True), timeout=2
+                )
             mock_update.assert_called_with("http://example.com/movie.mp4", 0.0, 600.0)
+
+
+class TestCompleteGateAndReconnect:
+    """Phase 2: _is_final_error gate, reconnect reapply, non-HTTP path."""
+
+    def test_complete_gated_on_final_error(self):
+        """No 'Reconnecting' over a dead-error overlay."""
+        player = mock.MagicMock()
+        player.resource = "http://example.com/stream"
+        player._is_final_error = True
+        player._last_duration = 600.0
+        player._last_position = 100.0
+
+        handle_stream_complete(player, mock.MagicMock())
+
+        player._show_progress.assert_not_called()
+        player._show_final_error.assert_not_called()
+
+    def test_complete_ignores_mock_final_error(self):
+        """Unset (MagicMock auto-attr) must not gate: only `is True` gates."""
+        player = mock.MagicMock()
+        player.resource = "http://example.com/stream"
+        player._reconnect_count = 0
+        player._last_duration = 600.0
+        player._last_position = 100.0
+        player.page = mock.MagicMock()
+        player.safe_page = player.page
+        del player._is_final_error  # getattr(..., False) default path
+
+        handle_stream_complete(player, mock.MagicMock())
+
+        assert player._reconnect_count == 1
+
+    def test_non_http_complete_shows_final_error(self):
+        """Local files can't reconnect: explicit error, not black screen."""
+        player = mock.MagicMock()
+        player.resource = "/storage/video.mp4"
+        player._last_duration = 600.0
+        player._last_position = 100.0
+
+        handle_stream_complete(player, mock.MagicMock())
+
+        player._show_final_error.assert_called_once_with("Playback ended.")
+
+    @pytest.mark.asyncio
+    async def test_reconnect_reapplies_rate_and_resets_count(self):
+        """Reconnect restores speed and resets the counter on success."""
+        player = mock.MagicMock()
+        player._is_closing = False
+        player.resource = "http://example.com/stream"
+        player.http_headers = {}
+        player._speeds = [0.25, 0.5, 1.0]
+        player._speed_idx = 2
+        player._reconnect_count = 3
+        player.video = mock.MagicMock()
+        player.video.play = mock.AsyncMock()
+        player._start_watchdog = mock.MagicMock()
+
+        await reconnect_stream(player)
+
+        assert player.video.playback_rate == 1.0
+        assert player._reconnect_count == 0
+        player._start_watchdog.assert_called_once()
+
+
+class TestAudioProbeUnconditional:
+    """Phase 2: single-variant streams still show audio options."""
+
+    @pytest.mark.asyncio
+    async def test_quality_picker_shows_audio_without_variants(self):
+        """Tracks fetched even when variants list is empty."""
+        player = mock.MagicMock()
+        player._current_variant = None
+        player._current_audio = None
+        player.list_variants = mock.AsyncMock(return_value=[])
+        player.list_audio_tracks = mock.AsyncMock(
+            return_value=[
+                {"name": "eng", "language": "English"},
+                {"name": "spa", "language": "Spanish"},
+            ]
+        )
+        player.page = mock.MagicMock()
+
+        await open_quality_picker(player)
+
+        player.list_audio_tracks.assert_awaited_once()
+        dialog = player.page.show_dialog.call_args[0][0]
+        # Auto quality + Divider + Audio header + Default + 2 tracks.
+        assert len(dialog.content.content.controls) == 6
+        titles = [
+            c.title.value
+            for c in dialog.content.content.controls
+            if isinstance(c, ft.ListTile) and isinstance(c.title, ft.Text)
+        ]
+        assert "eng (English)" in titles
+        assert "spa (Spanish)" in titles
+
+
+class TestSubtitleSizeControl:
+    """Phase 2: subtitle size dropdown persists and applies."""
+
+    @pytest.mark.asyncio
+    async def test_settings_dialog_has_subtitle_size(self):
+        """Player settings include a Subtitle Size dropdown (default medium)."""
+        from database.manager import db_manager
+
+        player = mock.MagicMock()
+        player.include_subtitles_in_snapshot = True
+        player.snapshot_format = "image/png"
+        player.can_switch_quality = False
+        player._current_variant = None
+        player._current_audio = None
+        player._variants_cache = []
+        player._audio_tracks_cache = []
+        player.list_variants = mock.AsyncMock(return_value=[])
+        player.list_audio_tracks = mock.AsyncMock(return_value=[])
+        player.video = mock.MagicMock()
+        player.video.fit = ft.BoxFit.CONTAIN
+        player.page = mock.MagicMock()
+        player.page.run_task = mock.MagicMock()
+        # Pre-seed a stored size so the dialog reflects persistence.
+        await db_manager.set_setting("subtitle_size", "large")
+
+        await open_player_settings(player)
+
+        dialog = player.page.show_dialog.call_args[0][0]
+        size_dd = next(
+            c
+            for c in dialog.content.controls
+            if getattr(c, "label", None) == "Subtitle Size"
+        )
+        assert size_dd.value == "large"
+        await db_manager.set_setting("subtitle_size", "medium")
+
+    def test_subtitle_size_map(self):
+        from components.player.immersive_player import ImmersivePlayer
+
+        assert ImmersivePlayer._SUBTITLE_SIZES == {
+            "small": 16.0,
+            "medium": 22.0,
+            "large": 30.0,
+        }

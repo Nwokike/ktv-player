@@ -1,10 +1,18 @@
 """Android Picture-in-Picture via pyjnius (API 26+).
 
-All Android classes are resolved through jnius at call time and every entry
-point is best-effort: on desktop (no JVM) or unsupported devices these
-functions return False / 0 without raising. Heavy jnius reflection is meant
-to be called via ``asyncio.to_thread`` — same pattern as the screenshot
-MediaScanner code.
+All Android classes are resolved through the shared android_bridge at call
+time and every entry point is best-effort: on desktop (no JVM) or
+unsupported devices these functions return False / 0 without raising.
+
+Threading: activity.* invocations (enterPictureInPictureMode,
+setPictureInPictureParams, finish) are UI-thread-affiliated — call them on
+the main looper (or a Flet method channel), NOT via blind asyncio.to_thread
+(which risks CalledFromWrongThreadException). Pure reflection (autoclass,
+SDK_INT, hasSystemFeature) is safe off-thread.
+
+Needs-hardware-confirm: the MainActivity field names below are
+mock-verified only. If PiP is silently dead on the target APK, dump the
+MainActivity fields via adb and extend android_bridge._ACTIVITY_ATTRS.
 
 Verified facts:
 - enterPictureInPictureMode(PictureInPictureParams) and
@@ -16,7 +24,16 @@ Verified facts:
 """
 
 import logging
+import threading
 from fractions import Fraction
+
+from services.android_bridge import (
+    PIP_FEATURE,
+    autoclass_cached,
+    get_activity,
+    invalidate_activity_cache,
+    sdk_int,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -25,64 +42,26 @@ _AUTO_ENTER_API = 31
 _ASPECT_MIN = 0.41841  # 1:2.39
 _ASPECT_MAX = 2.39
 
-_activity = None
 # One-shot warning: Android 16 rejects auto-PiP on some devices and the
 # pyjnius exception string is a full Java stacktrace.
 _auto_pip_warned = False
-
-
-def _get_activity():
-    global _activity
-    if _activity is not None:
-        return _activity
-    import os
-
-    try:
-        from jnius import autoclass
-    except Exception:
-        return None
-
-    for cls_name in (
-        os.getenv("MAIN_ACTIVITY_HOST_CLASS_NAME"),
-        "ng.kiri.ktvplayer.MainActivity",
-        "net.flet.MainActivity",
-        "com.flet.flet_android.MainActivity",
-        "org.kivy.android.PythonActivity",
-    ):
-        if not cls_name:
-            continue
-        try:
-            host = autoclass(cls_name)
-            activity = getattr(host, "mActivity", None) or getattr(
-                host, "mCurrentActivity", None
-            )
-            if activity:
-                _activity = activity
-                return activity
-        except Exception as ex:
-            logger.debug("PiP activity candidate %s unavailable: %s", cls_name, ex)
-    return None
+_warn_lock = threading.Lock()
 
 
 def api_level() -> int:
     """Android SDK_INT, or 0 when not runnable (desktop/older stacks)."""
-    try:
-        from jnius import autoclass
-
-        return int(autoclass("android.os.Build$VERSION").SDK_INT)
-    except Exception:
-        return 0
+    return sdk_int()
 
 
 def is_pip_supported() -> bool:
     try:
-        if api_level() < _MIN_API:
+        if sdk_int() < _MIN_API:
             return False
-        activity = _get_activity()
+        activity = get_activity()
         if activity is None:
             return False
         pm = activity.getPackageManager()
-        return bool(pm.hasSystemFeature("android.software.picture_in_picture"))
+        return bool(pm.hasSystemFeature(PIP_FEATURE))
     except Exception as ex:
         logger.debug("PiP feature check failed: %s", ex)
         return False
@@ -93,36 +72,50 @@ def _clamp_aspect(aspect: float) -> float:
 
 
 def _build_params(auto_enter: bool, aspect: float | None):
-    from jnius import autoclass
-
-    builder = autoclass("android.app.PictureInPictureParams$Builder")()
-    sdk = api_level()
+    builder = autoclass_cached("android.app.PictureInPictureParams$Builder")()
+    sdk = sdk_int()
     if sdk >= _AUTO_ENTER_API:
         # Explicit both ways. Skipping the setter when disabling left the
         # previously-set auto-enter params active, so the app kept entering
         # PiP on minimize long after the player closed.
         builder.setAutoEnterEnabled(auto_enter)
-    if aspect:
-        ratio = Fraction(_clamp_aspect(aspect)).limit_denominator(1000)
+    elif auto_enter:
+        logger.debug("auto_enter requested below API 31 — dropped (no setter)")
+    if aspect is not None:
+        if aspect <= 0:
+            raise ValueError(f"aspect must be positive, got {aspect!r}")
+        clamped = _clamp_aspect(aspect)
+        # Fraction from ints (not float): Fraction(16/9) bakes in the binary
+        # float error before limiting; numerator/denominator pairs are exact.
+        ratio = Fraction(int(clamped * 1000), 1000).limit_denominator(239)
         builder.setAspectRatio(
-            autoclass("android.util.Rational")(ratio.numerator, ratio.denominator)
+            autoclass_cached("android.util.Rational")(
+                ratio.numerator, ratio.denominator
+            )
         )
     return builder.build()
 
 
 def enter_pip(aspect: float | None = None) -> bool:
-    """Enter Picture-in-Picture now. Returns True when the call was made."""
+    """Enter Picture-in-Picture now. Returns the system's own verdict.
+
+    NOTE: calling this disables future auto-enter on the Activity (the
+    params built here carry auto_enter=False) — that is intentional and
+    callers that want auto-enter afterwards must re-arm via set_auto_pip.
+    Call on the main thread (see module docstring).
+    """
     if not is_pip_supported():
         return False
-    activity = _get_activity()
+    activity = get_activity()
     if activity is None:
         return False
     try:
-        effective_aspect = aspect if aspect else 16 / 9
-        activity.enterPictureInPictureMode(
-            _build_params(auto_enter=False, aspect=effective_aspect)
+        effective_aspect = aspect if aspect is not None else 16 / 9
+        return bool(
+            activity.enterPictureInPictureMode(
+                _build_params(auto_enter=False, aspect=effective_aspect)
+            )
         )
-        return True
     except Exception as ex:
         logger.warning("enter_pip failed: %s", ex)
         return False
@@ -131,16 +124,21 @@ def enter_pip(aspect: float | None = None) -> bool:
 def set_auto_pip(enabled: bool, aspect: float | None = None) -> bool:
     """Android 12+: system auto-enters PiP when the user swipes home.
 
-    No-op (True) below API 31 — the player falls back to a lifecycle hook.
+    Returns False below API 31 (unsupported — the player falls back to a
+    lifecycle hook). Callers MUST distinguish this from True: the old
+    no-op-True made unsupported look armed.
+    Call on the main thread (see module docstring).
     """
-    if api_level() < _AUTO_ENTER_API:
-        return True
-    activity = _get_activity()
+    if sdk_int() < _AUTO_ENTER_API:
+        return False
+    activity = get_activity()
     if activity is None:
         return False
     try:
         activity.setPictureInPictureParams(
-            _build_params(auto_enter=enabled, aspect=aspect or 16 / 9)
+            _build_params(
+                auto_enter=enabled, aspect=aspect if aspect is not None else 16 / 9
+            )
         )
         return True
     except Exception as ex:
@@ -149,8 +147,10 @@ def set_auto_pip(enabled: bool, aspect: float | None = None) -> bool:
         # splitlines() then returns [] — indexing it would raise inside
         # the except block.
         first_line = (str(ex).splitlines() or [""])[0]
-        if not _auto_pip_warned:
+        with _warn_lock:
+            warned = _auto_pip_warned
             _auto_pip_warned = True
+        if not warned:
             logger.warning(
                 "set_auto_pip failed (further failures logged at debug): %s",
                 first_line,
@@ -164,12 +164,14 @@ def exit_app() -> bool:
     """Finish the Android activity, returning the user to the calling app.
     Flet's window.close() is a desktop-only no-op on Android (its Dart
     closeWindow() guards isDesktopPlatform()), so closing a deep-linked
-    video requires finishing the activity directly."""
-    activity = _get_activity()
+    video requires finishing the activity directly.
+    Call on the main thread (see module docstring)."""
+    activity = get_activity()
     if activity is None:
         return False
     try:
         activity.finish()
+        invalidate_activity_cache()
         return True
     except Exception as ex:
         logger.warning("exit_app failed: %s", ex)

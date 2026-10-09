@@ -1,6 +1,7 @@
 """SettingsScreen — modern Material 3 grouped settings."""
 
 import asyncio
+import contextlib
 import logging
 import time
 
@@ -51,7 +52,7 @@ from core.constants import (
     PLAY_STORE_URL,
     TERMS_TEXT,
 )
-from core.logger_handler import MemoryLogHandler
+from core.logger_handler import in_memory_log_handler
 from core.state import state as core_state
 from core.theme import AppColors
 from database.manager import db_manager
@@ -153,6 +154,8 @@ _SECTIONS = [
     {"key": "appearance", "title": "Appearance", "icon": ft.Icons.PALETTE},
     {"key": "localization", "title": "Localization", "icon": ft.Icons.PUBLIC},
     {"key": "data_management", "title": "Data Management", "icon": ft.Icons.STORAGE},
+    # Key stays "custom_content" for compat; the card shows the Activity
+    # Terminal (title "Development"), not custom-content management.
     {"key": "custom_content", "title": "Development", "icon": ft.Icons.TERMINAL},
     {"key": "premium", "title": "Premium", "icon": ft.Icons.WORKSPACE_PREMIUM},
     {"key": "about", "title": "About", "icon": ft.Icons.INFO},
@@ -168,8 +171,13 @@ def _build_logs_dialog(page: ft.Page) -> ft.AlertDialog:
     from services.device_info import get_device_summary
 
     def _compose() -> str:
-        logs = MemoryLogHandler.get_logs()
-        body = "\n".join(logs) if logs else LBL_NO_ACTIVITY_LOG
+        logs = in_memory_log_handler.get_logs()
+        # Cap the dump: a long session can hold 500 lines and dumping all
+        # of them into one Text control janks low-end TV boxes.
+        tail = logs[-500:]
+        if len(logs) > len(tail):
+            tail = [f"... ({len(logs) - len(tail)} older lines omitted) ...", *tail]
+        body = "\n".join(tail) if tail else LBL_NO_ACTIVITY_LOG
         # Device header travels WITH the logs so the existing "Copy to clipboard"
         # produces a complete TV diagnostics dump (no way to pipe TV adb logs).
         return f"{get_device_summary()}\n\n--- logs ---\n{body}"
@@ -188,23 +196,17 @@ def _build_logs_dialog(page: ft.Page) -> ft.AlertDialog:
     )
 
     async def _scroll(delta: float) -> None:
-        try:
+        with contextlib.suppress(Exception):
             await log_col.scroll_to(delta=delta, duration=120)
-        except Exception:
-            pass
 
     async def _to_end() -> None:
         # offset=-1 is flet's documented "jump to the very end".
-        try:
+        with contextlib.suppress(Exception):
             await log_col.scroll_to(offset=-1, duration=120)
-        except Exception:
-            pass
 
     async def _to_start() -> None:
-        try:
+        with contextlib.suppress(Exception):
             await log_col.scroll_to(offset=0, duration=120)
-        except Exception:
-            pass
 
     async def _on_key(e) -> None:
         # Laptop keyboard and the Android TV D-pad both land here as
@@ -233,11 +235,19 @@ def _build_logs_dialog(page: ft.Page) -> ft.AlertDialog:
             notify_warning("Copy failed — clipboard unavailable on this device")
 
     def _clear(e=None):
-        MemoryLogHandler.clear_logs()
-        log_text.value = LBL_LOG_CLEARED
-        page.update()
+        from flet import context as _ctx
 
-    async def _refresh(e=None):
+        in_memory_log_handler.clear_logs()
+        log_text.value = LBL_LOG_CLEARED
+        try:
+            log_text.update()
+        except Exception:
+            try:
+                _ctx.page.update()
+            except (RuntimeError, AttributeError):
+                logger.debug("Log dialog clear update failed", exc_info=True)
+
+    async def _refresh():
         new_value = _compose()
         if new_value == log_text.value:
             # A refresh that changes nothing must SAY so, or the button
@@ -245,7 +255,10 @@ def _build_logs_dialog(page: ft.Page) -> ft.AlertDialog:
             notify(LBL_LOG_NO_NEW)
             return
         log_text.value = new_value
-        page.update()
+        try:
+            log_text.update()
+        except Exception:
+            logger.debug("Log dialog refresh update failed", exc_info=True)
         await asyncio.sleep(0.15)
         await _to_end()
 
@@ -255,6 +268,38 @@ def _build_logs_dialog(page: ft.Page) -> ft.AlertDialog:
         await asyncio.sleep(0.5)
         await _to_end()
 
+    async def _scroll_guarded(delta: float) -> None:
+        try:
+            await _scroll(delta)
+        except Exception:
+            logger.debug("Log dialog scroll failed", exc_info=True)
+
+    async def _to_end_guarded() -> None:
+        try:
+            await _to_end()
+        except Exception:
+            logger.debug("Log dialog scroll-to-end failed", exc_info=True)
+
+    async def _on_key_guarded(e) -> None:
+        try:
+            await _on_key(e)
+        except Exception:
+            logger.debug("Log dialog key handling failed", exc_info=True)
+
+    async def _copy_guarded() -> None:
+        try:
+            await _copy()
+        except Exception:
+            logger.debug("Log dialog copy failed", exc_info=True)
+            notify_warning("Copy failed — clipboard unavailable on this device")
+
+    async def _refresh_guarded() -> None:
+        try:
+            await _refresh()
+        except Exception:
+            logger.debug("Log dialog refresh failed", exc_info=True)
+            notify_warning("Could not refresh the log view.")
+
     page.run_task(_prepare)
 
     nav = ft.Row(
@@ -262,21 +307,21 @@ def _build_logs_dialog(page: ft.Page) -> ft.AlertDialog:
             ft.TextButton(
                 LBL_LOG_OLDER,
                 icon=ft.Icons.KEYBOARD_ARROW_UP,
-                on_click=lambda e: asyncio.create_task(_scroll(-300)),
+                on_click=lambda e: page.run_task(_scroll_guarded, -300),
             ),
             ft.TextButton(
                 LBL_LOG_NEWER,
                 icon=ft.Icons.KEYBOARD_ARROW_DOWN,
-                on_click=lambda e: asyncio.create_task(_scroll(300)),
+                on_click=lambda e: page.run_task(_scroll_guarded, 300),
             ),
             ft.TextButton(
                 LBL_LOG_NEWEST,
-                on_click=lambda e: asyncio.create_task(_to_end()),
+                on_click=lambda e: page.run_task(_to_end_guarded),
             ),
             ft.TextButton(
                 LBL_LOG_REFRESH,
                 icon=ft.Icons.REFRESH,
-                on_click=lambda e: asyncio.create_task(_refresh(e)),
+                on_click=lambda e: page.run_task(_refresh_guarded),
             ),
         ],
         spacing=6,
@@ -307,7 +352,7 @@ def _build_logs_dialog(page: ft.Page) -> ft.AlertDialog:
             content=ft.KeyboardListener(
                 content=body,
                 autofocus=True,
-                on_key_down=lambda e: asyncio.create_task(_on_key(e)),
+                on_key_down=lambda e: page.run_task(_on_key_guarded, e),
             ),
             width=480,
             height=400,
@@ -316,7 +361,7 @@ def _build_logs_dialog(page: ft.Page) -> ft.AlertDialog:
             ft.TextButton(
                 LBL_COPY_TO_CLIPBOARD,
                 icon=ft.Icons.COPY,
-                on_click=lambda e: asyncio.create_task(_copy()),
+                on_click=lambda e: page.run_task(_copy_guarded),
             ),
             ft.TextButton(LBL_CLEAR, icon=ft.Icons.DELETE_SWEEP, on_click=_clear),
             ft.TextButton(LBL_CLOSE, on_click=lambda e: page.pop_dialog()),
@@ -423,30 +468,44 @@ def SettingsScreen() -> Control:
     controller = ft.use_context(ControllerMethodsCtx)
     is_clearing, set_is_clearing = ft.use_state(False)
     is_resetting, set_is_resetting = ft.use_state(False)
-    _theme_mode, set_theme_mode = ft.use_state(
-        lambda: AppColors._is_dark(ft.context.page)
-    )
 
     # -- handlers --
 
     def _is_dark() -> bool:
         from flet import context
 
-        return AppColors._is_dark(context.page)
+        try:
+            return AppColors.is_dark(context.page)
+        except (RuntimeError, AttributeError):
+            return True
 
     def _toggle_theme(e):
         from flet import context
 
-        _toggle_theme_util(context.page)
-        set_theme_mode(AppColors._is_dark(context.page))
+        try:
+            _toggle_theme_util(context.page)
+        except (RuntimeError, AttributeError):
+            logger.debug("Theme toggle off-session", exc_info=True)
+        # No local state: toggle_theme updates the page itself, and the
+        # Switch reads _is_dark() on every render, so the repaint follows.
 
     def _on_country_select(name: str):
+        from flet import context
+
         async def _do():
-            await db_manager.set_setting("user_country", name)
+            try:
+                await db_manager.set_setting("user_country", name)
+            except Exception:
+                logger.exception("Country save failed")
+                notify_warning("Could not save country — try again.")
+                return
             core_state.user_country = name
             notify(LBL_COUNTRY_UPDATED.format(country=name))
 
-        asyncio.create_task(_do())
+        try:
+            context.page.run_task(_do)
+        except (RuntimeError, AttributeError):
+            logger.debug("Country save off-session", exc_info=True)
 
     async def _clear_history():
         set_is_clearing(True)
@@ -455,6 +514,7 @@ def SettingsScreen() -> Control:
             core_state.history.clear()
             notify(LBL_HISTORY_CLEARED)
         except Exception:
+            logger.exception("Clear history failed")
             notify_warning(ERR_CLEAR_HISTORY_FAILED)
         finally:
             set_is_clearing(False)
@@ -466,6 +526,7 @@ def SettingsScreen() -> Control:
             notify(LBL_LIBRARY_RESET)
             await controller.refresh_channels()
         except Exception:
+            logger.exception("Reset library failed")
             notify_warning(ERR_RESET_LIBRARY_FAILED)
         finally:
             set_is_resetting(False)
@@ -474,6 +535,29 @@ def SettingsScreen() -> Control:
         from flet import context
 
         context.page.show_dialog(_build_logs_dialog(context.page))
+
+    def _run_guarded(coro_fn):
+        """Schedule a settings coroutine on the page loop with a toast on scheduling failure."""
+        from flet import context
+
+        try:
+            context.page.run_task(coro_fn)
+        except (RuntimeError, AttributeError):
+            logger.debug("Settings task off-session", exc_info=True)
+            notify_warning("Could not start that action — try again.")
+
+    def _open_version_row(e=None):
+        # The controller default is a silent no-op (off-shell render):
+        # say so instead of looking dead.
+        opener = getattr(controller, "open_version_dialog", None)
+        if not callable(opener):
+            notify_warning("Version details are unavailable right now.")
+            return
+        try:
+            opener()
+        except Exception:
+            logger.debug("Version dialog open failed", exc_info=True)
+            notify_warning("Could not open version details.")
 
     def _show_terms(e=None):
         from flet import context
@@ -505,9 +589,7 @@ def SettingsScreen() -> Control:
                 leading=ft.Icon(ft.Icons.DARK_MODE, size=18, color=AppColors.PRIMARY),
                 title=LBL_DARK_MODE,
                 subtitle=LBL_DARK_MODE_DESC,
-                trailing=ft.Switch(
-                    value=_is_dark(), on_change=_toggle_theme, autofocus=True
-                ),
+                trailing=ft.Switch(value=_is_dark(), on_change=_toggle_theme),
             ),
         ],
     )
@@ -532,47 +614,81 @@ def SettingsScreen() -> Control:
         else (country_names[0] if country_names else None)
     )
 
-    country_dialog = ft.AlertDialog(
-        title=ft.Text("Select Country", size=16, weight=ft.FontWeight.BOLD),
-        content=ft.Column(
-            controls=[
-                ft.Container(
-                    content=ft.Row(
-                        controls=[
-                            ft.Icon(
-                                ft.Icons.CHECK_CIRCLE
-                                if c == default_country
-                                else ft.Icons.RADIO_BUTTON_UNCHECKED,
-                                size=16,
-                                color=AppColors.PRIMARY
-                                if c == default_country
-                                else AppColors.grey_dim(),
-                            ),
-                            ft.Text(c, size=13),
-                        ],
-                        spacing=8,
-                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                    ),
-                    padding=ft.Padding(8, 8, 8, 8),
-                    border_radius=8,
-                    ink=True,
-                    on_click=lambda e, c=c: (
-                        _on_country_select(c),
-                        _close_country_dialog(),
-                    ),
-                )
-                for c in country_names
-            ],
-            spacing=2,
-            scroll=ft.ScrollMode.AUTO,
-        ),
-        actions_alignment=ft.MainAxisAlignment.END,
-    )
+    def _country_rows(query: str) -> list[Control]:
+        q = query.strip().casefold()
+        names = [c for c in country_names if not q or q in c.casefold()]
+        return [
+            ft.Container(
+                content=ft.Row(
+                    controls=[
+                        ft.Icon(
+                            ft.Icons.CHECK_CIRCLE
+                            if c == default_country
+                            else ft.Icons.RADIO_BUTTON_UNCHECKED,
+                            size=16,
+                            color=AppColors.PRIMARY
+                            if c == default_country
+                            else AppColors.grey_dim(),
+                        ),
+                        ft.Text(c, size=13),
+                    ],
+                    spacing=8,
+                    vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                ),
+                padding=ft.Padding.all(8),
+                border_radius=8,
+                ink=True,
+                on_click=lambda e, c=c: _pick_country(c),
+            )
+            for c in names
+        ]
+
+    def _pick_country(name: str):
+        _on_country_select(name)
+        _close_country_dialog()
 
     def _open_country_dialog(e):
+        # Built at open time, filtered imperatively: component state can't
+        # reach the shown instance (a re-render builds a NEW dialog while
+        # the page shows the old one), so the search filters the live
+        # column in place instead.
         from flet import context
 
-        context.page.show_dialog(country_dialog)
+        rows_col = ft.Column(
+            controls=_country_rows(""),
+            spacing=2,
+            scroll=ft.ScrollMode.AUTO,
+            height=320,
+        )
+
+        def _on_search(ev):
+            rows_col.controls = _country_rows(ev.control.value or "")
+            try:
+                rows_col.update()
+            except Exception:
+                logger.debug("Country search update failed", exc_info=True)
+
+        dlg = ft.AlertDialog(
+            title=ft.Text("Select Country", size=16, weight=ft.FontWeight.BOLD),
+            content=ft.Container(
+                content=ft.Column(
+                    controls=[
+                        ft.TextField(
+                            hint_text="Search 177 countries...",
+                            on_change=_on_search,
+                            autofocus=True,
+                        ),
+                        rows_col,
+                    ],
+                    spacing=8,
+                    tight=True,
+                ),
+                width=380,
+                height=420,
+            ),
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+        context.page.show_dialog(dlg)
 
     def _close_country_dialog():
         from flet import context
@@ -624,7 +740,7 @@ def SettingsScreen() -> Control:
                     ),
                     icon=ft.Icons.DELETE_OUTLINED,
                     disabled=is_clearing,
-                    on_click=lambda e: asyncio.create_task(_clear_history()),
+                    on_click=lambda e: _run_guarded(_clear_history),
                 ),
             ),
             _setting_row(
@@ -637,14 +753,14 @@ def SettingsScreen() -> Control:
                     ),
                     icon=ft.Icons.RESTART_ALT,
                     disabled=is_resetting,
-                    on_click=lambda e: asyncio.create_task(_reset_custom()),
+                    on_click=lambda e: _run_guarded(_reset_custom),
                 ),
             ),
         ],
     )
 
     # 4. Activity Terminal
-    logs_count = len(MemoryLogHandler.get_logs())
+    logs_count = len(in_memory_log_handler.get_logs())
     terminal = _section_card(
         "Development",
         ft.Icons.TERMINAL,
@@ -668,10 +784,24 @@ def SettingsScreen() -> Control:
     about_page = ft.context.page
 
     def _launch_url(url: str):
-        async def _run():
-            await ft.UrlLauncher().launch_url(url)
+        from utils.notifications import notify_warning as _warn
 
-        about_page.run_task(_run)
+        if not isinstance(url, str) or not url.strip():
+            logger.debug("Refused to launch empty URL")
+            _warn("Could not open that link on this device.")
+            return
+
+        async def _run():
+            try:
+                await ft.UrlLauncher().launch_url(url)
+            except Exception:
+                logger.debug("About URL launch failed", exc_info=True)
+                _warn("Could not open that link on this device.")
+
+        try:
+            about_page.run_task(_run)
+        except (RuntimeError, AttributeError):
+            logger.debug("About URL launch off-session", exc_info=True)
 
     def _on_contact(e=None):
         _launch_url(f"mailto:{CONTACT_EMAIL}")
@@ -733,7 +863,12 @@ def SettingsScreen() -> Control:
                             width=56,
                             height=56,
                             fit=ft.BoxFit.CONTAIN,
-                            color=ft.Colors.ON_SURFACE,
+                            # No color tint: the SVG is blue line-art; SRC_IN
+                            # tinting would flatten it to a silhouette.
+                            error_content=ft.Icon(
+                                ft.Icons.LIVE_TV_ROUNDED, size=40
+                            ),
+                            semantics_label="KTV Player",
                         ),
                         ft.Column(
                             controls=[
@@ -758,7 +893,7 @@ def SettingsScreen() -> Control:
                 padding=ft.Padding(4, 8, 4, 8),
                 ink=True,
                 border_radius=10,
-                on_click=lambda e: controller.open_version_dialog(),
+                on_click=_open_version_row,
             ),
             ft.Divider(height=1, color=AppColors.get_border_color(ft.context.page)),
             ft.TextButton(
@@ -772,8 +907,31 @@ def SettingsScreen() -> Control:
     from components.banner_ad import build_banner_ad
 
     page_obj = ft.context.page
-    banner_1 = build_banner_ad(page_obj)
-    banner_2 = build_banner_ad(page_obj)
+
+    def _is_empty_banner(control: Control) -> bool:
+        """build_banner_ad returns a 0x0 placeholder when ads don't apply
+        (desktop, TV, premium, no unit id) — filter those so they don't
+        inject dead padding into the list."""
+        try:
+            return (
+                isinstance(control, ft.Container)
+                and control.content is None
+                and (control.width or 0) == 0
+                and (control.height or 0) == 0
+            )
+        except Exception:
+            return False
+
+    def _live_banner() -> Control | None:
+        try:
+            banner = build_banner_ad(page_obj)
+        except Exception:
+            logger.debug("Settings banner build failed", exc_info=True)
+            return None
+        return None if _is_empty_banner(banner) else banner
+
+    banner_1 = _live_banner()
+    banner_2 = _live_banner()
 
     # -- 6. Premium (remove-ads) -------------------------------------------
     premium_service = getattr(page_obj, "premium", None)
@@ -785,30 +943,48 @@ def SettingsScreen() -> Control:
     def _sync_premium():
         set_is_premium(core_state.is_premium)
 
-    def _watch_premium(e=None):
+    def _watch_premium():
         if premium_service is None:
-            return None
-        premium_service.add_listener(_sync_premium)
+            return
+        try:
+            premium_service.add_listener(_sync_premium)
+        except Exception:
+            logger.debug("Premium listener attach failed", exc_info=True)
+            return
         _sync_premium()
 
-        def _cleanup():
+    def _unwatch_premium():
+        if premium_service is None:
+            return
+        try:
             premium_service.remove_listener(_sync_premium)
+        except Exception:
+            logger.debug("Premium listener detach failed", exc_info=True)
 
-        return _cleanup
-
-    ft.on_mounted(_watch_premium)
+    ft.use_effect(_watch_premium, [], _unwatch_premium)
 
     # -- Kiri License (the backend for installs Play cannot bill) -----------
 
     products, set_products = ft.use_state([])
     recovery_id, set_recovery_id = ft.use_state("")
     license_busy, set_license_busy = ft.use_state(False)
+    license_error, set_license_error = ft.use_state("")
 
-    async def _load_license(e=None):
+    async def _load_license():
         if not premium_service or not premium_service.available:
             return
-        set_products(await premium_service.kiri_catalog())
-        set_recovery_id(await premium_service.license.recovery_id())
+        set_license_error("")
+        try:
+            set_products(await premium_service.kiri_catalog())
+        except Exception:
+            logger.debug("License catalog load failed", exc_info=True)
+            set_license_error("Could not reach the license service.")
+            return
+        try:
+            license_svc = premium_service.license
+            set_recovery_id(await license_svc.recovery_id() if license_svc else "")
+        except Exception:
+            logger.debug("Recovery ID load failed", exc_info=True)
 
     ft.on_mounted(_load_license)
 
@@ -848,9 +1024,15 @@ def SettingsScreen() -> Control:
             set_recovery_id(checkout.recovery_id)
             # Flutterwave hosts the payment; the app never sees card data.
             # kiri_checkout already started the watcher — no manual step.
-            await ft.UrlLauncher().launch_url(checkout.checkout_url)
+            checkout_url = checkout.checkout_url or ""
+            if not checkout_url.startswith("https://"):
+                logger.debug("Refused non-https checkout URL")
+                notify_warning("Could not start the payment — try again.")
+                return
+            await ft.UrlLauncher().launch_url(checkout_url)
             notify("Complete the payment. This screen unlocks itself when it lands")
         except Exception as ex:
+            logger.debug("Kiri checkout failed", exc_info=True)
             notify_warning(str(ex) or "Could not start the payment")
         finally:
             set_license_busy(False)
@@ -887,6 +1069,9 @@ def SettingsScreen() -> Control:
 
     async def _redeem_kiri(field):
         code = (field.value or "").strip() or recovery_id
+        if not code:
+            notify_warning("Enter your recovery ID first.")
+            return
         page_obj.pop_dialog()
         set_license_busy(True)
         try:
@@ -899,6 +1084,7 @@ def SettingsScreen() -> Control:
                 else f"License status: {status.status}"
             )
         except Exception as ex:
+            logger.debug("License restore failed", exc_info=True)
             notify_warning(str(ex) or "Could not restore that license")
         finally:
             set_license_busy(False)
@@ -954,16 +1140,33 @@ def SettingsScreen() -> Control:
             ),
         ]
         if not products:
-            _kiri_rows.append(
-                _setting_row(
-                    leading=ft.Icon(
-                        ft.Icons.CLOUD_OFF, size=18, color=AppColors.grey_dim()
-                    ),
-                    title="Unlock options unavailable",
-                    subtitle="Could not reach the license service — check your connection",
+            if license_error:
+                _kiri_rows.append(
+                    _setting_row(
+                        leading=ft.Icon(
+                            ft.Icons.CLOUD_OFF, size=18, color=AppColors.grey_dim()
+                        ),
+                        title="Unlock options unavailable",
+                        subtitle=f"{license_error} Tap Retry to try again.",
+                        trailing=ft.OutlinedButton(
+                            "Retry",
+                            icon=ft.Icons.REFRESH,
+                            on_click=lambda e: _run_guarded(_load_license),
+                        ),
+                    )
                 )
-            )
+            else:
+                _kiri_rows.append(
+                    _setting_row(
+                        leading=ft.Icon(
+                            ft.Icons.CLOUD_OFF, size=18, color=AppColors.grey_dim()
+                        ),
+                        title="Unlock options unavailable",
+                        subtitle="Could not reach the license service — check your connection",
+                    )
+                )
 
+    _license_svc = getattr(premium_service, "license", None)
     premium = _section_card(
         "Premium",
         ft.Icons.WORKSPACE_PREMIUM,
@@ -977,9 +1180,7 @@ def SettingsScreen() -> Control:
                 title="KTV Premium",
                 subtitle=_premium_subtitle(
                     is_premium,
-                    getattr(premium_service.license, "claims", None)
-                    if premium_service
-                    else None,
+                    getattr(_license_svc, "claims", None),
                     has_ads=page_has_ads(page_obj),
                 ),
                 trailing=ft.Icon(

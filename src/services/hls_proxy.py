@@ -6,9 +6,11 @@ async byte streaming to inject Referer headers natively and deliver ultra-fast p
 
 import asyncio
 import base64
+import contextlib
 import json
 import logging
 import re
+import time
 import urllib.parse
 
 import httpx
@@ -118,31 +120,66 @@ def _b64_decode(s: str) -> str:
 
 
 class HLSProxy:
-    def __init__(self, host: str = "127.0.0.1", port: int = 0):
+    def __init__(
+        self,
+        host: str = "127.0.0.1",
+        port: int = 0,
+        insecure_hosts: set[str] | None = None,
+    ):
         self.host = host
         self.requested_port = port
         self.port: int | None = None
         self._server: asyncio.Server | None = None
         self._http_client: httpx.AsyncClient | None = None
+        # Per-host TLS exemptions for self-signed IPTV origins. Empty by
+        # default: verification is ON unless a host is explicitly listed.
+        # (The old global verify=False was MITM-able for every origin.)
+        self.insecure_hosts: set[str] = set(insecure_hosts or [])
+        self._handlers: set[asyncio.Task] = set()
+        self._started = False
+        # Memoized master fetches: variants + audio double-fetched the same
+        # URL (2 upstream GETs per dialog open).
+        self._master_cache: dict[str, tuple[float, str, str]] = {}
+        self._master_ttl = 30.0
 
     async def start(self) -> str:
         """Start the proxy server and return base URL e.g. http://127.0.0.1:8888."""
         if self._server is not None:
             return f"http://{self.host}:{self.port}"
 
+        mounts = {}
+        for host in self.insecure_hosts:
+            logger.warning(
+                "HLS proxy: TLS verification DISABLED for %s (explicit exemption)",
+                host,
+            )
+            mounts[f"all://{host}"] = httpx.AsyncHTTPTransport(verify=False)
         self._http_client = httpx.AsyncClient(
             http2=True,
             follow_redirects=True,
-            timeout=httpx.Timeout(20.0, connect=5.0),
-            verify=False,
+            timeout=httpx.Timeout(20.0, connect=5.0, read=15.0, write=10.0, pool=2.0),
             limits=httpx.Limits(
                 max_keepalive_connections=50, max_connections=100, keepalive_expiry=30.0
             ),
+            mounts=mounts or None,
         )
+
+        async def _tracked_client(
+            reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+        ) -> None:
+            task = asyncio.current_task()
+            if task is not None:
+                self._handlers.add(task)
+                try:
+                    await self._handle_client(reader, writer)
+                finally:
+                    self._handlers.discard(task)
+            else:
+                await self._handle_client(reader, writer)
 
         try:
             self._server = await asyncio.start_server(
-                self._handle_client,
+                _tracked_client,
                 host=self.host,
                 port=self.requested_port,
             )
@@ -159,21 +196,37 @@ class HLSProxy:
         else:
             self.port = self.requested_port
 
+        # NOTE: HTTP/2 is upstream-only (the httpx client above). The local
+        # socket served here is hand-rolled HTTP/1.1 (see _send_response).
+        self._started = True
         logger.info(
-            "HLSProxy started at http://%s:%s (HTTP/2 enabled)", self.host, self.port
+            "HLSProxy started at http://%s:%s (upstream HTTP/2)", self.host, self.port
         )
         return f"http://{self.host}:{self.port}"
 
     async def stop(self):
         """Stop the proxy server cleanly."""
+        was_running = self._started or self._server is not None
+        # Cancel tracked per-connection handlers first: active segment
+        # streams must not outlive stop() (they'd die mid-chunk on the
+        # client close below anyway — cancel cleanly instead).
+        for task in list(self._handlers):
+            task.cancel()
+        if self._handlers:
+            await asyncio.gather(*self._handlers, return_exceptions=True)
+            self._handlers.clear()
         if self._server:
             self._server.close()
             try:
                 # wait_closed() waits for every active connection, and a
                 # live segment stream would never finish — bound it.
                 await asyncio.wait_for(self._server.wait_closed(), timeout=2.0)
-            except (TimeoutError, asyncio.CancelledError):
+            except TimeoutError:
                 logger.debug("Proxy server still draining after 2s — continuing")
+            except asyncio.CancelledError:
+                self._server = None
+                self.port = None
+                raise
             self._server = None
 
         if self._http_client:
@@ -182,8 +235,11 @@ class HLSProxy:
 
         # A stale port would keep handing out URLs for a dead proxy.
         self.port = None
+        self._started = False
+        self._master_cache.clear()
 
-        logger.info("HLSProxy stopped")
+        if was_running:
+            logger.info("HLSProxy stopped")
 
     def get_proxy_url(
         self,
@@ -226,22 +282,49 @@ class HLSProxy:
     async def fetch_master(
         self, target_url: str, headers: dict[str, str] | None = None
     ):
-        """Fetch a playlist for inspection. Returns the text or None."""
+        """Fetch a playlist for inspection.
+
+        Returns (content_type, text). Raises PlaylistFetchError on network or
+        non-200 status (callers can finally distinguish 404 from dead host —
+        the old None-collapse couldn't). Results memoized per URL (30s TTL):
+        variants + audio double-fetched every dialog open.
+        """
+        from services.iptv_service import PlaylistFetchError
+
+        # time.monotonic: get_event_loop() is deprecated outside a running
+        # loop and binds to the wrong one under 3.10+ rules; only the
+        # elapsed delta matters here.
+        now = time.monotonic()
+        cached = self._master_cache.get(target_url)
+        if cached and now - cached[0] < self._master_ttl:
+            return cached[1], cached[2]
         if not self._http_client:
-            return None
+            raise PlaylistFetchError(target_url, "proxy client not started")
+        # Same default UA as the proxy path (fetch_master previously sent
+        # none, and bare python-httpx is blocked by some origins).
+        merged = {"User-Agent": USER_AGENT}
+        merged.update(headers or {})
         try:
-            resp = await self._http_client.get(target_url, headers=headers or {})
-            if resp.status_code == 200:
-                return resp.text
-        except Exception as ex:
-            logger.debug("fetch_master failed for %s: %s", target_url, ex)
-        return None
+            resp = await self._http_client.get(target_url, headers=merged)
+        except httpx.HTTPError as ex:
+            raise PlaylistFetchError(target_url, ex) from ex
+        if resp.status_code != 200:
+            raise PlaylistFetchError(target_url, f"upstream status {resp.status_code}")
+        content_type = resp.headers.get("content-type", "")
+        text = resp.text
+        self._master_cache[target_url] = (now, content_type, text)
+        return content_type, text
 
     async def fetch_variants(
         self, target_url: str, headers: dict[str, str] | None = None
     ) -> list[dict]:
         """Fetch and parse the variant list of an HLS master playlist."""
-        text = await self.fetch_master(target_url, headers)
+        from services.iptv_service import PlaylistFetchError
+
+        try:
+            _, text = await self.fetch_master(target_url, headers)
+        except PlaylistFetchError:
+            return []
         if not text:
             return []
         return parse_hls_variants(text)
@@ -250,16 +333,38 @@ class HLSProxy:
         self, target_url: str, headers: dict[str, str] | None = None
     ) -> list[dict]:
         """Fetch and parse the external audio renditions of an HLS master."""
-        text = await self.fetch_master(target_url, headers)
+        from services.iptv_service import PlaylistFetchError
+
+        try:
+            _, text = await self.fetch_master(target_url, headers)
+        except PlaylistFetchError:
+            return []
         if not text:
             return []
         return parse_hls_audio_tracks(text)
 
+    # Hand-rolled server hardening: no read timeout = Slowloris hold;
+    # unbounded headers = memory abuse. Local-only, but cheap to bound.
+    _READ_TIMEOUT = 5.0
+    _MAX_HEADER_LINES = 64
+    _MAX_HEADER_BYTES = 8192
+    _MAX_QUERY_BYTES = 16384
+
     async def _handle_client(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
     ):
+        async def _send400(msg: bytes) -> None:
+            with contextlib.suppress(Exception):
+                await self._send_response(writer, 400, "text/plain", msg)
+
         try:
-            line = await reader.readline()
+            try:
+                line = await asyncio.wait_for(
+                    reader.readline(), timeout=self._READ_TIMEOUT
+                )
+            except TimeoutError:
+                writer.close()
+                return
             if not line:
                 writer.close()
                 await writer.wait_closed()
@@ -268,21 +373,44 @@ class HLSProxy:
             req_line = line.decode("utf-8", errors="ignore").strip()
             parts = req_line.split()
             if len(parts) < 2:
-                writer.close()
-                await writer.wait_closed()
+                await _send400(b"Bad request line")
                 return
 
-            _method, path_qs = parts[0], parts[1]
+            method, path_qs = parts[0].upper(), parts[1]
+            if method != "GET":
+                # mpv/media_kit only ever GETs from the proxy; anything else
+                # (probes, stray POSTs) gets a 405, not a silent GET proxy.
+                await self._send_response(
+                    writer, 405, "text/plain", b"Method Not Allowed"
+                )
+                return
+            if len(path_qs) > self._MAX_QUERY_BYTES:
+                await _send400(b"Request URI too long")
+                return
 
             req_headers = {}
-            while True:
-                h_line = await reader.readline()
+            header_bytes = 0
+            for _ in range(self._MAX_HEADER_LINES + 1):
+                try:
+                    h_line = await asyncio.wait_for(
+                        reader.readline(), timeout=self._READ_TIMEOUT
+                    )
+                except TimeoutError:
+                    writer.close()
+                    return
                 if not h_line or h_line in (b"\r\n", b"\n"):
                     break
+                header_bytes += len(h_line)
+                if header_bytes > self._MAX_HEADER_BYTES:
+                    await _send400(b"Headers too large")
+                    return
                 h_str = h_line.decode("utf-8", errors="ignore").strip()
                 if ":" in h_str:
                     k, v = h_str.split(":", 1)
                     req_headers[k.strip().lower()] = v.strip()
+            else:
+                await _send400(b"Too many headers")
+                return
 
             parsed = urllib.parse.urlparse(path_qs)
             query = urllib.parse.parse_qs(parsed.query)
@@ -294,28 +422,58 @@ class HLSProxy:
                 )
                 return
 
-            target_url = _b64_decode(raw_target_url)
+            try:
+                target_url = _b64_decode(raw_target_url)
+            except Exception:
+                await _send400(b"Invalid url encoding")
+                return
 
             referer = None
             raw_ref = query.get("referer", [None])[0]
             if raw_ref:
-                referer = _b64_decode(raw_ref)
+                try:
+                    referer = _b64_decode(raw_ref)
+                except Exception:
+                    await _send400(b"Invalid referer encoding")
+                    return
 
             custom_headers = {}
             raw_hdrs = query.get("headers", [None])[0]
             if raw_hdrs:
                 try:
-                    custom_headers = json.loads(_b64_decode(raw_hdrs))
+                    decoded = json.loads(_b64_decode(raw_hdrs))
                 except Exception:
-                    pass
+                    await _send400(b"Invalid headers encoding")
+                    return
+                # Must be a flat string map: a JSON list/str would crash
+                # upstream.update() later, and CRLF smuggles response splits.
+                if not isinstance(decoded, dict):
+                    await _send400(b"Headers must be a JSON object")
+                    return
+                for k, v in decoded.items():
+                    if not isinstance(k, str) or not isinstance(v, str):
+                        await _send400(b"Header keys and values must be strings")
+                        return
+                    if len(k) > 64 or len(v) > 2048:
+                        await _send400(b"Header key/value too long")
+                        return
+                    if "\r" in k or "\n" in k or "\r" in v or "\n" in v:
+                        await _send400(b"Invalid header value")
+                        return
+                    if k.lower() in (
+                        "host",
+                        "content-length",
+                        "transfer-encoding",
+                        "connection",
+                    ):
+                        continue
+                    custom_headers[k.strip()] = v.strip()
 
             variant: int | None = None
             raw_variant = query.get("variant", [None])[0]
             if raw_variant is not None:
-                try:
+                with contextlib.suppress(ValueError):
                     variant = int(raw_variant)
-                except ValueError:
-                    pass
             audio = query.get("audio", [None])[0]
 
             upstream_headers = self._upstream_headers(referer, custom_headers)
@@ -328,6 +486,11 @@ class HLSProxy:
                 range_header = req_headers.get("range")
                 if range_header:
                     upstream_headers["Range"] = range_header
+                # Conditional cache validators: without them every playlist
+                # poll is a full 200 (no 304s).
+                for ck in ("if-none-match", "if-modified-since"):
+                    if req_headers.get(ck):
+                        upstream_headers[ck.title()] = req_headers[ck]
                 await self._handle_passthrough(writer, target_url, upstream_headers)
             else:
                 await self._send_response(writer, 404, "text/plain", b"Not Found")
@@ -370,10 +533,18 @@ class HLSProxy:
                 resp.status_code,
                 "text/plain",
                 f"Upstream error: {resp.status_code}".encode(),
+                reason_phrase=resp.reason_phrase or None,
             )
             return
 
+        content_type = resp.headers.get("content-type", "")
         playlist_text = resp.text
+        if "#EXTM3U" not in playlist_text[:1024] and "mpegurl" not in content_type:
+            # Not actually a playlist (extension-less segment misrouted here
+            # by the rewrite heuristic, or an error page): stream the bytes
+            # instead of serving garbage as application/vnd.apple.mpegurl.
+            await self._send_bytes(writer, resp)
+            return
         # Pinning only applies to masters (playlists with variants); media
         # playlists pass through with segment rewriting as before.
         if variant is not None and "#EXT-X-STREAM-INF" in playlist_text:
@@ -393,6 +564,25 @@ class HLSProxy:
             200,
             "application/vnd.apple.mpegurl",
             body_bytes,
+        )
+
+    @staticmethod
+    def _looks_like_playlist(abs_url: str) -> bool:
+        """Heuristic: is this URI a nested playlist (rewrite) or a segment?
+
+        Extension check (covers ~99%). Extension-less URIs (query-signed
+        manifests like /manifest?token=...) route to /playlist.m3u8 anyway,
+        and _handle_playlist decides by Content-Type/body — so a wrong guess
+        here self-corrects at fetch time instead of breaking relative URLs.
+        """
+        low = abs_url.lower()
+        if low.endswith(".m3u8") or ".m3u8?" in low:
+            return True
+        # No extension: assume playlist; the fetch-time Content-Type check
+        # streams it as bytes if it turns out to be a segment.
+        parsed = urllib.parse.urlparse(abs_url)
+        return not parsed.path.lower().endswith(
+            (".ts", ".m4s", ".mp4", ".aac", ".mp3", ".key", ".iv")
         )
 
     def _rewrite_m3u8(
@@ -491,7 +681,10 @@ class HLSProxy:
                     output_lines.append(line)
                 continue
 
-            if stripped.startswith("#EXT-X-KEY"):
+            if stripped.startswith(("#EXT-X-KEY", "#EXT-X-SESSION-KEY")):
+                # SESSION-KEY carries the same URI= shape (init vectors for
+                # the whole session); it used to fall through verbatim,
+                # leaking the original key URL without Referer.
                 match = KEY_URI_PATTERN.search(stripped)
                 if match:
                     key_url = match.group(1)
@@ -522,7 +715,7 @@ class HLSProxy:
                 stream_inf_line = None
                 continue
 
-            if abs_seg_url.endswith(".m3u8") or ".m3u8?" in abs_seg_url:
+            if self._looks_like_playlist(abs_seg_url):
                 output_lines.append(_proxy_sub(abs_seg_url))
             else:
                 proxy_seg = (
@@ -572,6 +765,9 @@ class HLSProxy:
                     "content-length",
                     "accept-ranges",
                     "content-range",
+                    "etag",
+                    "last-modified",
+                    "cache-control",
                 ):
                     writer.write(f"{k}: {v}\r\n".encode("latin1"))
 
@@ -596,20 +792,52 @@ class HLSProxy:
         finally:
             await resp.aclose()
 
+    async def _send_bytes(self, writer: asyncio.StreamWriter, resp) -> None:
+        """Stream an already-fetched upstream response body to the player.
+
+        Used when _handle_playlist discovers the URL wasn't a playlist after
+        all (extension-less segment misrouted by the rewrite heuristic):
+        re-fetching through _handle_passthrough would loop, so stream the
+        bytes we already hold.
+        """
+        try:
+            writer.write(
+                f"HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\n"
+                f"Content-Length: {len(resp.content)}\r\nConnection: close\r\n\r\n".encode(
+                    "latin1"
+                )
+                + resp.content
+            )
+            await writer.drain()
+        except (ConnectionResetError, BrokenPipeError):
+            pass
+
     async def _send_response(
         self,
         writer: asyncio.StreamWriter,
         status_code: int,
         content_type: str,
         body: bytes,
+        reason_phrase: str | None = None,
     ):
         reasons = {
             200: "OK",
+            206: "Partial Content",
+            301: "Moved Permanently",
+            302: "Found",
             400: "Bad Request",
+            403: "Forbidden",
             404: "Not Found",
+            405: "Method Not Allowed",
+            416: "Range Not Satisfiable",
             500: "Internal Server Error",
+            502: "Bad Gateway",
+            503: "Service Unavailable",
         }
-        reason = reasons.get(status_code, "Unknown")
+        # Prefer the upstream's own phrase when forwarding (e.g. a CDN's
+        # custom 502 text) over our table; "Unknown" wire output made strict
+        # players reject forwarded errors.
+        reason = reason_phrase or reasons.get(status_code, "Unknown")
 
         headers = (
             f"HTTP/1.1 {status_code} {reason}\r\n"

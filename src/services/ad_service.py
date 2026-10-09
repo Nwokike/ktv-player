@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import logging
 from collections.abc import Callable
 
@@ -254,14 +255,18 @@ class AdService:
             await self.preload_interstitial(on_close)
 
     async def close(self):
-        """Cancel pending retries and release resources."""
+        """Cancel pending retries, await the cancellation, release resources."""
         self._is_shutting_down = True
         for ad in (self.interstitial, self._shown_interstitial):
             if ad is not None:
                 _release_service(self.page.services, ad)
         retry = getattr(self, "_retry_task", None)
+        self._retry_task = None
         if retry is not None and not retry.done():
             retry.cancel()
+            # Join so the caller (app close) never tears the loop down
+            # under a still-unwinding retry sleep.
+            await asyncio.gather(retry, return_exceptions=True)
         self.interstitial = None
         self._shown_interstitial = None
 
@@ -383,7 +388,5 @@ class AdService:
 def _release_service(services: list, item) -> None:
     """Drop a spent service from the keep-alive list so Flet's service GC
     can unregister it; harmless if it is already gone (Sherlock pattern)."""
-    try:
+    with contextlib.suppress(ValueError, AttributeError):
         services.remove(item)
-    except (ValueError, AttributeError):
-        pass

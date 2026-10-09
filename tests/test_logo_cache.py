@@ -68,3 +68,61 @@ class TestGetCachedLogo:
     def test_none_for_nonexistent(self):
         result = get_cached_logo("http://nonexistent.example.com/logo.png")
         assert result is None
+
+
+class TestPhase4LogoHardening:
+    def test_non_http_scheme_rejected(self):
+        import asyncio
+
+        import services.logo_cache as lc
+
+        assert asyncio.run(lc.download_logo("file:///etc/passwd")) is None
+        assert asyncio.run(lc.download_logo("ftp://h/x.png")) is None
+        assert asyncio.run(lc.download_logo("  ")) is None
+
+    def test_enqueue_dedupes_queued_urls(self):
+        import services.logo_cache as lc
+
+        url = "http://dedup.example/a.png"
+        lc._queued.clear()
+        lc._in_flight.clear()
+        lc._queued.add(url)
+        # Second enqueue while queued: no duplicate put_nowait.
+        before = len(lc._queued)
+        lc.enqueue_logo_download(url)
+        assert len(lc._queued) == before
+        lc._queued.clear()
+
+    def test_enqueue_respects_failed_ttl(self):
+        import time
+
+        import services.logo_cache as lc
+
+        url = "http://failed.example/b.png"
+        lc._failed_logos[url] = time.time()
+        lc._queued.clear()
+        lc.enqueue_logo_download(url)
+        assert url not in lc._queued
+        lc._failed_logos.pop(url, None)
+
+    def test_download_uses_positive_cache(self):
+        import asyncio
+        import os
+        import tempfile
+        from unittest import mock
+
+        import services.logo_cache as lc
+
+        with (
+            tempfile.TemporaryDirectory() as d,
+            mock.patch.object(lc, "_cache_dir", return_value=d),
+        ):
+            # Seed a fresh cached file directly.
+            import hashlib
+
+            name = hashlib.sha256(b"http://hit.example/c.png").hexdigest()[:16]
+            p = os.path.join(d, name + ".png")
+            with open(p, "wb") as f:
+                f.write(b"\x89PNG\r\n\x1a\n" + b"0" * 100)
+            result = asyncio.run(lc.download_logo("http://hit.example/c.png"))
+            assert result == p

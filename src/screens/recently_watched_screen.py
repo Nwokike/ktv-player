@@ -1,49 +1,34 @@
 """RecentlyWatchedScreen — full vertical list of all watched streams."""
 
+from collections.abc import Callable
+
 import flet as ft
 from flet import Control
 
-from core.constants import LBL_RECENTLY_WATCHED
 from core.theme import AppColors
-from services.logo_cache import get_cached_logo
-
-
-def _display_name(url: str) -> str:
-    import os
-
-    name = os.path.splitext(os.path.basename(url))[0]
-    return name if name else "Stream"
+from utils.history import resolve_entry
 
 
 def RecentlyWatchedScreen(
-    history: list[dict],
+    history: list[dict | str],
     channels_map: dict[str, dict],
-    on_play,
+    on_play: Callable[..., None],
+    on_back: Callable[[], None] | None = None,
+    page=None,
 ) -> Control:
-    """Full-screen view of all history items."""
+    """Body of the /recently-watched view (title-only rows; raw URLs are
+    never rendered — stream URLs commonly contain user:pass@ credentials).
 
-    def _make_card(entry: dict) -> Control:
-        url = entry.get("url", "")
-        # Use stored title, fall back to channels_map, then _display_name
-        if isinstance(entry, dict):
-            stored_title = entry.get("title")
-            title = (
-                stored_title
-                or channels_map.get(url, {}).get("name")
-                or _display_name(url)
-            )
-            logo = channels_map.get(url, {}).get("logo", "") or entry.get("logo", "")
-        else:
-            # Legacy string entry
-            stored_title = None
-            title = channels_map.get(url, {}).get("name") or _display_name(url)
-            logo = channels_map.get(url, {}).get("logo", "")
+    The AppBar lives on the View (View(appbar=...), set by the caller) — not
+    inside this Column, where it gets no route-integrated back behavior.
+    on_back closes the overlay (empty-state CTA uses it too). page is an
+    explicit prop (no context.page access: testable, no RuntimeError)."""
 
-        logo_src = logo or "/icon.png"
-        if not logo_src.startswith("/"):
-            cached = get_cached_logo(logo_src)
-            if cached:
-                logo_src = cached
+    def _make_card(entry: dict | str) -> Control | None:
+        resolved = resolve_entry(entry, channels_map)
+        if resolved is None:
+            return None
+        url, stored_title, title, logo_src = resolved
 
         return ft.Container(
             content=ft.Row(
@@ -54,6 +39,7 @@ def RecentlyWatchedScreen(
                         height=48,
                         fit=ft.BoxFit.CONTAIN,
                         border_radius=8,
+                        placeholder_src="/icon.png",
                         error_content=ft.Icon(ft.Icons.TV, size=22),
                     ),
                     ft.Column(
@@ -62,13 +48,6 @@ def RecentlyWatchedScreen(
                                 title,
                                 size=13,
                                 weight=ft.FontWeight.W_500,
-                                max_lines=1,
-                                overflow=ft.TextOverflow.ELLIPSIS,
-                            ),
-                            ft.Text(
-                                url if url.startswith("/") else url[:60],
-                                size=10,
-                                color=AppColors.grey_dim(),
                                 max_lines=1,
                                 overflow=ft.TextOverflow.ELLIPSIS,
                             ),
@@ -87,40 +66,43 @@ def RecentlyWatchedScreen(
         )
 
     if not history:
+        empty_controls: list = [
+            ft.Icon(ft.Icons.HISTORY, size=48, color=AppColors.grey_dim()),
+            ft.Text("No watch history yet", size=14, color=AppColors.grey_dim()),
+        ]
+        if callable(on_back):
+            empty_controls.append(
+                ft.FilledButton(
+                    content=ft.Text("Browse channels"),
+                    on_click=lambda e: on_back(),
+                    autofocus=True,
+                )
+            )
         body = ft.Container(
             expand=True,
             alignment=ft.Alignment.CENTER,
             content=ft.Column(
-                controls=[
-                    ft.Icon(ft.Icons.HISTORY, size=48, color=AppColors.grey_dim()),
-                    ft.Text(
-                        "No watch history yet", size=14, color=AppColors.grey_dim()
-                    ),
-                ],
+                controls=empty_controls,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 spacing=8,
             ),
         )
     else:
-        cards = [_make_card(entry) for entry in history]
+        cards = [c for c in (_make_card(entry) for entry in history) if c is not None]
         body = ft.ListView(
             controls=cards,
             expand=True,
             spacing=4,
             padding=ft.Padding(16, 8, 16, 16),
+            build_controls_on_demand=True,
+            cache_extent=200,
         )
 
     from components.banner_ad import build_banner_ad
 
-    page_obj = ft.context.page
-    rw_banner = build_banner_ad(page_obj)
+    rw_banner = build_banner_ad(page)
 
-    controls = [
-        ft.AppBar(
-            title=ft.Text(LBL_RECENTLY_WATCHED, weight=ft.FontWeight.BOLD),
-            center_title=False,
-        ),
-    ]
+    controls = []
     if rw_banner:
         controls.append(rw_banner)
     controls.append(body)

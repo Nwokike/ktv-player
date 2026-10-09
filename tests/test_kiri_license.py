@@ -177,8 +177,31 @@ async def test_checkout_reports_the_worker_message(store):
         ),
         pytest.raises(LicenseUnavailable) as caught,
     ):
-        await svc.checkout("lifetime", "nope")
+        # Valid email shape: the request must reach the mocked Worker (400
+        # is transient now — client-side validation rejects "nope" first).
+        await svc.checkout("lifetime", "user@example.com")
     assert "email_required" in str(caught.value)
+    # 400 is transient, never a refusal.
+    assert caught.value.status_code == 400
+    assert caught.value.is_refusal is False
+
+
+@pytest.mark.asyncio
+async def test_checkout_rejects_invalid_email_without_network(store):
+    """Client-side validation fires pre-POST (no request is made)."""
+    svc = KiriLicenseService(public_key=PUBLIC_KEY)
+    calls: list = []
+    client = _http("post", _response({}), calls)
+    with (
+        mock.patch(
+            "services.kiri_license.get_http_client",
+            return_value=client,
+        ),
+        pytest.raises(LicenseUnavailable) as caught,
+    ):
+        await svc.checkout("lifetime", "nope")
+    assert "valid email" in str(caught.value)
+    assert calls == []
 
 
 @pytest.mark.asyncio
@@ -355,3 +378,115 @@ async def test_a_lapsed_kiri_license_drops_premium(store):
     store["kiri_token"] = TOKENS["EXPIRED"]
     await svc.load_local()
     assert state.is_premium is False
+
+
+# -- Phase 5: revocation durability + typed errors + retry gate -------------
+
+
+@pytest.mark.asyncio
+async def test_refusal_clears_db_token(store):
+    """A 403 refusal wipes the cached token from disk, not just memory."""
+    svc = KiriLicenseService(public_key=PUBLIC_KEY)
+    store["kiri_token"] = TOKENS["LIFETIME"]
+    svc.claims = mock.Mock()
+    svc._unlocked = True
+    with (
+        mock.patch(
+            "services.kiri_license.get_http_client",
+            return_value=_http("post", _response({"error": "forbidden"}, 403), []),
+        ),
+        pytest.raises(LicenseUnavailable) as caught,
+    ):
+        await svc.restore("KIRI-L-x")
+    assert caught.value.status_code == 403
+    assert caught.value.is_refusal is True
+    assert store.get("kiri_token") == ""
+    assert svc.unlocked is False
+
+
+@pytest.mark.asyncio
+async def test_400_is_transient_not_refusal(store):
+    """A malformed-request 400 must never revoke a standing unlock."""
+    svc = KiriLicenseService(public_key=PUBLIC_KEY)
+    store["kiri_token"] = TOKENS["LIFETIME"]
+    svc._unlocked = True
+    with (
+        mock.patch(
+            "services.kiri_license.get_http_client",
+            return_value=_http("post", _response({"error": "bad"}, 400), []),
+        ),
+        pytest.raises(LicenseUnavailable) as caught,
+    ):
+        await svc.restore("KIRI-L-x")
+    assert caught.value.status_code == 400
+    assert caught.value.is_refusal is False
+    assert svc.unlocked is True
+    assert store.get("kiri_token") == TOKENS["LIFETIME"]
+
+
+@pytest.mark.asyncio
+async def test_transient_failure_retries_once_then_succeeds(store):
+    """One blip (timeout then success) keeps the unlock — no revoke."""
+    svc = KiriLicenseService(public_key=PUBLIC_KEY)
+    calls: list = []
+
+    from services.iptv_service import PlaylistFetchError  # noqa (name check only)
+
+    async def flaky_post(url, **kwargs):
+        calls.append(url)
+        if len(calls) == 1:
+            raise TimeoutError("blip")
+        response = mock.Mock()
+        response.status_code = 200
+        response.json.return_value = {
+            "status": "active",
+            "recovery_id": "KIRI-L-x",
+            "product": "lifetime",
+            "token": TOKENS["LIFETIME"],
+        }
+        return response
+
+    client = mock.Mock()
+    client.post = flaky_post
+    with mock.patch("services.kiri_license.get_http_client", return_value=client):
+        status = await svc.restore("KIRI-L-x")
+    assert len(calls) == 2
+    assert status.status == "active"
+    assert svc.unlocked is True
+
+
+@pytest.mark.asyncio
+async def test_cached_rejection_clears_db_token(store):
+    """apply_cached_token with a bad token clears it from disk (was: failed
+    every boot forever)."""
+    svc = KiriLicenseService(public_key=PUBLIC_KEY)
+    store["kiri_token"] = "v1.bad.payload"
+    assert await svc.apply_cached_token() is False
+    assert store.get("kiri_token") == ""
+
+
+@pytest.mark.asyncio
+async def test_catalog_non_dict_payload_rejected(store):
+    svc = KiriLicenseService(public_key=PUBLIC_KEY)
+    with (
+        mock.patch(
+            "services.kiri_license.get_http_client",
+            return_value=_http("get", _response(["not", "a", "dict"]), []),
+        ),
+        pytest.raises(LicenseUnavailable),
+    ):
+        await svc.fetch_catalog(force=True)
+
+
+@pytest.mark.asyncio
+async def test_catalog_bad_amount_rejected(store):
+    svc = KiriLicenseService(public_key=PUBLIC_KEY)
+    body = {"products": [{"id": "lifetime", "amount": "free", "currency": "USD"}]}
+    with (
+        mock.patch(
+            "services.kiri_license.get_http_client",
+            return_value=_http("get", _response(body), []),
+        ),
+        pytest.raises(LicenseUnavailable),
+    ):
+        await svc.fetch_catalog(force=True)

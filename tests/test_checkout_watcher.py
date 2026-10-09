@@ -350,3 +350,125 @@ def test_premium_subtitle_is_honest_about_renewal():
     assert _premium_subtitle(True, lifetime, has_ads=False) == (
         "Premium channels unlocked · thank you!"
     )
+
+
+class TestPhase5WatcherResilience:
+    @pytest.mark.asyncio
+    async def test_generic_exception_continues_not_kills(self, fast_watcher):
+        """A _store DB error (or any bug) mid-watch must not end the loop."""
+        from unittest import mock
+
+        from services import kiri_license
+
+        store = {}
+        dbm = _dbm(store)
+        urls = []
+        script = [Exception("db blew up"), {"body": _active_body()}]
+        premium = _service()
+        with (
+            mock.patch.object(
+                kiri_license, "get_http_client", return_value=_http(script, urls)
+            ),
+            mock.patch.object(kiri_license, "db_manager", dbm),
+            mock.patch("services.premium_service.notify") as notify,
+        ):
+            await premium._checkout_watch_loop(RECOVERY)
+        assert state.is_premium is True
+        notify.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_hard_refusal_aborts_fast(self, fast_watcher):
+        """402/403 stop the watcher immediately (no 15-min poll)."""
+        from unittest import mock
+
+        from services import kiri_license
+
+        store = {}
+        dbm = _dbm(store)
+        urls = []
+        script = [{"status": 403, "body": {"error": "forbidden"}}]
+        premium = _service()
+        with (
+            mock.patch.object(
+                kiri_license, "get_http_client", return_value=_http(script, urls)
+            ),
+            mock.patch.object(kiri_license, "db_manager", dbm),
+            mock.patch("services.premium_service.notify") as notify,
+        ):
+            await premium._checkout_watch_loop(RECOVERY)
+        assert len(urls) == 1
+        assert state.is_premium is False
+        notify.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_manual_restore_stops_watcher(self, fast_watcher):
+        """A parallel successful restore ends the watch early."""
+        from unittest import mock
+
+        from services import kiri_license
+
+        store = {"kiri_recovery_id": RECOVERY}
+        dbm = _dbm(store)
+        urls = []
+        premium = _service()
+        with (
+            mock.patch.object(
+                kiri_license, "get_http_client", return_value=_http([], urls)
+            ),
+            mock.patch.object(kiri_license, "db_manager", dbm),
+        ):
+            # Simulate the parallel restore landing first.
+            state.is_premium = True
+            premium.license._unlocked = True
+            await premium._checkout_watch_loop(RECOVERY)
+        assert urls == []
+
+
+class TestPhase5Supervision:
+    @pytest.mark.asyncio
+    async def test_reconcile_loop_survives_failure(self, monkeypatch):
+        """One failed reconcile must not kill the hourly task."""
+        import asyncio
+
+        premium = _service()
+        calls = {"n": 0}
+
+        async def _boom():
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise RuntimeError("transient")
+            raise asyncio.CancelledError()
+
+        monkeypatch.setattr(premium, "reconcile", _boom)
+        monkeypatch.setattr("services.premium_service.RECONCILE_INTERVAL", 0.01)
+        with pytest.raises(asyncio.CancelledError):
+            await premium._reconcile_loop()
+        assert calls["n"] >= 2
+
+    @pytest.mark.asyncio
+    async def test_reconcile_stamps_after_work(self):
+        """DB failure reading recovery_id: timestamped, no bubble, kept verdict."""
+        from unittest import mock
+
+        premium = _service()
+        premium.license = mock.MagicMock()
+        premium.license.recovery_id = mock.AsyncMock(side_effect=OSError("disk gone"))
+        before = state.is_premium
+        await premium.reconcile()  # must not raise
+        assert state.is_premium is before
+
+    def test_recompute_notifies_only_on_flip(self):
+        from unittest import mock
+
+        premium = _service()
+        premium.license = mock.MagicMock()
+        premium.license.unlocked = False
+        state.is_premium = False
+        cb = mock.Mock()
+        premium.add_listener(cb)
+        premium._recompute_premium()
+        cb.assert_not_called()
+        premium.license.unlocked = True
+        premium._recompute_premium()
+        cb.assert_called_once()
+        state.is_premium = False

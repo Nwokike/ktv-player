@@ -22,9 +22,9 @@ def _clean_state():
 
 def test_enqueue_skipped_while_offline():
     lc.state.is_online = False
-    queue_before = lc._liveliness_queue
+    pool_before = lc._pool
     lc.enqueue_liveliness_check("http://offline.example/a")
-    assert lc._liveliness_queue is queue_before  # queue not even created
+    assert lc._pool is pool_before  # pool not even created
     assert "http://offline.example/a" not in lc._in_flight
 
 
@@ -44,5 +44,7 @@ async def test_check_single_offline_returns_without_caching():
     lc.state.is_online = False
     checker = lc.LivelinessChecker(None)
     result = await checker.check_single("http://offline.example/b")
-    assert result == ("http://offline.example/b", False)
+    # Tri-state unknown (Phase 4): offline returns None, not False — the dot
+    # stays neutral, and nothing is cached either way.
+    assert result == ("http://offline.example/b", None)
     assert liveliness_cache.get("http://offline.example/b") is None

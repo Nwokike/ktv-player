@@ -1,5 +1,9 @@
 <p align="center">
-  <img src="src/assets/icon.svg" alt="KTV Player" width="140" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="src/assets/icon_white.svg">
+    <source media="(prefers-color-scheme: light)" srcset="src/assets/icon.svg">
+    <img src="src/assets/icon.svg" alt="KTV Player" width="140" />
+  </picture>
 </p>
 
 <h1 align="center">KTV Player</h1>

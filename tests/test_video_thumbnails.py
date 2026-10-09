@@ -13,7 +13,7 @@ from services.local_scanner import LocalVideo
 
 @pytest.fixture(autouse=True)
 def _tmp_cache(tmp_path, monkeypatch):
-    monkeypatch.setattr(video_thumbnails, "THUMBNAIL_CACHE_DIR", str(tmp_path))
+    monkeypatch.setattr(video_thumbnails, "_cache_dir", lambda: str(tmp_path))
     return tmp_path
 
 
@@ -98,9 +98,10 @@ async def test_prewarm_fills_videos_and_updates_page(monkeypatch, _tmp_cache):
     page = SimpleNamespace(update_calls=0)
     page.update = lambda: setattr(page, "update_calls", page.update_calls + 1)
 
-    filled = await video_thumbnails.prewarm_thumbnails(videos, page)
+    filled, available = await video_thumbnails.prewarm_thumbnails(videos, page)
 
     assert filled == 3
+    assert available == 3
     assert all(v.thumbnail for v in videos)
     assert page.update_calls == 1
 
@@ -114,10 +115,13 @@ def test_video_card_shows_image_when_thumbnail_exists():
 
 
 def test_video_card_falls_back_to_icon_without_thumbnail():
+    # Reactive thumbnail (Phase 6): the Image is ALWAYS built — with the
+    # movie icon as placeholder_src + error_content — so a prewarm landing
+    # later swaps the frame in place instead of needing a rebuild.
     v = _video()
     card = VideoCard(video=v, on_play=lambda p: None)
     images = _walk(card)
-    assert not any(isinstance(c, ft.Image) for c in images)
+    assert any(isinstance(c, ft.Image) for c in images)
     assert any(isinstance(c, ft.Icon) for c in images)
 
 
@@ -136,3 +140,56 @@ def _walk(c, seen=None):
         else:
             _walk(child, seen)
     return seen
+
+
+class TestPhase6ThumbnailHardening:
+    def test_malformed_model_isolated(self):
+        import asyncio
+        from types import SimpleNamespace
+
+        import services.video_thumbnails as vt
+
+        bad = SimpleNamespace()  # no path/thumbnail attrs at all
+        good = SimpleNamespace(
+            path="/v/a.mp4", size=1, modified=1.0, thumbnail="", content_uri=""
+        )
+        filled, available = asyncio.run(vt.prewarm_thumbnails([bad, good], None))
+        assert (filled, available) == (0, 0)
+
+    def test_return_tuple_semantics(self):
+        import asyncio
+
+        import services.video_thumbnails as vt
+
+        v = SimpleNamespace(
+            path="/v/b.mp4", size=1, modified=1.0, thumbnail="x.jpg", content_uri=""
+        )
+        filled, available = asyncio.run(vt.prewarm_thumbnails([v], None))
+        assert (filled, available) == (0, 1)
+
+    def test_purge_bounds_growth(self, tmp_path, monkeypatch):
+        import os
+        import time
+
+        import services.video_thumbnails as vt
+
+        monkeypatch.setattr(vt, "_cache_dir", lambda: str(tmp_path))
+        monkeypatch.setattr(vt, "_MAX_THUMBNAILS", 3)
+        for i in range(5):
+            p = tmp_path / f"{i:032d}.jpg"
+            p.write_bytes(b"\xff\xd8\xff" + bytes([i]) * 10)
+            old = time.time() - (100 - i)
+            os.utime(p, (old, old))
+        removed = vt.purge_stale_thumbnails(max_age=10**9)
+        assert removed == 2
+        assert len([f for f in os.listdir(tmp_path) if f.endswith(".jpg")]) == 3
+
+    def test_tmp_debris_purged(self, tmp_path, monkeypatch):
+        import os
+
+        import services.video_thumbnails as vt
+
+        monkeypatch.setattr(vt, "_cache_dir", lambda: str(tmp_path))
+        (tmp_path / "abc.tmp").write_bytes(b"junk")
+        assert vt.purge_stale_thumbnails() == 1
+        assert not os.path.exists(tmp_path / "abc.tmp")

@@ -60,6 +60,10 @@ class TestFullscreenToastRouting:
         container, _text = self._register()
         notifications.set_fullscreen_toast_active(True)
         notifications.notify("fade away")
-        await asyncio.sleep(0.15)
-        assert container.visible is False
+        # Await the scheduled hide task itself instead of sleeping past it:
+        # deterministic, no 3x timing margin.
+        task = notifications._hide_task
+        assert task is not None
+        await asyncio.wait_for(asyncio.shield(task), timeout=2)
         notifications.set_fullscreen_toast_active(False)
+        assert container.visible is False

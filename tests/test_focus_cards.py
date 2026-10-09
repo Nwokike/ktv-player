@@ -120,23 +120,30 @@ def test_recently_watched_card_on_click_fires_on_play():
     assert fired == ["http://a"]
 
 
-# --- VideoCard ---
+# --- VideoCard (sibling menu-button layout) ---
+
+
+def _play_surface(card):
+    from tests.flet_tree import walk as _walk
+
+    for c in _walk(card):
+        if isinstance(c, ft.FilledButton) and callable(getattr(c, "on_click", None)):
+            return c
+    raise AssertionError("no play surface in card")
 
 
 def test_video_card_is_a_filled_button():
     video = LocalVideo(name="test.mp4", path="/path/test.mp4", size=1024)
     card = VideoCard(video=video, on_play=lambda p: None)
-    assert isinstance(card, ft.FilledButton), (
-        f"VideoCard must return a FilledButton; got {type(card).__name__}"
-    )
+    assert _play_surface(card) is not None
 
 
-def test_video_card_preserves_height_and_radius():
+def test_video_card_preserves_radius():
     video = LocalVideo(name="t.mp4", path="/p/t.mp4", size=10)
     card = VideoCard(video=video, on_play=lambda p: None)
-    assert card.height == 140
-    assert card.style is not None
-    shape = card.style.shape
+    surface = _play_surface(card)
+    assert surface.style is not None
+    shape = surface.style.shape
     resolved = shape if not hasattr(shape, "default") else shape.default
     if hasattr(resolved, "radius"):
         assert resolved.radius == 16
@@ -146,5 +153,5 @@ def test_video_card_on_click_fires_on_play_with_path():
     fired = []
     video = LocalVideo(name="t.mp4", path="/p/t.mp4", size=10)
     card = VideoCard(video=video, on_play=lambda p: fired.append(p))
-    card.on_click(None)
+    _play_surface(card).on_click(None)
     assert fired == ["/p/t.mp4"]

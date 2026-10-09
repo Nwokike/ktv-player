@@ -1,5 +1,6 @@
 """OnboardingScreen — first-launch country select + terms acceptance."""
 
+import logging
 from collections.abc import Awaitable, Callable
 from typing import Any
 
@@ -7,6 +8,7 @@ import flet as ft
 from flet import Control
 
 from components.loading_state import LoadingState
+from components.offline_flow import OfflineFlow
 from core.constants import (
     LBL_CONNECTING,
     LBL_PLEASE_ACCEPT_TERMS,
@@ -23,7 +25,9 @@ from core.theme import AppColors
 from hooks.use_storage import Storage, use_storage
 from state.app_state import AppStateCtx
 from utils.channels import extract_country_dicts
-from utils.notifications import notify_warning
+from utils.notifications import notify_error, notify_warning
+
+logger = logging.getLogger(__name__)
 
 
 def can_submit(country: str, terms: bool) -> bool:
@@ -73,8 +77,13 @@ def OnboardingScreen(
     """
     selected_country, set_selected_country = ft.use_state("")
     terms_accepted, set_terms_accepted = ft.use_state(False)
-    is_loading, set_is_loading = ft.use_state(False)
+    # Start loading only when a probe can actually run: without a prober
+    # there is nothing to wait for, and starting True would flash the
+    # spinner for one frame before the form appears.
+    is_loading, set_is_loading = ft.use_state(prober is not None)
     is_offline, set_is_offline = ft.use_state(False)
+    is_saving, set_is_saving = ft.use_state(False)
+    probe_error, set_probe_error = ft.use_state("")
     storage = use_storage()
     state = ft.use_context(AppStateCtx)
 
@@ -84,11 +93,12 @@ def OnboardingScreen(
             try:
                 await prober()
             except Exception:
-                pass
+                logger.debug("Onboarding channel probe failed", exc_info=True)
         return bool(state.channels)
 
     async def _run_probe():
         set_is_loading(True)
+        set_probe_error("")
         try:
             ok = await _load_and_probe()
             set_is_offline(not ok)
@@ -97,37 +107,99 @@ def OnboardingScreen(
 
     ft.on_mounted(_run_probe)
 
-    # Derive country list from loaded channels, falling back to static prop
+    # Derive country list from loaded channels, falling back to static prop.
+    # extract always appends "Other", so `or` can never fire on its result —
+    # the emptiness check must be on state.channels itself.
     available_countries = ft.use_memo(
-        lambda: extract_country_dicts(state.channels) or countries,
+        lambda: extract_country_dicts(state.channels)
+        if state.channels
+        else countries,
         [state.channels_hash],
     )
+
+    # A re-probe can shrink the list (fewer countries this launch): drop a
+    # selection that no longer exists instead of submitting a ghost.
+    def _clamp_selection():
+        names = {c.get("name", "") for c in available_countries}
+        if selected_country and selected_country not in names:
+            set_selected_country("")
+
+    ft.use_effect(_clamp_selection, [available_countries])
 
     async def _on_retry(e):
         set_is_offline(False)
         await _run_probe()
 
     async def _on_skip(e):
-        await _persist_offline_defaults(storage, state)
+        if is_saving:
+            return
+        set_is_saving(True)
+        try:
+            await _persist_offline_defaults(storage, state)
+        except Exception:
+            logger.exception("Onboarding offline-defaults persist failed")
+            notify_error("Could not save settings — try again.")
+            return
+        finally:
+            set_is_saving(False)
         await _maybe_invoke(on_complete)
 
     async def _on_submit(e):
+        if is_saving:
+            return
         if not terms_accepted:
             _notify_warning(LBL_PLEASE_ACCEPT_TERMS)
             return
         if not selected_country:
             _notify_warning(LBL_PLEASE_SELECT_COUNTRY)
             return
-        await _persist_terms_and_country(storage, state, selected_country)
+        set_is_saving(True)
+        try:
+            await _persist_terms_and_country(storage, state, selected_country)
+        except Exception:
+            logger.exception("Onboarding submit persist failed")
+            notify_error("Could not save settings — try again.")
+            return
+        finally:
+            set_is_saving(False)
         await _maybe_invoke(on_complete)
 
     if is_loading:
         return LoadingState(label=LBL_CONNECTING)
 
     if is_offline:
-        from components.offline_flow import OfflineFlow as _OfflineFlow
+        return OfflineFlow(on_retry=_on_retry, on_skip=_on_skip)
 
-        return _OfflineFlow(on_retry=_on_retry, on_skip=_on_skip)
+    if not available_countries:
+        return ft.Container(
+            expand=True,
+            alignment=ft.Alignment.CENTER,
+            content=ft.Column(
+                controls=[
+                    ft.Icon(ft.Icons.PUBLIC_OFF, size=48),
+                    ft.Text(
+                        "No countries found yet.",
+                        size=16,
+                        weight=ft.FontWeight.W_600,
+                        text_align=ft.TextAlign.CENTER,
+                    ),
+                    ft.Text(
+                        probe_error or LBL_CONNECTING,
+                        size=13,
+                        color=AppColors.grey_dim(),
+                        text_align=ft.TextAlign.CENTER,
+                    ),
+                    ft.OutlinedButton(
+                        "Retry",
+                        icon=ft.Icons.REFRESH,
+                        on_click=_on_retry,
+                        autofocus=True,
+                    ),
+                ],
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                spacing=12,
+            ),
+        )
 
     return _build_online_form(
         countries=available_countries,
@@ -136,6 +208,7 @@ def OnboardingScreen(
         terms_accepted=terms_accepted,
         on_terms_toggle=set_terms_accepted,
         on_submit=_on_submit,
+        is_saving=is_saving,
     )
 
 
@@ -158,15 +231,27 @@ def _build_online_form(
     terms_accepted: bool,
     on_terms_toggle: Callable[[bool], None],
     on_submit: Callable[[Any], Awaitable[None]],
+    is_saving: bool = False,
 ) -> Control:
     """Build the online country + terms form."""
-    country_list = ft.ListView(
-        controls=[_country_tile(c, selected_country, on_select) for c in countries],
-        height=180,
+    # Flat Column under a size cap: a nested ListView inside the outer
+    # scroll traps wheel/D-pad scroll events inside the 180px box. The
+    # country list is short (<= 178 rows, small tiles) and the outer form
+    # already scrolls, so a bounded column is the honest layout.
+    tiles = [_country_tile(c, selected_country, on_select) for c in countries]
+    capped = tiles[:200]
+    country_list = ft.Column(
+        controls=capped,
         spacing=2,
-        padding=5,
-        build_controls_on_demand=True,
     )
+
+    ready = can_submit(selected_country, terms_accepted)
+    if not selected_country:
+        hint = "Pick your country above to continue."
+    elif not terms_accepted:
+        hint = "Accept the usage agreement to continue."
+    else:
+        hint = ""
 
     return ft.Container(
         expand=True,
@@ -180,7 +265,10 @@ def _build_online_form(
                             src="/icon.svg",
                             width=90,
                             height=90,
-                            color=ft.Colors.ON_SURFACE,
+                            error_content=ft.Icon(
+                                ft.Icons.LIVE_TV_ROUNDED, size=64
+                            ),
+                            semantics_label="KTV Player",
                         ),
                         ft.Text(
                             LBL_WELCOME,
@@ -243,11 +331,26 @@ def _build_online_form(
                 ft.Divider(height=20, color=ft.Colors.TRANSPARENT),
                 ft.FilledButton(
                     content=ft.Text(
-                        LBL_START_WATCHING, size=16, weight=ft.FontWeight.W_600
+                        LBL_START_WATCHING if not is_saving else "Saving...",
+                        size=16,
+                        weight=ft.FontWeight.W_600,
                     ),
                     on_click=on_submit,
-                    disabled=not can_submit(selected_country, terms_accepted),
+                    disabled=not ready or is_saving,
                     width=float("inf"),
+                ),
+                *(
+                    [
+                        ft.Text(
+                            hint,
+                            size=12,
+                            italic=True,
+                            color=AppColors.grey_dim(),
+                            text_align=ft.TextAlign.CENTER,
+                        )
+                    ]
+                    if hint and not is_saving
+                    else []
                 ),
                 ft.Container(height=30),
             ],

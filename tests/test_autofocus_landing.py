@@ -9,7 +9,6 @@ import inspect
 import flet as ft
 
 from components.empty_state import EmptyState
-from hooks.use_autofocus import use_autofocus
 
 
 def _source(obj) -> str:
@@ -55,12 +54,14 @@ def test_local_scan_again_autofocused():
     )
 
 
-def test_settings_switch_autofocused():
+def test_settings_switch_not_autofocused():
+    """The Dark Mode Switch must NOT steal focus: it sits mid-list and
+    autofocus would drop the D-pad landing in the middle of the tab."""
     from screens import settings_screen
 
     source = _source(settings_screen)
-    assert _has_autofocus(source, "ft.Switch"), (
-        "SettingsScreen Dark Mode Switch must carry autofocus=True"
+    assert not _has_autofocus(source, "ft.Switch"), (
+        "SettingsScreen Dark Mode Switch must not carry autofocus=True"
     )
 
 
@@ -83,7 +84,7 @@ def test_empty_state_autofocus_action_propagates():
         autofocus_action=True,
     )
     buttons = [
-        c for c in [es] + list(es.content.controls) if isinstance(c, ft.FilledButton)
+        c for c in [es, *list(es.content.controls)] if isinstance(c, ft.FilledButton)
     ]
     assert buttons, "EmptyState(action_label=...) must render a FilledButton"
     assert buttons[0].autofocus is True, (
@@ -99,11 +100,18 @@ def test_empty_state_default_no_autofocus():
         on_action=lambda e: None,
     )
     buttons = [
-        c for c in [es] + list(es.content.controls) if isinstance(c, ft.FilledButton)
+        c for c in [es, *list(es.content.controls)] if isinstance(c, ft.FilledButton)
     ]
     assert buttons
     assert buttons[0].autofocus is False
 
 
-def test_use_autofocus_hook_exists():
-    assert callable(use_autofocus)
+def test_autofocus_uses_native_prop_not_dead_hook():
+    """The use_autofocus hook was deleted (Phase 3): screens use the native
+    autofocus=True control prop directly. This pins the deletion."""
+    import pathlib
+
+    import hooks.use_focus_scope as _fs
+
+    assert not pathlib.Path("src/hooks/use_autofocus.py").exists()
+    assert hasattr(_fs, "focus_scope")

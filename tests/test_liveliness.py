@@ -27,7 +27,7 @@ class TestLivelinessCache:
     def test_ttl_expiry(self):
         short_cache = LivelinessCache(max_size=10, ttl=0)
         short_cache.set("http://example.com", True)
-        time.sleep(0.01)
+        # ttl=0 expires on the next read already — no real sleep needed.
         assert short_cache.get("http://example.com") is None
 
     def test_max_size_eviction(self):
@@ -93,3 +93,100 @@ class TestLivelinessCache:
     def test_empty_db_load(self, cache):
         cache.load_from_db({})
         assert cache.get("anything") is None
+
+
+class TestMultiSubscriber:
+    """Phase 3: Home + Search + Grid listen without clobbering each other."""
+
+    def test_two_subscribers_both_fire(self, cache):
+        seen = []
+        cache.add_on_change(lambda url: seen.append(("a", url)))
+        cache.add_on_change(lambda url: seen.append(("b", url)))
+        cache.set("http://x", True)
+        assert ("a", "http://x") in seen
+        assert ("b", "http://x") in seen
+
+    def test_remove_stops_one_subscriber(self, cache):
+        seen = []
+        unsub = cache.add_on_change(lambda url: seen.append(("a", url)))
+        cache.add_on_change(lambda url: seen.append(("b", url)))
+        unsub()
+        cache.set("http://x", True)
+        assert ("a", "http://x") not in seen
+        assert ("b", "http://x") in seen
+
+    def test_set_on_change_shim_is_gone(self, cache):
+        """The single-slot shim was deleted with the per-card subscription
+        migration (Phase 8) — it would clobber card subscriptions."""
+        assert not hasattr(cache, "set_on_change")
+
+    def test_clear_notifies_subscribers(self, cache):
+        seen = []
+        cache.add_on_change(lambda url: seen.append(url))
+        cache.set("http://x", True)
+        cache.clear()
+        assert None in seen
+
+    def test_subscriber_exception_does_not_break_others(self, cache):
+        seen = []
+
+        def _boom(url):
+            raise RuntimeError("subscriber bug")
+
+        cache.add_on_change(_boom)
+        cache.add_on_change(lambda url: seen.append(url))
+        cache.set("http://x", True)  # must not raise
+        assert seen == ["http://x"]
+
+
+class TestTriStateUnknown:
+    """Phase 4: local/pool/offline failures are UNKNOWN (no cache, no red)."""
+
+    @pytest.mark.asyncio
+    async def test_pool_timeout_is_unknown(self):
+        from unittest import mock
+
+        import httpx
+
+        import services.liveliness_checker as lc
+        from services.liveliness import liveliness_cache
+
+        checker = lc.LivelinessChecker(None)
+        http_client = mock.MagicMock()
+        http_client.head = mock.AsyncMock(
+            side_effect=httpx.PoolTimeout("pool exhausted")
+        )
+        http_client.get = mock.AsyncMock(
+            side_effect=httpx.PoolTimeout("pool exhausted")
+        )
+        old_online = lc.state.is_online
+        lc.state.is_online = True
+        try:
+            with mock.patch.object(
+                checker, "_get_http_client", return_value=http_client
+            ):
+                url = "http://tristate-pool.example/s.m3u8"
+                result = await checker.check_single(url)
+                assert result == (url, None)
+                assert liveliness_cache.get(url) is None
+        finally:
+            lc.state.is_online = old_online
+
+    def test_semaphore_is_shared_module_level(self):
+        import asyncio
+
+        import services.liveliness_checker as lc
+
+        assert isinstance(lc._PROBE_SEMAPHORE, asyncio.Semaphore)
+        a = lc.LivelinessChecker(None)
+        b = lc.LivelinessChecker(None)
+        assert not hasattr(a, "_semaphore")
+        assert not hasattr(b, "_semaphore")
+
+    def test_live_predicate_unified(self):
+        from services.liveliness_checker import _is_live_status
+
+        for good in (200, 201, 204, 206, 299, 301, 399):
+            assert _is_live_status(good) is True
+        for bad in (0, 199, 400, 404, 405, 500):
+            assert _is_live_status(bad) is False

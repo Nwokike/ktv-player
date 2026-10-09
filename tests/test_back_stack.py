@@ -215,3 +215,69 @@ def test_back_press_does_not_crash_on_a_single_child_view():
         controller._handle_back()  # must not raise
 
     assert player._is_closing is True
+
+
+def test_push_modal_duplicate_top_is_noop():
+    """Pushing the same modal twice doesn't duplicate the tracker or update."""
+    from unittest import mock
+
+    controller = AppController(fake_page())
+    asyncio.run(controller.push_modal("add_content"))
+    with mock.patch.object(controller.page, "update") as upd:
+        asyncio.run(controller.push_modal("add_content"))
+    assert controller._modal_stack == ["add_content"]
+    upd.assert_not_called()
+
+
+def test_close_modal_empty_is_noop_without_update():
+    """Empty close does nothing AND doesn't touch the page."""
+    from unittest import mock
+
+    controller = AppController(fake_page())
+    with mock.patch.object(controller.page, "update") as upd:
+        asyncio.run(controller.close_modal())
+    upd.assert_not_called()
+
+
+def test_pop_modal_missing_name_is_noop():
+    """Removing an absent name doesn't mutate or update."""
+    from unittest import mock
+
+    controller = AppController(fake_page())
+    asyncio.run(controller.push_modal("add_content"))
+    with mock.patch.object(controller.page, "update") as upd:
+        asyncio.run(controller.pop_modal("nope"))
+    assert controller._modal_stack == ["add_content"]
+    upd.assert_not_called()
+
+
+def test_cdn_headers_merge_per_key():
+    """Override keys fill gaps; caller-supplied keys survive."""
+    from src.main import CDN_HEADER_OVERRIDES, merge_cdn_headers
+
+    assert CDN_HEADER_OVERRIDES, "expected at least one CDN override in constants"
+    probe_url = None
+    probe_hdrs = None
+    for pattern, hdrs in CDN_HEADER_OVERRIDES.items():
+        probe_url = f"https://{pattern}/stream.m3u8"
+        probe_hdrs = hdrs
+        break
+
+    merged, referer = merge_cdn_headers(
+        probe_url, {"User-Agent": "UA", "X-Keep": "yes"}, None
+    )
+    assert merged["User-Agent"] == "UA"
+    assert merged["X-Keep"] == "yes"
+    for k, v in probe_hdrs.items():
+        if k not in ("User-Agent",):
+            assert merged[k] == v
+    if "Referer" in probe_hdrs:
+        assert referer == probe_hdrs["Referer"]
+
+    # Explicit referer wins over the override default.
+    _, referer2 = merge_cdn_headers(probe_url, {}, "https://mine.example/")
+    assert referer2 == "https://mine.example/"
+
+    # Non-matching URL passes headers through untouched.
+    merged3, _ = merge_cdn_headers("https://example.com/s.m3u8", {"A": "b"}, None)
+    assert merged3 == {"A": "b"}

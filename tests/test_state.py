@@ -21,7 +21,7 @@ class TestAppState:
         assert app_state.user_country == ""
         assert app_state.has_accepted_terms is False
         assert app_state.is_first_launch is True
-        assert app_state.channels_hash == 0
+        assert app_state.channels_hash == ""
 
     def test_add_to_history_new(self, app_state):
         app_state.add_to_history("http://example.com/stream1")
@@ -56,12 +56,12 @@ class TestAppState:
         ]
         app_state.set_channels(channels)
         assert app_state.channels == channels
-        assert app_state.channels_hash != 0
+        assert app_state.channels_hash != ""
 
     def test_set_channels_empty(self, app_state):
         app_state.set_channels([])
         assert app_state.channels == []
-        assert app_state.channels_hash == 0
+        assert app_state.channels_hash == ""
 
     def test_set_channels_hash_different_for_different_channels(self, app_state):
         channels_a = [{"name": "A", "url": "http://a.com"}]

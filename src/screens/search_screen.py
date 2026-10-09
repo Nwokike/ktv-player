@@ -2,6 +2,7 @@
 
 from collections.abc import Callable
 
+import anyio
 import flet as ft
 from flet import Control
 
@@ -17,7 +18,7 @@ def SearchScreen(
     channels: list[dict] | None = None,
     favorites_set: set[str] | None = None,
     local_folders: list | None = None,
-    on_play: Callable[[str], None] | None = None,
+    on_play: Callable[..., None] | None = None,
     on_toggle_favorite: Callable[[str], None] | None = None,
     on_back: Callable[[], None] | None = None,
 ) -> Control:
@@ -30,36 +31,19 @@ def SearchScreen(
     channels_list = channels or []
     fav_set = favorites_set or set()
     local_page, set_local_page = ft.use_state(0)
-    _liveliness_version, set_liveliness_version = ft.use_state(0)
-    pending_render = ft.use_ref(False)
+    # No screen-level liveliness subscription here: search tiles never read
+    # the cache, and channel results own their dots per-card
+    # (LivelinessChannelCard). The old unfiltered subscriber re-rendered the
+    # whole screen on every verdict anywhere.
 
     # Reset local page when query or mode changes
     ft.use_effect(lambda: set_local_page(0), [debounced_query, mode])
 
-    def _on_liveliness_change(changed_url=None):
-        if pending_render.current:
-            return
-        pending_render.current = True
+    import logging as _logging
 
-        async def _flush():
-            import asyncio
-
-            await asyncio.sleep(0.5)
-            pending_render.current = False
-            set_liveliness_version(lambda v: v + 1)
-
-        try:
-            import asyncio
-
-            loop = asyncio.get_running_loop()
-            loop.create_task(_flush())
-        except RuntimeError:
-            pending_render.current = False
-            set_liveliness_version(lambda v: v + 1)
-
-    from services.liveliness import liveliness_cache
-
-    ft.use_effect(lambda: liveliness_cache.set_on_change(_on_liveliness_change), [])
+    _scan_log = _logging.getLogger(__name__)
+    _scan_mounted = ft.use_ref(True)
+    _scan_task = ft.use_ref(None)
 
     def _auto_scan_local():
         if not scanned_folders:
@@ -70,14 +54,40 @@ def SearchScreen(
             async def _do():
                 try:
                     paths = get_default_scan_paths()
-                    res = await asyncio.to_thread(scan_videos, paths)
-                    set_scanned_folders(res)
+                    res = await anyio.to_thread.run_sync(scan_videos, paths)
+                    if _scan_mounted.current:
+                        set_scanned_folders(res)
+                except asyncio.CancelledError:
+                    raise
                 except Exception:
-                    pass
+                    _scan_log.debug("Search auto-scan failed", exc_info=True)
 
-            asyncio.create_task(_do())
+            try:
+                loop = asyncio.get_running_loop()
+                task = loop.create_task(_do())
+                _scan_task.current = task
 
-    ft.use_effect(_auto_scan_local, [])
+                def _log_failure(t):
+                    if not t.cancelled() and t.exception():
+                        _scan_log.debug(
+                            "Search auto-scan task ended", exc_info=t.exception()
+                        )
+
+                task.add_done_callback(_log_failure)
+            except RuntimeError:
+                _scan_log.debug("Search auto-scan: no running loop")
+
+    def _cancel_scan():
+        _scan_mounted.current = False
+        # Cancel the pooled thread read too: an orphaned scan would keep a
+        # worker thread busy after the screen is gone.
+        task = _scan_task.current
+        if task is not None and not task.done():
+            task.cancel()
+        _scan_task.current = None
+
+    # NOTE: cleanup is the 3rd use_effect arg (not a setup return).
+    ft.use_effect(_auto_scan_local, [], _cancel_scan)
 
     # --- Mode Toggle Switcher ---
     def _switch_mode(new_mode: str):
@@ -152,13 +162,18 @@ def SearchScreen(
         autofocus=True,
         prefix_icon=ft.Icons.SEARCH_ROUNDED,
         bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.ON_SURFACE),
-        border_color=ft.Colors.TRANSPARENT,
+        border=ft.OutlineInputBorder(
+            border_radius=14,
+            side=ft.BorderSide(width=1, color=ft.Colors.TRANSPARENT),
+        ),
         focused_border_color=AppColors.PRIMARY,
         focused_bgcolor=ft.Colors.with_opacity(0.1, AppColors.PRIMARY),
-        border_radius=14,
-        content_padding=16,
+        content_padding=ft.Padding.all(16),
         expand=True,
         on_change=lambda e: set_query(e.control.value),
+        # Submit flushes immediately: the debounced value is the source of
+        # truth for filtering, and waiting out the 250ms teaches users that
+        # Enter does nothing.
         on_submit=lambda e: set_query(e.control.value),
     )
 
@@ -166,7 +181,7 @@ def SearchScreen(
         icon=ft.Icons.SEARCH_ROUNDED,
         icon_color=AppColors.PRIMARY,
         tooltip="Search",
-        on_click=lambda e: set_query(search_field.value if search_field.value else ""),
+        on_click=lambda e: set_query(query),
     )
 
     back_button = ft.IconButton(
@@ -224,6 +239,12 @@ def SearchScreen(
                 action_label=None,
             )
         else:
+            try:
+                from flet import context as _grid_ctx
+
+                _grid_page = _grid_ctx.page
+            except Exception:
+                _grid_page = None
             body = ChannelGrid(
                 channels=filtered_tv,
                 favorites_set=fav_set,
@@ -231,15 +252,21 @@ def SearchScreen(
                 on_toggle_favorite=on_toggle_favorite
                 if callable(on_toggle_favorite)
                 else (lambda u: None),
+                page=_grid_page,
             )
     else:  # Local Files
+        import os as _os
+
         filtered_files = []
         for folder in scanned_folders:
             vids = getattr(folder, "videos", [])
             for v in vids:
-                name = getattr(v, "name", "")
-                path = getattr(v, "path", "")
-                if not q or q in name.lower() or q in path.lower():
+                name = getattr(v, "name", "") or ""
+                path = getattr(v, "path", "") or ""
+                # Basename/stem only: matching the full absolute path makes a
+                # one-letter query ("c") match every C:\... file.
+                stem = _os.path.splitext(_os.path.basename(path))[0]
+                if not q or q in name.lower() or q in stem.lower():
                     filtered_files.append((name, path))
 
         if not filtered_files:
@@ -251,7 +278,9 @@ def SearchScreen(
                 action_label=None,
             )
         else:
-            PAGE_SIZE = 24
+            from components.channel_grid import _page_button
+            from core.constants import PAGE_SIZE
+
             total_local_pages = max(
                 1, (len(filtered_files) + PAGE_SIZE - 1) // PAGE_SIZE
             )
@@ -268,7 +297,7 @@ def SearchScreen(
                     ),
                     title=ft.Text(name, size=14, weight=ft.FontWeight.W_500),
                     subtitle=ft.Text(
-                        path,
+                        _os.path.basename(path),
                         size=11,
                         color=AppColors.grey_dim(),
                         max_lines=1,
@@ -277,6 +306,7 @@ def SearchScreen(
                     on_click=lambda e, p=path: (
                         on_play(p) if callable(on_play) else None
                     ),
+                    key=path or None,
                 )
                 for name, path in visible_local_files
             ]
@@ -293,89 +323,26 @@ def SearchScreen(
                 prev_disabled = current_local_page == 0
                 next_disabled = current_local_page >= total_local_pages - 1
 
-                prev_btn = ft.Container(
-                    content=ft.Row(
-                        [
-                            ft.Icon(
-                                ft.Icons.ARROW_BACK_IOS_NEW_ROUNDED,
-                                size=14,
-                                color=AppColors.grey_dim()
-                                if prev_disabled
-                                else AppColors.PRIMARY,
-                            ),
-                            ft.Text(
-                                "Previous",
-                                size=12,
-                                weight=ft.FontWeight.BOLD,
-                                color=AppColors.grey_dim()
-                                if prev_disabled
-                                else AppColors.PRIMARY,
-                            ),
-                        ],
-                        spacing=6,
-                    ),
-                    padding=ft.Padding(14, 8, 14, 8),
-                    border_radius=10,
-                    border=ft.Border.all(
-                        1.5,
-                        AppColors.grey_dim() if prev_disabled else AppColors.PRIMARY,
-                    ),
-                    bgcolor=ft.Colors.with_opacity(0.05, AppColors.PRIMARY)
-                    if not prev_disabled
-                    else ft.Colors.TRANSPARENT,
-                    ink=not prev_disabled,
-                    on_click=lambda e: (
+                def _go_local_prev(e=None):
+                    if not prev_disabled:
                         set_local_page(max(0, current_local_page - 1))
-                        if not prev_disabled
-                        else None
-                    ),
-                )
 
-                next_btn = ft.Container(
-                    content=ft.Row(
-                        [
-                            ft.Text(
-                                "Next",
-                                size=12,
-                                weight=ft.FontWeight.BOLD,
-                                color=AppColors.grey_dim()
-                                if next_disabled
-                                else AppColors.PRIMARY,
-                            ),
-                            ft.Icon(
-                                ft.Icons.ARROW_FORWARD_IOS_ROUNDED,
-                                size=14,
-                                color=AppColors.grey_dim()
-                                if next_disabled
-                                else AppColors.PRIMARY,
-                            ),
-                        ],
-                        spacing=6,
-                    ),
-                    padding=ft.Padding(14, 8, 14, 8),
-                    border_radius=10,
-                    border=ft.Border.all(
-                        1.5,
-                        AppColors.grey_dim() if next_disabled else AppColors.PRIMARY,
-                    ),
-                    bgcolor=ft.Colors.with_opacity(0.05, AppColors.PRIMARY)
-                    if not next_disabled
-                    else ft.Colors.TRANSPARENT,
-                    ink=not next_disabled,
-                    on_click=lambda e: (
+                def _go_local_next(e=None):
+                    if not next_disabled:
                         set_local_page(
                             min(total_local_pages - 1, current_local_page + 1)
                         )
-                        if not next_disabled
-                        else None
-                    ),
-                )
 
                 local_controls.append(
                     ft.Container(
                         content=ft.Row(
                             controls=[
-                                prev_btn,
+                                _page_button(
+                                    "Previous",
+                                    ft.Icons.ARROW_BACK_IOS_NEW_ROUNDED,
+                                    prev_disabled,
+                                    _go_local_prev,
+                                ),
                                 ft.Text(
                                     f"Page {current_local_page + 1} of {total_local_pages}  ·  {len(filtered_files)} files",
                                     size=12,
@@ -384,7 +351,12 @@ def SearchScreen(
                                         0.8, ft.Colors.ON_SURFACE
                                     ),
                                 ),
-                                next_btn,
+                                _page_button(
+                                    "Next",
+                                    ft.Icons.ARROW_FORWARD_IOS_ROUNDED,
+                                    next_disabled,
+                                    _go_local_next,
+                                ),
                             ],
                             alignment=ft.MainAxisAlignment.CENTER,
                             spacing=16,
@@ -397,12 +369,21 @@ def SearchScreen(
                 controls=local_controls,
                 expand=True,
                 scroll=ft.ScrollMode.AUTO,
+                # Key swap resets scroll offset on page flip (same fix as grid).
+                key=f"local-search-{current_local_page}-{len(filtered_files)}",
             )
 
     from components.banner_ad import build_banner_ad
 
-    page_obj = ft.context.page
-    search_banner = build_banner_ad(page_obj)
+    try:
+        from flet import context as _banner_ctx
+
+        _banner_page = _banner_ctx.page
+    except Exception:
+        _banner_page = None
+    # Memoized per mount: the old per-render build re-created a native ad
+    # view on every liveliness tick.
+    search_banner = ft.use_memo(lambda: build_banner_ad(_banner_page), [])
 
     column_controls = [header]
     if search_banner:

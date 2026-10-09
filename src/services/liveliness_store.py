@@ -11,20 +11,33 @@ store had two problems this replaces:
 - it kept cache-class bytes alive across updates they have no business
   surviving.
 
-Migration is one-shot and silent: an existing DB cache is imported on
-first load, written to the cache dir, then cleared from the database.
+Format: msgpack with a schema version stamp (Phase 8; msgpack is a
+direct dependency — previously transitive-only via flet, so an upgrade
+could have pruned it). A legacy JSON file is imported once on first
+msgpack load; a corrupt msgpack payload falls back to empty (verdicts
+are re-derivable, nothing is lost that matters). Migration from the
+durable DB is one-shot and silent, as before.
 """
 
 import asyncio
+import contextlib
 import json
 import logging
 import os
 import time
 
+import anyio
+import msgpack
+
 logger = logging.getLogger(__name__)
 
 _cache_env = os.getenv("FLET_APP_STORAGE_CACHE")
 STORE_PATH = (
+    os.path.join(_cache_env, "liveliness.mpk")
+    if _cache_env
+    else os.path.join("storage", "liveliness.mpk")
+)
+_LEGACY_JSON_PATH = (
     os.path.join(_cache_env, "liveliness.json")
     if _cache_env
     else os.path.join("storage", "liveliness.json")
@@ -32,6 +45,10 @@ STORE_PATH = (
 # A verdict older than this is re-probed on demand anyway; pruning bounds
 # the file and honors the cache contract (the OS may wipe this file too).
 PRUNE_AFTER_SECONDS = 30 * 24 * 60 * 60
+
+# Schema stamp: bump when the entry shape changes; mismatches are treated
+# as empty rather than misread.
+_SCHEMA_VERSION = 1
 
 _lock: asyncio.Lock | None = None
 
@@ -43,26 +60,66 @@ def _get_lock() -> asyncio.Lock:
     return _lock
 
 
+def _decode_payload(raw: bytes) -> dict | None:
+    """Unpack a schema-stamped msgpack payload; None when unusable."""
+    try:
+        decoded = msgpack.unpackb(raw, raw=False, strict_map_key=False)
+    except (ValueError, TypeError, msgpack.UnpackException):
+        return None
+    if not isinstance(decoded, dict):
+        return None
+    if decoded.get("v") != _SCHEMA_VERSION:
+        return None
+    entries = decoded.get("entries")
+    return entries if isinstance(entries, dict) else None
+
+
 def _read() -> dict | None:
     try:
         if os.path.exists(STORE_PATH):
-            with open(STORE_PATH, encoding="utf-8") as f:
-                data = json.load(f)
-            return data if isinstance(data, dict) else None
-    except (OSError, ValueError):
+            with open(STORE_PATH, "rb") as f:
+                raw = f.read()
+            data = _decode_payload(raw)
+            if data is not None:
+                return data
+            logger.debug("Liveliness store unreadable, treating as empty")
+            return None
+        # One-shot legacy JSON import (pre-msgpack file).
+        if os.path.exists(_LEGACY_JSON_PATH):
+            with open(_LEGACY_JSON_PATH, encoding="utf-8") as f:
+                legacy = json.load(f)
+            os.remove(_LEGACY_JSON_PATH)
+            return legacy if isinstance(legacy, dict) else None
+    except (OSError, ValueError, TypeError, msgpack.UnpackException):
         logger.debug("Liveliness store unreadable, treating as empty", exc_info=True)
     return None
 
 
+def _encode_payload(data: dict) -> bytes:
+    return msgpack.packb({"v": _SCHEMA_VERSION, "entries": data}, use_bin_type=True)
+
+
 def _write(data: dict) -> None:
     """Atomic: temp file beside the target, then rename (same filesystem,
-    so os.replace cannot fail across devices like it would from temp/)."""
+    so os.replace cannot fail across devices like it would from temp/).
+
+    fsync before the replace so a power loss mid-write cannot leave a
+    half-flushed .mpk (rename after write only orders the metadata, not
+    the data, on some filesystems). Tmp is unlinked on any failure.
+    """
     directory = os.path.dirname(STORE_PATH) or "."
     os.makedirs(directory, exist_ok=True)
     tmp_path = STORE_PATH + ".tmp"
-    with open(tmp_path, "w", encoding="utf-8") as f:
-        json.dump(data, f)
-    os.replace(tmp_path, STORE_PATH)
+    try:
+        with open(tmp_path, "wb") as f:
+            f.write(_encode_payload(data))
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_path, STORE_PATH)
+    except OSError:
+        with contextlib.suppress(OSError):
+            os.unlink(tmp_path)
+        raise
 
 
 async def load_cache() -> dict:
@@ -104,4 +161,4 @@ async def save_batch(entries: list) -> None:
                 for url, entry in data.items()
                 if now - float(entry[1]) < PRUNE_AFTER_SECONDS
             }
-        await asyncio.to_thread(_write, data)
+        await anyio.to_thread.run_sync(_write, data)

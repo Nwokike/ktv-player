@@ -1,22 +1,24 @@
 [project]
 name = "ktv"
-version = "2.2.0"
+version = "2.3.0"
 description = "A lightning-fast TV player built for seamless network streaming and custom channel addition."
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "anyio>=4.0",
     "flet>=0.86.5",
     "flet-ads>=0.86.5",
     "flet-permission-handler>=0.86.5",
     "flet-video>=0.86.5",
     "httpx[http2]>=0.28.1",
+    "msgpack>=1.0",
 ]
 
 
 [tool.flet]
 org = "ng.kiri"
 product = "KTV Player"
-build_number = 20
+build_number = 21
 desktop_flavor = "full"
 
 [tool.flet.app]
@@ -84,12 +86,23 @@ host = "play"
 
 [tool.pytest.ini_options]
 pythonpath = ["src", "tests"]
+testpaths = ["tests"]
+asyncio_mode = "strict"
+asyncio_default_test_loop_scope = "function"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "-ra --strict-markers --strict-config --durations=10 -n auto"
+markers = ["asyncio: run with the asyncio event loop"]
+filterwarnings = [
+    "error::RuntimeWarning",
+    "error::pytest.PytestDeprecationWarning",
+]
 
 [dependency-groups]
 dev = [
     "pyjnius>=1.7.0",
     "pytest>=9.0.3",
     "pytest-asyncio>=1.4.0",
+    "pytest-xdist>=3.0",
     "ruff>=0.15.14",
 ]
 
@@ -100,4 +113,10 @@ dev = [
 # linter lower keeps every source file importable on 3.12 — including
 # Android and desktop builds produced with an older bundled interpreter.
 target-version = "py312"
+lint.extend-select = [
+    "B",   # flake8-bugbear: real bug patterns (mutable defaults, etc.)
+    "RUF", # ruff-specific: dead code, redundant constructs
+    "SIM", # flake8-simplify: collapsible branches, yoda conditions
+    "UP",  # pyupgrade: modern syntax within the py312 target
+]
 lint.extend-ignore = ["BLE001", "S110"]

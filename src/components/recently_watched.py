@@ -8,50 +8,27 @@ from flet import Control
 from components.focus_styles import card_button_style
 from core.constants import LBL_RECENTLY_WATCHED
 from core.theme import AppColors
-from services.logo_cache import get_cached_logo
-
-
-def _display_name(url: str) -> str:
-    import os
-
-    name = os.path.splitext(os.path.basename(url))[0]
-    return name if name else "Stream"
+from utils.history import resolve_entry
 
 
 def RecentlyWatched(
-    history: list[dict],
+    history: list[dict | str],
     channels_map: dict[str, dict],
-    on_play: Callable[[str], None],
+    on_play: Callable[..., None],
     on_view_all: Callable[[], None] | None = None,
 ) -> Control:
-    visible_items = history[:10]
+    visible_items = history or []
+    visible_items = visible_items[:10]
 
     if not visible_items:
         return ft.Container(height=0, visible=False)
 
     cards = []
     for entry in visible_items:
-        url = entry.get("url", "")
-        # Use stored title, fall back to channels_map, then _display_name
-        if isinstance(entry, dict):
-            stored_title = entry.get("title")
-            title = (
-                stored_title
-                or channels_map.get(url, {}).get("name")
-                or _display_name(url)
-            )
-            logo = channels_map.get(url, {}).get("logo", "") or entry.get("logo", "")
-        else:
-            # Legacy string entry
-            stored_title = None
-            title = channels_map.get(url, {}).get("name") or _display_name(url)
-            logo = channels_map.get(url, {}).get("logo", "")
-
-        logo_src = logo or "/icon.png"
-        if not logo_src.startswith("/"):
-            cached = get_cached_logo(logo_src)
-            if cached:
-                logo_src = cached
+        resolved = resolve_entry(entry, channels_map)
+        if resolved is None:
+            continue
+        url, stored_title, title, logo_src = resolved
 
         cards.append(
             ft.FilledButton(
@@ -65,6 +42,7 @@ def RecentlyWatched(
                             height=52,
                             fit=ft.BoxFit.CONTAIN,
                             border_radius=8,
+                            placeholder_src="/icon.png",
                             error_content=ft.Icon(ft.Icons.TV, size=24),
                         ),
                         ft.Text(

@@ -350,9 +350,15 @@ async def resolve_youtube_url(url: str) -> str:
     page_response = None
 
     # Cookies belong on the client: per-request `cookies=` is deprecated in
-    # httpx 0.28 and emits a DeprecationWarning on every call.
+    # httpx 0.28 and emits a DeprecationWarning on every call. Explicit
+    # 4-tuple timeout (scalar 15 widened pool acquisition to 15s); http2 for
+    # the page + InnerTube + base.js fetches on one connection.
     async with httpx.AsyncClient(
-        timeout=15, follow_redirects=True, cookies=_CONSENT_COOKIES
+        timeout=httpx.Timeout(connect=5.0, read=12.0, write=10.0, pool=3.0),
+        follow_redirects=True,
+        cookies=_CONSENT_COOKIES,
+        http2=True,
+        headers={"User-Agent": _WATCH_UA},
     ) as client:
         if not video_id or "/live" in url:
             video_id, api_key, js_url, page_response = await _fetch_live_page(

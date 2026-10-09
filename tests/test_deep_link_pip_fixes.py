@@ -19,7 +19,6 @@ _find_immersive_player's recursive walk into infinite recursion.
 """
 
 import asyncio
-import sys
 from types import SimpleNamespace
 from unittest import mock
 
@@ -442,14 +441,21 @@ class TestPeriodicPositionCheckpoint:
         p._last_position = 120.0
         p._last_position_save = 0.0  # force interval elapsed
 
+        async def _drain_orphans():
+            pending = list(ip_mod._orphan_tasks)
+            if pending:
+                await asyncio.wait_for(
+                    asyncio.gather(*pending, return_exceptions=True), timeout=2
+                )
+
         upd = mock.AsyncMock()
         with mock.patch.object(ip_mod.db_manager, "update_history_position", upd):
             p._maybe_save_position_periodically()
-            await asyncio.sleep(0.05)
+            await _drain_orphans()
             upd.assert_awaited_once()
             # Throttled: immediate second call must not fire again
             p._maybe_save_position_periodically()
-            await asyncio.sleep(0.05)
+            await _drain_orphans()
             upd.assert_awaited_once()
 
     @pytest.mark.asyncio
@@ -464,12 +470,12 @@ class TestPeriodicPositionCheckpoint:
             p._last_position = 50.0
             p._last_position_save = 0.0
             p._maybe_save_position_periodically()
-            await asyncio.sleep(0.05)
+            await asyncio.sleep(0)  # nothing scheduled; just yield
             # Meaningful progress only: position 2s
             p._last_duration = 600.0
             p._last_position = 2.0
             p._maybe_save_position_periodically()
-            await asyncio.sleep(0.05)
+            await asyncio.sleep(0)
             upd.assert_not_awaited()
 
 
@@ -479,44 +485,47 @@ class TestPipParamsExplicitDisable:
     active, so the app kept entering PiP long after playback ended."""
 
     @staticmethod
-    def _install_jnius_mock():
+    def _install_bridge_mock(sdk=32):
+        """Mock the android_bridge layer pip_service now delegates to."""
         builder_instance = mock.MagicMock()
         builder_cls = mock.MagicMock(return_value=builder_instance)
 
-        def autoclass(name):
+        def autoclass_cached(name):
             if name == "android.app.PictureInPictureParams$Builder":
                 return builder_cls
+            if name == "android.util.Rational":
+                return mock.MagicMock()
             return mock.MagicMock()
 
-        jnius = mock.MagicMock()
-        jnius.autoclass = autoclass
-        return builder_instance, jnius
+        patches = [
+            mock.patch.object(
+                pip_service, "autoclass_cached", side_effect=autoclass_cached
+            )
+            if hasattr(pip_service, "autoclass_cached")
+            else mock.patch(
+                "services.android_bridge.autoclass_cached",
+                side_effect=autoclass_cached,
+            ),
+            mock.patch.object(pip_service, "sdk_int", return_value=sdk),
+        ]
+        return builder_instance, patches
 
     def test_disable_sends_set_auto_enter_enabled_false(self):
-        builder_instance, jnius = self._install_jnius_mock()
-        with (
-            mock.patch.dict(sys.modules, {"jnius": jnius}),
-            mock.patch.object(pip_service, "api_level", return_value=32),
-        ):
+        builder_instance, patches = self._install_bridge_mock(sdk=32)
+        with patches[0], patches[1]:
             params = pip_service._build_params(auto_enter=False, aspect=16 / 9)
         builder_instance.setAutoEnterEnabled.assert_called_once_with(False)
         assert params is not None
 
     def test_enable_sends_set_auto_enter_enabled_true(self):
-        builder_instance, jnius = self._install_jnius_mock()
-        with (
-            mock.patch.dict(sys.modules, {"jnius": jnius}),
-            mock.patch.object(pip_service, "api_level", return_value=32),
-        ):
+        builder_instance, patches = self._install_bridge_mock(sdk=32)
+        with patches[0], patches[1]:
             pip_service._build_params(auto_enter=True, aspect=16 / 9)
         builder_instance.setAutoEnterEnabled.assert_called_once_with(True)
 
     def test_below_api_31_never_sets_auto_enter(self):
-        builder_instance, jnius = self._install_jnius_mock()
-        with (
-            mock.patch.dict(sys.modules, {"jnius": jnius}),
-            mock.patch.object(pip_service, "api_level", return_value=30),
-        ):
+        builder_instance, patches = self._install_bridge_mock(sdk=30)
+        with patches[0], patches[1]:
             pip_service._build_params(auto_enter=True, aspect=16 / 9)
         builder_instance.setAutoEnterEnabled.assert_not_called()
 
@@ -524,12 +533,12 @@ class TestPipParamsExplicitDisable:
 class TestExitAppHelper:
     def test_exit_app_finishes_activity(self):
         activity = mock.MagicMock()
-        with mock.patch.object(pip_service, "_get_activity", return_value=activity):
+        with mock.patch.object(pip_service, "get_activity", return_value=activity):
             assert pip_service.exit_app() is True
         activity.finish.assert_called_once()
 
     def test_exit_app_no_activity_returns_false(self):
-        with mock.patch.object(pip_service, "_get_activity", return_value=None):
+        with mock.patch.object(pip_service, "get_activity", return_value=None):
             assert pip_service.exit_app() is False
 
 
@@ -555,8 +564,12 @@ class TestEventParsing:
         [
             (ft.Duration(seconds=120), 120.0),
             (ft.Duration(minutes=9), 540.0),
-            (90_000, 90.0),  # legacy ms
-            (90, 90.0),  # legacy seconds
+            (90, 90.0),  # plain seconds pass through
+            # NOTE: the old ms/us shape-guess (90000 -> 90.0) was removed:
+            # flet-video 1.0.1 documents Duration payloads, and the heuristic
+            # misclassified any real VOD position over 1000s (1500s -> 1.5s).
+            # Raw numbers now pass through unscaled.
+            (90_000, 90_000.0),
         ],
     )
     def test_event_payloads_become_seconds(self, payload, expected):
@@ -593,3 +606,198 @@ class TestEventParsing:
         player._on_duration_change(SimpleNamespace(data=ft.Duration(seconds=0)))
 
         assert player._last_duration == 0.0
+
+
+class TestOnLoadReady:
+    """on_load is the deterministic ready signal (watchdog/overlay/PiP/probe)."""
+
+    def _player(self):
+        from components.player.immersive_player import ImmersivePlayer
+
+        return ImmersivePlayer(resource="http://example.com/vod.mp4", title="VOD")
+
+    def test_on_first_ready_hides_overlay_and_arms_pip(self):
+        p = self._player()
+        assert p._overlay_hidden is False
+        p._on_first_ready()
+        assert p._overlay_hidden is True
+        assert p._watchdog_task is None
+
+    def test_on_first_ready_ignored_when_closing_or_failed(self):
+        p = self._player()
+        p._is_closing = True
+        p._on_first_ready()
+        assert p._overlay_hidden is False
+        p._is_closing = False
+        p._is_final_error = True
+        p._on_first_ready()
+        assert p._overlay_hidden is False
+
+    def test_first_position_tick_rearms_pip_on_slow_start(self):
+        p = self._player()
+        p._overlay_hidden = True
+        p._check_and_trigger_seek = lambda: None
+        armed = []
+        p._arm_auto_pip = lambda: armed.append(True)
+        assert p._pip_active is False
+        p._on_pos_change(SimpleNamespace(data=ft.Duration(seconds=5)))
+        assert armed == [True]
+
+    def test_zero_ticks_do_not_hide_or_arm(self):
+        p = self._player()
+        p._check_and_trigger_seek = lambda: None
+        armed = []
+        p._arm_auto_pip = lambda: armed.append(True)
+        p._on_pos_change(SimpleNamespace(data=ft.Duration(seconds=0)))
+        p._on_duration_change(SimpleNamespace(data=ft.Duration(seconds=0)))
+        assert p._overlay_hidden is False
+        assert armed == []
+
+    @pytest.mark.asyncio
+    async def test_periodic_save_wired_into_pos_change(self):
+        from components.player import immersive_player as ip_mod
+
+        p = self._player()
+        p._overlay_hidden = True
+        p._check_and_trigger_seek = lambda: None
+        p._arm_auto_pip = lambda: None
+        p._last_duration = 600.0
+        p._last_position_save = 0.0
+        upd = mock.AsyncMock()
+        with mock.patch.object(ip_mod.db_manager, "update_history_position", upd):
+            p._on_pos_change(SimpleNamespace(data=ft.Duration(seconds=120)))
+            pending = list(ip_mod._orphan_tasks)
+            if pending:
+                await asyncio.wait_for(
+                    asyncio.gather(*pending, return_exceptions=True), timeout=2
+                )
+            upd.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_close_bounded_when_stop_hangs(self):
+        p = self._player()
+
+        async def _hang():
+            await asyncio.sleep(30)
+
+        p.video = mock.MagicMock()
+        p.video.stop = mock.AsyncMock(side_effect=_hang)
+        p.video.get_current_position = mock.AsyncMock(
+            return_value=ft.Duration(seconds=10)
+        )
+        p.video.get_duration = mock.AsyncMock(return_value=ft.Duration(seconds=100))
+        p.source_url = "http://example.com/vod.mp4"
+
+        await asyncio.wait_for(p.handle_close(), timeout=10.0)
+        assert p._is_closing is True
+
+    def test_unmount_skips_save_after_close(self):
+        from components.player import immersive_player as ip_mod
+
+        p = self._player()
+        p._position_saved = True
+        p.source_url = "http://example.com/vod.mp4"
+        p._last_duration = 600.0
+        p._last_position = 120.0
+        upd = mock.AsyncMock()
+        with mock.patch.object(ip_mod.db_manager, "update_history_position", upd):
+            p.will_unmount()
+            upd.assert_not_awaited()
+
+    def test_video_defaults_medium_no_bg_resume(self):
+        p = self._player()
+        assert p.video.filter_quality == ft.FilterQuality.MEDIUM
+        assert p.video.pause_upon_entering_background_mode is False
+        assert p.video.resume_upon_entering_foreground_mode is False
+
+    def test_volume_clamped(self):
+        from components.player.immersive_player import ImmersivePlayer
+
+        assert ImmersivePlayer(resource="u", volume=150.0).video.volume == 100.0
+        assert ImmersivePlayer(resource="u", volume=-5.0).video.volume == 0.0
+
+
+class TestLifecycleStateDispatch:
+    """Phase 3: save on e.state HIDE/PAUSE/DETACH (not dead e.data)."""
+
+    def _controller_with_lifecycle(self, fake_page):
+        controller = main_mod.AppController(fake_page)
+        # Minimal init surface for the lifecycle closure: attach the handler
+        # the same way init() does, without the full init().
+        page = fake_page
+        _controller = controller
+        _previous = page.on_app_lifecycle_state_change
+
+        def _on_lifecycle_save(e):
+            import flet as _ft
+
+            if getattr(e, "state", None) in (
+                _ft.AppLifecycleState.HIDE,
+                _ft.AppLifecycleState.PAUSE,
+                _ft.AppLifecycleState.DETACH,
+            ):
+                _controller._save_top_player_position()
+            if getattr(e, "state", None) in (
+                _ft.AppLifecycleState.RESUME,
+                _ft.AppLifecycleState.SHOW,
+            ):
+                pass
+            if _previous is not None:
+                _previous(e)
+
+        page.on_app_lifecycle_state_change = _on_lifecycle_save
+        return controller
+
+    def test_hide_state_saves_not_data(self, fake_page):
+        from types import SimpleNamespace as _NS
+
+        self._controller_with_lifecycle(fake_page)
+        player = _NS(
+            source_url="http://example.com/vod.mp4",
+            _last_position=120.0,
+            _last_duration=600.0,
+            _is_closing=False,
+            video=_NS(playlist=[], update=lambda: None),
+        )
+        play_view = _NS(route="/play", controls=[player])
+        fake_page.views = [_NS(route="/blank"), play_view]
+        with mock.patch.object(
+            main_mod.AppController, "_find_immersive_player"
+        ) as find:
+            find.return_value = player
+            import flet as _ft
+
+            # e.state HIDE (no e.data at all on 1.0.1) must save.
+            fake_page.on_app_lifecycle_state_change(
+                _NS(state=_ft.AppLifecycleState.HIDE)
+            )
+        assert len(fake_page._run_task_calls) == 1
+
+    def test_garbage_event_saves_nothing(self, fake_page):
+        from types import SimpleNamespace as _NS
+
+        self._controller_with_lifecycle(fake_page)
+        fake_page.views = [_NS(route="/blank")]
+        with mock.patch.object(
+            main_mod.AppController, "_find_immersive_player"
+        ) as find:
+            find.return_value = None
+            import flet as _ft
+
+            fake_page.on_app_lifecycle_state_change(
+                _NS(state=_ft.AppLifecycleState.INACTIVE)
+            )
+        assert len(fake_page._run_task_calls) == 0
+
+
+class TestFallbackUnderlay:
+    """Phase 3: /?url= fallback leaves [blank, play] like ktv://."""
+
+    @pytest.mark.asyncio
+    async def test_fallback_appends_blank_underlay(self, fake_page):
+        controller = main_mod.AppController(fake_page)
+        fake_page.route = "/?url=aHR0cHM6Ly9leGFtcGxlLmNvbS9zLm0zdTg=&title=VGVzdA=="
+        with mock.patch.object(controller, "_handle_deep_link", return_value=None):
+            await controller.route_change()
+        routes = [getattr(v, "route", "") for v in fake_page.views]
+        assert routes[0] == "/blank"

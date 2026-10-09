@@ -1,10 +1,29 @@
+"""Cinematic theme: brand colors plus dark/light detection and surfaces.
+
+Dark/light selection is driven by ``page.theme_mode`` with the device
+``platform_brightness`` as the SYSTEM fallback; the ``ft.Theme`` objects
+below are handed to ``page.theme`` / ``page.dark_theme`` at boot (see
+``main.py``) so Flutter itself picks the right one. Note that Flet 1.0.1's
+``ColorScheme`` has no ``brightness`` field — mode selection lives on the
+``Theme`` pair, not on the scheme.
+
+``SECONDARY`` intentionally aliases the brand accent (``PRIMARY_DARK``):
+Chips and secondary roles use the same accent by design, documented here
+so the duplicate value is not "fixed" into a divergence.
+"""
+
 import flet as ft
+
+# Fallback assumed when the page is unreachable (off-session render, unit
+# tests without a page). Dark matches the cinematic-first default theme.
+_FALLBACK_DARK = True
 
 
 class AppColors:
     PRIMARY = "#0EA5E9"
     PRIMARY_LIGHT = "#38BDF8"
     PRIMARY_DARK = "#0284C7"
+    # Intentional accent alias of PRIMARY_DARK (see module docstring).
     SECONDARY = "#0284C7"
     SUCCESS = "#22C55E"
     WARNING = "#F59E0B"
@@ -39,87 +58,68 @@ class AppColors:
     TRANSPARENT = ft.Colors.TRANSPARENT
 
     @staticmethod
-    def _is_dark(page: ft.Page) -> bool:
+    def is_dark(page: ft.Page | None) -> bool:
+        """True when the app currently renders the dark theme.
+
+        Explicit LIGHT/DARK wins; SYSTEM (or unset) follows the device.
+        When the page is missing or unreadable, falls back to
+        ``_FALLBACK_DARK`` — the same default ``grey_dim`` uses, so the two
+        can never disagree about which theme is active.
+        """
+        if page is None:
+            return _FALLBACK_DARK
         if page.theme_mode == ft.ThemeMode.LIGHT:
             return False
         if page.theme_mode == ft.ThemeMode.DARK:
             return True
         try:
             return page.platform_brightness == ft.Brightness.DARK
-        except Exception:
-            return True
+        except (RuntimeError, AttributeError):
+            return _FALLBACK_DARK
+
+    # Back-compat alias: callers should use the public ``is_dark``.
+    _is_dark = is_dark
 
     @staticmethod
-    def get_glass_bg(page: ft.Page):
-        return ft.Colors.with_opacity(
-            0.08,
-            ft.Colors.WHITE if AppColors._is_dark(page) else ft.Colors.BLACK,
-        )
-
-    @staticmethod
-    def get_bg(page: ft.Page) -> str:
-        return AppColors.DARK_BG if AppColors._is_dark(page) else AppColors.LIGHT_BG
-
-    @staticmethod
-    def get_surface(page: ft.Page) -> str:
+    def get_surface(page: ft.Page | None) -> str:
         return (
             AppColors.DARK_SURFACE
-            if AppColors._is_dark(page)
+            if AppColors.is_dark(page)
             else AppColors.LIGHT_SURFACE
         )
 
     @staticmethod
-    def get_surface_variant(page: ft.Page) -> str:
-        return (
-            AppColors.DARK_SURFACE_VARIANT
-            if AppColors._is_dark(page)
-            else AppColors.LIGHT_SURFACE_VARIANT
-        )
+    def get_card_bg(page: ft.Page | None) -> str:
+        """Card background — identical to ``get_surface`` by design."""
+        return AppColors.get_surface(page)
 
     @staticmethod
-    def get_card_bg(page: ft.Page) -> str:
-        return (
-            AppColors.DARK_SURFACE
-            if AppColors._is_dark(page)
-            else AppColors.LIGHT_SURFACE
-        )
-
-    @staticmethod
-    def get_border_color(page: ft.Page) -> str:
+    def get_border_color(page: ft.Page | None) -> str:
         # Increased light mode border opacity slightly from 0.12 to 0.15 for better definition
+        dark = AppColors.is_dark(page)
         return ft.Colors.with_opacity(
-            0.12 if AppColors._is_dark(page) else 0.15,
-            ft.Colors.WHITE if AppColors._is_dark(page) else ft.Colors.BLACK,
+            0.12 if dark else 0.15,
+            ft.Colors.WHITE if dark else ft.Colors.BLACK,
         )
 
     @staticmethod
-    def get_text(page: ft.Page) -> str:
-        return AppColors.DARK_TEXT if AppColors._is_dark(page) else AppColors.LIGHT_TEXT
-
-    @staticmethod
-    def get_text_dim(page: ft.Page) -> str:
-        return (
-            AppColors.DARK_TEXT_DIM
-            if AppColors._is_dark(page)
-            else AppColors.LIGHT_TEXT_DIM
-        )
-
-    @staticmethod
-    def grey_dim(page=None) -> str:
+    def grey_dim(page: ft.Page | None = None) -> str:
         """Return a grey color that adapts to dark/light theme.
 
-        Falls back to ``"#555555"`` (darker grey) when no page context is available.
+        With no page, resolves ``ft.context.page``; when that is also
+        unavailable, assumes the ``_FALLBACK_DARK`` default — the same
+        fallback ``is_dark`` uses, so the two helpers never disagree.
         """
         try:
             if page is None:
                 from flet import context
 
                 page = context.page
-            if AppColors._is_dark(page):
+            if AppColors.is_dark(page):
                 return "#AAAAAA"  # lighter grey on dark backgrounds
             return "#555555"  # Changed from #888888 to #555555 for better light mode contrast
-        except Exception:
-            return "#555555"
+        except (RuntimeError, AttributeError):
+            return "#AAAAAA" if _FALLBACK_DARK else "#555555"
 
 
 class AppTheme:
@@ -135,10 +135,18 @@ class AppTheme:
                 on_surface_variant=AppColors.DARK_TEXT_DIM,
                 error=AppColors.ERROR,
                 on_primary=ft.Colors.WHITE,
-                on_secondary=ft.Colors.BLACK,
+                # Measured WCAG on the #0284C7 accent: white = 4.10:1
+                # (passes 3:1 large-text/UI, below 4.5:1 normal text);
+                # black = 5.13:1 (passes AA fully). White is deliberate
+                # brand consistency with the light scheme's FABs/Chips,
+                # accepting the large-text target for normal text on the
+                # accent.
+                on_secondary=ft.Colors.WHITE,
                 outline=AppColors.DARK_TEXT_MUTED,
                 surface_tint=AppColors.TRANSPARENT,
             ),
+            scaffold_bgcolor=AppColors.DARK_BG,
+            dialog_theme=ft.DialogTheme(bgcolor=AppColors.DARK_SURFACE),
             card_theme=ft.CardTheme(
                 color=AppColors.DARK_SURFACE,
                 elevation=2.0,
@@ -150,7 +158,7 @@ class AppTheme:
                 elevation=4.0,
                 label_behavior=ft.NavigationBarLabelBehavior.ONLY_SHOW_SELECTED,
             ),
-            appbar_theme=ft.AppBarTheme(),
+            appbar_theme=ft.AppBarTheme(bgcolor=AppColors.DARK_SURFACE),
             search_bar_theme=ft.SearchBarTheme(
                 bgcolor=AppColors.DARK_SURFACE_VARIANT,
                 elevation=1.0,
@@ -158,8 +166,15 @@ class AppTheme:
             page_transitions=ft.PageTransitionsTheme(
                 android=ft.PageTransitionTheme.FADE_UPWARDS,
                 ios=ft.PageTransitionTheme.CUPERTINO,
+                # Desktop shells default to ZOOM in Flet; stated explicitly
+                # so every platform's transition is a conscious choice.
+                windows=ft.PageTransitionTheme.ZOOM,
+                macos=ft.PageTransitionTheme.ZOOM,
+                linux=ft.PageTransitionTheme.ZOOM,
             ),
             focus_color=AppColors.PRIMARY,
+            # COMFORTABLE (spacious) is deliberate: this is a 10-foot TV UI
+            # first, and larger hit areas beat information density here.
             visual_density=ft.VisualDensity.COMFORTABLE,
             use_material3=True,
         )
@@ -176,10 +191,12 @@ class AppTheme:
                 on_surface_variant=AppColors.LIGHT_TEXT_DIM,
                 error=AppColors.ERROR,
                 on_primary=ft.Colors.WHITE,
-                on_secondary=ft.Colors.BLACK,
-                outline=AppColors.LIGHT_TEXT_MUTED,
+                # White on the #0284C7 accent (see dark theme note).
+                on_secondary=ft.Colors.WHITE,
                 surface_tint=AppColors.TRANSPARENT,
             ),
+            scaffold_bgcolor=AppColors.LIGHT_BG,
+            dialog_theme=ft.DialogTheme(bgcolor=AppColors.LIGHT_SURFACE),
             card_theme=ft.CardTheme(
                 color=AppColors.LIGHT_SURFACE,
                 elevation=2.0,
@@ -191,7 +208,7 @@ class AppTheme:
                 elevation=4.0,
                 label_behavior=ft.NavigationBarLabelBehavior.ONLY_SHOW_SELECTED,
             ),
-            appbar_theme=ft.AppBarTheme(),
+            appbar_theme=ft.AppBarTheme(bgcolor=AppColors.LIGHT_SURFACE),
             search_bar_theme=ft.SearchBarTheme(
                 bgcolor=AppColors.LIGHT_SURFACE_VARIANT,
                 elevation=1.0,
@@ -199,8 +216,12 @@ class AppTheme:
             page_transitions=ft.PageTransitionsTheme(
                 android=ft.PageTransitionTheme.FADE_UPWARDS,
                 ios=ft.PageTransitionTheme.CUPERTINO,
+                windows=ft.PageTransitionTheme.ZOOM,
+                macos=ft.PageTransitionTheme.ZOOM,
+                linux=ft.PageTransitionTheme.ZOOM,
             ),
             focus_color=AppColors.PRIMARY,
+            # COMFORTABLE (spacious) is deliberate — see dark theme note.
             visual_density=ft.VisualDensity.COMFORTABLE,
             use_material3=True,
         )

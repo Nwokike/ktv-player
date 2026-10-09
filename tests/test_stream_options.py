@@ -1,5 +1,6 @@
 """v2.1.0 tests: quality/audio switching via proxy pinning + PiP guards."""
 
+import asyncio
 from unittest import mock
 
 import flet as ft
@@ -92,15 +93,20 @@ class TestApplyVariant:
         with mock.patch.object(
             ImmersivePlayer, "page", new_callable=mock.PropertyMock
         ) as mock_page:
-            import asyncio
+            tasks = []
 
             def _run(coro, *a, **kw):
-                return asyncio.create_task(coro(*a, **kw))
+                task = asyncio.ensure_future(coro(*a, **kw))
+                tasks.append(task)
+                return task
 
             mock_page.return_value = mock.MagicMock()
             mock_page.return_value.run_task.side_effect = _run
             p._on_pos_change()
-            await asyncio.sleep(0.1)
+            if tasks:
+                await asyncio.wait_for(
+                    asyncio.gather(*tasks, return_exceptions=True), timeout=2
+                )
         p.video.seek.assert_awaited_once_with(ft.Duration(seconds=42))
         assert p._pending_seek is None
         p._start_watchdog.assert_called_once()
@@ -146,9 +152,11 @@ class TestPipServiceDesktop:
         assert pip_service.enter_pip() is False
 
     def test_set_auto_pip_noop_below_api_31(self):
+        # Phase 6: unsupported is detectable — False, not the old no-op True
+        # that made unsupported look armed.
         from services import pip_service
 
-        assert pip_service.set_auto_pip(True) is True
+        assert pip_service.set_auto_pip(True) is False
 
     def test_player_pip_flag_false_on_desktop(self):
         p = ImmersivePlayer(resource="http://example.com/s.m3u8", title="T")
@@ -215,3 +223,56 @@ class TestSettingsDialogStreamSections:
             if getattr(c, "value", None) == "Stream (Quality & Audio)"
         )
         assert stream_header.visible is False
+
+
+class TestSwapResetsFinalError:
+    """Phase 2: a quality/audio swap after an error must start clean."""
+
+    @pytest.mark.asyncio
+    async def test_swap_clears_final_error_via_progress(self):
+        """_show_progress (called by _swap_media) resets _is_final_error."""
+        p = ImmersivePlayer(resource="http://example.com/s.m3u8", title="T")
+        p._is_final_error = True
+        p._show_progress("Switching quality...")
+        assert p._is_final_error is False
+
+    @pytest.mark.asyncio
+    async def test_pending_seek_keeps_fraction(self):
+        """Swap position restore keeps float seconds (no int truncation)."""
+        import flet as ft
+
+        p = ImmersivePlayer(resource="http://example.com/s.m3u8", title="T")
+        p.video = mock.MagicMock()
+        p.video.get_current_position = mock.AsyncMock(
+            return_value=ft.Duration(seconds=42)
+        )
+        p.video.get_duration = mock.AsyncMock(return_value=ft.Duration(seconds=600))
+        p.video.play = mock.AsyncMock()
+        p.hls_proxy = None
+        p._start_watchdog = mock.MagicMock()
+
+        await p._swap_media("Switching quality...")
+
+        assert p._pending_seek == pytest.approx(42.0)
+
+
+class TestPhase6PipContract:
+    """set_auto_pip returns False below API 31 (unsupported is detectable)."""
+
+    def test_set_auto_pip_false_below_api_31(self):
+        from services import pip_service
+
+        assert pip_service.api_level() == 0  # no JVM on desktop
+        assert pip_service.set_auto_pip(True) is False
+        assert pip_service.set_auto_pip(False) is False
+
+    def test_enter_pip_false_without_support(self):
+        from services import pip_service
+
+        assert pip_service.enter_pip() is False
+
+    def test_fraction_from_ints(self):
+        from fractions import Fraction
+
+        ratio = Fraction(int(1.777 * 1000), 1000).limit_denominator(239)
+        assert ratio.numerator > 0 and ratio.denominator > 0
