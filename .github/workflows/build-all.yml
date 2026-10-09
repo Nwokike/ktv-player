@@ -61,10 +61,18 @@ jobs:
           java-version: 17
       - name: Build APK (first pass may fail on IMA desugaring)
         run: |
+          # pub.dev drift: jni_flutter >=1.0.4+1 needs package:jni ^1.1.0 but
+          # flet's generated pubspec pins jni: 1.0.0, so the Dart compile
+          # fails its version assert. Bump the override before building.
           set +e
           uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri -v
           set -e
           test -f build/flutter/android/app/build.gradle.kts
+          PUBSPEC=build/flutter/pubspec.yaml
+          if grep -q "^  jni: 1\.0\.0$" "$PUBSPEC"; then
+            sed -i 's/^  jni: 1\.0\.0$/  jni: ^1.1.0/' "$PUBSPEC"
+            echo "jni override bumped to ^1.1.0"
+          fi
           GRADLE=build/flutter/android/app/build.gradle.kts
           grep -q "isCoreLibraryDesugaringEnabled" "$GRADLE" || \
             sed -i 's/compileOptions {/compileOptions {\n        isCoreLibraryDesugaringEnabled = true/' "$GRADLE"
@@ -133,7 +141,23 @@ jobs:
       - uses: astral-sh/setup-uv@v6
 
       - name: Build Windows Portable
-        run: uv run flet build windows --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
+        run: |
+          # pub.dev drift: jni_flutter >=1.0.4+1 needs package:jni ^1.1.0 but
+          # flet's generated pubspec pins jni: 1.0.0, so the Dart compile
+          # fails its version assert. Bump the override before building.
+          set +e
+          uv run flet build windows --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
+          set -e
+          $pubspec = "build/flutter/pubspec.yaml"
+          if (Test-Path $pubspec) {
+            $c = Get-Content $pubspec -Raw
+            $new = $c -replace "(?m)^  jni: 1\.0\.0$", "  jni: ^1.1.0"
+            if ($new -ne $c) {
+              Set-Content -Path $pubspec -Value $new -NoNewline
+              Write-Host "jni override bumped to ^1.1.0"
+            }
+          }
+          uv run flet build windows --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
 
       - name: Generate Icon for Installer
         run: |
@@ -219,6 +243,13 @@ jobs:
           set -e
           test -f build/flutter/android/app/build.gradle.kts || exit $code
           echo "flet build exit $code — continuing; desugaring patch + gradle rebuild follow"
+          # pub.dev drift: jni_flutter >=1.0.4+1 needs package:jni ^1.1.0 but
+          # flet's generated pubspec pins jni: 1.0.0 (Dart version assert).
+          PUBSPEC=build/flutter/pubspec.yaml
+          if grep -q "^  jni: 1\.0\.0$" "$PUBSPEC"; then
+            sed -i 's/^  jni: 1\.0\.0$/  jni: ^1.1.0/' "$PUBSPEC"
+            echo "jni override bumped to ^1.1.0"
+          fi
       - name: Inject TV banner, icon & rebuild with banner
         env:
           FLET_ANDROID_SIGNING_KEY_STORE: ${{ github.workspace }}/kiri_keystore.jks
@@ -314,6 +345,13 @@ jobs:
           set -e
           test -f build/flutter/android/app/build.gradle.kts || exit $code
           echo "flet build exit $code — continuing; desugaring patch + gradle rebuild follow"
+          # pub.dev drift: jni_flutter >=1.0.4+1 needs package:jni ^1.1.0 but
+          # flet's generated pubspec pins jni: 1.0.0 (Dart version assert).
+          PUBSPEC=build/flutter/pubspec.yaml
+          if grep -q "^  jni: 1\.0\.0$" "$PUBSPEC"; then
+            sed -i 's/^  jni: 1\.0\.0$/  jni: ^1.1.0/' "$PUBSPEC"
+            echo "jni override bumped to ^1.1.0"
+          fi
       - name: Inject TV banner, icon & rebuild with banner
         env:
           FLET_ANDROID_SIGNING_KEY_STORE: ${{ github.workspace }}/kiri_keystore.jks
