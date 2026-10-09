@@ -156,29 +156,38 @@ jobs:
         run: |
           # pub.dev drift: jni_flutter >=1.0.4+1 needs package:jni ^1.1.0 but
           # flet's generated pubspec pins jni: 1.0.0, so the Dart compile
-          # fails its version assert. flet regenerates pubspec.yaml on every
-          # invocation, so: build, patch, re-resolve, build again.
+          # fails its version assert. flet regenerates pubspec on every
+          # invocation, so the patch must follow the LAST flet build: build,
+          # patch, re-resolve, then run the Flutter build directly (not
+          # `flet build`, which would regenerate and wipe the override).
           $ver = "${{ env.BUILD_VERSION }}"
           $num = "${{ env.BUILD_NUMBER }}"
           $flags = @("--yes","--project","ktv","--product","KTV Player","--org","ng.kiri","--build-version",$ver,"--build-number",$num,"-v")
           uv run flet build windows @flags
           $pubspec = "build/flutter/pubspec.yaml"
+          $flutter = ""
           if (Test-Path $pubspec) {
             $c = Get-Content $pubspec -Raw
             $new = $c -replace "(?m)^  jni: 1[.]0[.]0[[:space:]]*$", "  jni: ^1.1.0"
             if ($new -ne $c) {
               Set-Content -Path $pubspec -Value $new -NoNewline
               Write-Host "jni override bumped to ^1.1.0"
-              # flet installs Flutter itself (not on PATH) — the Windows
-              # runner puts it under C:\Users\<runner>\flutter\<ver>.
-              $flutter = (Get-Command flutter -ErrorAction SilentlyContinue)
-              if (-not $flutter) {
-                $exe = Get-ChildItem "C:\Users\runneradmin\flutter\*\bin\flutter.bat" -ErrorAction SilentlyContinue | Sort-Object FullName -Descending | Select-Object -First 1
-                if ($exe) { & $exe.FullName pub get }
-              } else { flutter pub get }
+              # flet installs Flutter itself (not on PATH) under
+              # C:\Users\runneradmin\flutter\<ver>\bin\flutter.bat.
+              $exe = Get-ChildItem "C:\Users\runneradmin\flutter\*\bin\flutter.bat" -ErrorAction SilentlyContinue | Sort-Object FullName -Descending | Select-Object -First 1
+              if ($exe) {
+                $flutter = $exe.FullName
+                Remove-Item build/flutter/pubspec.lock -ErrorAction SilentlyContinue
+                & $flutter pub get
+                if ($LASTEXITCODE -ne 0) { Write-Host "pub get failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
+              } else { Write-Host "flutter.bat not found" }
             }
           }
-          uv run flet build windows @flags
+          if ($flutter) {
+            & $flutter build windows --release
+          } else {
+            uv run flet build windows @flags
+          }
 
       - name: Generate Icon for Installer
         run: |
