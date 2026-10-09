@@ -178,6 +178,9 @@ jobs:
               if ($exe) {
                 $flutter = $exe.FullName
                 Remove-Item build/flutter/pubspec.lock -ErrorAction SilentlyContinue
+                # Also clear the resolved graph: .dart_tool holds the
+                # jni-1.0.0 resolution and pub reuses it after the patch.
+                Remove-Item build/flutter/.dart_tool -Recurse -Force -ErrorAction SilentlyContinue
                 & $flutter pub get
                 if ($LASTEXITCODE -ne 0) { Write-Host "pub get failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
               } else { Write-Host "flutter.bat not found" }
