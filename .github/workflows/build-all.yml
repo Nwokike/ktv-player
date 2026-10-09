@@ -69,8 +69,8 @@ jobs:
           set -e
           test -f build/flutter/android/app/build.gradle.kts
           PUBSPEC=build/flutter/pubspec.yaml
-          if grep -q "^  jni: 1\.0\.0$" "$PUBSPEC"; then
-            sed -i 's/^  jni: 1\.0\.0$/  jni: ^1.1.0/' "$PUBSPEC"
+          if grep -qE "^  jni: 1[.]0[.]0[[:space:]]*$" "$PUBSPEC"; then
+            sed -i -E 's/^  jni: 1[.]0[.]0[[:space:]]*$/  jni: ^1.1.0/' "$PUBSPEC"
             echo "jni override bumped to ^1.1.0"
           fi
           GRADLE=build/flutter/android/app/build.gradle.kts
@@ -151,7 +151,7 @@ jobs:
           $pubspec = "build/flutter/pubspec.yaml"
           if (Test-Path $pubspec) {
             $c = Get-Content $pubspec -Raw
-            $new = $c -replace "(?m)^  jni: 1\.0\.0$", "  jni: ^1.1.0"
+            $new = $c -replace "(?m)^  jni: 1[.]0[.]0[[:space:]]*$", "  jni: ^1.1.0"
             if ($new -ne $c) {
               Set-Content -Path $pubspec -Value $new -NoNewline
               Write-Host "jni override bumped to ^1.1.0"
@@ -246,8 +246,8 @@ jobs:
           # pub.dev drift: jni_flutter >=1.0.4+1 needs package:jni ^1.1.0 but
           # flet's generated pubspec pins jni: 1.0.0 (Dart version assert).
           PUBSPEC=build/flutter/pubspec.yaml
-          if grep -q "^  jni: 1\.0\.0$" "$PUBSPEC"; then
-            sed -i 's/^  jni: 1\.0\.0$/  jni: ^1.1.0/' "$PUBSPEC"
+          if grep -qE "^  jni: 1[.]0[.]0[[:space:]]*$" "$PUBSPEC"; then
+            sed -i -E 's/^  jni: 1[.]0[.]0[[:space:]]*$/  jni: ^1.1.0/' "$PUBSPEC"
             echo "jni override bumped to ^1.1.0"
           fi
       - name: Inject TV banner, icon & rebuild with banner
@@ -348,8 +348,8 @@ jobs:
           # pub.dev drift: jni_flutter >=1.0.4+1 needs package:jni ^1.1.0 but
           # flet's generated pubspec pins jni: 1.0.0 (Dart version assert).
           PUBSPEC=build/flutter/pubspec.yaml
-          if grep -q "^  jni: 1\.0\.0$" "$PUBSPEC"; then
-            sed -i 's/^  jni: 1\.0\.0$/  jni: ^1.1.0/' "$PUBSPEC"
+          if grep -qE "^  jni: 1[.]0[.]0[[:space:]]*$" "$PUBSPEC"; then
+            sed -i -E 's/^  jni: 1[.]0[.]0[[:space:]]*$/  jni: ^1.1.0/' "$PUBSPEC"
             echo "jni override bumped to ^1.1.0"
           fi
       - name: Inject TV banner, icon & rebuild with banner
