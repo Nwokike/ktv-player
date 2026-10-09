@@ -61,30 +61,10 @@ jobs:
           java-version: 17
       - name: Build APK (first pass may fail on IMA desugaring)
         run: |
-          # pub.dev drift: jni_flutter >=1.0.4+1 needs package:jni ^1.1.0 but
-          # flet's generated pubspec pins jni: 1.0.0, so the Dart compile
-          # fails its version assert. Bump the override before building.
           set +e
           uv run flet build apk --yes --project ktv --product "KTV Player" --org ng.kiri -v
           set -e
           test -f build/flutter/android/app/build.gradle.kts
-          PUBSPEC=build/flutter/pubspec.yaml
-          if grep -qE "^  jni: 1[.]0[.]0[[:space:]]*$" "$PUBSPEC"; then
-            sed -i -E 's/^  jni: 1[.]0[.]0[[:space:]]*$/  jni: ^1.1.0/' "$PUBSPEC"
-            echo "jni override bumped to ^1.1.0"
-            # Re-resolve: gradle reads .dart_tool/package_config.json, which
-            # was resolved from the pre-patch pubspec. Patching the file
-            # alone changes nothing until pub get runs again. Flutter is not
-            # on PATH here — use the SDK flet itself uses.
-            # flet installs Flutter itself (not on PATH); find the newest
-            # copy it provisioned and use that binary.
-            FLUTTER=$(ls -d /home/runner/flutter/*/bin/flutter 2>/dev/null | sort -V | tail -1)
-            [ -x "$FLUTTER" ] || FLUTTER=$(command -v flutter)
-            # The lockfile was resolved with jni 1.0.0; remove it so pub get
-            # re-resolves against the patched pubspec.
-            rm -f build/flutter/pubspec.lock
-            (cd build/flutter && "$FLUTTER" pub get)
-          fi
           GRADLE=build/flutter/android/app/build.gradle.kts
           grep -q "isCoreLibraryDesugaringEnabled" "$GRADLE" || \
             sed -i 's/compileOptions {/compileOptions {\n        isCoreLibraryDesugaringEnabled = true/' "$GRADLE"
@@ -113,7 +93,6 @@ jobs:
       TAG_NAME: ${{ steps.tag_info.outputs.TAG_NAME }}
       RELEASE_NAME: ${{ steps.tag_info.outputs.RELEASE_NAME }}
       IS_PRERELEASE: ${{ steps.tag_info.outputs.IS_PRERELEASE }}
-      MAKE_LATEST: ${{ steps.tag_info.outputs.MAKE_LATEST }}
     steps:
       - uses: actions/checkout@v4
       - name: Generate Release Tag & Name
@@ -121,15 +100,13 @@ jobs:
         run: |
           if [[ "${{ github.ref }}" == refs/tags/* ]]; then
             echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_OUTPUT
-            echo "RELEASE_NAME=KTV Player ${{ github.ref_name }} (pre-release, pending approval)" >> $GITHUB_OUTPUT
-            echo "IS_PRERELEASE=true" >> $GITHUB_OUTPUT
-            echo "MAKE_LATEST=false" >> $GITHUB_OUTPUT
+            echo "RELEASE_NAME=KTV Player ${{ github.ref_name }}" >> $GITHUB_OUTPUT
+            echo "IS_PRERELEASE=false" >> $GITHUB_OUTPUT
           else
             SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
             echo "TAG_NAME=build-${SHORT_SHA}" >> $GITHUB_OUTPUT
             echo "RELEASE_NAME=Automated Build (${SHORT_SHA})" >> $GITHUB_OUTPUT
             echo "IS_PRERELEASE=true" >> $GITHUB_OUTPUT
-            echo "MAKE_LATEST=false" >> $GITHUB_OUTPUT
           fi
       - name: Create GitHub Release Placeholder
         if: github.event_name != 'pull_request'
@@ -138,7 +115,7 @@ jobs:
           tag_name: ${{ steps.tag_info.outputs.TAG_NAME }}
           name: ${{ steps.tag_info.outputs.RELEASE_NAME }}
           prerelease: ${{ steps.tag_info.outputs.IS_PRERELEASE }}
-          make_latest: ${{ steps.tag_info.outputs.MAKE_LATEST }}
+          make_latest: true
           body: |
             Automated multi-platform build generated from commit `${{ github.sha }}`.
         env:
@@ -153,44 +130,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
 
       - name: Build Windows Portable
-        run: |
-          # pub.dev drift: jni_flutter >=1.0.4+1 needs package:jni ^1.1.0 but
-          # flet's generated pubspec pins jni: 1.0.0, so the Dart compile
-          # fails its version assert. flet regenerates pubspec on every
-          # invocation, so the patch must follow the LAST flet build: build,
-          # patch, re-resolve, then run the Flutter build directly (not
-          # `flet build`, which would regenerate and wipe the override).
-          $ver = "${{ env.BUILD_VERSION }}"
-          $num = "${{ env.BUILD_NUMBER }}"
-          $flags = @("--yes","--project","ktv","--product","KTV Player","--org","ng.kiri","--build-version",$ver,"--build-number",$num,"-v")
-          uv run flet build windows @flags
-          $pubspec = "build/flutter/pubspec.yaml"
-          $flutter = ""
-          if (Test-Path $pubspec) {
-            $c = Get-Content $pubspec -Raw
-            $new = $c -replace "(?m)^  jni: 1[.]0[.]0[[:space:]]*$", "  jni: ^1.1.0"
-            if ($new -ne $c) {
-              Set-Content -Path $pubspec -Value $new -NoNewline
-              Write-Host "jni override bumped to ^1.1.0"
-              # flet installs Flutter itself (not on PATH) under
-              # C:\Users\runneradmin\flutter\<ver>\bin\flutter.bat.
-              $exe = Get-ChildItem "C:\Users\runneradmin\flutter\*\bin\flutter.bat" -ErrorAction SilentlyContinue | Sort-Object FullName -Descending | Select-Object -First 1
-              if ($exe) {
-                $flutter = $exe.FullName
-                Remove-Item build/flutter/pubspec.lock -ErrorAction SilentlyContinue
-                # Also clear the resolved graph: .dart_tool holds the
-                # jni-1.0.0 resolution and pub reuses it after the patch.
-                Remove-Item build/flutter/.dart_tool -Recurse -Force -ErrorAction SilentlyContinue
-                & $flutter pub get
-                if ($LASTEXITCODE -ne 0) { Write-Host "pub get failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
-              } else { Write-Host "flutter.bat not found" }
-            }
-          }
-          if ($flutter) {
-            & $flutter build windows --release
-          } else {
-            uv run flet build windows @flags
-          }
+        run: uv run flet build windows --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
 
       - name: Generate Icon for Installer
         run: |
@@ -276,25 +216,6 @@ jobs:
           set -e
           test -f build/flutter/android/app/build.gradle.kts || exit $code
           echo "flet build exit $code — continuing; desugaring patch + gradle rebuild follow"
-          # pub.dev drift: jni_flutter >=1.0.4+1 needs package:jni ^1.1.0 but
-          # flet's generated pubspec pins jni: 1.0.0 (Dart version assert).
-          PUBSPEC=build/flutter/pubspec.yaml
-          if grep -qE "^  jni: 1[.]0[.]0[[:space:]]*$" "$PUBSPEC"; then
-            sed -i -E 's/^  jni: 1[.]0[.]0[[:space:]]*$/  jni: ^1.1.0/' "$PUBSPEC"
-            echo "jni override bumped to ^1.1.0"
-            # Re-resolve: gradle reads .dart_tool/package_config.json, which
-            # was resolved from the pre-patch pubspec. Patching the file
-            # alone changes nothing until pub get runs again. Flutter is not
-            # on PATH here — use the SDK flet itself uses.
-            # flet installs Flutter itself (not on PATH); find the newest
-            # copy it provisioned and use that binary.
-            FLUTTER=$(ls -d /home/runner/flutter/*/bin/flutter 2>/dev/null | sort -V | tail -1)
-            [ -x "$FLUTTER" ] || FLUTTER=$(command -v flutter)
-            # The lockfile was resolved with jni 1.0.0; remove it so pub get
-            # re-resolves against the patched pubspec.
-            rm -f build/flutter/pubspec.lock
-            (cd build/flutter && "$FLUTTER" pub get)
-          fi
       - name: Inject TV banner, icon & rebuild with banner
         env:
           FLET_ANDROID_SIGNING_KEY_STORE: ${{ github.workspace }}/kiri_keystore.jks
@@ -390,25 +311,6 @@ jobs:
           set -e
           test -f build/flutter/android/app/build.gradle.kts || exit $code
           echo "flet build exit $code — continuing; desugaring patch + gradle rebuild follow"
-          # pub.dev drift: jni_flutter >=1.0.4+1 needs package:jni ^1.1.0 but
-          # flet's generated pubspec pins jni: 1.0.0 (Dart version assert).
-          PUBSPEC=build/flutter/pubspec.yaml
-          if grep -qE "^  jni: 1[.]0[.]0[[:space:]]*$" "$PUBSPEC"; then
-            sed -i -E 's/^  jni: 1[.]0[.]0[[:space:]]*$/  jni: ^1.1.0/' "$PUBSPEC"
-            echo "jni override bumped to ^1.1.0"
-            # Re-resolve: gradle reads .dart_tool/package_config.json, which
-            # was resolved from the pre-patch pubspec. Patching the file
-            # alone changes nothing until pub get runs again. Flutter is not
-            # on PATH here — use the SDK flet itself uses.
-            # flet installs Flutter itself (not on PATH); find the newest
-            # copy it provisioned and use that binary.
-            FLUTTER=$(ls -d /home/runner/flutter/*/bin/flutter 2>/dev/null | sort -V | tail -1)
-            [ -x "$FLUTTER" ] || FLUTTER=$(command -v flutter)
-            # The lockfile was resolved with jni 1.0.0; remove it so pub get
-            # re-resolves against the patched pubspec.
-            rm -f build/flutter/pubspec.lock
-            (cd build/flutter && "$FLUTTER" pub get)
-          fi
       - name: Inject TV banner, icon & rebuild with banner
         env:
           FLET_ANDROID_SIGNING_KEY_STORE: ${{ github.workspace }}/kiri_keystore.jks
@@ -474,28 +376,7 @@ jobs:
           sudo apt-get install -y libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libmpv-dev mpv pkg-config rpm ruby ruby-dev
           sudo gem install --no-document fpm
       - name: Build Linux Bundle
-        # pub.dev drift: jni_flutter >=1.0.4+1 needs package:jni ^1.1.0 but
-        # flet's generated pubspec pins jni: 1.0.0 (same Dart version assert
-        # as the Android and Windows jobs). flet regenerates pubspec on every
-        # run, so build once, patch, re-resolve, then build again.
-        run: |
-          set +e
-          uv run flet build linux --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
-          set -e
-          PUBSPEC=build/flutter/pubspec.yaml
-          if grep -qE "^  jni: 1[.]0[.]0[[:space:]]*$" "$PUBSPEC"; then
-            sed -i -E 's/^  jni: 1[.]0[.]0[[:space:]]*$/  jni: ^1.1.0/' "$PUBSPEC"
-            echo "jni override bumped to ^1.1.0"
-            # flet installs Flutter itself (not on PATH); find the newest
-            # copy it provisioned and use that binary.
-            FLUTTER=$(ls -d /home/runner/flutter/*/bin/flutter 2>/dev/null | sort -V | tail -1)
-            [ -x "$FLUTTER" ] || FLUTTER=$(command -v flutter)
-            # The lockfile was resolved with jni 1.0.0; remove it so pub get
-            # re-resolves against the patched pubspec.
-            rm -f build/flutter/pubspec.lock
-            (cd build/flutter && "$FLUTTER" pub get)
-          fi
-          uv run flet build linux --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
+        run: uv run flet build linux --yes --project ktv --product "KTV Player" --org ng.kiri --build-version ${{ env.BUILD_VERSION }} --build-number ${{ env.BUILD_NUMBER }} -v
       - name: Create Linux Packages (.deb, .rpm, .tar.gz)
         run: |
           mkdir -p build/dist

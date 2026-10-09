@@ -21,6 +21,14 @@ product = "KTV Player"
 build_number = 21
 desktop_flavor = "full"
 
+# pub.dev drift fix: flet's generated pubspec pins jni: 1.0.0, but
+# jni_flutter 1.0.4+1 (now resolved on pub.dev) requires package:jni
+# ^1.1.0, so the Dart compile fails its version assert on every platform.
+# flet merges this section into the generated pubspec, which is the
+# stable hook for the override — no post-build patching needed.
+[tool.flet.flutter.pubspec.dependency_overrides]
+jni = "^1.1.0"
+
 [tool.flet.app]
 path = "src"
 
