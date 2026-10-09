@@ -144,9 +144,7 @@ async def test_in_flight_cleared_after_probe():
     async def fake_check_single(url):
         return (url, True)
 
-    lc.LivelinessChecker = lambda _: SimpleNamespace(
-        check_single=fake_check_single
-    )
+    lc.LivelinessChecker = lambda _: SimpleNamespace(check_single=fake_check_single)
     lc.drain_queue()
     await lc._probe_and_persist("http://probe.example/v")
     assert "http://probe.example/v" not in lc._in_flight
@@ -163,9 +161,7 @@ async def test_in_flight_cleared_after_cancelled_probe():
     async def fake_check_single(url):
         raise asyncio.CancelledError
 
-    lc.LivelinessChecker = lambda _: SimpleNamespace(
-        check_single=fake_check_single
-    )
+    lc.LivelinessChecker = lambda _: SimpleNamespace(check_single=fake_check_single)
     with pytest.raises(asyncio.CancelledError):
         await lc._probe_and_persist("http://cancel.example/v")
     assert "http://cancel.example/v" not in lc._in_flight
@@ -211,9 +207,11 @@ def test_deeplink_header_padded_blocked_key_dropped():
     from core.deeplink import parse_deep_link
 
     url_b64 = base64.urlsafe_b64encode(b"http://x.test/s.m3u8").rstrip(b"=").decode()
-    payload = base64.urlsafe_b64encode(
-        b'{" Authorization ": "Bearer x", "X-Ok": "fine"}'
-    ).rstrip(b"=").decode()
+    payload = (
+        base64.urlsafe_b64encode(b'{" Authorization ": "Bearer x", "X-Ok": "fine"}')
+        .rstrip(b"=")
+        .decode()
+    )
     route = f"ktv://play?url={url_b64}&headers={payload}"
     url, _, _, headers = parse_deep_link(route)
     # url, title, referer, headers
@@ -291,9 +289,7 @@ async def test_cycle_speed_updates_every_branch():
     t1, t2 = mock.MagicMock(), mock.MagicMock()
     player.speed_text = t1
     player.speed_texts = [t1, t2]
-    player._branch_controls = types.MethodType(
-        ImmersivePlayer._branch_controls, player
-    )
+    player._branch_controls = types.MethodType(ImmersivePlayer._branch_controls, player)
     await handlers.cycle_speed(player)
     # EVERY branch's text updates, not just the singular.
     assert t1.value == "1.25x"
@@ -528,19 +524,29 @@ def test_sidecar_truncated_returns_none(tmp_path):
     raw = tmp_path / "p.m3u8"
     raw.write_text("#EXTM3U\n", encoding="utf-8")
     channels = [
-        {k: (f"{k}{i}" if i == 0 else "x") for k in
-         ("url", "name", "logo", "group", "country", "country_code")}
+        {
+            k: (f"{k}{i}" if i == 0 else "x")
+            for k in ("url", "name", "logo", "group", "country", "country_code")
+        }
         for i in range(2)
     ]
     # Add the remaining fields so the tuple matches _FIELDS length
     full = []
     for c in channels:
-        full.append({
-            "url": c["url"], "name": c["name"], "logo": c["logo"],
-            "group": c["group"], "country": c["country"],
-            "country_code": c["country_code"], "categories": [],
-            "tvg_id": "", "tvg_country": "", "is_custom": False,
-        })
+        full.append(
+            {
+                "url": c["url"],
+                "name": c["name"],
+                "logo": c["logo"],
+                "group": c["group"],
+                "country": c["country"],
+                "country_code": c["country_code"],
+                "categories": [],
+                "tvg_id": "",
+                "tvg_country": "",
+                "is_custom": False,
+            }
+        )
     store_sidecar(str(raw), full)
     with open(str(raw) + ".mpk", "rb") as f:
         data = f.read()
@@ -555,7 +561,7 @@ def test_sidecar_truncated_returns_none(tmp_path):
 
 
 def test_mediastore_projection_uses_real_column_names():
-    """"_display_name" is the real MediaColumns.DISPLAY_NAME value;
+    """ "_display_name" is the real MediaColumns.DISPLAY_NAME value;
     "display_name" threw getColumnIndexOrThrow and emptied the library."""
     import inspect
 
@@ -575,7 +581,7 @@ def test_id_only_rows_share_one_folder():
 
     src = inspect.getsource(local_scanner)
     assert "mediastore:device-videos" in src
-    assert "f\"mediastore:{vid.content_uri}\"" not in src
+    assert 'f"mediastore:{vid.content_uri}"' not in src
 
 
 # ---------------------------------------------------------------------------

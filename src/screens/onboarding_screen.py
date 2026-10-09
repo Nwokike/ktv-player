@@ -111,9 +111,7 @@ def OnboardingScreen(
     # extract always appends "Other", so `or` can never fire on its result —
     # the emptiness check must be on state.channels itself.
     available_countries = ft.use_memo(
-        lambda: extract_country_dicts(state.channels)
-        if state.channels
-        else countries,
+        lambda: extract_country_dicts(state.channels) if state.channels else countries,
         [state.channels_hash],
     )
 
@@ -265,9 +263,7 @@ def _build_online_form(
                             src="/icon.svg",
                             width=90,
                             height=90,
-                            error_content=ft.Icon(
-                                ft.Icons.LIVE_TV_ROUNDED, size=64
-                            ),
+                            error_content=ft.Icon(ft.Icons.LIVE_TV_ROUNDED, size=64),
                             semantics_label="KTV Player",
                         ),
                         ft.Text(

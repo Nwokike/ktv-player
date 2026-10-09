@@ -52,7 +52,5 @@ in_memory_log_handler.setFormatter(
 )
 
 root_logger = logging.getLogger()
-if not any(
-    isinstance(h, MemoryLogHandler) for h in root_logger.handlers
-):
+if not any(isinstance(h, MemoryLogHandler) for h in root_logger.handlers):
     root_logger.addHandler(in_memory_log_handler)

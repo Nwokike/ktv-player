@@ -161,9 +161,7 @@ async def check_from_dialog(page: ft.Page):
         try:
             dlg.update()
         except Exception:
-            logger.debug(
-                "Version dialog restore update failed", exc_info=True
-            )
+            logger.debug("Version dialog restore update failed", exc_info=True)
         notify(f"✓ {APP_VERSION} is up to date")
 
 
@@ -331,7 +329,9 @@ def show_version_dialog(page: ft.Page, update_data=None):
             _open_dialog.title = ft.Row(
                 controls=[
                     ft.Icon(icon, color=icon_color, size=24),
-                    ft.Text(title_text, weight=ft.FontWeight.BOLD, font_family="Outfit"),
+                    ft.Text(
+                        title_text, weight=ft.FontWeight.BOLD, font_family="Outfit"
+                    ),
                 ],
                 spacing=10,
             )

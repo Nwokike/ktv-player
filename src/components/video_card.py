@@ -71,53 +71,53 @@ def VideoCard(
         # Declarative scale cue — see channel_card.py for the rationale.
         animate_scale=card_focus_scale(),
         content=ft.Column(
-                controls=[
-                    _preview(video),
-                    ft.Text(
-                        video.name,
-                        size=12,
-                        max_lines=2,
-                        overflow=ft.TextOverflow.ELLIPSIS,
-                        text_align=ft.TextAlign.CENTER,
-                        semantics_label=video.name,
-                    ),
-                    ft.Row(
-                        controls=[
-                            ft.Text(
-                                _format_size(video.size),
-                                size=10,
-                                color=ft.Colors.GREY,
-                                text_align=ft.TextAlign.CENTER,
-                            ),
-                            *(
-                                [
-                                    ft.Container(
-                                        content=ft.Text(
-                                            duration,
-                                            size=10,
-                                            color=ft.Colors.WHITE,
-                                        ),
-                                        bgcolor=ft.Colors.with_opacity(
-                                            0.7, ft.Colors.BLACK
-                                        ),
-                                        border_radius=4,
-                                        padding=ft.Padding.symmetric(
-                                            horizontal=4, vertical=1
-                                        ),
-                                    )
-                                ]
-                                if duration
-                                else []
-                            ),
-                        ],
-                        alignment=ft.MainAxisAlignment.CENTER,
-                        spacing=6,
-                    ),
-                ],
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                spacing=4,
-            ),
-        )
+            controls=[
+                _preview(video),
+                ft.Text(
+                    video.name,
+                    size=12,
+                    max_lines=2,
+                    overflow=ft.TextOverflow.ELLIPSIS,
+                    text_align=ft.TextAlign.CENTER,
+                    semantics_label=video.name,
+                ),
+                ft.Row(
+                    controls=[
+                        ft.Text(
+                            _format_size(video.size),
+                            size=10,
+                            color=ft.Colors.GREY,
+                            text_align=ft.TextAlign.CENTER,
+                        ),
+                        *(
+                            [
+                                ft.Container(
+                                    content=ft.Text(
+                                        duration,
+                                        size=10,
+                                        color=ft.Colors.WHITE,
+                                    ),
+                                    bgcolor=ft.Colors.with_opacity(
+                                        0.7, ft.Colors.BLACK
+                                    ),
+                                    border_radius=4,
+                                    padding=ft.Padding.symmetric(
+                                        horizontal=4, vertical=1
+                                    ),
+                                )
+                            ]
+                            if duration
+                            else []
+                        ),
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    spacing=6,
+                ),
+            ],
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            spacing=4,
+        ),
+    )
     play_surface.on_focus = lambda e: setattr(play_surface, "scale", 1.04)
     play_surface.on_blur = lambda e: setattr(play_surface, "scale", 1.0)
 

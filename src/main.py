@@ -692,9 +692,7 @@ class AppController:
             except Exception:
                 # Deferred bind failed (port is None): degrade to the direct
                 # stream instead of aborting the play silently.
-                logger.warning(
-                    "Proxy URL build failed; playing direct", exc_info=True
-                )
+                logger.warning("Proxy URL build failed; playing direct", exc_info=True)
                 resource_url = url
 
         # Create player view immediately so the screen isn't blank.

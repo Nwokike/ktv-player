@@ -1,7 +1,6 @@
 """Per-card liveliness subscription tests: one verdict repaints one card."""
 
 
-
 def _render(monkeypatch, card_kwargs):
     import flet.controls.context as ctx_mod
 

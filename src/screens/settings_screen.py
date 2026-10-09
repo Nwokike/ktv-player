@@ -865,9 +865,7 @@ def SettingsScreen() -> Control:
                             fit=ft.BoxFit.CONTAIN,
                             # No color tint: the SVG is blue line-art; SRC_IN
                             # tinting would flatten it to a silhouette.
-                            error_content=ft.Icon(
-                                ft.Icons.LIVE_TV_ROUNDED, size=40
-                            ),
+                            error_content=ft.Icon(ft.Icons.LIVE_TV_ROUNDED, size=40),
                             semantics_label="KTV Player",
                         ),
                         ft.Column(

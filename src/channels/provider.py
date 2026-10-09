@@ -245,7 +245,9 @@ class ChannelProvider:
                     self._parse, fetched_text, tier
                 )
                 if fetched_channels:
-                    await anyio.to_thread.run_sync(_write_cache, fetched_text, cache_path)
+                    await anyio.to_thread.run_sync(
+                        _write_cache, fetched_text, cache_path
+                    )
                     # Refresh the sidecar to match the new raw file so the
                     # next launch skips the parse.
                     await anyio.to_thread.run_sync(

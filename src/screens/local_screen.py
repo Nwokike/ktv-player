@@ -543,7 +543,9 @@ def LocalScreen() -> Control:
                 notify("Waiting for delete confirmation…")
                 for _ in range(_CONSENT_WAIT_POLLS):
                     await asyncio.sleep(_CONSENT_POLL_INTERVAL)
-                    exists = await anyio.to_thread.run_sync(media_store_exists, content_uri)
+                    exists = await anyio.to_thread.run_sync(
+                        media_store_exists, content_uri
+                    )
                     if exists is False:
                         return True
                     if exists is None:

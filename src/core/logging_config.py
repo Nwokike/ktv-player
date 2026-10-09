@@ -22,9 +22,7 @@ class _ShutdownSafeStreamHandler(logging.StreamHandler):
             super().emit(record)
 
 
-def setup_logging(
-    level: int = logging.INFO, *, force: bool = False
-) -> None:
+def setup_logging(level: int = logging.INFO, *, force: bool = False) -> None:
     """Configure the root logger with consistent format and handlers.
 
     Re-calling with a different level re-applies it (no-op when the
@@ -52,11 +50,7 @@ def setup_logging(
     )
 
     stdout = next(
-        (
-            h
-            for h in root.handlers
-            if isinstance(h, _ShutdownSafeStreamHandler)
-        ),
+        (h for h in root.handlers if isinstance(h, _ShutdownSafeStreamHandler)),
         None,
     )
     if stdout is None:
@@ -65,9 +59,7 @@ def setup_logging(
     stdout.setFormatter(fmt)
     stdout.setLevel(level)
 
-    if not any(
-        isinstance(h, type(in_memory_log_handler)) for h in root.handlers
-    ):
+    if not any(isinstance(h, type(in_memory_log_handler)) for h in root.handlers):
         root.addHandler(in_memory_log_handler)
     in_memory_log_handler.setFormatter(fmt)
     in_memory_log_handler.setLevel(logging.DEBUG)

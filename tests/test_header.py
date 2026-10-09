@@ -33,9 +33,7 @@ def _walk(node):
 
 
 def _texts(root):
-    return [
-        n.value for n in _walk(root) if isinstance(getattr(n, "value", None), str)
-    ]
+    return [n.value for n in _walk(root) if isinstance(getattr(n, "value", None), str)]
 
 
 def test_header_renders_off_session_without_crash(monkeypatch):

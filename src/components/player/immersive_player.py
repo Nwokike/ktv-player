@@ -503,7 +503,9 @@ class ImmersivePlayer(ft.Stack):
         from services import pip_service
 
         if self.pip_available:
-            self._track_orphan(anyio.to_thread.run_sync(pip_service.set_auto_pip, False))
+            self._track_orphan(
+                anyio.to_thread.run_sync(pip_service.set_auto_pip, False)
+            )
 
         page = self.safe_page
         if hasattr(self, "_pip_lifecycle_previous") and page:

@@ -96,9 +96,7 @@ def record_crash(exc: BaseException, context: str = "") -> str | None:
         return None
 
     crash_dir = _get_crash_dir()
-    timestamp = datetime.datetime.now(datetime.UTC).strftime(
-        "%Y%m%d_%H%M%S_%f"
-    )
+    timestamp = datetime.datetime.now(datetime.UTC).strftime("%Y%m%d_%H%M%S_%f")
     filepath = _unique_filepath(crash_dir, timestamp)
 
     try:
@@ -108,9 +106,7 @@ def record_crash(exc: BaseException, context: str = "") -> str | None:
 
     try:
         with open(filepath, "w", encoding="utf-8") as f:
-            f.write(
-                f"Timestamp: {datetime.datetime.now(datetime.UTC).isoformat()}\n"
-            )
+            f.write(f"Timestamp: {datetime.datetime.now(datetime.UTC).isoformat()}\n")
             f.write(f"Context: {context}\n")
             f.write(
                 f"App: KTV Player {APP_VERSION} | "

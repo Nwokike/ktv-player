@@ -122,9 +122,7 @@ class TaskPool:
             except asyncio.CancelledError:
                 raise
             except Exception:
-                logger.exception(
-                    "%s worker %d failed on %r", self._name, index, item
-                )
+                logger.exception("%s worker %d failed on %r", self._name, index, item)
             finally:
                 queue.task_done()
 
