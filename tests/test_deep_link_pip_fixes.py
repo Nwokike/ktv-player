@@ -704,10 +704,15 @@ class TestOnLoadReady:
             p.will_unmount()
             upd.assert_not_awaited()
 
-    def test_video_defaults_medium_no_bg_resume(self):
+    def test_video_defaults_low_and_desktop_bg_flags(self):
+        """Restored v2.2.0 values: filter_quality LOW (the MEDIUM change
+        was an unverified 'guidance' claim) and the desktop background
+        flags pause=True / resume=False. _sync_background_flags() runs in
+        __init__ so the values no longer depend on _arm/_disarm, which
+        early-return without PiP and left desktop unsynced."""
         p = self._player()
-        assert p.video.filter_quality == ft.FilterQuality.MEDIUM
-        assert p.video.pause_upon_entering_background_mode is False
+        assert p.video.filter_quality == ft.FilterQuality.LOW
+        assert p.video.pause_upon_entering_background_mode is True
         assert p.video.resume_upon_entering_foreground_mode is False
 
     def test_volume_clamped(self):

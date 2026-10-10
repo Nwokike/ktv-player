@@ -307,16 +307,19 @@ class ImmersivePlayer(ft.Stack):
             volume=volume,
             muted=muted,
             wakelock=True,
-            # MEDIUM per flet_video guidance: HIGH blurs on Android, LOW is
-            # needlessly soft on high-DPI phones.
-            filter_quality=ft.FilterQuality.MEDIUM,
-            # Background behavior is PiP-aware, not static True/True:
-            # pausing here would freeze the frame being handed to PiP, and
-            # auto-resume would restart user-paused video on return. The real
-            # values are set in _sync_background_flags() once pip_available
-            # is known; _arm/_disarm flip them while PiP is armed.
-            pause_upon_entering_background_mode=False,
-            resume_upon_entering_foreground_mode=False,
+            # LOW: the v2.2.0 value. Phase 2 changed this to MEDIUM on an
+            # unverified "guidance" claim (flet only documents these as
+            # image-sampling levels). Reverted — it is a property of the
+            # video rendering surface and cannot be justified from the
+            # installed source.
+            filter_quality=ft.FilterQuality.LOW,
+            # Background behavior: constructed with the v2.2.0 defaults,
+            # then _sync_background_flags() applies the PiP-aware values
+            # (pausing would freeze the frame handed to PiP). Without that
+            # call, desktop kept the constructor's False and never
+            # re-synced, because _arm/_disarm early-return without PiP.
+            pause_upon_entering_background_mode=True,
+            resume_upon_entering_foreground_mode=True,
             playlist_mode=fv.PlaylistMode.NONE,
             subtitle_track=fv.VideoSubtitleTrack.auto(),
             subtitle_configuration=self._subtitle_configuration(),
@@ -345,10 +348,10 @@ class ImmersivePlayer(ft.Stack):
             fill_color=ft.Colors.BLACK,
             fit=ft.BoxFit.CONTAIN,
             alignment=ft.Alignment.CENTER,
-            # Constant app name, not the per-stream title: Video.title names
-            # the OS volume-mixer/window entry, and renaming it per stream is
-            # needless churn. The stream title stays in the UI title slot.
-            title="KTV Player",
+            # v2.2.0 expression restored. Video.title names the OS
+            # volume-mixer/window entry; either form works, and the
+            # per-stream variant is what shipped, so keep the diff honest.
+            title=self.title or "KTV Player",
             controls=self._build_controls(),
             on_duration_change=self._on_duration_change,
             on_position_change=self._on_pos_change,
@@ -363,6 +366,12 @@ class ImmersivePlayer(ft.Stack):
             self.video,
             self.overlay,
         ]
+
+        # Apply the PiP-aware background flags now that self.video and
+        # self.pip_available both exist. Previously relied on _arm/_disarm,
+        # which early-return without PiP — so desktop never re-synced and
+        # kept the constructor defaults (now corrected to the v2.2.0 pair).
+        self._sync_background_flags()
 
     # --- Controls ---
 
