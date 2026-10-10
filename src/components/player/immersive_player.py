@@ -160,6 +160,13 @@ class ImmersivePlayer(ft.Stack):
         # Deep-link plays (ktv://) hide the in-player favorite star
         self.show_favorite_button = show_favorite
         self.expand = True
+        # A Stack positions its NON-POSITIONED children by ITS OWN
+        # `alignment` (flet/controls/core/stack.py: "Specifies the alignment
+        # for non-positioned ... controls"); the child's own alignment only
+        # lays out the child's contents. Left None, Flutter defaults to
+        # top-start, so the loading/error overlay pinned itself to the
+        # top-left corner of the screen. Center it explicitly.
+        self.alignment = ft.Alignment.CENTER
 
         # Quality / audio-track switching (HLS proxy manifest pinning)
         self.hls_proxy = hls_proxy
