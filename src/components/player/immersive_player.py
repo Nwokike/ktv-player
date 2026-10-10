@@ -1021,6 +1021,17 @@ class ImmersivePlayer(ft.Stack):
             ]
             self.video.update()
             await self.video.play()
+            # Re-apply the current rate: replacing the playlist resets the
+            # native player to 1.0x, so without this the chip still read
+            # e.g. "1.5x" while the video silently dropped back to normal
+            # speed after any quality/audio swap.
+            rate = self._speeds[self._speed_idx]
+            if rate != 1.0:
+                try:
+                    self.video.playback_rate = rate
+                    self.video.update()
+                except Exception:
+                    logger.debug("Rate reapply after swap failed", exc_info=True)
             self._start_watchdog()
         except Exception as ex:
             logger.error("Stream switch failed: %s", ex)

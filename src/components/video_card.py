@@ -5,7 +5,7 @@ from collections.abc import Callable
 import flet as ft
 from flet import Control
 
-from components.focus_styles import card_button_style, card_focus_scale
+from components.focus_styles import card_button_style
 from services.local_scanner import LocalVideo, _format_size
 
 
@@ -69,7 +69,6 @@ def VideoCard(
         style=card_button_style(padding=ft.Padding.all(12), radius=16),
         tooltip=f"Play {video.name}",
         # Declarative scale cue — see channel_card.py for the rationale.
-        animate_scale=card_focus_scale(),
         content=ft.Column(
             controls=[
                 _preview(video),
@@ -118,8 +117,10 @@ def VideoCard(
             spacing=4,
         ),
     )
-    play_surface.on_focus = lambda e: setattr(play_surface, "scale", 1.04)
-    play_surface.on_blur = lambda e: setattr(play_surface, "scale", 1.0)
+    # No on_focus/on_blur scale mutation: this card is built inside the
+    # FolderExpansionTile component body, so it is frozen after render and
+    # a scale write raises "Frozen controls cannot be updated". The FOCUSED
+    # border from card_button_style is the working cue.
 
     body: Control = play_surface
     if on_long_press is not None:

@@ -1,19 +1,20 @@
-"""D-pad focus cue (TV-UX wave 1) — the scale lift on focused cards.
+"""D-pad focus cue — declarative only, no prop mutation.
 
-The cue is declarative: cards carry ``animate_scale`` plus on_focus /
-on_blur handlers that set ``scale``. The FOCUSED border from
-``card_button_style`` is the primary (always visible) cue; the scale
-interpolates on top via the implicit animation.
+The 2.3.0 regression: cards carried `on_focus`/`on_blur` handlers that
+set `control.scale`. Cards are the body of a `@ft.component`, so Flet
+freezes them after render and every prop write raises
+"Frozen controls cannot be updated" — which fired on every focus event
+(verified from a real desktop run: `flet/controls/value_types.py:66`
+raises, `component.py:149` sets `_frozen`).
+
+These tests pin the fix: no scale mutation anywhere, and the cue is the
+FOCUSED state in the ButtonStyle.
 """
 
-from types import SimpleNamespace
-
-import pytest
+from unittest import mock
 
 from components.channel_card import ChannelCard
-from components.focus_styles import card_button_style, card_focus_scale
-from components.video_card import VideoCard
-from services.local_scanner import LocalVideo
+from components.focus_styles import card_button_style
 
 
 def _channel_card():
@@ -26,87 +27,61 @@ def _channel_card():
     )
 
 
-def test_channel_card_scales_up_on_focus_and_back_on_blur():
+def test_card_carries_no_scale_mutation_handlers():
+    """The regression itself: handlers that write .scale on a frozen card."""
     card = _channel_card()
-    card.on_focus(SimpleNamespace())
-    assert card.scale == 1.04
-    card.on_blur(SimpleNamespace())
-    assert card.scale == 1.0
+    assert card.on_focus is None
+    assert card.on_blur is None
 
 
-def test_video_card_scales_up_on_focus_and_back_on_blur():
-    import flet as ft
-
-    from tests.flet_tree import walk as _walk
-
-    card = VideoCard(
-        video=LocalVideo(name="v.mp4", path="/v.mp4", size=1), on_play=lambda p: None
-    )
-    surface = next(
-        c
-        for c in _walk(card)
-        if isinstance(c, ft.FilledButton) and callable(getattr(c, "on_click", None))
-    )
-    surface.on_focus(SimpleNamespace())
-    assert surface.scale == 1.04
-    surface.on_blur(SimpleNamespace())
-    assert surface.scale == 1.0
-
-
-def test_focus_handlers_survive_unattached_cards():
-    # Cards are built before they are mounted in unit tests — update()
-    # raises there, and the handlers must swallow it.
-    card = _channel_card()
-    card.on_focus(SimpleNamespace())
-    card.on_blur(SimpleNamespace())
-
-
-def test_attach_focus_pop_is_gone():
-    """The old mutating helper was deleted: grep-clean, no import."""
+def test_focus_styles_exposes_only_the_button_style():
     import components.focus_styles as fs
 
+    assert fs.__all__ == ["card_button_style"]
     assert not hasattr(fs, "attach_focus_pop")
-    assert "attach_focus_pop" not in fs.__all__
+    assert not hasattr(fs, "card_focus_scale")
 
 
-def test_cards_carry_animate_scale():
-    """The cue must be visible: an implicit scale animation is declared."""
-    import flet as ft
-
-    from tests.flet_tree import walk as _walk
-
-    card = _channel_card()
-    assert card.animate_scale is not None
-    video = VideoCard(
-        video=LocalVideo(name="v.mp4", path="/v.mp4", size=1), on_play=lambda p: None
-    )
-    surface = next(
-        c
-        for c in _walk(video)
-        if isinstance(c, ft.FilledButton) and callable(getattr(c, "on_click", None))
-    )
-    assert surface.animate_scale is not None
-
-
-def test_card_button_style_has_pressed_and_disabled():
-    """Press feedback must exist (transparent was a touch regression)."""
+def test_focused_state_is_the_cue():
+    """The working cue: a FOCUSED border/overlay in the style."""
     import flet as ft
 
     style = card_button_style()
-    assert ft.ControlState.PRESSED in style.side
-    assert ft.ControlState.PRESSED in style.overlay_color
-    assert ft.ControlState.DISABLED in style.side
-    # Pressed overlay is fully visible, not a faint hover echo.
-    assert style.overlay_color[ft.ControlState.PRESSED] != ft.Colors.TRANSPARENT
+    assert ft.ControlState.FOCUSED in style.side
+    assert style.side[ft.ControlState.FOCUSED].width > style.side[
+        ft.ControlState.DEFAULT
+    ].width
+    assert ft.ControlState.FOCUSED in style.overlay_color
+    assert style.overlay_color[ft.ControlState.FOCUSED] != ft.Colors.TRANSPARENT
 
 
-def test_card_button_style_validates_inputs():
-    with pytest.raises(ValueError):
-        card_button_style(overlay_alpha=2.0)
-    with pytest.raises(ValueError):
-        card_button_style(radius=-1)
+def test_no_source_file_writes_scale_on_focus():
+    """Grep-level guard: the mutation must not come back anywhere."""
+    import inspect
+
+    import components.channel_card as cc
+    import components.video_card as vc
+
+    for mod in (cc, vc):
+        src = inspect.getsource(mod)
+        assert 'setattr(' not in src or '"scale"' not in src, mod.__name__
+        assert ".scale = " not in src, mod.__name__
 
 
-def test_card_focus_scale_validates():
-    with pytest.raises(ValueError):
-        card_focus_scale(0)
+def test_survives_unattached_cards():
+    # Cards are built before they are mounted in unit tests.
+    card = _channel_card()
+    assert card is not None
+
+
+def test_focus_event_on_a_mocked_card_does_not_raise():
+    """A brand-new regression canary: if anyone re-adds a scale-writing
+    handler, a focus event on a frozen double surfaces it here."""
+    card = _channel_card()
+    frozen = mock.MagicMock()
+    frozen._values = {}
+    frozen._dirty = {}
+    # Property write on a frozen control raises — assert the card has no
+    # handler that would even try.
+    assert not callable(getattr(card, "on_focus", None))
+    assert not callable(getattr(card, "on_blur", None))

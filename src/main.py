@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import contextlib
 import logging
 import os
@@ -61,6 +62,31 @@ def merge_cdn_headers(
                 referer_header = hdrs.get("Referer")
             break
     return merged, referer_header
+
+
+def _b64url_param(value: str) -> str:
+    """Normalise a deep-link query param to the canonical base64url form.
+
+    Accepts either an already-encoded value (Flet forwards the ktv:// query
+    verbatim) or a raw one (browsers/share sheets hand over plain URLs).
+    "Already encoded" is decided purely by strict base64 decoding: a raw URL
+    always contains "://" — ':' and '/' are outside the alphabet, so decoding
+    fails and the value gets encoded. (A payload-shape check would misjudge
+    JSON headers, whose decoded text does not start with a scheme.)
+    """
+    stripped = value.strip() if isinstance(value, str) else ""
+    if not stripped:
+        return ""
+    candidate = stripped.replace("-", "+").replace("_", "/")
+    try:
+        base64.b64decode(
+            candidate + "=" * (-len(candidate) % 4), validate=True
+        )
+        return stripped  # already base64url
+    except Exception:
+        return base64.urlsafe_b64encode(stripped.encode("utf-8")).rstrip(
+            b"="
+        ).decode()
 
 
 class AppController:
@@ -698,10 +724,16 @@ class AppController:
         # Create player view immediately so the screen isn't blank.
         # Wrap ImmersivePlayer in a FocusScope so Escape/Back while
         # the player is active closes it natively (no parallel
-        # page.on_keyboard_event handler). handle_close() runs
-        # ImmersivePlayer cleanup (will_unmount) before the view pop.
+        # page.on_keyboard_event handler).
         async def _player_on_back(e):
-            await player.handle_close()
+            # Route through _close_player ONLY. It funnels into
+            # _begin_player_close -> _close_player_with_save, which does the
+            # awaited position save + teardown + pop in one pass.
+            # Calling handle_close() here first deadlocks the close: it sets
+            # player._is_closing, after which _close_player() sees a close
+            # "already in flight" and _begin_player_close bails — so the view
+            # never pops and the user is stranded in the player (2.3.0
+            # regression; _is_closing is the in-flight flag for THIS path).
             self._close_player()
 
         # Favorite star only for in-app channel plays — deep links AND local
@@ -753,32 +785,34 @@ class AppController:
     def _close_player(self):
         if not self.page.views:
             return
-        if self._deep_link_open and self.page.views[-1].route == "/play":
+        top = self.page.views[-1]
+        if getattr(top, "route", None) != "/play":
+            return
+        player = self._player_in_top_view()
+        if player is not None and not self._close_already_saved(player):
+            # Closing but not yet saved (e.g. a close raced in) — still
+            # run the awaited close-save so the position is persisted.
+            # _begin guards the double-schedule; with_save no-ops when the
+            # position is already on disk, so a second call re-enters here
+            # and falls through to the pop/exit below.
+            self._begin_player_close(player)
+            return
+        if self._deep_link_open:
             # A deep-linked video sits on the blank underlay view (the shell
             # was cleared at launch) — closing it returns to the caller.
-            # Checked BEFORE the plain pop branch: the underlay makes
-            # len(views) > 1 true for deep links too.
-            player = self._player_in_top_view()
-            if player and not self._close_already_saved(player):
-                # Closing but not yet saved (e.g. a close raced in) — still
-                # run the awaited close-save so the position is persisted.
-                self._begin_player_close(player)
-                return
             self.page.run_task(self._exit_to_caller)
-        elif (
-            len(self.page.views) > 1
-            and getattr(self.page.views[-1], "route", None) == "/play"
-        ):
+        elif len(self.page.views) > 1:
             # No bare pop without save: route every close through the awaited
-            # close-save (teardown + persist + playlist clear). _begin guards
-            # the double-schedule; with_save no-ops when already saved.
-            player = self._player_in_top_view()
-            if player is not None:
-                self._begin_player_close(player)
-            else:
-                self._is_player_closing = True
-                self.page.views.pop()
-                self.page.update()
+            # close-save (teardown + persist + playlist clear).
+            self._is_player_closing = True
+            self.page.views.pop()
+            self.page.update()
+        else:
+            # Single view (cold "Open With" launch): there is nothing
+            # underneath to pop back to, so exit instead of stranding the
+            # user on a dead player.
+            logger.info("close-path: single-view player -> exit app")
+            self.page.run_task(self._exit_app)
 
     async def _exit_to_caller(self):
         """Finish the app after a deep-linked video closes. The deep-link
@@ -872,10 +906,17 @@ class AppController:
                 self.page.run_task(self.play_stream, route)
             return
 
-        # 2b. Deep Link fallback: Flet strips custom scheme → route is /?url=<base64>
+        # 2b. Deep Link fallback: Flet strips the custom scheme, so the route
+        # arrives as /?url=... The `url` param may be the canonical base64url
+        # form (Flet forwards it verbatim) OR a raw percent-decoded URL (some
+        # launchers/share sheets). Normalise to base64url so
+        # parse_deep_link accepts both: a raw value used to fail base64
+        # validation, silently returning nothing and leaving a black view
+        # with no error at all.
         if parsed.path in ("/", "") and parsed.query:
             query_params = urllib.parse.parse_qs(parsed.query)
-            if "url" in query_params:
+            raw_url = (query_params.get("url") or [None])[0]
+            if raw_url:
                 logger.info("Deep link fallback detected via query parameter")
                 state.is_deep_link_launch = True
                 self.page.views.clear()
@@ -883,9 +924,16 @@ class AppController:
                 # omitted it, leaving a single-view stack where system back
                 # exits without a save).
                 self._push_blank_underlay()
-                reconstructed = f"ktv://play?url={query_params['url'][0]}"
-                if "title" in query_params:
-                    reconstructed += f"&title={query_params['title'][0]}"
+                reconstructed = f"ktv://play?url={_b64url_param(raw_url)}"
+                raw_title = (query_params.get("title") or [None])[0]
+                if raw_title:
+                    reconstructed += f"&title={_b64url_param(raw_title)}"
+                # Forward the auth params too: dropping them made
+                # referer-locked streams unplayable from a browser link.
+                for key in ("headers", "referer"):
+                    raw_val = (query_params.get(key) or [None])[0]
+                    if raw_val:
+                        reconstructed += f"&{key}={_b64url_param(raw_val)}"
                 self._handle_deep_link(reconstructed)
                 return
 
@@ -984,6 +1032,11 @@ class AppController:
             self._is_player_closing = True
             self.page.views.pop()
             self.page.update()
+        else:
+            # Single view (cold "Open With" launch): nothing beneath to pop
+            # back to, so exit rather than strand the user on a dead player.
+            logger.info("close-path: close-save -> single view exit")
+            await self._exit_app()
 
     def _save_top_player_position(self):
         """Best-effort checkpoint save for the top-most player (lifecycle

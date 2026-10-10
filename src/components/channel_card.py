@@ -5,7 +5,7 @@ from collections.abc import Callable
 import flet as ft
 from flet import Control
 
-from components.focus_styles import card_button_style, card_focus_scale
+from components.focus_styles import card_button_style
 from core.constants import (
     CARD_BORDER_RADIUS,
     CARD_HEIGHT,
@@ -151,12 +151,10 @@ def ChannelCard(
             padding=ft.Padding.symmetric(horizontal=10, vertical=8),
             radius=CARD_BORDER_RADIUS,
         ),
-        # Declarative scale cue: the FOCUSED border is the primary cue;
-        # the animation interpolates the focus/blur scale below instead
-        # of snapping. (The old attach_focus_pop mutated frozen controls
-        # and never visibly applied — deleted.)
-        animate_scale=card_focus_scale(),
     )
-    button.on_focus = lambda e: setattr(button, "scale", 1.04)
-    button.on_blur = lambda e: setattr(button, "scale", 1.0)
+    # NOTE: no on_focus/on_blur scale mutation. This control is the body of
+    # the @ft.component above, so after render Flet freezes it
+    # (component.py:149) and ANY prop write raises "Frozen controls cannot
+    # be updated" — which fired on every focus event in 2.3.0. The FOCUSED
+    # border/overlay from card_button_style is the declarative, working cue.
     return button

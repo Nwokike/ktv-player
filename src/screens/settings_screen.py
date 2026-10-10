@@ -471,13 +471,18 @@ def SettingsScreen() -> Control:
 
     # -- handlers --
 
-    def _is_dark() -> bool:
+    def _read_is_dark() -> bool:
         from flet import context
 
         try:
             return AppColors.is_dark(context.page)
         except (RuntimeError, AttributeError):
             return True
+
+    # Reactive mirror of the theme so the Switch flips in the same frame.
+    # page.update() alone repaints the page but not this component — without
+    # local state the control lagged behind the theme (2.3.0 regression).
+    is_dark_state, set_is_dark_state = ft.use_state(_read_is_dark)
 
     def _toggle_theme(e):
         from flet import context
@@ -486,8 +491,7 @@ def SettingsScreen() -> Control:
             _toggle_theme_util(context.page)
         except (RuntimeError, AttributeError):
             logger.debug("Theme toggle off-session", exc_info=True)
-        # No local state: toggle_theme updates the page itself, and the
-        # Switch reads _is_dark() on every render, so the repaint follows.
+        set_is_dark_state(lambda prev: not prev)
 
     def _on_country_select(name: str):
         from flet import context
@@ -589,7 +593,7 @@ def SettingsScreen() -> Control:
                 leading=ft.Icon(ft.Icons.DARK_MODE, size=18, color=AppColors.PRIMARY),
                 title=LBL_DARK_MODE,
                 subtitle=LBL_DARK_MODE_DESC,
-                trailing=ft.Switch(value=_is_dark(), on_change=_toggle_theme),
+                trailing=ft.Switch(value=is_dark_state, on_change=_toggle_theme),
             ),
         ],
     )

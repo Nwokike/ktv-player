@@ -1,12 +1,12 @@
 """Shared focus-aware styling helpers for card-like tiles.
 
-Cards mount through declarative ``@ft.component`` trees, so focus cues
-must be declarative too: the FOCUSED border/overlay in
-``card_button_style`` plus an implicit ``animate_scale`` on the card
-itself. There is deliberately no ``attach_focus_pop`` in this module —
-mutating ``control.scale`` in on_focus/on_blur handlers never visibly
-applied (mounted declarative controls are frozen), so the old helper
-was deleted and its two call sites now pass ``animate_scale`` instead.
+The ONLY focus cue is declarative: the FOCUSED border/overlay that
+``card_button_style`` declares per ``ControlState``. Do NOT add
+on_focus/on_blur handlers that mutate ``control.scale``: cards are the
+body of a ``@ft.component``, so Flet freezes them after render and every
+prop write raises "Frozen controls cannot be updated" (that exact bug
+shipped in 2.3.0). A scale animation alone is also pointless — nothing
+sets ``scale``, so there is nothing to animate.
 """
 
 from __future__ import annotations
@@ -73,18 +73,6 @@ def card_button_style(
     )
 
 
-def card_focus_scale(scale: float = 1.04) -> ft.Animation:
-    """Implicit scale animation for focusable cards.
-
-    Assign to the card control's ``animate_scale`` (e.g. the
-    ``FilledButton`` in ChannelCard/VideoCard) and set ``control.scale``
-    in on_focus/on_blur as before — the animation declaration makes the
-    change interpolate instead of snapping. Declarative, so it survives
-    the frozen-control restriction that killed ``attach_focus_pop``.
-    """
-    if scale <= 0:
-        raise ValueError(f"scale must be positive, got {scale!r}")
-    return ft.Animation(duration=150, curve=ft.AnimationCurve.EASE_OUT)
 
 
-__all__ = ["card_button_style", "card_focus_scale"]
+__all__ = ["card_button_style"]

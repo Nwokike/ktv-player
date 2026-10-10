@@ -62,6 +62,16 @@ def _resolve_page():
         return None
 
 
+def _resolve_is_dark(page) -> bool:
+    """Current theme darkness, safe off-session."""
+    if page is None:
+        return True
+    try:
+        return AppColors.is_dark(page)
+    except (RuntimeError, AttributeError):
+        return True
+
+
 @ft.component
 def Header(
     on_search_click: Callable[..., None] | None = None,
@@ -80,17 +90,22 @@ def Header(
     update_announcement: bool = False,
 ) -> Control:
     page = _resolve_page()
-    try:
-        _theme_mode = page.theme_mode if page is not None else ft.ThemeMode.DARK
-    except (RuntimeError, AttributeError):
-        _theme_mode = ft.ThemeMode.DARK
+
+    # Local mirror of theme_mode: the icon must flip in the SAME frame as
+    # the theme. toggle_theme() calls page.update(), which repaints the
+    # page but does not re-run this component — without local state the
+    # sun/moon icon stayed stale until some unrelated rebuild (2.3.0
+    # regression: "the switch happens but isn't instant").
+    _is_dark_state, _set_is_dark_state = ft.use_state(
+        lambda: _resolve_is_dark(page)
+    )
 
     def _handle_toggle_theme():
         if page is None:
             return
         _toggle_theme_util(page)
-        # No extra set_state: toggle_theme updates the page itself, which
-        # schedules the repaint. Local state would double-render.
+        # Re-render this component so the icon + tooltip follow immediately.
+        _set_is_dark_state(_resolve_is_dark(page))
 
     def _build_version_chip() -> Control | None:
         """Sherlock-style version chip: shows the current version normally,
@@ -199,10 +214,9 @@ def Header(
     if version_chip is not None:
         actions.append(version_chip)
 
-    try:
-        is_dark = AppColors.is_dark(page)
-    except (RuntimeError, AttributeError):
-        is_dark = True
+    # Read the reactive mirror, not the page: this is what makes the icon
+    # flip in the same frame as the theme change.
+    is_dark = _is_dark_state
 
     theme_icon = ft.Icons.DARK_MODE_ROUNDED if is_dark else ft.Icons.LIGHT_MODE_ROUNDED
     tooltip_text = (
