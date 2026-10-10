@@ -4,8 +4,9 @@ import logging
 import os
 import time
 from collections.abc import Callable
-from typing import Any
+from typing import Any, ClassVar
 
+import anyio
 import flet as ft
 import flet_video as fv
 
@@ -35,6 +36,12 @@ _POSITION_SAVE_INTERVAL = 10.0
 _orphan_tasks: set = set()
 
 
+async def _await_result(awaitable) -> None:
+    """Await an already-created coroutine for page.run_task (takes a
+    coroutine function, not the object)."""
+    await awaitable
+
+
 def _short_variant_label(variant: dict) -> str:
     """Compact chip label: '1280x720' → '720p', else bandwidth."""
     resolution = variant.get("resolution") or ""
@@ -47,28 +54,11 @@ def _short_variant_label(variant: dict) -> str:
 
 
 def _android_activity_ref():
-    """Resolve the running Android activity, or None off-device."""
-    from jnius import autoclass
+    """Compat shim over services.android_bridge.get_activity (cached +
+    revalidated)."""
+    from services.android_bridge import get_activity
 
-    candidates = [
-        os.getenv("MAIN_ACTIVITY_HOST_CLASS_NAME"),
-        "ng.kiri.ktvplayer.MainActivity",
-        "net.flet.MainActivity",
-        "com.flet.flet_android.MainActivity",
-    ]
-    for cls_name in candidates:
-        if not cls_name:
-            continue
-        try:
-            host = autoclass(cls_name)
-            activity = getattr(host, "mActivity", None) or getattr(
-                host, "mCurrentActivity", None
-            )
-            if activity:
-                return activity
-        except Exception as ex:
-            logger.debug("Activity candidate %s unavailable: %s", cls_name, ex)
-    return None
+    return get_activity()
 
 
 def _save_screenshot_android(
@@ -155,6 +145,12 @@ class ImmersivePlayer(ft.Stack):
         source_proxied: bool = False,
     ):
         super().__init__()
+        # Video.volume is validated 0-100 in before_update (raises on update,
+        # not assignment): clamp here so a bad caller can't break the tree.
+        try:
+            volume = max(0.0, min(100.0, float(volume)))
+        except (TypeError, ValueError):
+            volume = 100.0
         self.resource = resource
         self._original_resource = resource
         self.on_close = on_close
@@ -164,6 +160,13 @@ class ImmersivePlayer(ft.Stack):
         # Deep-link plays (ktv://) hide the in-player favorite star
         self.show_favorite_button = show_favorite
         self.expand = True
+        # A Stack positions its NON-POSITIONED children by ITS OWN
+        # `alignment` (flet/controls/core/stack.py: "Specifies the alignment
+        # for non-positioned ... controls"); the child's own alignment only
+        # lays out the child's contents. Left None, Flutter defaults to
+        # top-start, so the loading/error overlay pinned itself to the
+        # top-left corner of the screen. Center it explicitly.
+        self.alignment = ft.Alignment.CENTER
 
         # Quality / audio-track switching (HLS proxy manifest pinning)
         self.hls_proxy = hls_proxy
@@ -311,21 +314,23 @@ class ImmersivePlayer(ft.Stack):
             volume=volume,
             muted=muted,
             wakelock=True,
+            # LOW: the v2.2.0 value. Phase 2 changed this to MEDIUM on an
+            # unverified "guidance" claim (flet only documents these as
+            # image-sampling levels). Reverted — it is a property of the
+            # video rendering surface and cannot be justified from the
+            # installed source.
             filter_quality=ft.FilterQuality.LOW,
+            # Background behavior: constructed with the v2.2.0 defaults,
+            # then _sync_background_flags() applies the PiP-aware values
+            # (pausing would freeze the frame handed to PiP). Without that
+            # call, desktop kept the constructor's False and never
+            # re-synced, because _arm/_disarm early-return without PiP.
             pause_upon_entering_background_mode=True,
             resume_upon_entering_foreground_mode=True,
             playlist_mode=fv.PlaylistMode.NONE,
             subtitle_track=fv.VideoSubtitleTrack.auto(),
-            subtitle_configuration=fv.VideoSubtitleConfiguration(
-                text_style=ft.TextStyle(
-                    size=22.0,
-                    color=ft.Colors.WHITE,
-                    weight=ft.FontWeight.W_600,
-                    bgcolor=ft.Colors.BLACK_54,
-                ),
-                text_align=ft.TextAlign.CENTER,
-                visible=True,
-            ),
+            subtitle_configuration=self._subtitle_configuration(),
+            on_load=self._on_first_ready,
             configuration=fv.VideoConfiguration(
                 enable_hardware_acceleration=True,
                 # hwdec left at the flet_video platform default (Android:
@@ -350,6 +355,9 @@ class ImmersivePlayer(ft.Stack):
             fill_color=ft.Colors.BLACK,
             fit=ft.BoxFit.CONTAIN,
             alignment=ft.Alignment.CENTER,
+            # v2.2.0 expression restored. Video.title names the OS
+            # volume-mixer/window entry; either form works, and the
+            # per-stream variant is what shipped, so keep the diff honest.
             title=self.title or "KTV Player",
             controls=self._build_controls(),
             on_duration_change=self._on_duration_change,
@@ -366,6 +374,12 @@ class ImmersivePlayer(ft.Stack):
             self.overlay,
         ]
 
+        # Apply the PiP-aware background flags now that self.video and
+        # self.pip_available both exist. Previously relied on _arm/_disarm,
+        # which early-return without PiP — so desktop never re-synced and
+        # kept the constructor defaults (now corrected to the v2.2.0 pair).
+        self._sync_background_flags()
+
     # --- Controls ---
 
     def did_mount(self):
@@ -378,22 +392,19 @@ class ImmersivePlayer(ft.Stack):
         unregister_fullscreen_toast()
         self._cancel_watchdog()
         self._disable_auto_pip()
-        # Save position if not already saved
+        # Save position if handle_close hasn't already (back-press race calls
+        # both): _position_saved is set only by the awaited close-path save.
+        if self._position_saved:
+            return
         if self.source_url and self._last_duration > 0 and self._last_position > 3:
             pos_sec = self._last_position
             if pos_sec >= (self._last_duration - 5):
                 pos_sec = 0.0
-            try:
-                loop = asyncio.get_running_loop()
-                task = loop.create_task(
-                    db_manager.update_history_position(
-                        self.source_url, pos_sec, self._last_duration
-                    )
+            self._track_orphan(
+                db_manager.update_history_position(
+                    self.source_url, pos_sec, self._last_duration
                 )
-                _orphan_tasks.add(task)
-                task.add_done_callback(_orphan_tasks.discard)
-            except RuntimeError:
-                pass
+            )
 
     @property
     def safe_page(self):
@@ -404,24 +415,81 @@ class ImmersivePlayer(ft.Stack):
         except Exception:
             return None
 
+    # --- Subtitle styling (size persisted in DB settings) ---
+
+    _SUBTITLE_SIZES: ClassVar[dict] = {
+        "small": 16.0,
+        "medium": 22.0,
+        "large": 30.0,
+    }
+
+    def _subtitle_size_key(self) -> str:
+        try:
+            from database.manager import db_manager as _db
+
+            # Sync read of the in-memory row (DB loads at boot; no await in
+            # a Video-construction path). Falls back to medium off-loop.
+            size = _db._data.get("settings", {}).get("subtitle_size", "medium")
+        except Exception:
+            size = "medium"
+        return size if size in self._SUBTITLE_SIZES else "medium"
+
+    def _subtitle_configuration(self) -> "fv.VideoSubtitleConfiguration":
+        size = self._SUBTITLE_SIZES[self._subtitle_size_key()]
+        return fv.VideoSubtitleConfiguration(
+            text_style=ft.TextStyle(
+                size=size,
+                color=ft.Colors.WHITE,
+                weight=ft.FontWeight.W_600,
+                bgcolor=ft.Colors.BLACK_54,
+            ),
+            text_align=ft.TextAlign.CENTER,
+            visible=True,
+        )
+
+    def _sync_background_flags(self) -> None:
+        """Pause-on-background only when PiP can't take over.
+
+        PiP armed/available: keep playing into the PiP window (pause=False)
+        and never auto-resume (resume=False + explicit user-pause tracking),
+        so minimizing hands a live frame to PiP and returning never restarts
+        user-paused video. No PiP (desktop): pause on background is the sane
+        default, resume stays off — the user presses play.
+        """
+        if not self.video:
+            return
+        try:
+            if self.pip_available:
+                self.video.pause_upon_entering_background_mode = not self._pip_active
+                self.video.resume_upon_entering_foreground_mode = False
+            else:
+                self.video.pause_upon_entering_background_mode = True
+                self.video.resume_upon_entering_foreground_mode = False
+            self.video.update()
+        except Exception:
+            logger.debug("Background-flag sync failed", exc_info=True)
+
     # --- Android PiP ---
 
     def _arm_auto_pip(self):
         """Arm auto-PiP once video is actually playing. Modern auto-PiP:
         Android 12+ enters PiP on swipe-home natively (setAutoEnterEnabled);
-        Android 8–11 falls back to entering PiP when the lifecycle reports
+        Android 8-11 falls back to entering PiP when the lifecycle reports
         the app is actually leaving the screen."""
         if not self.pip_available or self._pip_active:
             return
         self._pip_active = True
+        # While armed, the stream must keep playing into the PiP window:
+        # pause-on-background would freeze the handed-off frame.
+        self._sync_background_flags()
         from services import pip_service
 
         try:
-            loop = asyncio.get_running_loop()
+            asyncio.get_running_loop()
         except RuntimeError:
             return
 
-        loop.create_task(asyncio.to_thread(pip_service.set_auto_pip, True))
+        self._track_orphan(anyio.to_thread.run_sync(pip_service.set_auto_pip, True))
 
         # Android 8-11 fallback: hook lifecycle 'hidden' (only fires when the
         # app is really leaving the screen — not for the notification shade)
@@ -432,11 +500,11 @@ class ImmersivePlayer(ft.Stack):
 
             def _on_lifecycle(e):
                 if getattr(e, "data", None) == "hidden" and self._pip_active:
-                    loop.create_task(asyncio.to_thread(pip_service.enter_pip))
+                    self._track_orphan(anyio.to_thread.run_sync(pip_service.enter_pip))
                 if previous is not None:
                     result = previous(e)
                     if hasattr(result, "__await__"):
-                        loop.create_task(result)
+                        self._track_orphan(result)
 
             page.on_app_lifecycle_state_change = _on_lifecycle
 
@@ -444,15 +512,16 @@ class ImmersivePlayer(ft.Stack):
         """Disarm auto-PiP: playback ended, errored out, or the player is
         closing. Fire-and-forget so it can never block app shutdown."""
         self._pip_active = False
+        # Restore background behavior now that PiP is out of the picture.
+        self._sync_background_flags()
         if not self.pip_available:
             return
         from services import pip_service
 
-        try:
-            loop = asyncio.get_running_loop()
-            loop.create_task(asyncio.to_thread(pip_service.set_auto_pip, False))
-        except RuntimeError:
-            pass
+        if self.pip_available:
+            self._track_orphan(
+                anyio.to_thread.run_sync(pip_service.set_auto_pip, False)
+            )
 
         page = self.safe_page
         if hasattr(self, "_pip_lifecycle_previous") and page:
@@ -503,7 +572,6 @@ class ImmersivePlayer(ft.Stack):
         await pick_subtitles(self)
 
     async def _take_screenshot(self):
-        import os
 
         from utils.notifications import notify, notify_warning
 
@@ -533,7 +601,7 @@ class ImmersivePlayer(ft.Stack):
                 # is why snapshots silently failed there. MediaStore is the
                 # supported route; the direct write remains the fallback
                 # for desktop and older Android.
-                saved_path = await asyncio.to_thread(
+                saved_path = await anyio.to_thread.run_sync(
                     _save_screenshot_android, img_bytes, filename, mime_type
                 )
 
@@ -551,10 +619,12 @@ class ImmersivePlayer(ft.Stack):
                             f.write(img_bytes)
                         _scan_for_gallery(filepath)
 
-                    await asyncio.to_thread(_write_and_scan)
+                    await anyio.to_thread.run_sync(_write_and_scan)
                     saved_path = filepath
 
-                notify(f"📸 Snapshot saved to {saved_path}")
+                # Show the filename, not the raw path: Android saves return a
+                # content:// URI, which is meaningless (and long) in a toast.
+                notify(f"Snapshot saved: {filename}")
                 from utils.sfx import play_click
 
                 play_click()
@@ -562,6 +632,8 @@ class ImmersivePlayer(ft.Stack):
                 notify_warning("Unable to capture video snapshot.")
         except Exception as ex:
             logger.warning("Screenshot capture failed: %s", ex)
+            with contextlib.suppress(Exception):
+                notify_warning("Snapshot failed. Please try again.")
 
     async def _open_player_settings(self):
         from components.player.handlers import open_player_settings
@@ -656,38 +728,55 @@ class ImmersivePlayer(ft.Stack):
         one with float() raised TypeError, which the old bare `except`
         swallowed. That is why position/duration stayed at 0.0 and every
         close logged "position save skipped ... dur=0.0 pos=0.0": resume
-        never had a value to save.
+        never had a value to save. Duration-first, no ms/us heuristic: the
+        old shape-guess divided any VOD position over 1000s (e.g. a 25-min
+        1500s position became 1.5s).
         """
         if isinstance(value, ft.Duration):
             return float(value.in_seconds)
         if isinstance(value, bool):
             return None
         if isinstance(value, (int, float)):
-            # Older event shapes sent milliseconds or microseconds.
-            val = float(value)
-            if val > 1_000_000:
-                return val / 1_000_000.0
-            if val > 1_000:
-                return val / 1_000.0
-            return val
+            return float(value)
         return None
 
     def _on_duration_change(self, e: ft.ControlEvent | None = None):
-        if not self._overlay_hidden:
+        seconds = (
+            self._event_seconds(e.data)
+            if e and getattr(e, "data", None) is not None
+            else None
+        )
+        if seconds is None:
+            self._check_and_trigger_seek()
+            return
+        # Record every real value INCLUDING zero: a reset to 0 must land or
+        # the previous duration stays stale across playlist swaps. But only a
+        # positive tick hides the overlay — a 0 tick is not a ready signal
+        # (on_load owns the deterministic ready path).
+        self._last_duration = seconds
+        if seconds > 0 and not self._overlay_hidden:
             self._hide_overlay()
-        if e and getattr(e, "data", None) is not None:
-            seconds = self._event_seconds(e.data)
-            if seconds is not None:
-                self._last_duration = seconds
         self._check_and_trigger_seek()
 
     def _on_pos_change(self, e: ft.ControlEvent | None = None):
-        if not self._overlay_hidden:
-            self._hide_overlay()
-        if e and getattr(e, "data", None) is not None:
-            seconds = self._event_seconds(e.data)
-            if seconds is not None:
-                self._last_position = seconds
+        seconds = (
+            self._event_seconds(e.data)
+            if e and getattr(e, "data", None) is not None
+            else None
+        )
+        if seconds is None:
+            self._maybe_save_position_periodically()
+            self._check_and_trigger_seek()
+            return
+        self._last_position = seconds
+        if seconds > 0:
+            if not self._overlay_hidden:
+                self._hide_overlay()
+            # Slow-start networks: is_playing() right after play() returned
+            # False, so PiP never armed. First real position tick re-arms.
+            if not self._pip_active and not self._is_closing:
+                self._arm_auto_pip()
+        self._maybe_save_position_periodically()
         self._check_and_trigger_seek()
 
     def _maybe_save_position_periodically(self):
@@ -709,17 +798,11 @@ class ImmersivePlayer(ft.Stack):
         pos_sec = self._last_position
         if pos_sec >= (self._last_duration - 5):
             pos_sec = 0.0
-        try:
-            loop = asyncio.get_running_loop()
-            task = loop.create_task(
-                db_manager.update_history_position(
-                    self.source_url, pos_sec, self._last_duration
-                )
+        self._track_orphan(
+            db_manager.update_history_position(
+                self.source_url, pos_sec, self._last_duration
             )
-            _orphan_tasks.add(task)
-            task.add_done_callback(_orphan_tasks.discard)
-        except RuntimeError:
-            pass
+        )
 
     def _check_and_trigger_seek(self):
         # After media is ready / first tick, consume any pending one-shot seek target —
@@ -731,11 +814,14 @@ class ImmersivePlayer(ft.Stack):
         if target and target > 3:
             self._pending_seek = None
             self._initial_resume_position = None
+            page = self.safe_page
+            if page is None:
+                logger.debug("Seek target dropped: no page (teardown race)")
+                return
             try:
-                if self.page:
-                    self.page.run_task(self._deferred_seek, target)
+                page.run_task(self._deferred_seek, target)
             except Exception:
-                pass
+                logger.debug("Seek scheduling failed", exc_info=True)
 
     async def _deferred_seek(self, seconds: float) -> None:
         try:
@@ -746,7 +832,7 @@ class ImmersivePlayer(ft.Stack):
                     return
                 try:
                     dur = await self.video.get_duration()
-                    if dur and dur.in_seconds > 0:
+                    if dur is not None and dur.in_seconds > 0:
                         break
                 except Exception:
                     pass
@@ -756,7 +842,9 @@ class ImmersivePlayer(ft.Stack):
                 return
 
             await asyncio.sleep(0.05)
-            await self.video.seek(ft.Duration(seconds=int(seconds)))
+            await self.video.seek(ft.Duration(seconds=seconds))
+            # Only record after a successful seek: the optimistic write used
+            # to poison _last_position (and periodic saves) on failure.
             self._last_position = seconds
             logger.info("Deferred seek succeeded to %s seconds", seconds)
             from utils.notifications import notify
@@ -772,6 +860,17 @@ class ImmersivePlayer(ft.Stack):
         except Exception as ex:
             logger.debug("Deferred seek failed: %s", ex)
 
+    def _on_first_ready(self, e=None):
+        """Deterministic ready signal (flet_video on_load): the player is
+        initialized and ready — hide the overlay, cancel the watchdog, arm
+        PiP, and probe options once. Position/duration ticks remain as the
+        fallback path for streams where on_load never fires."""
+        if self._is_closing or self._is_final_error:
+            return
+        logger.debug("Video on_load: ready signal received")
+        self._hide_overlay()
+        self._arm_auto_pip()
+
     def _hide_overlay(self):
         if not self._overlay_hidden:
             self._overlay_hidden = True
@@ -784,28 +883,42 @@ class ImmersivePlayer(ft.Stack):
                     "Failed to hide overlay (component might be unmounted): %s", ex
                 )
             # First successful playback: probe the stream once for quality /
-            # audio options so the button can appear.
+            # audio options so the button can appear. Tracked so view pop
+            # during the probe cannot leave it updating a dead view.
             if not getattr(self, "_options_probed", False):
                 self._options_probed = True
                 try:
-                    loop = asyncio.get_running_loop()
-                    loop.create_task(self._probe_stream_options())
+                    asyncio.get_running_loop()
+                    self._track_orphan(self._probe_stream_options())
                 except RuntimeError:
                     pass
 
     def _enable_tap_to_close(self):
-        self.overlay.on_click = lambda _: self.page.run_task(self.handle_close)
+        # Always assigned (tests + tap availability); the page is resolved at
+        # TAP time, not bind time, so teardown between bind and tap can't crash.
+        def _tap(_):
+            page = self.safe_page
+            if page is None:
+                return
+            try:
+                page.run_task(self.handle_close)
+            except Exception:
+                logger.debug("Tap-to-close scheduling failed", exc_info=True)
+
+        self.overlay.on_click = _tap
 
     def _safe_update(self):
-        try:
+        with contextlib.suppress(Exception):
             self.update()
-        except Exception:
-            pass
 
     def _show_progress(self, message: str, show_back: bool = True):
         """Overlay state for loading/reconnecting: spinner + status, with Go
         Back always available (visible button + tap-to-close) so a stalling
         stream is never a dead end."""
+        # A fresh load/swap/retry attempt clears the dead-error latch: without
+        # this, a quality swap after an error dies instantly (watchdog exits
+        # on _is_final_error and further error events are suppressed).
+        self._is_final_error = False
         self._overlay_hidden = False
         self.status_text.value = message
         self.loading_ring.visible = True
@@ -924,6 +1037,17 @@ class ImmersivePlayer(ft.Stack):
             ]
             self.video.update()
             await self.video.play()
+            # Re-apply the current rate: replacing the playlist resets the
+            # native player to 1.0x, so without this the chip still read
+            # e.g. "1.5x" while the video silently dropped back to normal
+            # speed after any quality/audio swap.
+            rate = self._speeds[self._speed_idx]
+            if rate != 1.0:
+                try:
+                    self.video.playback_rate = rate
+                    self.video.update()
+                except Exception:
+                    logger.debug("Rate reapply after swap failed", exc_info=True)
             self._start_watchdog()
         except Exception as ex:
             logger.error("Stream switch failed: %s", ex)
@@ -945,14 +1069,23 @@ class ImmersivePlayer(ft.Stack):
             "Default audio" if name is None else "Switching audio..."
         )
 
+    def _branch_controls(self, plural: str, singular: str) -> list:
+        """All per-branch instances for a stashed control (lists since the
+        factory split; singular fallback for tests/hand-built players)."""
+        items = getattr(self, plural, None)
+        if isinstance(items, list) and items:
+            return items
+        single = getattr(self, singular, None)
+        return [single] if single is not None else []
+
     def _refresh_quality_label(self) -> None:
-        """Sync the quality button with the current pinning."""
-        text = getattr(self, "quality_text", None)
-        btn = getattr(self, "quality_btn", None)
-        if not text or not btn:
+        """Sync the quality button with the current pinning (all branches)."""
+        texts = self._branch_controls("quality_texts", "quality_text")
+        btns = self._branch_controls("quality_btns", "quality_btn")
+        if not texts or not btns:
             return
         if self._current_variant is None:
-            text.value = "Auto"
+            value = "Auto"
         else:
             current = next(
                 (
@@ -962,28 +1095,32 @@ class ImmersivePlayer(ft.Stack):
                 ),
                 None,
             )
-            text.value = (
+            value = (
                 _short_variant_label(current)
                 if current
                 else f"V{self._current_variant + 1}"
             )
+        for text in texts:
+            text.value = value
+        # One update pushes the whole video.controls subtree on every branch.
         try:
-            btn.update()
+            if self.video:
+                self.video.update()
         except Exception:
             pass
 
     def _refresh_audio_label(self) -> None:
-        """Sync the audio button with the current pinning."""
-        text = getattr(self, "audio_text", None)
-        btn = getattr(self, "audio_btn", None)
-        if not text or not btn:
+        """Sync the audio button with the current pinning (all branches)."""
+        texts = self._branch_controls("audio_texts", "audio_text")
+        btns = self._branch_controls("audio_btns", "audio_btn")
+        if not texts or not btns:
             return
-        if self._current_audio is None:
-            text.value = "Default"
-        else:
-            text.value = self._current_audio
+        value = "Default" if self._current_audio is None else self._current_audio
+        for text in texts:
+            text.value = value
         try:
-            btn.update()
+            if self.video:
+                self.video.update()
         except Exception:
             pass
 
@@ -993,33 +1130,19 @@ class ImmersivePlayer(ft.Stack):
         if not self.can_switch_quality or self._is_closing:
             return
         variants = await self.list_variants()
-        tracks = await self.list_audio_tracks() if variants else []
+        # Unconditional: single-variant streams can still carry 2+ audio tracks.
+        tracks = await self.list_audio_tracks()
         if self._is_closing:
             return
 
-        # Quality button
-        q_btn = getattr(self, "quality_btn", None)
-        q_row = getattr(self, "quality_row", None)
-        if q_btn is not None and q_row is not None and len(variants) > 1:
-            q_btn.content = q_row
-            q_btn.padding = ft.Padding(6, 3, 6, 3)
+        # Quality button (all branches; chips now render their label
+        # immediately, so the probe only refreshes the label text).
+        if len(variants) > 1:
             self._refresh_quality_label()
-            try:
-                q_btn.update()
-            except Exception:
-                pass
 
-        # Audio button
-        a_btn = getattr(self, "audio_btn", None)
-        a_row = getattr(self, "audio_row", None)
-        if a_btn is not None and a_row is not None and len(tracks) >= 2:
-            a_btn.content = a_row
-            a_btn.padding = ft.Padding(6, 3, 6, 3)
+        # Audio button (all branches)
+        if len(tracks) >= 2:
             self._refresh_audio_label()
-            try:
-                a_btn.update()
-            except Exception:
-                pass
 
     async def open_quality_picker(self) -> None:
         """Open the player settings dialog with Stream Quality & Audio options."""
@@ -1032,7 +1155,7 @@ class ImmersivePlayer(ft.Stack):
         try:
             from services.pip_service import enter_pip
 
-            return await asyncio.to_thread(enter_pip)
+            return await anyio.to_thread.run_sync(enter_pip)
         except Exception:
             return False
 
@@ -1074,6 +1197,15 @@ class ImmersivePlayer(ft.Stack):
         if self._is_closing:
             return
         if "Cannot seek" in err_msg or "force-seekable" in err_msg:
+            # Correct to swallow on the live edge, but a post-swap VOD seek
+            # failure hides here too — log with context so it stays findable.
+            logger.debug(
+                "Swallowed seek error (live edge or post-swap VOD): %s "
+                "(variant=%s audio=%s)",
+                err_msg,
+                self._current_variant,
+                self._current_audio,
+            )
             return
         if self._is_final_error:
             return
@@ -1116,7 +1248,13 @@ class ImmersivePlayer(ft.Stack):
             self._show_final_error("Retry failed. Stream may be offline.")
             return
         self._start_watchdog()
-        self._arm_auto_pip()
+        # Gate PiP like start_playback: a failed retry must not trigger PiP
+        # over the error overlay.
+        try:
+            if self.video and await self.video.is_playing():
+                self._arm_auto_pip()
+        except Exception:
+            pass
 
     async def _save_current_position(self) -> None:
         """Capture and save playback position on player close for VOD streams."""
@@ -1136,8 +1274,9 @@ class ImmersivePlayer(ft.Stack):
             except Exception:
                 dur = None
 
-            pos_sec = pos.in_seconds if pos else self._last_position
-            dur_sec = dur.in_seconds if dur else self._last_duration
+            # is-not-None, not truthiness: a zero Duration must still count.
+            pos_sec = pos.in_seconds if pos is not None else self._last_position
+            dur_sec = dur.in_seconds if dur is not None else self._last_duration
 
             # Only save for finite/VOD streams (duration > 0) with meaningful progress (> 3s)
             if dur_sec > 0 and pos_sec > 3:
@@ -1156,20 +1295,42 @@ class ImmersivePlayer(ft.Stack):
         except Exception as ex:
             logger.debug("Saving playback position failed: %s", ex)
 
+    def _track_orphan(self, coro) -> None:
+        """Schedule a fire-and-forget DB write that survives close but never
+        leaks an un-retrieved exception. Replaces bare loop.create_task."""
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            return
+        task = loop.create_task(coro)
+        _orphan_tasks.add(task)
+        task.add_done_callback(_orphan_tasks.discard)
+
     def _on_complete(self, e: ft.ControlEvent):
         # Video finished — nothing is playing, so PiP auto-enter is disarmed.
         self._disarm_auto_pip()
         if self.source_url:
-            with contextlib.suppress(Exception):
-                loop = asyncio.get_running_loop()
-                loop.create_task(
-                    db_manager.update_history_position(
-                        self.source_url, 0.0, self._last_duration
-                    )
+            self._track_orphan(
+                db_manager.update_history_position(
+                    self.source_url, 0.0, self._last_duration
                 )
+            )
         from components.player.handlers import handle_stream_complete
 
-        handle_stream_complete(self, e)
+        result = handle_stream_complete(self, e)
+        if hasattr(result, "__await__"):
+            # Async completion handler (reconnect path): schedule on the page
+            # so failures surface instead of dying as an un-awaited coroutine.
+            # run_task takes a coroutine FUNCTION (a lambda returning a
+            # coroutine), not the coroutine object itself.
+            page = self.safe_page
+            if page is not None:
+                try:
+                    page.run_task(_await_result, result)
+                except Exception:
+                    logger.debug("Completion-handler scheduling failed", exc_info=True)
+            else:
+                self._track_orphan(result)
 
     # --- Close ---
 
@@ -1180,12 +1341,19 @@ class ImmersivePlayer(ft.Stack):
         self._is_final_error = True
         self._cancel_watchdog()
         self._disarm_auto_pip()
-        await self._save_current_position()
+        # Bounded: a hung native bridge must not make the Back button dead.
+        try:
+            await asyncio.wait_for(self._save_current_position(), timeout=3.0)
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.debug("Close-path position save failed", exc_info=True)
         try:
             if self.video:
-                # 1. Async stop first — proper player cleanup
+                # 1. Async stop first — proper player cleanup, bounded so a
+                # hung bridge can't wedge the close path.
                 with contextlib.suppress(Exception):
-                    await self.video.stop()
+                    await asyncio.wait_for(self.video.stop(), timeout=2.0)
                 # 2. Clear playlist + update() — sync final cleanup
                 self.video.playlist = []
                 self.video.update()
