@@ -22,8 +22,6 @@ import logging
 from collections.abc import Callable
 from dataclasses import dataclass
 
-import httpx
-
 from core.constants import (
     KIRI_LICENSE_APP_ID,
     KIRI_LICENSE_BASE_URL,
@@ -36,55 +34,23 @@ from services.license_token import LicenseClaims, TokenRejected, verify_token
 
 logger = logging.getLogger(__name__)
 
-# Explicit 4-tuple from the scalar constant: pool acquisition stays tight
-# (scalar 15 widened pool to 15s). No behavior change to refusal codes or
-# retry — Phase 5 owns licensing semantics.
-_LICENSE_TIMEOUT = httpx.Timeout(
-    connect=5.0, read=KIRI_LICENSE_TIMEOUT, write=10.0, pool=3.0
-)
-
 SETTING_RECOVERY_ID = "kiri_recovery_id"
 SETTING_TOKEN = "kiri_token"
 SETTING_PRODUCT = "kiri_product"
 
 
 class LicenseUnavailable(Exception):
-    """The license service could not be reached or refused the request.
-
-    `status_code` is the HTTP status when one exists (None for transport /
-    parse failures); `is_refusal` is True only when the server answered that
-    the entitlement itself is invalid (402/403/404). Callers branch on it:
-    refusal aborts retry loops fast, transients back off and retry.
-    """
-
-    def __init__(
-        self,
-        message: str,
-        status_code: int | None = None,
-        is_refusal: bool = False,
-    ):
-        super().__init__(message)
-        self.status_code = status_code
-        self.is_refusal = is_refusal
-
-
-#: Refusals that abort the checkout watcher fast: payment invalid / app not
-#: entitled will never turn active. 404 is a refusal for RECONCILE (a standing
-#: license deleted server-side is gone) but NOT for the watcher (post-payment
-#: the license may simply not exist yet — webhook lag). The watcher checks
-#: membership here explicitly instead of reusing status_refusal().
-WATCHER_ABORT_CODES = frozenset({402, 403})
+    """The license service could not be reached or refused the request."""
 
 
 def status_refusal(code: int) -> bool:
     """HTTP codes meaning "this entitlement is not valid" — not transport.
 
-    402 payment not valid, 403 app not entitled, 404 license not found.
-    400 is deliberately EXCLUDED: a malformed request is our bug, not proof
-    the license died — revoking on it once de-premiumed paying users on an
-    app bug. 429 is excluded too: a throttled check must never revoke.
+    400 malformed request, 402 payment not valid, 403 app not entitled,
+    404 license not found. 429 is deliberately excluded: a throttled
+    check must never revoke a real license.
     """
-    return code in (402, 403, 404)
+    return code in (400, 402, 403, 404)
 
 
 @dataclass(frozen=True)
@@ -121,16 +87,7 @@ class LicenseStatus:
 
     @property
     def unlocks(self) -> bool:
-        """Display-only status text check. NEVER gate entitlements on this
-        alone: a status-only reply carries no token, and status "active" with
-        claims=None unlocks nothing. Use effective_unlocks(claims)."""
         return self.status in ("active", "grace")
-
-    def effective_unlocks(self, claims: LicenseClaims | None) -> bool:
-        """The only predicate allowed to grant or drop an unlock: verified
-        status text AND a verified token. Shared by _apply and callers so a
-        future status-alone check can't fool anyone."""
-        return self.status in ("active", "grace") and claims is not None
 
 
 class KiriLicenseService:
@@ -180,19 +137,6 @@ class KiriLicenseService:
         if product is not None:
             await db_manager.set_setting(SETTING_PRODUCT, product)
 
-    async def _revoke(self, reason: str) -> None:
-        """Drop the unlock in memory AND on disk together.
-
-        Every revoke path funnels here: clearing memory but leaving
-        SETTING_TOKEN meant the next boot re-verified the bad token and
-        re-unlocked (revoked stayed revoked for exactly one session).
-        """
-        self._unlocked = False
-        self.claims = None
-        await self._store(token="")
-        logger.info("Kiri license revoked (%s); cached token cleared", reason)
-        self._notify_change()
-
     async def _apply(self, status: str, claims: LicenseClaims | None) -> None:
         """Record a verified entitlement and let the app re-evaluate.
 
@@ -200,16 +144,15 @@ class KiriLicenseService:
         re-derives it from a single source of truth, so an entitlement can
         only be granted or dropped in one place.
         """
-        self._unlocked = LicenseStatus(
-            status=status, product="", recovery_id=""
-        ).effective_unlocks(claims)
+        self._unlocked = status in ("active", "grace") and claims is not None
         logger.info(
             "Kiri license status=%s product=%s unlocked=%s",
             status,
             claims.product if claims else "-",
             self._unlocked,
         )
-        self._notify_change()
+        if self.on_change is not None:
+            self.on_change()
 
     # -- offline -------------------------------------------------------------
 
@@ -230,10 +173,10 @@ class KiriLicenseService:
         try:
             claims = verify_token(token, self.public_key, self.app_id)
         except TokenRejected as ex:
-            # Rejected here too — not just in memory: a bad token left on
-            # disk fails every future boot the same way.
             logger.info("Cached Kiri license rejected (%s)", ex.reason)
-            await self._revoke(f"cached token rejected: {ex.reason}")
+            self._unlocked = False
+            self.claims = None
+            self._notify_change()
             return False
         self.claims = claims
         await self._apply(claims.status, claims)
@@ -246,8 +189,7 @@ class KiriLicenseService:
             return self.products
         try:
             response = await get_http_client().get(
-                f"{KIRI_LICENSE_BASE_URL.rstrip('/')}/catalog",
-                timeout=_LICENSE_TIMEOUT,
+                f"{KIRI_LICENSE_BASE_URL}/catalog", timeout=KIRI_LICENSE_TIMEOUT
             )
             response.raise_for_status()
             payload = response.json()
@@ -255,55 +197,33 @@ class KiriLicenseService:
             raise LicenseUnavailable(
                 f"Could not reach the license service: {ex}"
             ) from ex
-        if not isinstance(payload, dict):
-            raise LicenseUnavailable("The license service returned an invalid response")
-        products = []
-        for item in payload.get("products", []):
-            if not isinstance(item, dict) or not item.get("id"):
-                continue
-            try:
-                amount = float(item.get("amount") or 0)
-                currency = str(item.get("currency") or "USD")
-            except (TypeError, ValueError) as ex:
-                raise LicenseUnavailable(
-                    f"Invalid product pricing for {item.get('id')}: {ex}"
-                ) from ex
-            products.append(
-                LicenseProduct(
-                    id=str(item.get("id", "")),
-                    amount=amount,
-                    currency=currency,
-                    kind=str(item.get("kind") or "one_time"),
-                    description=str(item.get("description") or ""),
-                )
+        self.products = [
+            LicenseProduct(
+                id=str(item.get("id", "")),
+                amount=float(item.get("amount") or 0),
+                currency=str(item.get("currency") or "USD"),
+                kind=str(item.get("kind") or "one_time"),
+                description=str(item.get("description") or ""),
             )
-        self.products = products
+            for item in payload.get("products", [])
+            if item.get("id")
+        ]
         return self.products
 
     async def checkout(self, product_id: str, email: str) -> Checkout:
         """Start a hosted payment and return where to send the user."""
-        product_id = (product_id or "").strip()
-        email = (email or "").strip().lower()
-        if not product_id:
-            raise LicenseUnavailable("Choose a product first")
-        if not email or "@" not in email:
-            raise LicenseUnavailable("Enter a valid email for your receipt")
         try:
             response = await get_http_client().post(
-                f"{KIRI_LICENSE_BASE_URL.rstrip('/')}/checkout",
+                f"{KIRI_LICENSE_BASE_URL}/checkout",
                 json={"app_id": self.app_id, "product_id": product_id, "email": email},
-                timeout=_LICENSE_TIMEOUT,
+                timeout=KIRI_LICENSE_TIMEOUT,
             )
         except Exception as ex:
             raise LicenseUnavailable(
                 f"Could not reach the license service: {ex}"
             ) from ex
         if response.status_code >= 400:
-            raise LicenseUnavailable(
-                self._error_message(response, "Checkout failed"),
-                status_code=response.status_code,
-                is_refusal=status_refusal(response.status_code),
-            )
+            raise LicenseUnavailable(self._error_message(response, "Checkout failed"))
         try:
             payload = response.json()
         except Exception as ex:
@@ -312,17 +232,12 @@ class KiriLicenseService:
             ) from ex
         if not isinstance(payload, dict):
             raise LicenseUnavailable("The license service returned an invalid response")
-        try:
-            amount = float(payload.get("amount") or 0)
-            currency = str(payload.get("currency") or "USD")
-        except (TypeError, ValueError) as ex:
-            raise LicenseUnavailable(f"Invalid order pricing: {ex}") from ex
         checkout = Checkout(
             recovery_id=str(payload.get("recovery_id") or ""),
             checkout_url=str(payload.get("checkout_url") or ""),
             product=str(payload.get("product") or product_id),
-            amount=amount,
-            currency=currency,
+            amount=float(payload.get("amount") or 0),
+            currency=str(payload.get("currency") or "USD"),
         )
         if not checkout.checkout_url or not checkout.recovery_id:
             raise LicenseUnavailable("The license service returned an incomplete order")
@@ -347,25 +262,37 @@ class KiriLicenseService:
         if self.on_change is not None:
             self.on_change()
 
-    async def _post(self, path: str, body: dict):
-        """Single POST attempt with typed errors. Refusals carry is_refusal;
-        everything else is transient (retryable, never revokes)."""
+    async def _query(
+        self, path: str, recovery_id: str, *, issue_token: bool
+    ) -> LicenseStatus:
+        recovery_id = (recovery_id or "").strip()
+        if not recovery_id:
+            raise LicenseUnavailable("Enter the recovery ID from your purchase email")
         try:
             response = await get_http_client().post(
-                f"{KIRI_LICENSE_BASE_URL.rstrip('/')}{path}",
-                json=body,
-                timeout=_LICENSE_TIMEOUT,
+                f"{KIRI_LICENSE_BASE_URL}{path}",
+                json={"recovery_id": recovery_id, "app_id": self.app_id},
+                timeout=KIRI_LICENSE_TIMEOUT,
             )
         except Exception as ex:
             raise LicenseUnavailable(
                 f"Could not reach the license service: {ex}"
             ) from ex
         if response.status_code >= 400:
-            raise LicenseUnavailable(
-                self._error_message(response, "Restore failed"),
-                status_code=response.status_code,
-                is_refusal=status_refusal(response.status_code),
-            )
+            # The Worker answers entitlement questions here (402 payment not
+            # valid, 403 app not entitled, 404 license not found). That is
+            # the server refusing, not the network failing — so a standing
+            # unlock is dropped rather than preserved by accident.
+            if status_refusal(response.status_code):
+                logger.info(
+                    "License refused with HTTP %s — dropping unlock",
+                    response.status_code,
+                )
+                self._unlocked = False
+                self.claims = None
+                self._notify_change()
+            raise LicenseUnavailable(self._error_message(response, "Restore failed"))
+
         try:
             payload = response.json()
         except Exception as ex:
@@ -374,38 +301,8 @@ class KiriLicenseService:
             ) from ex
         if not isinstance(payload, dict):
             raise LicenseUnavailable("The license service returned an invalid response")
-        return payload
-
-    async def _query(
-        self, path: str, recovery_id: str, *, issue_token: bool
-    ) -> LicenseStatus:
-        recovery_id = (recovery_id or "").strip()
-        if not recovery_id:
-            raise LicenseUnavailable("Enter the recovery ID from your purchase email")
-        # One immediate retry on TRANSIENT failure (Worker glitch, blip):
-        # a single 404/timeout must not drop a valid cached unlock. Refusals
-        # (402/403/404 entitlement answers) never retry — the server spoke.
-        # The consecutive-failure gate lives in premium_service: 2 straight
-        # transient failures in a row revoke; any success resets it.
-        try:
-            payload = await self._post(
-                path, {"recovery_id": recovery_id, "app_id": self.app_id}
-            )
-        except LicenseUnavailable as ex:
-            if ex.is_refusal:
-                # The server answered that the entitlement is invalid: drop
-                # the unlock in memory AND on disk before surfacing. A memory-
-                # only wipe would re-unlock next boot from the cached token.
-                await self._revoke(f"server refusal HTTP {ex.status_code}")
-                raise
-            logger.info("License request transient failure, retrying once: %s", ex)
-            payload = await self._post(
-                path, {"recovery_id": recovery_id, "app_id": self.app_id}
-            )
         status = str(payload.get("status") or "unknown")
         token = payload.get("token") if issue_token else None
-        if token is not None and not isinstance(token, str):
-            raise LicenseUnavailable("The license service returned a malformed token")
         claims: LicenseClaims | None = None
         if token:
             try:
@@ -413,10 +310,11 @@ class KiriLicenseService:
             except TokenRejected as ex:
                 # A token we cannot verify is a token we do not honour, even
                 # if the server said the license is active — and one that was
-                # previously trusted must be dropped from disk too, not kept
-                # on the shelf to re-unlock next boot.
+                # previously trusted must be dropped, not kept on the shelf.
                 logger.warning("Kiri license token rejected: %s", ex.reason)
-                await self._revoke(f"unverifiable token: {ex.reason}")
+                self._unlocked = False
+                self.claims = None
+                self._notify_change()
                 raise LicenseUnavailable(
                     "The license service returned a token this app could not verify"
                 ) from ex
@@ -448,10 +346,9 @@ class KiriLicenseService:
             self.claims = claims
         effective = claims if claims is not None else self.claims
         if status not in ("active", "grace"):
-            # Revoked/expired WITHOUT a token branch above: drop the disk
-            # token too (the token-present branch already cleared it). A stale
-            # cached token would otherwise re-unlock next boot.
-            await self._revoke(f"server status={status}")
+            # Revoked/expired: the claims must not outlive the verdict, or
+            # the next status-only reply could re-unlock from them.
+            self.claims = None
             effective = None
         await self._apply(status, effective)
         return LicenseStatus(

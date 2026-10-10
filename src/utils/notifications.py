@@ -112,7 +112,6 @@ def _show_fullscreen_toast(msg: str) -> bool:
         await asyncio.sleep(_TOAST_HIDE_AFTER)
         _hide_toast()
 
-    global _hide_task
     try:
         loop = asyncio.get_running_loop()
         _hide_task = loop.create_task(_hide())

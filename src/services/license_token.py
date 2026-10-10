@@ -37,20 +37,6 @@ _N = 0xFFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551
 ISSUER = "license.kiri.ng"
 _UNLOCKING_STATUSES = ("active", "grace")
 
-# Attacker-controlled input bounds: an 8KB payload is already absurd for a
-# claims object; anything bigger is a CPU/RAM DoS attempt, rejected before
-# any crypto or parsing runs.
-_MAX_PAYLOAD_B64 = 8192
-_MAX_SIGNATURE_B64 = 200
-
-# A P-256 SPKI is exactly 91 DER bytes: SEQUENCE + AlgorithmIdentifier
-# (ecPublicKey + secp256r1 OIDs) + BIT STRING wrapping 0x04||X||Y.
-_SPKI_LEN = 91
-_SPKI_PREFIX = bytes.fromhex("3059301306072a8648ce3d020106082a8648ce3d030107034200")
-
-# Clock skew tolerance for future-issued tokens (device clocks drift).
-_IAT_SKEW = 300
-
 
 class TokenRejected(Exception):
     """The token is not a valid entitlement for this app."""
@@ -88,50 +74,36 @@ def _b64url_decode(value: str) -> bytes:
 
 
 def _point_add(p1, p2):
-    """Add two points on P-256 in affine coordinates; None is infinity.
-
-    Returns False (not a point) when the math itself is undefined — a
-    malformed Q must verify as bad_signature, never raise into the caller.
-    """
+    """Add two points on P-256 in affine coordinates; None is infinity."""
     if p1 is None:
         return p2
     if p2 is None:
         return p1
-    try:
-        x1, y1 = p1
-        x2, y2 = p2
-        if x1 == x2 and (y1 + y2) % _P == 0:
-            return None
-        if p1 == p2:
-            lam = (3 * x1 * x1 + _A) * pow(2 * y1, -1, _P) % _P
-        else:
-            lam = (y2 - y1) * pow(x2 - x1, -1, _P) % _P
-        x3 = (lam * lam - x1 - x2) % _P
-        y3 = (lam * (x1 - x3) - y1) % _P
-        return x3, y3
-    except ValueError:
-        return False
+    x1, y1 = p1
+    x2, y2 = p2
+    if x1 == x2 and (y1 + y2) % _P == 0:
+        return None
+    if p1 == p2:
+        lam = (3 * x1 * x1 + _A) * pow(2 * y1, -1, _P) % _P
+    else:
+        lam = (y2 - y1) * pow(x2 - x1, -1, _P) % _P
+    x3 = (lam * lam - x1 - x2) % _P
+    y3 = (lam * (x1 - x3) - y1) % _P
+    return x3, y3
 
 
 def _public_point_from_spki(public_key: str) -> tuple[int, int]:
-    """Pull the uncompressed public point out of a base64url SPKI blob.
-
-    Strict: exact 91 DER bytes, correct ecPublicKey/secp256r1 header, and
-    coordinates in range — not the old suffix-only scan that accepted any
-    blob ending in 0x04||X||Y.
-    """
+    """Pull the uncompressed public point out of a base64url SPKI blob."""
     if not isinstance(public_key, str):
         raise TokenRejected("bad_public_key", "public key must be text")
     try:
         der = _b64url_decode(public_key)
     except Exception as ex:  # binascii.Error, ValueError, TypeError
         raise TokenRejected("bad_public_key", "not valid base64url") from ex
-    if len(der) != _SPKI_LEN or not der.startswith(_SPKI_PREFIX):
+    if len(der) < 65 or der[-65] != 0x04:
         raise TokenRejected("bad_public_key", "not a P-256 SPKI public key")
     x = int.from_bytes(der[-64:-32], "big")
     y = int.from_bytes(der[-32:], "big")
-    if not (0 <= x < _P and 0 <= y < _P):
-        raise TokenRejected("bad_public_key", "coordinates out of range")
     if (y * y - (x * x * x + _A * x + _B)) % _P != 0:
         raise TokenRejected("bad_public_key", "point is not on the curve")
     return x, y
@@ -146,17 +118,13 @@ def _ecdsa_verify(public_point, message: bytes, signature: bytes) -> bool:
         return False
     digest = hashlib.sha256(message).digest()
     e = int.from_bytes(digest, "big")
-    try:
-        w = pow(s, -1, _N)
-    except ValueError:
-        return False
+    w = pow(s, -1, _N)
     u1 = e * w % _N
     u2 = r * w % _N
-    try:
-        point = _point_add(_scale((_GX, _GY), u1), _scale(public_point, u2))
-    except (ValueError, TypeError):
-        return False
-    if point is None or point is False:
+    point = _point_add(
+        _point_add(_scale((_GX, _GY), u1), _scale(public_point, u2)), None
+    )
+    if point is None:
         return False
     return point[0] % _N == r
 
@@ -177,12 +145,7 @@ def _scale(point, scalar: int):
 
 
 def _verify_signature(public_key: str, message: bytes, signature: bytes) -> bool:
-    """Verify the Worker's raw r‖s signature (P-256 ECDSA over SHA-256).
-
-    Dual contract: False for a bad signature, but TokenRejected propagates
-    for a bad PUBLIC KEY (unparseable key, wrong curve) — callers
-    distinguish "forged/wrong" from "misconfigured" by it.
-    """
+    """Verify the Worker's raw r‖s signature (P-256 ECDSA over SHA-256)."""
     if len(signature) != 64:
         return False
     return _ecdsa_verify(_public_point_from_spki(public_key), message, signature)
@@ -201,36 +164,25 @@ def verify_token(
     what went wrong (expired, revoked, not this app, bad signature) instead
     of a generic failure.
     """
-    if not isinstance(token, str) or not token.strip():
+    if not token:
         raise TokenRejected("missing_token")
-    # Clipboard/file trailing newlines verify fine instead of bad_signature.
-    token = token.strip()
     parts = token.split(".")
     if len(parts) != 3 or parts[0] != "v1":
         raise TokenRejected("malformed_token")
 
     _, payload_b64, signature_b64 = parts
-    if len(payload_b64) > _MAX_PAYLOAD_B64 or len(signature_b64) > _MAX_SIGNATURE_B64:
-        raise TokenRejected("malformed_token", "segment too large")
     try:
         signature = _b64url_decode(signature_b64)
-        payload_bytes = _b64url_decode(payload_b64)
-    except (ValueError, TypeError) as ex:
-        raise TokenRejected("malformed_token", str(ex)) from ex
-
-    # WebCrypto signs the ASCII bytes of the base64url payload segment, not
-    # the decoded JSON — matching that is what makes the signature verify.
-    # Verify FIRST, parse second: unauthenticated JSON parsing of
-    # attacker-controlled input is a DoS vector (huge payload → CPU/RAM).
-    if not _verify_signature(public_key, payload_b64.encode("utf-8"), signature):
-        logger.debug("Token signature check failed")
-        raise TokenRejected("bad_signature")
-    try:
-        claims_raw = json.loads(payload_bytes.decode("utf-8"))
+        claims_raw = json.loads(_b64url_decode(payload_b64).decode("utf-8"))
     except (ValueError, UnicodeDecodeError) as ex:
         raise TokenRejected("malformed_token", str(ex)) from ex
     if not isinstance(claims_raw, dict):
         raise TokenRejected("malformed_token", "payload is not an object")
+
+    # WebCrypto signs the ASCII bytes of the base64url payload segment, not
+    # the decoded JSON — matching that is what makes the signature verify.
+    if not _verify_signature(public_key, payload_b64.encode("utf-8"), signature):
+        raise TokenRejected("bad_signature")
 
     # Every numeric claim is validated here: a signed token carrying a
     # string or non-finite `exp` must be rejected as malformed, not raise
@@ -238,9 +190,7 @@ def verify_token(
     try:
         issued_at_raw = claims_raw.get("iat")
         expires_raw = claims_raw.get("exp")
-        # `type(x) is int` (not isinstance): bool is int in Python, and
-        # True must not pass as iat=1. NaN/Infinity arrive as float → out.
-        if type(issued_at_raw) is not int:
+        if issued_at_raw is not None and type(issued_at_raw) is not int:
             raise ValueError("iat must be an integer")
         if expires_raw is not None and type(expires_raw) is not int:
             raise ValueError("exp must be an integer or null")
@@ -251,61 +201,26 @@ def verify_token(
         raise TokenRejected("bad_issuer", str(claims_raw.get("iss")))
     if claims_raw.get("app") != app_id:
         raise TokenRejected("wrong_app", str(claims_raw.get("app")))
-    if type(claims_raw.get("v")) is not int or claims_raw.get("v") != 1:
+    if claims_raw.get("v") != 1:
         raise TokenRejected("unsupported_version", str(claims_raw.get("v")))
 
-    import math as _math
+    status = str(claims_raw.get("status") or "")
+    if status not in _UNLOCKING_STATUSES:
+        raise TokenRejected(status or "unknown_status", "not an active license")
 
-    if now is None:
-        current = time.time()
-    elif (
-        isinstance(now, bool)
-        or not isinstance(now, (int, float))
-        or (isinstance(now, float) and not _math.isfinite(now))
-    ):
-        raise TokenRejected("malformed_claims", "now must be a finite number")
-    else:
-        current = now
-    # Expiry first: time truth beats status text (an "active" token past exp
-    # is expired, full stop).
-    if expires_raw is not None and expires_raw <= current:
-        raise TokenRejected("expired", str(expires_raw))
-
-    raw_status = claims_raw.get("status")
-    if raw_status not in _UNLOCKING_STATUSES:
-        # Fixed reason + raw value in detail: the old str(status) made the
-        # machine-readable reason attacker-shaped ("123", "{...}"), breaking
-        # UI match arms and inviting log injection.
-        raise TokenRejected("inactive_status", f"status={raw_status!r}")
-    if issued_at_raw > current + _IAT_SKEW:
-        raise TokenRejected("malformed_claims", "iat is in the future")
-    if expires_raw is not None and expires_raw < issued_at_raw:
-        raise TokenRejected("malformed_claims", "exp predates iat")
-    nbf = claims_raw.get("nbf")
-    if nbf is not None and (type(nbf) is not int or current < nbf):
-        raise TokenRejected("not_yet_valid", f"nbf={nbf!r}")
-
-    paid_through = claims_raw.get("paid_through")
-    if paid_through is not None and type(paid_through) is not int:
-        raise TokenRejected(
-            "malformed_claims", "paid_through must be an integer or null"
-        )
-
-    ent = claims_raw.get("ent")
-    product = claims_raw.get("product")
-    if not isinstance(ent, str) or not ent:
-        raise TokenRejected("malformed_claims", "missing ent")
-    if not isinstance(product, str) or not product:
-        raise TokenRejected("malformed_claims", "missing product")
+    expires_at = claims_raw.get("exp")
+    current = time.time() if now is None else now
+    if expires_at is not None and int(expires_at) <= current:
+        raise TokenRejected("expired", str(expires_at))
 
     return LicenseClaims(
-        ent=ent,
+        ent=str(claims_raw.get("ent") or ""),
         app=str(claims_raw.get("app") or ""),
-        product=product,
+        product=str(claims_raw.get("product") or ""),
         scope=str(claims_raw.get("scope") or ""),
         mode=str(claims_raw.get("mode") or ""),
-        status=raw_status,
-        paid_through=paid_through,
-        issued_at=issued_at_raw,
-        expires_at=expires_raw,
+        status=status,
+        paid_through=claims_raw.get("paid_through"),
+        issued_at=int(claims_raw.get("iat") or 0),
+        expires_at=None if expires_at is None else int(expires_at),
     )

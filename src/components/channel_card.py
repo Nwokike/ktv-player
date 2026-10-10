@@ -5,7 +5,7 @@ from collections.abc import Callable
 import flet as ft
 from flet import Control
 
-from components.focus_styles import card_button_style
+from components.focus_styles import attach_focus_pop, card_button_style
 from core.constants import (
     CARD_BORDER_RADIUS,
     CARD_HEIGHT,
@@ -17,58 +17,10 @@ from core.theme import AppColors
 from services.logo_cache import get_cached_logo
 
 
-@ft.component
-def LivelinessChannelCard(
-    channel: dict,
-    is_favorite: bool,
-    on_play: Callable[..., None],
-    on_toggle_favorite: Callable[[str], None],
-) -> Control:
-    """Per-card liveliness subscription wrapper.
-
-    Each visible card subscribes to the liveliness cache for ITS url, so a
-    verdict rebuilds exactly one card instead of the whole grid (the old
-    page-level subscription re-created all 24 cards per tick). The plain
-    ChannelCard below stays a plain function — the subscription lives here
-    where hooks are allowed.
-    """
-    url = channel.get("url", "")
-    from services.liveliness import liveliness_cache
-
-    status, set_status = ft.use_state(
-        lambda: liveliness_cache.get(url) if url else None
-    )
-
-    def _on_change(changed_url=None):
-        # None means "bulk clear": re-read unconditionally.
-        if changed_url is None or changed_url == url:
-            set_status(liveliness_cache.get(url) if url else None)
-
-    def _subscribe():
-        if url:
-            liveliness_cache.add_on_change(_on_change)
-
-    def _unsubscribe():
-        if url:
-            liveliness_cache.remove_on_change(_on_change)
-
-    # NOTE: cleanup is the 3rd use_effect arg (installed
-    # flet/components/hooks/use_effect.py) — NOT a setup return value.
-    ft.use_effect(_subscribe, [], _unsubscribe)
-
-    return ChannelCard(
-        channel=channel,
-        is_favorite=is_favorite,
-        on_play=on_play,
-        on_toggle_favorite=on_toggle_favorite,
-        liveliness_status=status,
-    )
-
-
 def ChannelCard(
     channel: dict,
     is_favorite: bool,
-    on_play: Callable[..., None],
+    on_play: Callable[[str], None],
     on_toggle_favorite: Callable[[str], None],
     liveliness_status: bool | None = None,
 ) -> Control:
@@ -121,7 +73,6 @@ def ChannelCard(
         height=LOGO_SIZE,
         fit=ft.BoxFit.CONTAIN,
         border_radius=LOGO_BORDER_RADIUS,
-        placeholder_src="/icon.png",
         error_content=ft.Icon(ft.Icons.TV, size=30),
     )
 
@@ -134,27 +85,23 @@ def ChannelCard(
         overflow=ft.TextOverflow.ELLIPSIS,
     )
 
-    button = ft.FilledButton(
-        key=ft.ValueKey(url),
-        height=CARD_HEIGHT,
-        content=ft.Column(
-            controls=[
-                top_row,
-                logo_widget,
-                title_widget,
-            ],
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-            spacing=2,
-        ),
-        on_click=lambda e: on_play(url),
-        style=card_button_style(
-            padding=ft.Padding.symmetric(horizontal=10, vertical=8),
-            radius=CARD_BORDER_RADIUS,
-        ),
+    return attach_focus_pop(
+        ft.FilledButton(
+            key=ft.ValueKey(url),
+            height=CARD_HEIGHT,
+            content=ft.Column(
+                controls=[
+                    top_row,
+                    logo_widget,
+                    title_widget,
+                ],
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                spacing=2,
+            ),
+            on_click=lambda e: on_play(url),
+            style=card_button_style(
+                padding=ft.Padding.symmetric(horizontal=10, vertical=8),
+                radius=CARD_BORDER_RADIUS,
+            ),
+        )
     )
-    # NOTE: no on_focus/on_blur scale mutation. This control is the body of
-    # the @ft.component above, so after render Flet freezes it
-    # (component.py:149) and ANY prop write raises "Frozen controls cannot
-    # be updated" — which fired on every focus event in 2.3.0. The FOCUSED
-    # border/overlay from card_button_style is the declarative, working cue.
-    return button
