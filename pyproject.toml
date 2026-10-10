@@ -29,6 +29,16 @@ desktop_flavor = "full"
 [tool.flet.flutter.pubspec.dependency_overrides]
 jni = "^1.1.0"
 
+# Desktop video fix: `media_kit_libs_video` (pulled in by flet-video)
+# resolves the per-platform native libraries, but the generated
+# pubspec.lock ended up with android/ios/linux/macos only — no
+# media_kit_libs_windows_video. Without it the Windows video surface
+# renders as a blank white rectangle (the Flet overlay still shows, so
+# the symptom is "white screen with a spinner"). Declared explicitly so
+# pub always resolves the Windows libmpv alongside the others.
+[tool.flet.flutter.pubspec.dependencies]
+media_kit_libs_windows_video = "^1.0.11"
+
 [tool.flet.app]
 path = "src"
 

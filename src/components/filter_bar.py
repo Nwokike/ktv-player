@@ -384,17 +384,28 @@ def FilterBar(
         fav_btn,
     ]
     if callable(on_add_content):
-        add_btn = _pill(
-            "+",
-            ft.Icons.ADD,
-            False,
-            show_arrow=False,
-            compact=_compact,
-            tooltip="Add a playlist or single channel",
+        # Restored to the v2.2.0 shape: a plain TEXT "+" pill, not an icon.
+        # Phase 7 switched this to Icons.ADD, which made it look identical
+        # to the Header's "Add Content" plus and put TWO plus icons on the
+        # home screen. The Header owns the icon affordance.
+        controls_row.append(
+            ft.Container(
+                content=ft.Row(
+                    controls=[
+                        ft.Text("+", size=FONT_MD, no_wrap=True),
+                    ],
+                    vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                ),
+                padding=ft.Padding(8, 4, 8, 4),
+                border=ft.Border.all(
+                    1, ft.Colors.with_opacity(0.3, ft.Colors.OUTLINE_VARIANT)
+                ),
+                border_radius=8,
+                on_click=lambda e: _invoke_add_content(e),
+                ink=True,
+                tooltip="Add a playlist or single channel",
+            )
         )
-        add_btn.on_click = _invoke_add_content
-        add_btn.ink = True
-        controls_row.append(add_btn)
 
     return ft.Container(
         content=ft.Row(

@@ -123,10 +123,19 @@ def Header(
             is_announcement = update_announcement
             label = update_label or "Update"
         if has_update:
+            # The stored flag can outlive its payload (persisted
+            # update_available with update_data=None). Without the label
+            # the chip read "Update: Update Available!".
+            if is_announcement:
+                chip_text = "News"
+            elif label and label != "Update":
+                chip_text = f"Update: {label} Available!"
+            else:
+                chip_text = "Update Available!"
             content = ft.Row(
                 controls=[
                     ft.Text(
-                        "News" if is_announcement else f"Update: {label} Available!",
+                        chip_text,
                         size=11,
                         weight=ft.FontWeight.BOLD,
                         color=AppColors.PRIMARY,

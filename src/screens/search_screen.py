@@ -181,7 +181,11 @@ def SearchScreen(
         icon=ft.Icons.SEARCH_ROUNDED,
         icon_color=AppColors.PRIMARY,
         tooltip="Search",
-        on_click=lambda e: set_query(query),
+        # Flushes the CURRENT field text, not the debounced state: the
+        # debounce already drives filtering, so this only needs to force
+        # the latest keystrokes through immediately. `set_query(query)`
+        # was a no-op (query is already the state being set).
+        on_click=lambda e: set_query(search_field.value or query),
     )
 
     back_button = ft.IconButton(

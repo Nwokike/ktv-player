@@ -198,7 +198,10 @@ def test_filter_bar_source_contract():
     assert '"All Categories"' in src
     assert "checked=" in src
     assert "casefold" in src
-    assert "Icons.ADD" in src
+    # The add affordance is a plain TEXT plus, not an icon icon: an icon
+    # duplicated the Header's "Add Content" plus on the home screen.
+    assert 'ft.Text("+", size=FONT_MD, no_wrap=True)' in src
+    assert "ft.Icons.ADD," not in src
     assert "total_count" in src  # accepted...
 
 

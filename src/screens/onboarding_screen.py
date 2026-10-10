@@ -93,7 +93,11 @@ def OnboardingScreen(
             try:
                 await prober()
             except Exception:
+                # Surface WHY the list is empty: the empty-country branch
+                # renders this, and it previously read "Connecting…"
+                # forever because nothing ever set the message.
                 logger.debug("Onboarding channel probe failed", exc_info=True)
+                set_probe_error("Could not reach the channel directory.")
         return bool(state.channels)
 
     async def _run_probe():

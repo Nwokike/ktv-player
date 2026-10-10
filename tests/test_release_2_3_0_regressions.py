@@ -356,3 +356,113 @@ async def test_swap_media_reapplies_playback_rate():
         "a playlist swap resets the native rate to 1.0x; the chip would "
         "otherwise lie about the current speed"
     )
+
+
+# --- 6. version chip with a stale flag (label missing) ------------------
+
+
+def _texts(root):
+    from tests.flet_tree import walk
+
+    out = []
+
+    def rec(n):
+        if isinstance(getattr(n, "value", None), str):
+            out.append(n.value)
+        for c in getattr(n, "controls", None) or []:
+            rec(c)
+        content = getattr(n, "content", None)
+        if content is not None:
+            rec(content)
+
+    for n in walk(root):
+        rec(n)
+    return out
+
+
+def test_version_chip_label_missing_is_not_doubled():
+    """`update_available=True` with `update_data=None` (stale persisted
+    flag) rendered "Update: Update Available!"."""
+    from flet.components.component import Renderer
+
+    from components.header import Header
+
+    class RaisingVar:
+        def get(self):
+            raise RuntimeError("no session")
+
+    ctx_mod._context_page.set(
+        type("P", (), {"theme_mode": ft.ThemeMode.DARK, "platform_brightness": ft.Brightness.DARK})()
+    )
+    screen = Renderer().render(
+        lambda: Header(on_version_click=lambda e: None, update_available=True)
+    )
+    screen.before_update()
+    texts = _texts(getattr(screen, "_b", screen))
+    assert "Update Available!" in texts, texts
+    assert "Update: Update Available!" not in texts, texts
+
+
+def test_version_chip_shows_version_when_known():
+    from flet.components.component import Renderer
+
+    from components.header import Header
+
+    ctx_mod._context_page.set(
+        type("P", (), {"theme_mode": ft.ThemeMode.DARK, "platform_brightness": ft.Brightness.DARK})()
+    )
+    screen = Renderer().render(
+        lambda: Header(
+            on_version_click=lambda e: None,
+            update_available=True,
+            update_label="2.3.1",
+        )
+    )
+    screen.before_update()
+    texts = _texts(getattr(screen, "_b", screen))
+    assert "Update: 2.3.1 Available!" in texts, texts
+
+
+# --- 7. search magnifier must not be a no-op ---------------------------
+
+
+def test_search_button_uses_field_value_not_state():
+    import inspect
+
+    from screens import search_screen
+
+    src = inspect.getsource(search_screen.SearchScreen)
+    assert "on_click=lambda e: set_query(query)" not in src, (
+        "search button must flush the field text, not the state it sets"
+    )
+    assert "search_field.value" in src
+
+
+# --- 8. FilterBar plus is text, not an icon duplicate -------------------
+
+
+def test_filter_bar_plus_is_text_not_icon():
+    """Two icon pluses on Home: the Header's ADD_ROUNDED and the bar's."""
+    import inspect
+
+    from components import filter_bar
+
+    src = inspect.getsource(filter_bar)
+    assert 'ft.Text("+", size=FONT_MD, no_wrap=True)' in src
+    # No icon-based plus in the bar (a comment may mention it).
+    live = "\n".join(
+        line for line in src.splitlines() if not line.strip().startswith("#")
+    )
+    assert "Icons.ADD" not in live
+
+
+# --- 9. onboarding empty-list message is reachable ----------------------
+
+
+def test_onboarding_probe_error_is_set_on_failure():
+    import inspect
+
+    from screens import onboarding_screen
+
+    src = inspect.getsource(onboarding_screen)
+    assert 'set_probe_error("Could not reach the channel directory.")' in src
