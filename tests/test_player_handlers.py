@@ -379,15 +379,25 @@ class TestCompleteGateAndReconnect:
         player._show_final_error.assert_called_once_with("Playback ended.")
 
     @pytest.mark.asyncio
-    async def test_reconnect_reapplies_rate_and_resets_count(self):
-        """Reconnect restores speed and resets the counter on success."""
+    async def test_reconnect_reapplies_rate_and_keeps_budget(self):
+        """Reconnect restores speed, and must NOT spend the retry budget.
+
+        The counter is the budget for CONSECUTIVE failures. A live host that
+        accepts the connection and then drops it would reset it on every
+        successful play(), so the counter could never reach
+        STREAM_RECONNECT_MAX and the overlay would spin on "Reconnecting
+        stream (1/5)" forever instead of surfacing the retry/back UI.
+        """
+        from core.constants import STREAM_RECONNECT_MAX
+
         player = mock.MagicMock()
         player._is_closing = False
         player.resource = "http://example.com/stream"
         player.http_headers = {}
         player._speeds = [0.25, 0.5, 1.0]
         player._speed_idx = 2
-        player._reconnect_count = 3
+        # Part-way through the budget, as a mid-flap stream would be.
+        player._reconnect_count = STREAM_RECONNECT_MAX - 2
         player.video = mock.MagicMock()
         player.video.play = mock.AsyncMock()
         player._start_watchdog = mock.MagicMock()
@@ -395,7 +405,7 @@ class TestCompleteGateAndReconnect:
         await reconnect_stream(player)
 
         assert player.video.playback_rate == 1.0
-        assert player._reconnect_count == 0
+        assert player._reconnect_count == STREAM_RECONNECT_MAX - 2
         player._start_watchdog.assert_called_once()
 
 

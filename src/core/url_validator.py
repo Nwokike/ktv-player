@@ -53,6 +53,12 @@ def is_valid_play_url(raw: object) -> bool:
         parts = [p for p in normalized.split("/") if p not in ("", ".")]
         if any(p == ".." for p in parts):
             return False
+        # Normalise the legacy pipe drive separator before the blocklist
+        # check: "C|/Windows/..." splits to ['c|', 'windows', ...] and so
+        # matches neither a bare drive root nor the SENSITIVE_PATHS entries
+        # (which are written with a colon). One letter followed by '|' is a
+        # drive letter, so rewrite it to the colon form the list expects.
+        parts = [re.sub(r"^([a-z])\|$", r"\1:", p) for p in parts]
         return not _sensitive_hit("/" + "/".join(parts) + "/")
 
     for scheme in VALID_STREAM_SCHEMES:

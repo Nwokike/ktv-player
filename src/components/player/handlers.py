@@ -682,7 +682,14 @@ async def reconnect_stream(player_inst):
             except Exception:
                 pass
             player_inst.video.update()
-            player_inst._reconnect_count = 0
+            # Deliberately does NOT reset _reconnect_count. A live host that
+            # accepts the connection and then drops it (the mbedtls
+            # read-error shape) would otherwise reset the budget on every
+            # successful play(), so the counter could never reach
+            # STREAM_RECONNECT_MAX: the overlay spins on "Reconnecting
+            # stream (1/5)" forever and the retry/back UI never appears.
+            # The budget is spent on consecutive failures, and a manual
+            # retry (ImmersivePlayer._manual_retry) is what re-arms it.
             player_inst._start_watchdog()
     except Exception as ex:
         logger.debug("Failed to reconnect stream: %s", ex)

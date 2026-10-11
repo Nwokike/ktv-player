@@ -581,27 +581,60 @@ async def test_error_overlay_back_pops_the_view():
 
 
 @pytest.mark.asyncio
-async def test_handle_close_is_not_the_first_thing_back_does():
-    """Pins the ordering rule itself.
+async def test_back_paths_never_call_handle_close_first():
+    """Pins the ordering rule against the REAL player wiring.
 
-    The outer close path owns the save + teardown + pop. If the inner
-    handle_close() latches _is_closing before it runs, that path bails as
-    "already in flight" and the user is stranded — which is what the
-    FocusScope back handler's comment warns about.
+    The earlier version of this test drove a hand-written fake whose
+    `_run_back` hard-coded the old choreography, so it passed against the
+    fake and would still have passed if `ImmersivePlayer._on_back` were
+    reverted. This one fires the controls the player actually builds and
+    spies on the real `handle_close`.
+
+    If handle_close() runs first it latches `_is_closing`, after which the
+    outer `_close_player` bails as "already in flight" and the view never
+    pops — the user is stranded on a dead player.
     """
-    player = _FakePlayer()
-    order = []
+    from components.player.immersive_player import ImmersivePlayer
 
-    async def _fake_handle_close(e=None):
-        order.append("handle_close")
-        player._is_closing = True
+    async def _scenario(trigger):
+        page = FakePage()
+        ctx_mod._context_page.set(page)
 
-    player.handle_close = _fake_handle_close
-    player.on_close = lambda: order.append("on_close")
+        player = ImmersivePlayer(resource="https://cdn.example.com/live.m3u8")
+        player.update = lambda: None
+        player._mock_page = page
+        player.source_url = "https://cdn.example.com/live.m3u8"
+        type(player).page = property(lambda self: self._mock_page)
 
-    await player._run_back(FakePage())
+        calls = {"handle_close": 0, "on_close": 0}
 
-    # handle_close may run, but the outer close must still get to run and
-    # must not be blocked by the flag handle_close set.
-    assert "on_close" in order
-    assert player.on_close_calls == 1
+        async def _spy_handle_close(e=None):
+            calls["handle_close"] += 1
+            player._is_closing = True  # what the real one does first
+
+        player.handle_close = _spy_handle_close
+
+        def _on_close():
+            calls["on_close"] += 1
+
+        player.on_close = _on_close
+        # A dead stream: the error overlay is what the user is looking at.
+        player._show_final_error("Unable to load stream. Please retry.")
+        await trigger(player)
+        await page.drain(30)
+        return calls
+
+    async def _press_error_back(player):
+        player.back_error_btn.on_click(None)
+
+    async def _tap_overlay(player):
+        player._enable_tap_to_close()
+        player.overlay.on_click(None)
+
+    for label, trigger in (("error Go Back", _press_error_back), ("tap", _tap_overlay)):
+        calls = await _scenario(trigger)
+        assert calls["on_close"] == 1, f"{label}: on_close did not run: {calls}"
+        assert calls["handle_close"] == 0, (
+            f"{label}: handle_close ran first and latched _is_closing, "
+            f"which strands the user in the player: {calls}"
+        )
