@@ -54,11 +54,20 @@ def focus_scope(
         finally:
             handling["value"] = False
 
-    # KeyboardListener carries expand itself — no wrapper Container needed.
-    return ft.KeyboardListener(
-        content=child,
-        autofocus=True,
-        on_key_down=handle_key_down,
+    # The expanding Container is load-bearing, not decoration: Flet's
+    # KeyboardListener extends Control, not LayoutControl, so it has no
+    # layout behaviour of its own. An `expand=True` on it is accepted and
+    # then ignored, and a listener mounted straight onto a View (as the
+    # player is) gives the Stack underneath it no bounds at all — the
+    # decoder keeps playing audio while the texture has no area, which is
+    # the white player with sound. Verified against
+    # .venv/Lib/site-packages/flet/controls/core/keyboard_listener.py.
+    return ft.Container(
+        content=ft.KeyboardListener(
+            content=child,
+            autofocus=True,
+            on_key_down=handle_key_down,
+        ),
         expand=True,
     )
 

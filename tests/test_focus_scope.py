@@ -8,24 +8,49 @@ import pytest
 from hooks.use_focus_scope import _BACK_KEYS, FocusScope, focus_scope
 
 
-def _fire(scope, key):
-    fake_event = mock.Mock()
-    fake_event.key = key
-    return scope.on_key_down(fake_event)
+def _fire(scope, event):
+    """Fire a key event at the scope. The listener sits inside the expanding
+    Container (see the layout test below), so unwrap to reach on_key_down."""
+    listener = scope.content if isinstance(scope, ft.Container) else scope
+    return listener.on_key_down(event)
 
 
-def test_focus_scope_returns_keyboard_listener_with_autofocus():
-    """Listener owns focus (autofocus) and expand directly — no wrapper."""
+def test_focus_scope_expands_its_wrapper_container():
+    """The player View mounts FocusScope directly, so the wrapper — not the
+    listener — is what hands the player Stack its bounds. Dropping it is the
+    white-player-with-audio regression: Flet's KeyboardListener is a bare
+    Control (not a LayoutControl), so `expand=True` on it is ignored and the
+    Stack underneath sizes to zero. The listener keeps autofocus so Back
+    delivery never depends on which button holds focus.
+    """
     scope = FocusScope(child=ft.Text("hi"))
-    assert isinstance(scope, ft.KeyboardListener)
-    assert scope.autofocus is True
-    assert isinstance(scope.content, ft.Text)
+    assert isinstance(scope, ft.Container)
+    assert scope.expand is True
+    listener = scope.content
+    assert isinstance(listener, ft.KeyboardListener)
+    assert listener.autofocus is True
+    assert isinstance(listener.content, ft.Text)
+
+
+def test_keyboard_listener_is_not_a_layout_control():
+    """Pins WHY the wrapper exists rather than looking redundant.
+
+    Verified against
+    .venv/Lib/site-packages/flet/controls/core/keyboard_listener.py: the
+    class extends Control, so Flet's renderer never expands it and the
+    inherited `expand` field is inert. Constructing one with expand=True
+    succeeds silently, which is exactly why this regression was invisible.
+    """
+    assert not issubclass(ft.KeyboardListener, ft.LayoutControl)
+    assert issubclass(ft.Container, ft.LayoutControl)
+    listener = ft.KeyboardListener(content=ft.Text("x"), expand=True)
+    assert listener.expand is True
 
 
 def test_focus_scope_passes_child_through():
     text = ft.Text("hi")
     scope = FocusScope(child=text)
-    assert scope.content is text
+    assert scope.content.content is text
 
 
 def test_back_keys_verified_set():
@@ -39,7 +64,7 @@ async def test_on_back_fires_for_back_key():
     scope = FocusScope(child=ft.Text("x"), on_back=lambda e: received.append(e))
     fake_event = mock.Mock()
     fake_event.key = "Back"
-    await scope.on_key_down(fake_event)
+    await _fire(scope, fake_event)
     assert received == [fake_event]
 
 
@@ -49,7 +74,7 @@ async def test_on_back_fires_for_escape():
     scope = FocusScope(child=ft.Text("x"), on_back=lambda e: received.append(e))
     fake_event = mock.Mock()
     fake_event.key = "Escape"
-    await scope.on_key_down(fake_event)
+    await _fire(scope, fake_event)
     assert received == [fake_event]
 
 
@@ -59,7 +84,7 @@ async def test_on_back_fires_for_browser_back():
     scope = FocusScope(child=ft.Text("x"), on_back=lambda e: received.append(e))
     fake_event = mock.Mock()
     fake_event.key = "BrowserBack"
-    await scope.on_key_down(fake_event)
+    await _fire(scope, fake_event)
     assert received == [fake_event]
 
 
@@ -70,7 +95,7 @@ async def test_on_back_does_not_fire_for_arrow_keys():
         fake_event = mock.Mock()
         fake_event.key = key
         scope = FocusScope(child=ft.Text("x"), on_back=lambda e: received.append(e))
-        await scope.on_key_down(fake_event)
+        await _fire(scope, fake_event)
     assert received == []
 
 
@@ -80,7 +105,7 @@ async def test_on_back_optional_works_without_handler():
     fake_event = mock.Mock()
     fake_event.key = "Back"
     scope = FocusScope(child=ft.Text("x"))  # no on_back
-    await scope.on_key_down(fake_event)  # must not raise
+    await _fire(scope, fake_event)  # must not raise
 
 
 @pytest.mark.anyio
@@ -93,4 +118,4 @@ async def test_on_back_exception_does_not_propagate():
     fake_event = mock.Mock()
     fake_event.key = "Escape"
     scope = FocusScope(child=ft.Text("x"), on_back=_boom)
-    await scope.on_key_down(fake_event)  # must not raise
+    await _fire(scope, fake_event)  # must not raise
