@@ -96,9 +96,7 @@ def Header(
     # page but does not re-run this component — without local state the
     # sun/moon icon stayed stale until some unrelated rebuild (2.3.0
     # regression: "the switch happens but isn't instant").
-    _is_dark_state, _set_is_dark_state = ft.use_state(
-        lambda: _resolve_is_dark(page)
-    )
+    _is_dark_state, _set_is_dark_state = ft.use_state(lambda: _resolve_is_dark(page))
 
     def _handle_toggle_theme():
         if page is None:

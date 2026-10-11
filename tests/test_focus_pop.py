@@ -48,9 +48,10 @@ def test_focused_state_is_the_cue():
 
     style = card_button_style()
     assert ft.ControlState.FOCUSED in style.side
-    assert style.side[ft.ControlState.FOCUSED].width > style.side[
-        ft.ControlState.DEFAULT
-    ].width
+    assert (
+        style.side[ft.ControlState.FOCUSED].width
+        > style.side[ft.ControlState.DEFAULT].width
+    )
     assert ft.ControlState.FOCUSED in style.overlay_color
     assert style.overlay_color[ft.ControlState.FOCUSED] != ft.Colors.TRANSPARENT
 
@@ -64,7 +65,7 @@ def test_no_source_file_writes_scale_on_focus():
 
     for mod in (cc, vc):
         src = inspect.getsource(mod)
-        assert 'setattr(' not in src or '"scale"' not in src, mod.__name__
+        assert "setattr(" not in src or '"scale"' not in src, mod.__name__
         assert ".scale = " not in src, mod.__name__
 
 

@@ -139,7 +139,7 @@ def test_no_source_writes_scale():
     for mod in (cc, vc):
         src = inspect.getsource(mod)
         assert ".scale = " not in src, mod.__name__
-        assert 'setattr(' not in src, mod.__name__
+        assert "setattr(" not in src, mod.__name__
 
 
 # --- 2. back/close must actually pop the player ------------------------
@@ -171,12 +171,11 @@ async def test_deep_link_back_exits_to_caller():
     ctx_mod._context_page.set(page)
     ctrl = _controller(page)
 
-    with mock.patch("flet_video.Video", FakeVideo), mock.patch.object(
-        type(ctrl), "_exit_app", new=mock.AsyncMock()
-    ) as exit_mock:
-        await ctrl.play_stream(
-            "http://example.com/live.m3u8", "T", from_deep_link=True
-        )
+    with (
+        mock.patch("flet_video.Video", FakeVideo),
+        mock.patch.object(type(ctrl), "_exit_app", new=mock.AsyncMock()) as exit_mock,
+    ):
+        await ctrl.play_stream("http://example.com/live.m3u8", "T", from_deep_link=True)
         await page.drain()
         ctrl._close_player()
         await page.drain()
@@ -191,14 +190,15 @@ async def test_single_view_player_close_exits_not_strands():
     ctx_mod._context_page.set(page)
     ctrl = _controller(page)
 
-    with mock.patch("flet_video.Video", FakeVideo), mock.patch.object(
-        type(ctrl), "_exit_app", new=mock.AsyncMock()
-    ) as exit_mock:
+    with (
+        mock.patch("flet_video.Video", FakeVideo),
+        mock.patch.object(type(ctrl), "_exit_app", new=mock.AsyncMock()) as exit_mock,
+    ):
         await ctrl.play_stream("file:///storage/emulated/0/Movies/a.mp4", "a")
         await page.drain()
-        assert any(
-            getattr(v, "route", None) == "/play" for v in page.views
-        ), "player view missing"
+        assert any(getattr(v, "route", None) == "/play" for v in page.views), (
+            "player view missing"
+        )
         ctrl._close_player()
         await page.drain()
         assert exit_mock.await_count == 1, "single-view player stranded the user"
@@ -235,9 +235,10 @@ def test_theme_toggle_sets_local_state():
     )
     ctx_mod._context_page.set(page)
 
-    with mock.patch("utils.theme_utils.toggle_theme"), mock.patch(
-        "database.manager.db_manager"
-    ) as db:
+    with (
+        mock.patch("utils.theme_utils.toggle_theme"),
+        mock.patch("database.manager.db_manager") as db,
+    ):
 
         async def _save(k, v):
             saved[k] = v
@@ -300,9 +301,7 @@ async def test_every_deep_link_shape_plays(route):
     ctx_mod._context_page.set(page)
     ctrl = _controller(page)
 
-    with mock.patch.object(
-        type(ctrl), "play_stream", new=mock.AsyncMock()
-    ) as ps:
+    with mock.patch.object(type(ctrl), "play_stream", new=mock.AsyncMock()) as ps:
         await ctrl.route_change()
         await page.drain()
         assert ps.await_count == 1, f"{route} never reached play_stream"
@@ -329,9 +328,7 @@ async def test_fallback_forwards_headers():
     ctx_mod._context_page.set(page)
     ctrl = _controller(page)
 
-    with mock.patch.object(
-        type(ctrl), "play_stream", new=mock.AsyncMock()
-    ) as ps:
+    with mock.patch.object(type(ctrl), "play_stream", new=mock.AsyncMock()) as ps:
         await ctrl.route_change()
         await page.drain()
         assert ps.await_count == 1
@@ -339,7 +336,9 @@ async def test_fallback_forwards_headers():
         # (url, title, referer, headers, from_deep_link)
         assert args[0] == url
         assert args[2] == "http://ref.example/", args
-        assert isinstance(args[3], dict) and args[3].get("Referer") == "http://ref.example"
+        assert (
+            isinstance(args[3], dict) and args[3].get("Referer") == "http://ref.example"
+        )
 
 
 # --- 5. rate survives a quality/audio swap ----------------------------
@@ -392,7 +391,14 @@ def test_version_chip_label_missing_is_not_doubled():
             raise RuntimeError("no session")
 
     ctx_mod._context_page.set(
-        type("P", (), {"theme_mode": ft.ThemeMode.DARK, "platform_brightness": ft.Brightness.DARK})()
+        type(
+            "P",
+            (),
+            {
+                "theme_mode": ft.ThemeMode.DARK,
+                "platform_brightness": ft.Brightness.DARK,
+            },
+        )()
     )
     screen = Renderer().render(
         lambda: Header(on_version_click=lambda e: None, update_available=True)
@@ -409,7 +415,14 @@ def test_version_chip_shows_version_when_known():
     from components.header import Header
 
     ctx_mod._context_page.set(
-        type("P", (), {"theme_mode": ft.ThemeMode.DARK, "platform_brightness": ft.Brightness.DARK})()
+        type(
+            "P",
+            (),
+            {
+                "theme_mode": ft.ThemeMode.DARK,
+                "platform_brightness": ft.Brightness.DARK,
+            },
+        )()
     )
     screen = Renderer().render(
         lambda: Header(

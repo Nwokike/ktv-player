@@ -79,14 +79,10 @@ def _b64url_param(value: str) -> str:
         return ""
     candidate = stripped.replace("-", "+").replace("_", "/")
     try:
-        base64.b64decode(
-            candidate + "=" * (-len(candidate) % 4), validate=True
-        )
+        base64.b64decode(candidate + "=" * (-len(candidate) % 4), validate=True)
         return stripped  # already base64url
     except Exception:
-        return base64.urlsafe_b64encode(stripped.encode("utf-8")).rstrip(
-            b"="
-        ).decode()
+        return base64.urlsafe_b64encode(stripped.encode("utf-8")).rstrip(b"=").decode()
 
 
 class AppController:
