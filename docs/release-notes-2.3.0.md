@@ -22,9 +22,16 @@
 - **Accessible contrast**: the theme's secondary text documents its measured WCAG ratio rather than claiming one it doesn't meet.
 
 ### ⚡ Performance, Scale & Build Health
-- **783 tests**, parallel and warning-free, with a regression test for every fix in this release (48 of them new).
+- **803 tests**, parallel and warning-free, with a regression test for every fix in this release.
 - **Lint catches more**: ruff now enforces bugbear, simplify, pyupgrade and ruff-native rules; it found a real toast-timer bug during this cycle.
 - **Build fixed the supported way**: flet merges `tool.flet.flutter.pubspec` from pyproject.toml into the generated pubspec, so the jni override is declared once at the source instead of patched into generated files that get overwritten.
+- **Releases stay pre-release**: a tagged build publishes as a pre-release, never Latest, so a defective build can't be downloaded straight from the default release page. Build-version defaults were also corrected, so a manual dispatch no longer labels a 2.3.0 artifact as 2.2.0.
+
+#### Player reliability (found in release testing)
+- **The player renders again.** Removing an expanding wrapper around the keyboard listener left the whole player view with no bounds, so a channel decoded and played audio behind a white screen. The wrapper is back and the cause is pinned by a test.
+- **A failed live stream can be closed.** The error screen's Go Back and tap-to-close both latched the "closing" flag before the outer close ran, so Back did nothing and the player stayed up forever. Both now go through the single close path, which saves, tears down and pops.
+- **A flaky stream stops retrying forever.** A host that accepts the connection and then drops it reset the retry budget on every attempt, so the spinner said "Reconnecting stream (1/5)" indefinitely. The budget is now spent on consecutive failures and surfaces the Retry / Go Back screen after five.
+- **Local file paths are checked properly.** The legacy `C|` drive form slipped past the sensitive-directory blocklist; it is now treated exactly like the `C:` form.
 
 #### Verification
 Independently audited across every source file, then every finding fixed and re-audited against the installed dependencies before shipping.
