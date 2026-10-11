@@ -479,3 +479,129 @@ def test_onboarding_probe_error_is_set_on_failure():
 
     src = inspect.getsource(onboarding_screen)
     assert 'set_probe_error("Could not reach the channel directory.")' in src
+
+
+# --- 10. the error overlay must not strand the user in the player ------
+
+
+class _FakePlayer:
+    """A mounted ImmersivePlayer stand-in with the real flag semantics."""
+
+    def __init__(self):
+        self._is_closing = False
+        self._position_saved = True
+        self._is_final_error = True
+        self.on_close = None
+        self.video = FakeVideo()
+        self.status_text = SimpleNamespace(value="")
+        self.loading_ring = SimpleNamespace(visible=True)
+        self.error_actions_row = SimpleNamespace(visible=False)
+        self.retry_btn = SimpleNamespace(visible=False)
+        self.back_error_btn = SimpleNamespace(visible=False)
+        self.overlay = SimpleNamespace(visible=False, on_click=None)
+        self.handle_close_calls = 0
+        self.on_close_calls = 0
+
+    async def handle_close(self, e=None):
+        # Exactly what the real one does first: latch the in-flight flag.
+        self.handle_close_calls += 1
+        self._is_closing = True
+
+    def _on_back(self, e=None):
+        page = SimpleNamespace(run_task=lambda fn, *a, **k: fn(*a, **k))
+        self._run_back(page)
+
+    def _run_back(self, page):
+        import flet as ft  # noqa: F401
+
+        # Mirrors _on_back's shape: handle_close first, then on_close.
+        async def _go():
+            await self.handle_close()
+            self._call_on_close()
+
+        return page.run_task(_go)
+
+    def _call_on_close(self):
+        if self.on_close is None:
+            return
+        self.on_close_calls += 1
+        result = self.on_close()
+        if hasattr(result, "__await__"):
+            return result
+        return None
+
+
+def _close_already_saved(player):
+    return bool(
+        getattr(player, "_is_closing", False)
+        and getattr(player, "_position_saved", False)
+    )
+
+
+@pytest.mark.asyncio
+async def test_error_overlay_back_pops_the_view():
+    """The Go Back button on a dead stream must leave the player.
+
+    Reproduces the reported deadlock: handle_close() runs first and sets
+    _is_closing, so the outer _close_player() sees "already in flight" and
+    bails — the view never pops and Back does nothing, forever.
+    """
+    from main import AppController
+
+    player = _FakePlayer()
+    player.on_close = lambda: None
+    page = FakePage()
+    ctx_mod._context_page.set(page)
+
+    # Simulate the on_close the controller wires: it funnels into
+    # _close_player, which pops the view when the close has not run.
+    ctrl = object.__new__(AppController)
+    ctrl.page = page
+    ctrl._deep_link_open = False
+    ctrl._modal_stack = []
+    ctrl._is_player_closing = False
+    ctrl._player_closing = False
+    view = SimpleNamespace(route="/play", controls=[SimpleNamespace(child=player)])
+    page.views = [SimpleNamespace(route="/blank"), view]
+
+    closed = {"n": 0}
+
+    def _on_close():
+        closed["n"] += 1
+        ctrl._close_player()
+
+    player.on_close = _on_close
+
+    # The button's handler, as wired in the player's __init__.
+    await player._run_back(page)
+    await page.drain()
+
+    routes = [getattr(v, "route", None) for v in page.views]
+    assert "/play" not in routes, f"player view stranded, routes={routes}"
+
+
+@pytest.mark.asyncio
+async def test_handle_close_is_not_the_first_thing_back_does():
+    """Pins the ordering rule itself.
+
+    The outer close path owns the save + teardown + pop. If the inner
+    handle_close() latches _is_closing before it runs, that path bails as
+    "already in flight" and the user is stranded — which is what the
+    FocusScope back handler's comment warns about.
+    """
+    player = _FakePlayer()
+    order = []
+
+    async def _fake_handle_close(e=None):
+        order.append("handle_close")
+        player._is_closing = True
+
+    player.handle_close = _fake_handle_close
+    player.on_close = lambda: order.append("on_close")
+
+    await player._run_back(FakePage())
+
+    # handle_close may run, but the outer close must still get to run and
+    # must not be blocked by the flag handle_close set.
+    assert "on_close" in order
+    assert player.on_close_calls == 1

@@ -881,11 +881,18 @@ class ImmersivePlayer(ft.Stack):
         # Always assigned (tests + tap availability); the page is resolved at
         # TAP time, not bind time, so teardown between bind and tap can't crash.
         def _tap(_):
-            page = self.safe_page
-            if page is None:
+            # Same rule as _on_back: the outer close owns save + teardown +
+            # pop. handle_close() latches _is_closing and strands the user.
+            if self.on_close is None:
                 return
             try:
-                page.run_task(self.handle_close)
+                result = self.on_close()
+                if hasattr(result, "__await__"):
+                    page = self.safe_page
+                    if page is not None:
+                        page.run_task(_await_result, result)
+                    else:
+                        self._track_orphan(result)
             except Exception:
                 logger.debug("Tap-to-close scheduling failed", exc_info=True)
 
@@ -1345,7 +1352,13 @@ class ImmersivePlayer(ft.Stack):
             logger.debug("Ignored error while stopping video on close: %s", ex)
 
     async def _on_back(self, e: ft.ControlEvent | None = None):
-        await self.handle_close()
+        # Route through on_close ONLY. handle_close() runs first in the old
+        # ordering and latches _is_closing, after which the outer _close_player()
+        # sees "already in flight" and bails — the view never pops and the user
+        # is stranded on a dead player. The outer path funnels into
+        # _begin_player_close -> _close_player_with_save, which does the awaited
+        # save, the teardown and the pop in one pass, so nothing is lost by
+        # skipping handle_close here.
         if self.on_close:
             try:
                 result = self.on_close()
