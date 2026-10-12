@@ -1,9 +1,0 @@
-{
-  "build_number": 19,
-  "version": "2.2.0",
-  "type": "update",
-  "title": "KTV Player 2.2.0",
-  "release_notes": "- Premium unlocks the channel pack (the top channels in every field) and removes ads on phones. Bought through your own Flutterwave checkout (APK, Windows, Linux)\n- Payments finish themselves: pay in the browser, the app unlocks on its own, and your receipt email carries the recovery ID\n- The Play Store build is free-only: ads on, no purchase UI\n- Back button behaves: a tab returns Home, Home exits, a video saves its position\n- Deleting a local video now asks Android for permission and confirms the file is gone\n- Local video thumbnails and an always-visible options menu\n- Faster boot: the license check no longer delays the first frame\n- Crash fix on back press, and a fix for long video dates showing blank",
-  "mandatory": false,
-  "github_url": "https://github.com/Nwokike/ktv-player/releases/latest"
-}
