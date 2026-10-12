@@ -123,15 +123,33 @@ def _make_option_chip(
     default_label: str,
     open_picker: str,
 ) -> ft.Container:
-    """Quality/audio chip with a stable minimum size.
+    """Quality/audio chip.
 
-    Old shape was content=None + padding=0 (zero-size, invisible) until the
-    probe filled it — layout shifted when it appeared, and if the probe path
-    ever skipped its update the button stayed permanently collapsed. The chip
-    now renders its default label immediately with a fixed min width.
+    Starts hidden (visible=False, content=None) — exactly like 2.2.0 — and
+    is revealed by the stream-options probe only when the stream genuinely
+    has more than one variant or more than one audio track. Showing an
+    "Auto" / "Audio" chip on every stream (single-variant live channels and
+    local files included) put a dead, non-functional control in the bar.
+    The label is filled in by _refresh_quality_label / _refresh_audio_label
+    once options exist.
     """
     from components.player.handlers import open_quality_picker
 
+    chip = ft.Container(
+        # Hidden, not collapsed to zero: a zero-size control in a video bar
+        # still reserves focus order, and the reveal just flips visible.
+        content=None,
+        visible=False,
+        padding=ft.Padding(6, 3, 6, 3),
+        border_radius=4,
+        ink=True,
+        tooltip=tooltip,
+        on_click=lambda e: (
+            player_inst.page.run_task(open_quality_picker, player_inst)
+            if open_picker == "picker"
+            else player_inst.page.run_task(player_inst._open_player_settings)
+        ),
+    )
     label = ft.Text(
         default_label,
         size=11,
@@ -146,18 +164,6 @@ def _make_option_chip(
         ],
         spacing=2,
         vertical_alignment=ft.CrossAxisAlignment.CENTER,
-    )
-    chip = ft.Container(
-        content=row,
-        padding=ft.Padding(6, 3, 6, 3),
-        border_radius=4,
-        ink=True,
-        tooltip=tooltip,
-        on_click=lambda e: (
-            player_inst.page.run_task(open_quality_picker, player_inst)
-            if open_picker == "picker"
-            else player_inst.page.run_task(player_inst._open_player_settings)
-        ),
     )
     _stash(player_inst, attr + "s", chip)
     _stash(player_inst, row_attr + "s", row)

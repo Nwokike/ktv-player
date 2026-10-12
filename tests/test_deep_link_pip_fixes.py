@@ -704,11 +704,25 @@ class TestOnLoadReady:
             p.will_unmount()
             upd.assert_not_awaited()
 
-    def test_video_defaults_medium_no_bg_resume(self):
+    def test_video_defaults_match_the_22_baseline(self):
+        """The 2.3.0 substitutions (MEDIUM quality, the False/False background
+        pair) were never verified on device, so commit 6a0d21c reverted them.
+        A later reset to 5ae8072 silently restored them; pin them back to the
+        2.2.0 values here so that cannot happen unnoticed again.
+
+        Note this is the CONSTRUCTOR baseline only. _sync_background_flags
+        still relaxes resume to False at runtime for the PiP-aware path.
+        """
         p = self._player()
-        assert p.video.filter_quality == ft.FilterQuality.MEDIUM
-        assert p.video.pause_upon_entering_background_mode is False
-        assert p.video.resume_upon_entering_foreground_mode is False
+        assert p.video.filter_quality == ft.FilterQuality.LOW
+        assert p.video.pause_upon_entering_background_mode is True
+        assert p.video.resume_upon_entering_foreground_mode is True
+
+    def test_video_title_is_the_stream_title(self):
+        """Video.title names the OS volume-mixer entry. The 2.3.0 constant
+        was reverted with the other three Video-widget changes."""
+        p = self._player()
+        assert p.video.title == (p.title or "KTV Player")
 
     def test_volume_clamped(self):
         from components.player.immersive_player import ImmersivePlayer

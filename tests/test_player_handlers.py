@@ -323,6 +323,9 @@ class TestVodResumeAndPositionTracking:
 
         p = self._player("http://example.com/movie.mp4")
         p._last_duration = 600.0
+        # A VOD that ran to its end has been playing, which is what opens
+        # the completion path (see the _playback_started gate).
+        p._playback_started = True
         with mock.patch.object(
             db_manager, "update_history_position", new_callable=mock.AsyncMock
         ) as mock_update:
@@ -486,3 +489,138 @@ class TestSubtitleSizeControl:
             "medium": 22.0,
             "large": 30.0,
         }
+
+
+class TestStartupCompleteNotification:
+    """flet_video emits `complete` the moment a fresh playlist is attached.
+
+    Playing a local file to its real end produces the same event, with the
+    same payload (data=False) as the one that arrives before a stream has
+    decoded anything, so the payload cannot tell them apart. Acting on the
+    start-up one as an end-of-stream reset the playlist under the in-flight
+    play() call, which flashed "Reconnecting stream (1/5)" on every channel
+    before it had even started. What distinguishes them is whether playback
+    ever happened.
+    """
+
+    def _player(self):
+        from components.player.immersive_player import ImmersivePlayer
+
+        player = ImmersivePlayer(resource="https://cdn.example.com/live.m3u8")
+        player.update = mock.Mock()
+        player._mock_page = mock.MagicMock()
+        player.source_url = "https://cdn.example.com/live.m3u8"
+        return player
+
+    def test_complete_before_playback_is_ignored(self):
+        player = self._player()
+        assert player._playback_started is False
+
+        player._on_complete(None)
+
+        assert player._reconnect_count == 0
+        assert player.status_text.value == "Loading stream..."
+        assert not player._mock_page.run_task.called
+
+    def test_complete_after_playback_reconnects(self):
+        player = self._player()
+        player._playback_started = True
+
+        player._on_complete(None)
+
+        assert player._reconnect_count == 1
+        assert player._mock_page.run_task.called
+
+    def test_positive_position_tick_opens_the_completion_path(self):
+        player = self._player()
+        assert player._playback_started is False
+
+        player._on_pos_change(types.SimpleNamespace(data=ft.Duration(seconds=4.5)))
+
+        assert player._playback_started is True
+
+    def test_zero_tick_does_not_open_the_completion_path(self):
+        """A 0 tick is what the playlist attach emits; it is not playback."""
+        player = self._player()
+        assert player._playback_started is False
+
+        player._on_pos_change(types.SimpleNamespace(data=ft.Duration(seconds=0)))
+
+        assert player._playback_started is False
+
+
+class TestOptionChipsHiddenUntilOptionsExist:
+    """Quality / Audio chips belong only to streams that have a choice.
+
+    2.2.0 mounted them hidden and revealed them once the probe found more
+    than one variant or more than one audio rendition. A 2.3.0 change gave
+    them an immediate label, so every single-variant live channel and every
+    local file showed a dead Quality/Audio control in the bar.
+    """
+
+    def _player(self):
+        from components.player.controls import build_player_controls
+
+        player = mock.MagicMock()
+        player.resource = "https://cdn.example.com/live.m3u8"
+        player.title = "T"
+        player.show_favorite_button = True
+        player.speed_available = True
+        player.speed_text = mock.MagicMock()
+        player.pip_available = False
+        player.page = mock.MagicMock()
+        player.video = mock.MagicMock()
+        # Real values, not MagicMock auto-attributes: the probe early-returns
+        # on a truthy _is_closing and gates on can_switch_quality.
+        player._is_closing = False
+        player.can_switch_quality = True
+        player._current_variant = None
+        player._current_audio = None
+        build_player_controls(player)
+        return player
+
+    def test_chips_start_hidden(self):
+        player = self._player()
+        assert player.quality_btns[0].visible is False
+        assert player.audio_btns[0].visible is False
+        # No content either, so nothing is laid out for them.
+        assert player.quality_btns[0].content is None
+        assert player.audio_btns[0].content is None
+
+    def test_probe_reveals_quality_only_with_more_than_one_variant(self):
+        import types as _types
+
+        from components.player.immersive_player import ImmersivePlayer
+
+        player = self._player()
+        for name in (
+            "_show_option_chip",
+            "_branch_controls",
+            "_refresh_quality_label",
+            "_refresh_audio_label",
+        ):
+            setattr(
+                player, name, _types.MethodType(getattr(ImmersivePlayer, name), player)
+            )
+
+        async def run():
+            player.list_variants = mock.AsyncMock(
+                return_value=[
+                    {"resolution": "1280x720", "bandwidth": 900, "index": 0},
+                    {"resolution": "640x360", "bandwidth": 400, "index": 1},
+                ]
+            )
+            player.list_audio_tracks = mock.AsyncMock(return_value=[])
+            await ImmersivePlayer._probe_stream_options(player)
+            assert player.quality_btns[0].visible is True
+            assert player.audio_btns[0].visible is False
+
+            # A single-variant stream: quality must stay hidden.
+            player.quality_btns[0].visible = False
+            player.list_variants = mock.AsyncMock(
+                return_value=[{"resolution": "1280x720", "bandwidth": 900, "index": 0}]
+            )
+            await ImmersivePlayer._probe_stream_options(player)
+            assert player.quality_btns[0].visible is False
+
+        asyncio.run(run())

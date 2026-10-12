@@ -213,6 +213,11 @@ class ImmersivePlayer(ft.Stack):
 
         self._retry_count = 0
         self._reconnect_count = 0
+        # True only once the stream has actually produced playback. flet_video
+        # notifies `complete` as soon as a fresh playlist is attached and mpv
+        # has nothing decoded yet, and that notification is NOT an
+        # end-of-stream — see _on_complete.
+        self._playback_started = False
         self._is_final_error = False
         self._is_closing = False
         self._was_closed_during_ad = False
@@ -307,16 +312,15 @@ class ImmersivePlayer(ft.Stack):
             volume=volume,
             muted=muted,
             wakelock=True,
-            # MEDIUM per flet_video guidance: HIGH blurs on Android, LOW is
-            # needlessly soft on high-DPI phones.
-            filter_quality=ft.FilterQuality.MEDIUM,
-            # Background behavior is PiP-aware, not static True/True:
-            # pausing here would freeze the frame being handed to PiP, and
-            # auto-resume would restart user-paused video on return. The real
-            # values are set in _sync_background_flags() once pip_available
-            # is known; _arm/_disarm flip them while PiP is armed.
-            pause_upon_entering_background_mode=False,
-            resume_upon_entering_foreground_mode=False,
+            # v2.2.0 value (commit 6a0d21c reverted these three Video-widget
+            # changes deliberately; the reset to 5ae8072 had restored them,
+            # so they are reverted again here). Do not "improve" these
+            # without on-device verification — MEDIUM quality and the
+            # False/False background pair were never confirmed on real
+            # hardware.
+            filter_quality=ft.FilterQuality.LOW,
+            pause_upon_entering_background_mode=True,
+            resume_upon_entering_foreground_mode=True,
             playlist_mode=fv.PlaylistMode.NONE,
             subtitle_track=fv.VideoSubtitleTrack.auto(),
             subtitle_configuration=self._subtitle_configuration(),
@@ -345,10 +349,11 @@ class ImmersivePlayer(ft.Stack):
             fill_color=ft.Colors.BLACK,
             fit=ft.BoxFit.CONTAIN,
             alignment=ft.Alignment.CENTER,
-            # Constant app name, not the per-stream title: Video.title names
-            # the OS volume-mixer/window entry, and renaming it per stream is
-            # needless churn. The stream title stays in the UI title slot.
-            title="KTV Player",
+            # v2.2.0 expression (reverted in 6a0d21c, restored by the reset
+            # to 5ae8072, reverted again). See the note on the background
+            # flags above: the 2.3.0 substitution was never verified on
+            # device.
+            title=self.title or "KTV Player",
             controls=self._build_controls(),
             on_duration_change=self._on_duration_change,
             on_position_change=self._on_pos_change,
@@ -738,8 +743,10 @@ class ImmersivePlayer(ft.Stack):
         # positive tick hides the overlay — a 0 tick is not a ready signal
         # (on_load owns the deterministic ready path).
         self._last_duration = seconds
-        if seconds > 0 and not self._overlay_hidden:
-            self._hide_overlay()
+        if seconds > 0:
+            self._playback_started = True
+            if not self._overlay_hidden:
+                self._hide_overlay()
         self._check_and_trigger_seek()
 
     def _on_pos_change(self, e: ft.ControlEvent | None = None):
@@ -754,6 +761,7 @@ class ImmersivePlayer(ft.Stack):
             return
         self._last_position = seconds
         if seconds > 0:
+            self._playback_started = True
             if not self._overlay_hidden:
                 self._hide_overlay()
             # Slow-start networks: is_playing() right after play() returned
@@ -1126,14 +1134,40 @@ class ImmersivePlayer(ft.Stack):
         if self._is_closing:
             return
 
-        # Quality button (all branches; chips now render their label
-        # immediately, so the probe only refreshes the label text).
+        # Quality / audio chips stay hidden until the stream actually has a
+        # choice to make. A single-variant live channel or a local file has
+        # no variants and no extra renditions, so revealing a "Quality" or
+        # "Audio" chip there puts a dead control in the bar. This is the same
+        # gate 2.2.0 used (it mounted them content=None); the difference is
+        # that every AdaptiveVideoControls branch is refreshed, not one
+        # shared instance.
         if len(variants) > 1:
-            self._refresh_quality_label()
-
-        # Audio button (all branches)
+            self._show_option_chip("quality", label_value=None)
         if len(tracks) >= 2:
+            self._show_option_chip("audio", label_value=None)
+
+    def _show_option_chip(self, which: str, label_value: str | None = None) -> None:
+        """Reveal one option chip on every branch and refresh its label."""
+        singular = f"{which}_btn"
+        row_attr = f"{which}_row"
+        text_attr = f"{which}_text"
+        chips = self._branch_controls(f"{which}_btns", singular)
+        rows = self._branch_controls(f"{which}_rows", row_attr)
+        label = getattr(self, text_attr, None)
+        for chip, row in zip(chips, rows, strict=False):
+            chip.content = row
+            chip.visible = True
+        if which == "quality":
+            self._refresh_quality_label()
+        else:
             self._refresh_audio_label()
+        if label is not None and label_value is not None:
+            label.value = label_value
+        try:
+            if self.video:
+                self.video.update()
+        except Exception:
+            logger.debug("Option chip reveal failed", exc_info=True)
 
     async def open_quality_picker(self) -> None:
         """Open the player settings dialog with Stream Quality & Audio options."""
@@ -1297,7 +1331,16 @@ class ImmersivePlayer(ft.Stack):
         _orphan_tasks.add(task)
         task.add_done_callback(_orphan_tasks.discard)
 
-    def _on_complete(self, e: ft.ControlEvent):
+    def _on_complete(self, e: ft.ControlEvent | None = None):
+        # flet_video notifies `complete` the moment a fresh playlist is
+        # attached and mpv has nothing decoded yet. Acting on that as an
+        # end-of-stream reset the playlist under the in-flight play() call:
+        # the overlay flashed "Reconnecting stream (1/5)" on every channel
+        # before it even started. The payload can't tell them apart (a real
+        # end also carries data=False), so gate on real playback instead.
+        if not self._playback_started:
+            logger.debug("Ignoring complete notification before playback started")
+            return
         # Video finished — nothing is playing, so PiP auto-enter is disarmed.
         self._disarm_auto_pip()
         if self.source_url:

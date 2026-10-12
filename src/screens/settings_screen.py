@@ -976,12 +976,18 @@ def SettingsScreen() -> Control:
         if not premium_service or not premium_service.available:
             return
         set_license_error("")
+        # Loading, not failing: the row must not claim the license service is
+        # unreachable while the request is still in flight (it rendered that
+        # on first paint, before the fetch resolved).
+        set_license_busy(True)
         try:
             set_products(await premium_service.kiri_catalog())
         except Exception:
             logger.debug("License catalog load failed", exc_info=True)
             set_license_error("Could not reach the license service.")
             return
+        finally:
+            set_license_busy(False)
         try:
             license_svc = premium_service.license
             set_recovery_id(await license_svc.recovery_id() if license_svc else "")
@@ -1157,16 +1163,23 @@ def SettingsScreen() -> Control:
                         ),
                     )
                 )
-            else:
+            elif license_busy:
+                # A request is in flight: say so, rather than claiming the
+                # service is unreachable (which is what rendered on every
+                # first paint, before the fetch resolved).
                 _kiri_rows.append(
                     _setting_row(
                         leading=ft.Icon(
-                            ft.Icons.CLOUD_OFF, size=18, color=AppColors.grey_dim()
+                            ft.Icons.CLOUD_SYNC, size=18, color=AppColors.grey_dim()
                         ),
-                        title="Unlock options unavailable",
-                        subtitle="Could not reach the license service — check your connection",
+                        title="Loading unlock options",
+                        subtitle="Contacting the license service",
+                        trailing=ft.ProgressRing(width=16, height=16, stroke_width=2),
                     )
                 )
+            # No products and no error and not busy: nothing to show yet.
+            # Previously this rendered "Could not reach the license service
+            # — check your connection" while simply still loading.
 
     _license_svc = getattr(premium_service, "license", None)
     premium = _section_card(
