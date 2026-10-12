@@ -64,3 +64,36 @@ async def test_init_renders_appshell(fake_page):
         await controller.init()
 
     assert len(fake_page.render_calls) == 1
+
+
+@pytest.mark.anyio
+async def test_init_mirrors_premium_onto_the_page(fake_page):
+    """Settings reads the premium service off the PAGE, not the controller.
+
+    src/screens/settings_screen.py does
+    `premium_service = getattr(page_obj, "premium", None)` and returns early
+    when it is None, so without the mirror the whole purchase UI — products,
+    checkout, recovery ID — never renders. 2.3.0 dropped the line that sets
+    it, which is why premium showed nothing.
+
+    Also pins that init() only calls methods the service actually has: an
+    `ashutdown()` that 2.2.0's PremiumService does not implement is swallowed
+    by a `contextlib.suppress` and silently leaves the watcher tasks running.
+    """
+    controller = _make_controller(fake_page)
+
+    async def _noop(*a, **k):
+        return None
+
+    with (
+        mock.patch.object(controller, "load_channels", _noop),
+        mock.patch.object(controller, "route_change", _noop),
+    ):
+        await controller.init()
+
+    assert fake_page.premium is not None, "page.premium is unset"
+    assert fake_page.premium is controller.premium, (
+        "page.premium is a different service"
+    )
+    # The sync cancel-only shutdown is what 2.2.0 exposes.
+    assert hasattr(controller.premium, "shutdown")

@@ -168,6 +168,13 @@ class AppController:
         # _post_render_startup so a slow network cannot hold the first frame
         # hostage.
         self.premium = PremiumService(self.page)
+        # Settings reads the service off the page (settings_screen.py:
+        # `premium_service = getattr(page_obj, "premium", None)`). Without
+        # this mirror the screen sees None, `_load_license` returns early,
+        # and the whole purchase UI — the products, the checkout button and
+        # the recovery ID — never renders. 2.2.0 had this line; dropping it
+        # is what broke premium in 2.3.0.
+        self.page.premium = self.premium
         # Records the current tier (None -> first value never reloads) and
         # forces a channel reload whenever premium flips free<->premium.
         self.premium.add_listener(self._on_premium_tier_change)
@@ -1132,7 +1139,11 @@ async def main(page: ft.Page):
             logger.debug("Logo cache shutdown failed", exc_info=True)
         with contextlib.suppress(Exception):
             if controller.premium:
-                await controller.premium.ashutdown()
+                # 2.2.0's PremiumService exposes the sync `shutdown()` only
+                # (no async `ashutdown`), so call that — an `await` on a
+                # missing name is swallowed by the suppress below and leaves
+                # the watcher tasks un-cancelled at close.
+                await controller.premium.shutdown()
         with contextlib.suppress(Exception):
             if controller.ad_service:
                 await controller.ad_service.close()

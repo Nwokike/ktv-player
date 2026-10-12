@@ -28,12 +28,7 @@ from collections.abc import Callable
 
 from core.channel import CHANNEL
 from core.state import state
-from services.kiri_license import (
-    Checkout,
-    KiriLicenseService,
-    LicenseStatus,
-    LicenseUnavailable,
-)
+from services.kiri_license import KiriLicenseService, LicenseUnavailable
 from utils.notifications import notify, premium_unlocked_message
 
 logger = logging.getLogger(__name__)
@@ -77,8 +72,8 @@ class PremiumService:
         unlocked = self.license.unlocked
         if state.is_premium != unlocked:
             logger.info("Premium state -> %s (kiri)", unlocked)
-            state.is_premium = unlocked
-            self._notify_listeners()
+        state.is_premium = unlocked
+        self._notify_listeners()
 
     def add_listener(self, callback: Callable[[], None]) -> None:
         """Observe entitlement changes (SettingsScreen re-renders)."""
@@ -103,7 +98,7 @@ class PremiumService:
 
     def _premium_disabled(self) -> bool:
         if CHANNEL == "play":
-            logger.debug("Purchase ignored: the Play build has no premium")
+            logger.info("Purchase ignored: the Play build has no premium")
             return True
         return False
 
@@ -116,11 +111,8 @@ class PremiumService:
         """
         if CHANNEL == "play":
             # Free-only build: a token left over from a direct install
-            # must never unlock it — and listeners must hear the False, or a
-            # stale True (tests, hot-reload, channel-switched artifact) never
-            # broadcasts.
+            # must never unlock it.
             state.is_premium = False
-            self._notify_listeners()
             return
         try:
             await self.license.apply_cached_token()
@@ -145,35 +137,22 @@ class PremiumService:
         """
         if CHANNEL == "play":
             return
-        try:
-            recovery_id = await self.license.recovery_id()
-        except Exception:
-            # Transient DB failure: timestamp anyway (don't hot-loop), keep
-            # the standing verdict, warn — never bubble into run_task.
-            logger.warning(
-                "Kiri license refresh: recovery ID unreadable", exc_info=True
-            )
-            self._last_reconcile_at = time.monotonic()
-            return
+        self._last_reconcile_at = time.monotonic()
+        recovery_id = await self.license.recovery_id()
         if not recovery_id:
             # Nothing was ever purchased — nothing to reconcile.
             self._recompute_premium()
-            self._last_reconcile_at = time.monotonic()
             return
         try:
             await self.license.restore(recovery_id)
         except LicenseUnavailable as ex:
-            if ex.is_refusal:
-                logger.info("Kiri license refused (%s)", ex.status_code)
-            else:
-                logger.info("Kiri license refresh: %s", ex)
+            logger.info("Kiri license refresh: %s", ex)
         except Exception:
             logger.debug("Kiri license refresh failed", exc_info=True)
         finally:
             # Re-derive even on failure: a refusal or a rejected token has
             # already cleared the license, and state.is_premium must follow.
             self._recompute_premium()
-            self._last_reconcile_at = time.monotonic()
 
     async def reconcile_if_due(self) -> None:
         """Debounced reconcile for foreground-resume and the hourly loop.
@@ -207,18 +186,9 @@ class PremiumService:
             task.cancel()
 
     async def _reconcile_loop(self) -> None:
-        # Supervised: one failed reconcile must never kill the hourly task
-        # for the rest of the session. Steady-state calls reconcile()
-        # directly (forced, not debounced): a resume that ran <60s before the
-        # tick must not skip the hourly check with no catch-up.
         while True:
             await asyncio.sleep(RECONCILE_INTERVAL)
-            try:
-                await self.reconcile()
-            except asyncio.CancelledError:
-                raise
-            except Exception:
-                logger.warning("Hourly reconcile failed, will retry", exc_info=True)
+            await self.reconcile_if_due()
 
     def start_checkout_watch(self, recovery_id: str) -> None:
         """Finish a hosted payment automatically: poll restore every few
@@ -244,104 +214,39 @@ class PremiumService:
             task.cancel()
 
     async def _checkout_watch_loop(self, recovery_id: str) -> None:
-        import random
-
-        # ~180 restores / 15 min ≈ 12 req per min: under the Worker's shared
-        # 20 req/60s per-IP budget, but with little headroom if a catalog
-        # fetch races it — hence the backoff below instead of a fixed 5s.
         deadline = time.monotonic() + CHECKOUT_WATCH_TIMEOUT
-        failures = 0
-        try:
-            while time.monotonic() < deadline:
-                # A parallel manual Restore may have unlocked already.
-                if state.is_premium and self.license.unlocked:
-                    return
-                # One sleep per iteration: base interval + proportional jitter
-                # + backoff after consecutive transient failures. (A second
-                # sleep inside the failure branch once blew past the deadline
-                # and starved the remaining window.)
-                # Jitter scales with the interval: the test fast-path patches
-                # INTERVAL to 5ms and a fixed jitter would blow its timeout.
-                backoff = min(30.0, CHECKOUT_WATCH_INTERVAL * failures)
-                await asyncio.sleep(
-                    CHECKOUT_WATCH_INTERVAL
-                    + random.uniform(0, CHECKOUT_WATCH_INTERVAL)
-                    + backoff
+        while time.monotonic() < deadline:
+            await asyncio.sleep(CHECKOUT_WATCH_INTERVAL)
+            try:
+                status = await self.license.restore(recovery_id)
+            except LicenseUnavailable as ex:
+                # Pending (202), not verified yet (404/402), throttled (429)
+                # or offline — the money is still moving; keep waiting.
+                logger.info("Checkout watcher waiting: %s", ex)
+                continue
+            if status.status in ("active", "grace") and self.license.unlocked:
+                # restore() already stored the token and flipped the flag
+                # (license on_change -> _recompute_premium); listeners have
+                # rebuilt every screen — this is just the human confirmation.
+                # `unlocked` (not just the status text) demands a verified
+                # token, so a signing misconfiguration can never toast a lie.
+                logger.info(
+                    "Checkout watcher unlocked product=%s status=%s",
+                    status.product,
+                    status.status,
                 )
-                try:
-                    status = await self.license.restore(recovery_id)
-                    failures = 0
-                except LicenseUnavailable as ex:
-                    from services.kiri_license import WATCHER_ABORT_CODES
-
-                    if ex.is_refusal and ex.status_code in WATCHER_ABORT_CODES:
-                        # Hard refusal (payment invalid / app not entitled):
-                        # the license will never turn active — stop polling
-                        # now instead of burning the budget for 15 minutes.
-                        # 404 is NOT abortive here: right after payment the
-                        # license may not exist yet (webhook lag) — keep
-                        # waiting. (In reconcile, 404 does revoke: a standing
-                        # license deleted server-side is really gone.)
-                        logger.info("Checkout watcher refused, stopping: %s", ex)
-                        return
-                    # Pending, throttled (429), or offline — the money is
-                    # still moving; keep waiting with backoff.
-                    failures += 1
-                    logger.info("Checkout watcher waiting: %s", ex)
-                    continue
-                except asyncio.CancelledError:
-                    raise
-                except Exception:
-                    # A _store DB error or an unexpected bug must not kill the
-                    # watcher early (it used to die on anything but
-                    # LicenseUnavailable).
-                    failures += 1
-                    logger.debug("Checkout watcher error, continuing", exc_info=True)
-                    continue
-                if status.effective_unlocks(self.license.claims) and (
-                    self.license.unlocked
-                ):
-                    # restore() already stored the token and flipped the flag
-                    # (license on_change -> _recompute_premium); listeners have
-                    # rebuilt every screen — this is just the human confirmation.
-                    # `unlocked` (not just the status text) demands a verified
-                    # token, so a signing misconfiguration can never toast a lie.
-                    logger.info(
-                        "Checkout watcher unlocked product=%s status=%s",
-                        status.product,
-                        status.status,
-                    )
-                    notify(premium_unlocked_message(self.page))
-                    return
-            logger.info(
-                "Checkout watcher timed out — Restore purchases remains available"
-            )
-        finally:
-            # Don't linger a done-task reference (misleading, though harmless:
-            # stop_* checks .done() before cancelling).
-            self._checkout_watch_task = None
-
-    async def ashutdown(self) -> None:
-        """Cancel every background task AND await its completion (app
-        close): cancel alone returns immediately while the loop task is
-        still mid-await, so the caller could close resources under it."""
-        tasks = [self._checkout_watch_task, self._reconcile_task]
-        self._checkout_watch_task = None
-        self._reconcile_task = None
-        pending = [t for t in tasks if t is not None and not t.done()]
-        for t in pending:
-            t.cancel()
-        if pending:
-            await asyncio.gather(*pending, return_exceptions=True)
+                notify(premium_unlocked_message(self.page))
+                return
+        logger.info("Checkout watcher timed out — Restore purchases remains available")
 
     def shutdown(self) -> None:
-        """Sync stop (cancel only). Prefer ashutdown() on app close."""
+        """Cancel every background task (app close)."""
         self.stop_checkout_watch()
         self.stop_reconcile_loop()
 
     # -- Kiri License surface ------------------------------------------------
 
-    async def kiri_catalog(self) -> list:
+    async def kiri_catalog(self):
         """Products offered by the license Worker, or [] when offline."""
         if self._premium_disabled():
             return []
@@ -354,24 +259,29 @@ class PremiumService:
             logger.debug("License catalog failed", exc_info=True)
             return []
 
-    async def kiri_checkout(self, product_id: str, email: str) -> Checkout:
+    async def kiri_checkout(self, product_id: str, email: str):
         """Create a hosted payment, save the recovery ID, start auto-finish."""
         if self._premium_disabled():
             raise LicenseUnavailable("Premium is not available in this build")
         checkout = await self.license.checkout(product_id, email)
-        # No notify here: entitlement didn't change (browser takes over next);
-        # the watcher owns post-purchase updates when the user comes back paid.
+        self._notify_listeners()
+        # The browser takes over from here; this watcher is what makes the
+        # app unlock itself when the user comes back with a paid checkout.
         self.start_checkout_watch(checkout.recovery_id)
         return checkout
 
-    async def kiri_restore(self, recovery_id: str) -> LicenseStatus:
+    async def kiri_restore(self, recovery_id: str):
         """Redeem a recovery ID; raises LicenseUnavailable with a reason."""
         if self._premium_disabled():
             raise LicenseUnavailable("Premium is not available in this build")
         status = await self.license.restore(recovery_id)
         self._recompute_premium()
-        if self.license.unlocked:
-            # A manual restore that unlocked makes any running checkout watch
-            # redundant — stop it instead of polling to timeout.
-            self.stop_checkout_watch()
+        return status
+
+    async def kiri_check_status(self):
+        """Re-check the saved entitlement, keeping the local token offline."""
+        if self._premium_disabled():
+            return None
+        status = await self.license.refresh()
+        self._recompute_premium()
         return status
