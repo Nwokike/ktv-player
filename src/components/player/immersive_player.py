@@ -46,6 +46,14 @@ def _keep(task: asyncio.Task) -> None:
     task.add_done_callback(_orphan_tasks.discard)
 
 
+async def _await_result(awaitable) -> None:
+    """Await an already-created coroutine for page.run_task.
+
+    page.run_task takes a coroutine FUNCTION, not the coroutine object.
+    """
+    await awaitable
+
+
 def _short_variant_label(variant: dict) -> str:
     """Compact chip label: '1280x720' → '720p', else bandwidth."""
     resolution = variant.get("resolution") or ""
@@ -228,6 +236,11 @@ class ImmersivePlayer(ft.Stack):
 
         self._retry_count = 0
         self._reconnect_count = 0
+        # True only once the stream has actually produced playback. flet_video
+        # notifies `complete` the moment a fresh playlist is attached and mpv
+        # has nothing decoded yet; that notification is not an end-of-stream.
+        # See _on_complete.
+        self._playback_started = False
         self._is_final_error = False
         self._is_closing = False
         self._was_closed_during_ad = False
@@ -690,6 +703,8 @@ class ImmersivePlayer(ft.Stack):
             seconds = self._event_seconds(e.data)
             if seconds is not None:
                 self._last_duration = seconds
+                if seconds > 0:
+                    self._playback_started = True
         self._check_and_trigger_seek()
 
     def _on_pos_change(self, e: ft.ControlEvent | None = None):
@@ -699,6 +714,8 @@ class ImmersivePlayer(ft.Stack):
             seconds = self._event_seconds(e.data)
             if seconds is not None:
                 self._last_position = seconds
+                if seconds > 0:
+                    self._playback_started = True
         self._check_and_trigger_seek()
 
     def _maybe_save_position_periodically(self):
@@ -805,7 +822,23 @@ class ImmersivePlayer(ft.Stack):
                     pass
 
     def _enable_tap_to_close(self):
-        self.overlay.on_click = lambda _: self.page.run_task(self.handle_close)
+        # Same rule as _on_back: the outer close owns save + teardown + pop.
+        # handle_close() latches _is_closing and strands the user.
+        def _tap(_):
+            if self.on_close is None:
+                return
+            try:
+                result = self.on_close()
+                if hasattr(result, "__await__"):
+                    page = self.safe_page
+                    if page is not None:
+                        page.run_task(_await_result, result)
+                    else:
+                        _keep(asyncio.ensure_future(result))
+            except Exception:
+                logger.debug("Tap-to-close scheduling failed", exc_info=True)
+
+        self.overlay.on_click = _tap
 
     def _safe_update(self):
         with contextlib.suppress(Exception):
@@ -1157,7 +1190,15 @@ class ImmersivePlayer(ft.Stack):
         except Exception as ex:
             logger.debug("Saving playback position failed: %s", ex)
 
-    def _on_complete(self, e: ft.ControlEvent):
+    def _on_complete(self, e: ft.ControlEvent | None = None):
+        # flet_video notifies `complete` the moment a fresh playlist is
+        # attached and mpv has nothing decoded yet. Acting on that as an
+        # end-of-stream reset the playlist under the in-flight play() call,
+        # so every channel flashed "Reconnecting stream (1/5)" before it had
+        # even started. A real completion always follows real playback.
+        if not self._playback_started:
+            logger.debug("Ignoring complete notification before playback started")
+            return
         # Video finished — nothing is playing, so PiP auto-enter is disarmed.
         self._disarm_auto_pip()
         if self.source_url:
@@ -1196,7 +1237,12 @@ class ImmersivePlayer(ft.Stack):
             logger.debug("Ignored error while stopping video on close: %s", ex)
 
     async def _on_back(self, e: ft.ControlEvent | None = None):
-        await self.handle_close()
+        # Route through on_close ONLY. Calling handle_close() here first
+        # latches _is_closing, after which the outer _close_player() sees a
+        # close "already in flight" and _begin_player_close bails — the view
+        # never pops and the user is stranded on a dead player. The outer
+        # path funnels into _begin_player_close -> _close_player_with_save,
+        # which does the awaited save, teardown and pop in one pass.
         if self.on_close:
             try:
                 result = self.on_close()
