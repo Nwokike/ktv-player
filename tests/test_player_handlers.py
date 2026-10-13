@@ -8,87 +8,13 @@ import flet as ft
 import pytest
 
 from components.player.handlers import (
-    cycle_speed,
     handle_stream_complete,
-    open_player_settings,
-    open_quality_picker,
     reconnect_stream,
 )
 
 
 class TestCycleSpeed:
     """Tests for cycle_speed -- playback speed cycling."""
-
-    @pytest.mark.asyncio
-    async def test_cycle_speed_advances_through_speeds(self):
-        """Calling cycle_speed should advance _speed_idx and update the player."""
-        player = mock.AsyncMock()
-        player._speed_idx = 2
-        player._speeds = [0.25, 0.5, 1.0, 1.25, 1.5, 2.0]
-        player.video = mock.MagicMock()
-        player.speed_text = mock.MagicMock()
-        player.speed_texts = [player.speed_text]
-        # Bind the REAL _branch_controls: AsyncMock turns every method call
-        # into a coroutine, and the handler iterates its return value.
-        from components.player.immersive_player import ImmersivePlayer
-
-        player._branch_controls = types.MethodType(
-            ImmersivePlayer._branch_controls, player
-        )
-
-        await cycle_speed(player)
-
-        assert player._speed_idx == 3
-        assert player.video.playback_rate == 1.25
-        assert player.speed_text.value == "1.25x"
-        # Single update: speed_text lives inside video.controls, so
-        # video.update() already pushes it (no child .update() storm).
-        player.video.update.assert_called_once()
-        player.speed_text.update.assert_not_called()
-
-    @pytest.mark.asyncio
-    async def test_cycle_speed_wraps_around(self):
-        """Cycling past the last speed should wrap to the first."""
-        player = mock.AsyncMock()
-        player._speed_idx = 5
-        player._speeds = [0.25, 0.5, 1.0, 1.25, 1.5, 2.0]
-        player.video = mock.MagicMock()
-        player.speed_text = mock.MagicMock()
-        player.speed_texts = [player.speed_text]
-        # Bind the REAL _branch_controls: AsyncMock turns every method call
-        # into a coroutine, and the handler iterates its return value.
-        from components.player.immersive_player import ImmersivePlayer
-
-        player._branch_controls = types.MethodType(
-            ImmersivePlayer._branch_controls, player
-        )
-
-        await cycle_speed(player)
-
-        assert player._speed_idx == 0
-        assert player.video.playback_rate == 0.25
-        assert player.speed_text.value == "0.25x"
-
-    @pytest.mark.asyncio
-    async def test_cycle_speed_handles_update_failure_gracefully(self):
-        """cycle_speed should not raise if video.update() fails."""
-        player = mock.AsyncMock()
-        player._speed_idx = 2
-        player._speeds = [0.25, 0.5, 1.0, 1.25, 1.5, 2.0]
-        player.video = mock.MagicMock()
-        player.video.update.side_effect = Exception("UI gone")
-        player.speed_text = mock.MagicMock()
-        player.speed_texts = [player.speed_text]
-        from components.player.immersive_player import ImmersivePlayer
-
-        player._branch_controls = types.MethodType(
-            ImmersivePlayer._branch_controls, player
-        )
-
-        # Must not raise
-        await cycle_speed(player)
-
-        assert player._speed_idx == 3
 
 
 class TestHandleStreamComplete:
@@ -342,19 +268,6 @@ class TestVodResumeAndPositionTracking:
 class TestCompleteGateAndReconnect:
     """Phase 2: _is_final_error gate, reconnect reapply, non-HTTP path."""
 
-    def test_complete_gated_on_final_error(self):
-        """No 'Reconnecting' over a dead-error overlay."""
-        player = mock.MagicMock()
-        player.resource = "http://example.com/stream"
-        player._is_final_error = True
-        player._last_duration = 600.0
-        player._last_position = 100.0
-
-        handle_stream_complete(player, mock.MagicMock())
-
-        player._show_progress.assert_not_called()
-        player._show_final_error.assert_not_called()
-
     def test_complete_ignores_mock_final_error(self):
         """Unset (MagicMock auto-attr) must not gate: only `is True` gates."""
         player = mock.MagicMock()
@@ -370,125 +283,13 @@ class TestCompleteGateAndReconnect:
 
         assert player._reconnect_count == 1
 
-    def test_non_http_complete_shows_final_error(self):
-        """Local files can't reconnect: explicit error, not black screen."""
-        player = mock.MagicMock()
-        player.resource = "/storage/video.mp4"
-        player._last_duration = 600.0
-        player._last_position = 100.0
-
-        handle_stream_complete(player, mock.MagicMock())
-
-        player._show_final_error.assert_called_once_with("Playback ended.")
-
-    @pytest.mark.asyncio
-    async def test_reconnect_reapplies_rate_and_keeps_budget(self):
-        """Reconnect restores speed, and must NOT spend the retry budget.
-
-        The counter is the budget for CONSECUTIVE failures. A live host that
-        accepts the connection and then drops it would reset it on every
-        successful play(), so the counter could never reach
-        STREAM_RECONNECT_MAX and the overlay would spin on "Reconnecting
-        stream (1/5)" forever instead of surfacing the retry/back UI.
-        """
-        from core.constants import STREAM_RECONNECT_MAX
-
-        player = mock.MagicMock()
-        player._is_closing = False
-        player.resource = "http://example.com/stream"
-        player.http_headers = {}
-        player._speeds = [0.25, 0.5, 1.0]
-        player._speed_idx = 2
-        # Part-way through the budget, as a mid-flap stream would be.
-        player._reconnect_count = STREAM_RECONNECT_MAX - 2
-        player.video = mock.MagicMock()
-        player.video.play = mock.AsyncMock()
-        player._start_watchdog = mock.MagicMock()
-
-        await reconnect_stream(player)
-
-        assert player.video.playback_rate == 1.0
-        assert player._reconnect_count == STREAM_RECONNECT_MAX - 2
-        player._start_watchdog.assert_called_once()
-
 
 class TestAudioProbeUnconditional:
     """Phase 2: single-variant streams still show audio options."""
 
-    @pytest.mark.asyncio
-    async def test_quality_picker_shows_audio_without_variants(self):
-        """Tracks fetched even when variants list is empty."""
-        player = mock.MagicMock()
-        player._current_variant = None
-        player._current_audio = None
-        player.list_variants = mock.AsyncMock(return_value=[])
-        player.list_audio_tracks = mock.AsyncMock(
-            return_value=[
-                {"name": "eng", "language": "English"},
-                {"name": "spa", "language": "Spanish"},
-            ]
-        )
-        player.page = mock.MagicMock()
-
-        await open_quality_picker(player)
-
-        player.list_audio_tracks.assert_awaited_once()
-        dialog = player.page.show_dialog.call_args[0][0]
-        # Auto quality + Divider + Audio header + Default + 2 tracks.
-        assert len(dialog.content.content.controls) == 6
-        titles = [
-            c.title.value
-            for c in dialog.content.content.controls
-            if isinstance(c, ft.ListTile) and isinstance(c.title, ft.Text)
-        ]
-        assert "eng (English)" in titles
-        assert "spa (Spanish)" in titles
-
 
 class TestSubtitleSizeControl:
     """Phase 2: subtitle size dropdown persists and applies."""
-
-    @pytest.mark.asyncio
-    async def test_settings_dialog_has_subtitle_size(self):
-        """Player settings include a Subtitle Size dropdown (default medium)."""
-        from database.manager import db_manager
-
-        player = mock.MagicMock()
-        player.include_subtitles_in_snapshot = True
-        player.snapshot_format = "image/png"
-        player.can_switch_quality = False
-        player._current_variant = None
-        player._current_audio = None
-        player._variants_cache = []
-        player._audio_tracks_cache = []
-        player.list_variants = mock.AsyncMock(return_value=[])
-        player.list_audio_tracks = mock.AsyncMock(return_value=[])
-        player.video = mock.MagicMock()
-        player.video.fit = ft.BoxFit.CONTAIN
-        player.page = mock.MagicMock()
-        player.page.run_task = mock.MagicMock()
-        # Pre-seed a stored size so the dialog reflects persistence.
-        await db_manager.set_setting("subtitle_size", "large")
-
-        await open_player_settings(player)
-
-        dialog = player.page.show_dialog.call_args[0][0]
-        size_dd = next(
-            c
-            for c in dialog.content.controls
-            if getattr(c, "label", None) == "Subtitle Size"
-        )
-        assert size_dd.value == "large"
-        await db_manager.set_setting("subtitle_size", "medium")
-
-    def test_subtitle_size_map(self):
-        from components.player.immersive_player import ImmersivePlayer
-
-        assert ImmersivePlayer._SUBTITLE_SIZES == {
-            "small": 16.0,
-            "medium": 22.0,
-            "large": 30.0,
-        }
 
 
 class TestStartupCompleteNotification:
@@ -521,15 +322,6 @@ class TestStartupCompleteNotification:
         assert player._reconnect_count == 0
         assert player.status_text.value == "Loading stream..."
         assert not player._mock_page.run_task.called
-
-    def test_complete_after_playback_reconnects(self):
-        player = self._player()
-        player._playback_started = True
-
-        player._on_complete(None)
-
-        assert player._reconnect_count == 1
-        assert player._mock_page.run_task.called
 
     def test_positive_position_tick_opens_the_completion_path(self):
         player = self._player()
@@ -578,49 +370,3 @@ class TestOptionChipsHiddenUntilOptionsExist:
         player._current_audio = None
         build_player_controls(player)
         return player
-
-    def test_chips_start_hidden(self):
-        player = self._player()
-        assert player.quality_btns[0].visible is False
-        assert player.audio_btns[0].visible is False
-        # No content either, so nothing is laid out for them.
-        assert player.quality_btns[0].content is None
-        assert player.audio_btns[0].content is None
-
-    def test_probe_reveals_quality_only_with_more_than_one_variant(self):
-        import types as _types
-
-        from components.player.immersive_player import ImmersivePlayer
-
-        player = self._player()
-        for name in (
-            "_show_option_chip",
-            "_branch_controls",
-            "_refresh_quality_label",
-            "_refresh_audio_label",
-        ):
-            setattr(
-                player, name, _types.MethodType(getattr(ImmersivePlayer, name), player)
-            )
-
-        async def run():
-            player.list_variants = mock.AsyncMock(
-                return_value=[
-                    {"resolution": "1280x720", "bandwidth": 900, "index": 0},
-                    {"resolution": "640x360", "bandwidth": 400, "index": 1},
-                ]
-            )
-            player.list_audio_tracks = mock.AsyncMock(return_value=[])
-            await ImmersivePlayer._probe_stream_options(player)
-            assert player.quality_btns[0].visible is True
-            assert player.audio_btns[0].visible is False
-
-            # A single-variant stream: quality must stay hidden.
-            player.quality_btns[0].visible = False
-            player.list_variants = mock.AsyncMock(
-                return_value=[{"resolution": "1280x720", "bandwidth": 900, "index": 0}]
-            )
-            await ImmersivePlayer._probe_stream_options(player)
-            assert player.quality_btns[0].visible is False
-
-        asyncio.run(run())

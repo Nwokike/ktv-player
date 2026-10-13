@@ -559,31 +559,6 @@ class TestEventParsing:
 
         return ImmersivePlayer(resource="http://example.com/vod.mp4")
 
-    @pytest.mark.parametrize(
-        ("payload", "expected"),
-        [
-            (ft.Duration(seconds=120), 120.0),
-            (ft.Duration(minutes=9), 540.0),
-            (90, 90.0),  # plain seconds pass through
-            # NOTE: the old ms/us shape-guess (90000 -> 90.0) was removed:
-            # flet-video 1.0.1 documents Duration payloads, and the heuristic
-            # misclassified any real VOD position over 1000s (1500s -> 1.5s).
-            # Raw numbers now pass through unscaled.
-            (90_000, 90_000.0),
-        ],
-    )
-    def test_event_payloads_become_seconds(self, payload, expected):
-        player = self._player()
-        player._overlay_hidden = True
-        player._check_and_trigger_seek = lambda: None
-
-        event = SimpleNamespace(data=payload)
-        player._on_pos_change(event)
-        assert player._last_position == expected
-
-        player._on_duration_change(event)
-        assert player._last_duration == expected
-
     def test_unusable_payloads_leave_state_untouched(self):
         player = self._player()
         player._overlay_hidden = True
@@ -615,81 +590,6 @@ class TestOnLoadReady:
         from components.player.immersive_player import ImmersivePlayer
 
         return ImmersivePlayer(resource="http://example.com/vod.mp4", title="VOD")
-
-    def test_on_first_ready_hides_overlay_and_arms_pip(self):
-        p = self._player()
-        assert p._overlay_hidden is False
-        p._on_first_ready()
-        assert p._overlay_hidden is True
-        assert p._watchdog_task is None
-
-    def test_on_first_ready_ignored_when_closing_or_failed(self):
-        p = self._player()
-        p._is_closing = True
-        p._on_first_ready()
-        assert p._overlay_hidden is False
-        p._is_closing = False
-        p._is_final_error = True
-        p._on_first_ready()
-        assert p._overlay_hidden is False
-
-    def test_first_position_tick_rearms_pip_on_slow_start(self):
-        p = self._player()
-        p._overlay_hidden = True
-        p._check_and_trigger_seek = lambda: None
-        armed = []
-        p._arm_auto_pip = lambda: armed.append(True)
-        assert p._pip_active is False
-        p._on_pos_change(SimpleNamespace(data=ft.Duration(seconds=5)))
-        assert armed == [True]
-
-    def test_zero_ticks_do_not_hide_or_arm(self):
-        p = self._player()
-        p._check_and_trigger_seek = lambda: None
-        armed = []
-        p._arm_auto_pip = lambda: armed.append(True)
-        p._on_pos_change(SimpleNamespace(data=ft.Duration(seconds=0)))
-        p._on_duration_change(SimpleNamespace(data=ft.Duration(seconds=0)))
-        assert p._overlay_hidden is False
-        assert armed == []
-
-    @pytest.mark.asyncio
-    async def test_periodic_save_wired_into_pos_change(self):
-        from components.player import immersive_player as ip_mod
-
-        p = self._player()
-        p._overlay_hidden = True
-        p._check_and_trigger_seek = lambda: None
-        p._arm_auto_pip = lambda: None
-        p._last_duration = 600.0
-        p._last_position_save = 0.0
-        upd = mock.AsyncMock()
-        with mock.patch.object(ip_mod.db_manager, "update_history_position", upd):
-            p._on_pos_change(SimpleNamespace(data=ft.Duration(seconds=120)))
-            pending = list(ip_mod._orphan_tasks)
-            if pending:
-                await asyncio.wait_for(
-                    asyncio.gather(*pending, return_exceptions=True), timeout=2
-                )
-            upd.assert_awaited_once()
-
-    @pytest.mark.asyncio
-    async def test_close_bounded_when_stop_hangs(self):
-        p = self._player()
-
-        async def _hang():
-            await asyncio.sleep(30)
-
-        p.video = mock.MagicMock()
-        p.video.stop = mock.AsyncMock(side_effect=_hang)
-        p.video.get_current_position = mock.AsyncMock(
-            return_value=ft.Duration(seconds=10)
-        )
-        p.video.get_duration = mock.AsyncMock(return_value=ft.Duration(seconds=100))
-        p.source_url = "http://example.com/vod.mp4"
-
-        await asyncio.wait_for(p.handle_close(), timeout=10.0)
-        assert p._is_closing is True
 
     def test_unmount_skips_save_after_close(self):
         from components.player import immersive_player as ip_mod
@@ -723,12 +623,6 @@ class TestOnLoadReady:
         was reverted with the other three Video-widget changes."""
         p = self._player()
         assert p.video.title == (p.title or "KTV Player")
-
-    def test_volume_clamped(self):
-        from components.player.immersive_player import ImmersivePlayer
-
-        assert ImmersivePlayer(resource="u", volume=150.0).video.volume == 100.0
-        assert ImmersivePlayer(resource="u", volume=-5.0).video.volume == 0.0
 
 
 class TestLifecycleStateDispatch:

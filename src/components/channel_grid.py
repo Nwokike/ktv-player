@@ -196,18 +196,16 @@ def ChannelGrid(
             )
         )
 
-    # Key swap resets scroll offset on page flip (the Column kept its scroll
-    # position, landing users at the bottom of the new page). The
-    # AnimatedSwitcher crossfades the flip — the only swap in the app where
-    # a hard cut is actually visible (TV D-pad page turns).
-    return ft.AnimatedSwitcher(
-        ft.Column(
-            controls=sections,
-            expand=True,
-            scroll=ft.ScrollMode.AUTO,
-            key=f"channel-grid-{page_idx}-{len(channels)}",
-        ),
-        transition=ft.AnimatedSwitcherTransition.FADE,
-        duration=200,
-        switch_in_curve=ft.AnimationCurve.EASE_OUT,
+    # REVERTED to the 2.2.0 shape. The 2.3.0 version wrapped this Column in an
+    # ft.AnimatedSwitcher and gave the Column a key that changed on every page
+    # flip. The AnimatedSwitcher was left without expand, so it sized to its
+    # content while the Column inside it asked to expand with scroll=AUTO:
+    # the scroll view lost its bounded height, and on the Home screen you
+    # could no longer scroll down or reach the next page with the D-pad.
+    # Verified against the installed package: AnimatedSwitcher carries a
+    # single `content` and its own `expand`, neither of which was set.
+    return ft.Column(
+        controls=sections,
+        expand=True,
+        scroll=ft.ScrollMode.AUTO,
     )

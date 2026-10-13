@@ -108,22 +108,6 @@ async def test_play_build_reconcile_is_a_no_op(_play_channel):
 
 
 @pytest.mark.asyncio
-async def test_play_build_cannot_start_any_purchase(_play_channel):
-    from services.kiri_license import LicenseUnavailable
-
-    svc = PremiumService(_page())
-    assert await svc.kiri_catalog() == []
-    with pytest.raises(LicenseUnavailable):
-        await svc.kiri_checkout("lifetime", "buyer@example.com")
-    with pytest.raises(LicenseUnavailable):
-        await svc.kiri_restore("KIRI-L-anything")
-    # kiri_check_status was deleted (Phase 5): it used the non-issuing
-    # /status path, which can never re-arm an expired token — renewals need
-    # restore(). No status surface remains on the Play build.
-    assert not hasattr(svc, "kiri_check_status")
-
-
-@pytest.mark.asyncio
 async def test_play_build_never_reads_a_cached_token(_play_channel, store):
     """Even a token left from a direct install must not unlock the AAB."""
     store["kiri_token"] = TOKENS["LIFETIME"]

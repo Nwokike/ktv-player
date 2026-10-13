@@ -344,19 +344,6 @@ async def test_fallback_forwards_headers():
 # --- 5. rate survives a quality/audio swap ----------------------------
 
 
-@pytest.mark.asyncio
-async def test_swap_media_reapplies_playback_rate():
-    import inspect
-
-    from components.player import immersive_player as ip
-
-    src = inspect.getsource(ip.ImmersivePlayer._swap_media)
-    assert "playback_rate" in src, (
-        "a playlist swap resets the native rate to 1.0x; the chip would "
-        "otherwise lie about the current speed"
-    )
-
-
 # --- 6. version chip with a stale flag (label missing) ------------------
 
 

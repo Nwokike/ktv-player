@@ -8,6 +8,7 @@ dependencies = [
     "anyio>=4.0",
     "flet>=0.86.5",
     "flet-ads>=0.86.5",
+    "flet-notifications>=0.1.4",
     "flet-permission-handler>=0.86.5",
     "flet-video>=0.86.5",
     "httpx[http2]>=0.28.1",

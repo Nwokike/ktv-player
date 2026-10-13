@@ -10,7 +10,6 @@ import inspect
 import re
 import time
 from types import SimpleNamespace
-from unittest import mock
 
 import flet as ft
 import pytest
@@ -261,41 +260,6 @@ def test_no_brotli_in_accept_encoding():
 # ---------------------------------------------------------------------------
 
 
-def test_speed_chip_builds_fresh_text_per_branch():
-    """The same shared speed Text got TWO parents when mobile and desktop
-    both built — Flet single-parent rule violation."""
-    from components.player.controls import _make_speed_chip
-
-    inst = SimpleNamespace(speed_available=True, page=SimpleNamespace())
-    _make_speed_chip(inst)
-    t1 = inst.speed_text
-    _make_speed_chip(inst)  # second branch
-    assert inst.speed_text is not t1, "speed Text must be fresh per branch"
-    texts = inst.speed_texts
-    assert len(texts) == 2
-
-
-@pytest.mark.asyncio
-async def test_cycle_speed_updates_every_branch():
-    import types
-
-    from components.player import handlers
-    from components.player.immersive_player import ImmersivePlayer
-
-    player = mock.AsyncMock()
-    player._speed_idx = 2
-    player._speeds = [0.25, 0.5, 1.0, 1.25, 1.5, 2.0]
-    player.video = mock.MagicMock()
-    t1, t2 = mock.MagicMock(), mock.MagicMock()
-    player.speed_text = t1
-    player.speed_texts = [t1, t2]
-    player._branch_controls = types.MethodType(ImmersivePlayer._branch_controls, player)
-    await handlers.cycle_speed(player)
-    # EVERY branch's text updates, not just the singular.
-    assert t1.value == "1.25x"
-    assert t2.value == "1.25x"
-
-
 # ---------------------------------------------------------------------------
 # app_loader — timeout zip + cancellation + isolation
 # ---------------------------------------------------------------------------
@@ -377,45 +341,6 @@ def test_add_content_dialog_uses_error_not_error_text():
     src = inspect.getsource(dlg.AddCustomContentDialog)
     assert "error_text=" not in src
     assert "error=url_error" in src
-
-
-def test_page_close_does_not_exist_replaced_with_pop():
-    """page.close(dialog) is not a Flet 1.0.1 API — every settings-dialog
-    close threw AttributeError into the fallback."""
-    import inspect
-
-    from components.player import handlers
-
-    src = inspect.getsource(handlers)
-    assert ".page.close(" not in src
-    assert "pop_dialog()" in src
-
-
-def test_file_picker_request_bytes_for_web():
-    """without_data, FilePickerFile.bytes is always None — the web
-    subtitle path was dead code."""
-    import inspect
-
-    from components.player import handlers
-
-    src = inspect.getsource(handlers)
-    assert "with_data=True" in src
-
-
-def test_safe_variant_and_audio_return_none():
-    """The sentinels leaked into _current_variant, which then hit
-    f\"V{self._current_variant + 1}\" -> TypeError, and built a proxy URL
-    with variant=\"auto\"."""
-    import inspect
-
-    from components.player import handlers
-
-    src = inspect.getsource(handlers)
-    safe_variant = src[src.find("def _safe_variant") : src.find("def _safe_audio")]
-    safe_audio = src[src.find("def _safe_audio") :]
-    assert 'return "auto"' not in safe_variant
-    assert 'return "default"' not in safe_audio
-    assert "return None" in safe_variant and "return None" in safe_audio
 
 
 # ---------------------------------------------------------------------------

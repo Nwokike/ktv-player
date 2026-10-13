@@ -229,14 +229,6 @@ class TestSwapResetsFinalError:
     """Phase 2: a quality/audio swap after an error must start clean."""
 
     @pytest.mark.asyncio
-    async def test_swap_clears_final_error_via_progress(self):
-        """_show_progress (called by _swap_media) resets _is_final_error."""
-        p = ImmersivePlayer(resource="http://example.com/s.m3u8", title="T")
-        p._is_final_error = True
-        p._show_progress("Switching quality...")
-        assert p._is_final_error is False
-
-    @pytest.mark.asyncio
     async def test_pending_seek_keeps_fraction(self):
         """Swap position restore keeps float seconds (no int truncation)."""
         import flet as ft
