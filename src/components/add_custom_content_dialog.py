@@ -122,11 +122,40 @@ def AddCustomContentDialog(
         set_url_error("")
         try:
             if add_type == "playlist":
+                # Fetch FIRST and save only if it parses. Saving first said
+                # "Playlist added!" for a URL that 404s, and the dead row then
+                # sat in storage being refetched on every boot.
+                from services.iptv_service import (
+                    PlaylistFetchError,
+                    iptv_service,
+                )
+
+                try:
+                    fetched = await iptv_service.fetch_playlist(trimmed_url)
+                except PlaylistFetchError as ex:
+                    logger.warning("Playlist add rejected, fetch failed: %s", ex)
+                    set_url_error(
+                        "That link did not return a playlist. Check the URL "
+                        "(it is usually .m3u or .m3u8) and try again."
+                    )
+                    return
+                except Exception as ex:
+                    logger.warning("Playlist add rejected: %s", ex)
+                    set_url_error("Could not read that link right now. Try again.")
+                    return
+
+                if not fetched:
+                    set_url_error(
+                        "That link is not a channel playlist (no channels found)."
+                    )
+                    return
+
                 await storage.add_playlist(
                     _default_playlist_name(trimmed_url), trimmed_url
                 )
                 _notify_success(
-                    "✅ Playlist added! Select 'Custom' in the filter bar to view your channels."
+                    f"✅ Playlist added! {len(fetched)} channels found. "
+                    "Select 'Custom' in the filter bar to view them."
                 )
             else:
                 final_name = name.strip() or "Channel"

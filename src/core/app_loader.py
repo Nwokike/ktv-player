@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import time
 from pathlib import PurePosixPath
 from urllib.parse import urlparse
 
@@ -9,6 +10,12 @@ from channels.provider import channel_provider
 from core.state import state
 from database.manager import db_manager
 from services.iptv_service import iptv_service
+
+# How long a playlist that failed to fetch is left alone before the next
+# boot tries it again. Long enough that a permanently dead URL costs nothing
+# in practice, short enough that a host which was only briefly down recovers
+# without the user doing anything.
+PLAYLIST_RETRY_AFTER = 6 * 60 * 60.0
 
 logger = logging.getLogger(__name__)
 
@@ -149,22 +156,54 @@ async def load_all_channels(page_obj=None, loading_lock=None, force: bool = Fals
             skipped = len(playlists) - len(active_playlists)
             if skipped:
                 logger.warning("Skipping %d playlist rows with missing URL", skipped)
+
+            # Playlists that failed recently are skipped rather than refetched:
+            # a dead URL would otherwise be retried on every boot and, because
+            # the fan-out is bounded by one overall timeout, could add its whole
+            # timeout to every start. Failures older than the cooldown are
+            # retried so a temporarily down host recovers on its own.
+            failures = await db_manager.get_playlist_failures()
+            deferred: list[dict] = []
+            if failures:
+                now = time.time()
+                still_deferred = []
+                for pl in active_playlists:
+                    failed_at = failures.get(str(pl.get("url")))
+                    if failed_at is None or now - failed_at >= PLAYLIST_RETRY_AFTER:
+                        still_deferred.append(pl)
+                    else:
+                        deferred.append(pl)
+                active_playlists = still_deferred
+            if deferred:
+                logger.info(
+                    "Deferring %d playlist(s) that failed within the last %ds",
+                    len(deferred),
+                    int(PLAYLIST_RETRY_AFTER),
+                )
+
             if active_playlists:
                 from services.iptv_service import PlaylistFetchError
 
                 async def _safe_fetch(pl: dict) -> list[dict]:
                     # One bad custom playlist must not abort the whole load:
                     # isolate failures per playlist, keep stale/built-in UX.
+                    url = str(pl.get("url"))
                     try:
-                        return await iptv_service.fetch_playlist(pl["url"])
+                        channels = await iptv_service.fetch_playlist(url)
                     except PlaylistFetchError as ex:
                         logger.warning("Playlist %s failed: %s", pl.get("name"), ex)
+                        await db_manager.record_playlist_failure(url, time.time())
                         return []
                     except asyncio.CancelledError:
                         raise
                     except Exception as ex:
                         logger.warning("Playlist %s failed: %s", pl.get("name"), ex)
+                        await db_manager.record_playlist_failure(url, time.time())
                         return []
+                    # Fetched and parsed: forget any remembered failure so the
+                    # next boot goes straight back to fetching it.
+                    await db_manager.clear_playlist_failure(url)
+                    return channels
 
                 try:
                     fetched_lists = await asyncio.wait_for(
