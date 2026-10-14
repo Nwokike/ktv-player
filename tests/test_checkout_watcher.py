@@ -1,12 +1,16 @@
 """Checkout watcher + entitlement reconciler.
 
 The watcher is what turns "you paid, now press Restore" into "the screen
-flips by itself": started by kiri_checkout, it polls restore every few
-seconds until the server confirms. The reconciler is the steady-state half
-(hourly + on foreground resume) and — critically — it uses the
-token-issuing path, because a status-only reply can never re-arm a token
-and a renewal would otherwise lock a paying subscriber out at the old
-exp (see PremiumService.reconcile).
+flips by itself": started by kiri_checkout, it polls restore with backoff
+and jitter until the server confirms. It stops early on a hard refusal
+(402/403) — a payment the server has already judged invalid will never
+become valid, and the Worker's KV write budget is finite. 404 is *not*
+terminal: just after payment the record may not exist yet (webhook lag).
+
+The reconciler is the steady-state half (hourly + on foreground resume)
+and — critically — it uses the token-issuing path, because a status-only
+reply can never re-arm a token and a renewal would otherwise lock a
+paying subscriber out at the old exp (see PremiumService.reconcile).
 """
 
 import asyncio
@@ -99,6 +103,14 @@ def _not_found():
     return {"status": 404, "body": {"error": "license_not_found"}}
 
 
+def _refused():
+    return {"status": 403, "body": {"error": "app_not_entitled"}}
+
+
+def _payment_not_valid():
+    return {"status": 402, "body": {"error": "payment_not_valid"}}
+
+
 @pytest.fixture(autouse=True)
 def _clean_premium():
     state.is_premium = False
@@ -112,6 +124,9 @@ def fast_watcher(monkeypatch):
 
     monkeypatch.setattr(premium_service, "CHECKOUT_WATCH_INTERVAL", 0.005)
     monkeypatch.setattr(premium_service, "CHECKOUT_WATCH_TIMEOUT", 0.5)
+    # The cadence is base + jitter + backoff; the jitter term is what makes
+    # the interval non-reproducible, and no assertion here depends on it.
+    monkeypatch.setattr(premium_service.random, "uniform", lambda low, high: 0.0)
 
 
 # -- checkout watcher -------------------------------------------------------
@@ -173,6 +188,59 @@ async def test_watcher_gives_up_after_the_window_without_unlocking(
     assert state.is_premium is False
     notify.assert_not_called()
     assert len(urls) >= 1
+
+
+@pytest.mark.parametrize("refusal", [_refused(), _payment_not_valid()])
+@pytest.mark.asyncio
+async def test_hard_refusal_aborts_the_watcher_after_one_poll(
+    fast_watcher, refusal
+):
+    from unittest import mock
+
+    from services import kiri_license
+
+    urls = []
+    premium = _service()
+    with (
+        mock.patch.object(
+            kiri_license,
+            "get_http_client",
+            return_value=_http([refusal] * 10, urls),
+        ),
+        mock.patch.object(kiri_license, "db_manager", _dbm()),
+    ):
+        await premium._checkout_watch_loop(RECOVERY)
+
+    # The server has judged the payment; polling the rest of the window
+    # cannot change the answer and only spends the Worker's write budget.
+    assert len(urls) == 1, f"a hard refusal must stop the watcher, got {urls}"
+    assert state.is_premium is False
+
+
+@pytest.mark.asyncio
+async def test_a_404_is_not_terminal_and_keeps_polling(fast_watcher):
+    from unittest import mock
+
+    from services import kiri_license
+
+    store = {}
+    dbm = _dbm(store)
+    urls = []
+    script = [_not_found(), _not_found(), {"body": _active_body()}]
+    premium = _service()
+    with (
+        mock.patch.object(
+            kiri_license, "get_http_client", return_value=_http(script, urls)
+        ),
+        mock.patch.object(kiri_license, "db_manager", dbm),
+        mock.patch("services.premium_service.notify"),
+    ):
+        await premium._checkout_watch_loop(RECOVERY)
+
+    # A missing record right after payment is webhook lag, not a verdict.
+    assert len(urls) == 3, f"404 must keep polling until confirmed, got {urls}"
+    assert state.is_premium is True
+    assert store.get("kiri_token") == TOKENS["LIFETIME"]
 
 
 @pytest.mark.asyncio
