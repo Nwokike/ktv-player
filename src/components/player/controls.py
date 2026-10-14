@@ -10,6 +10,35 @@ from core.theme import AppColors
 from utils.favorites import toggle_favorite
 
 
+def _notify_favourite(player_inst, added: bool) -> None:
+    """Post the system notification for a favourite toggle.
+
+    Fire-and-forget on the page loop: the button must not wait on a
+    permission check, and a failed post must never break the toggle (the
+    database write and the star colour are the real action).
+    """
+    try:
+        page = getattr(player_inst, "safe_page", None) or getattr(
+            player_inst, "page", None
+        )
+        if page is None:
+            return
+        from services.notify_service import notify_service
+
+        name = getattr(player_inst, "title", "") or "This stream"
+        if added:
+            page.run_task(notify_service.feedback, "Added to favourites", name)
+        else:
+            page.run_task(notify_service.feedback, "Removed from favourites", name)
+    except Exception:
+        with contextlib.suppress(Exception):
+            import logging
+
+            logging.getLogger(__name__).debug(
+                "Favourite notification failed", exc_info=True
+            )
+
+
 def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
     """Build adaptive player controls for touch and TV/Desktop modes."""
     speed_container = ft.Container(
@@ -166,8 +195,12 @@ def build_player_controls(player_inst) -> fv.AdaptiveVideoControls:
 
         if new_fav:
             notify("⭐ Added to Favorites")
+            # The star's colour is not visible from the native fullscreen
+            # route, so this is the only confirmation there.
+            _notify_favourite(player_inst, new_fav)
         else:
             notify("Removed from Favorites")
+            _notify_favourite(player_inst, new_fav)
 
         # Audio confirmation: unlike the toast chip, sound survives native
         # fullscreen (Android phone and TV only; desktop is a no-op).

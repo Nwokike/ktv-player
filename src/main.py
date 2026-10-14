@@ -175,6 +175,17 @@ class AppController:
         # the recovery ID — never renders. 2.2.0 had this line; dropping it
         # is what broke premium in 2.3.0.
         self.page.premium = self.premium
+
+        # System notifications. Constructed (and its channels created) once
+        # at boot so the first post does not pay for setup, and given the
+        # page so it can schedule work on the UI loop. Not awaited: a failed
+        # permission prompt must never delay the first frame.
+        from services.notify_service import notify_service
+
+        self.notify_service = notify_service
+        notify_service.attach(self.page)
+        self.page.run_task(notify_service.ensure_ready)
+        self._wire_notification_taps()
         # Records the current tier (None -> first value never reloads) and
         # forces a channel reload whenever premium flips free<->premium.
         self.premium.add_listener(self._on_premium_tier_change)
@@ -850,6 +861,29 @@ class AppController:
         if url:
             logger.info("Deep link URL valid, launching play_stream")
             self.page.run_task(self.play_stream, url, title, referer, headers, True)
+
+    def _wire_notification_taps(self) -> None:
+        """A notification tap runs the same deep-link path as an external one.
+
+        Every notification carries a `ktv://play?url=...` payload, so one
+        handler covers them all: a tap while the app is closed starts it and
+        lands in the player, and a tap while it is open goes straight there.
+        """
+        svc = getattr(self, "notify_service", None)
+        if svc is None:
+            return
+
+        def _on_tap(e):
+            payload = getattr(e, "payload", "") or ""
+            if not payload:
+                return
+            logger.info("Notification tap: %s", payload)
+            self._handle_deep_link(payload)
+
+        try:
+            svc.set_tap_handler(_on_tap)
+        except Exception:
+            logger.debug("Could not wire notification taps", exc_info=True)
 
     # --- Routing ---
 

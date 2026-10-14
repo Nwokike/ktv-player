@@ -12,9 +12,15 @@ from services.liveliness import liveliness_cache
 
 logger = logging.getLogger(__name__)
 
+from services.notify_service import notify_service
 
 _in_flight: set[str] = set()
 _pool: TaskPool | None = None
+# URLs seen dead at least once this session, so the next live verdict counts
+# as a recovery rather than as a first sighting. Session-scoped on purpose:
+# persisting it would announce every channel that was down when the app was
+# last closed, which is noise the user did not ask for.
+_was_dead: set[str] = set()
 
 # Shared across ALL checker instances (worker probes + concurrent check_single
 # callers): the old per-instance Semaphore(4) let 2 workers + N batch callers
@@ -147,6 +153,52 @@ def _is_live_status(status_code: int) -> bool:
     return 200 <= status_code < 400
 
 
+async def _maybe_announce_recovery(url: str, is_live: bool) -> None:
+    """Notify when a channel that was dead comes back online.
+
+    The verdict is already written to the cache by the caller; this only
+    looks at the transition. A previous verdict is only remembered once we
+    have seen the channel dead at least once this session, so starting the
+    app on a live channel does not announce it as a "recovery".
+    """
+    if not is_live:
+        # Remember the dead state so the next live tick is a real recovery.
+        _was_dead.add(url)
+        return
+    if url not in _was_dead:
+        return
+    _was_dead.discard(url)
+    try:
+        await notify_service.alert(
+            f"{_channel_name(url)} is back online",
+            "Tap to watch",
+            payload=_watch_payload(url),
+        )
+    except Exception:
+        logger.debug("Recovery notification failed for %s", url)
+
+
+def _channel_name(url: str) -> str:
+    """Best-effort display name for a URL, from the loaded channel list."""
+    try:
+        for channel in state.channels:
+            if isinstance(channel, dict) and channel.get("url") == url:
+                return str(channel.get("name") or url)
+    except Exception:
+        pass
+    from urllib.parse import urlparse
+
+    return urlparse(url).netloc or url
+
+
+def _watch_payload(url: str) -> str:
+    """Deep link that opens this channel straight in the player on tap."""
+    import base64
+
+    token = base64.urlsafe_b64encode(url.encode("utf-8")).rstrip(b"=").decode("ascii")
+    return f"ktv://play?url={token}"
+
+
 class LivelinessChecker:
     def __init__(self, page_obj=None):
         self.page_obj = page_obj
@@ -202,6 +254,7 @@ class LivelinessChecker:
                         return await self._remote_fail(url)
                     is_live = _is_live_status(resp.status_code)
                 liveliness_cache.set(url, is_live)
+                await _maybe_announce_recovery(url, is_live)
                 return (url, is_live)
             except (httpx.PoolTimeout, TimeoutError):
                 _pool_timeouts += 1

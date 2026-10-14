@@ -579,6 +579,15 @@ class ImmersivePlayer(ft.Stack):
                     saved_path = filepath
 
                 notify(f"📸 Snapshot saved to {saved_path}")
+                # A system notification is the one confirmation visible from
+                # the native fullscreen route, where nothing in the Flet
+                # control tree can be drawn.
+                try:
+                    from services.notify_service import notify_service
+
+                    await notify_service.feedback("Screenshot saved", str(filename))
+                except Exception:
+                    logger.debug("Screenshot notification failed", exc_info=True)
                 from utils.sfx import play_click
 
                 play_click()

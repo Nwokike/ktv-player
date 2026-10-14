@@ -1,69 +1,130 @@
-"""Tests for notification routing: SnackBar normally, in-controls chip in fullscreen."""
+"""System notifications: the pieces that had no feedback before.
+
+The in-app toast lives in the Flet control tree, and the Android fullscreen
+route is pushed above that tree, so a screenshot or favourite toggle taken in
+fullscreen produced nothing at all. These pin the notification calls, the
+channel split (silent for actions, audible for alerts), and the
+dead-to-live transition that decides when a "back online" alert is earned.
+"""
 
 import asyncio
-from unittest import mock
 
 import pytest
 
-from utils import notifications
+from services import liveliness_checker as lc
+from services.notify_service import (
+    _CHANNEL_ALERT,
+    _CHANNEL_FEEDBACK,
+    notify_service,
+)
 
 
-class TestFullscreenToastRouting:
-    def _register(self):
-        container, text = mock.MagicMock(), mock.MagicMock()
-        notifications.register_fullscreen_toast(container, text)
-        return container, text
+class FakeService:
+    """Records posts instead of reaching the OS."""
 
-    def teardown_method(self):
-        notifications.unregister_fullscreen_toast()
+    def __init__(self):
+        self.posted = []
+        self.on_tap = None
 
-    def test_chip_untouched_when_not_fullscreen(self):
-        container, text = self._register()
-        notifications.set_fullscreen_toast_active(False)
-        notifications.notify("plain message")
-        assert text.value != "plain message"
-        assert container.visible is not True
+    async def show(self, id, title=None, body=None, payload="", channel_id=None, **kw):
+        self.posted.append(
+            {
+                "id": id,
+                "title": title,
+                "body": body,
+                "payload": payload,
+                "channel": channel_id,
+            }
+        )
 
-    def test_chip_shown_when_fullscreen_active(self):
-        container, text = self._register()
-        notifications.set_fullscreen_toast_active(True)
-        try:
-            notifications.notify_warning("stream is offline")
-            assert text.value == "stream is offline"
-            assert container.visible is True
-            container.update.assert_called()
-        finally:
-            notifications.set_fullscreen_toast_active(False)
+    async def are_notifications_enabled(self):
+        return True
 
-    def test_exit_fullscreen_hides_chip(self):
-        container, _text = self._register()
-        notifications.set_fullscreen_toast_active(True)
-        notifications.notify("bye")
-        notifications.set_fullscreen_toast_active(False)
-        assert container.visible is False
+    async def create_notification_channel(self, channel):
+        self.posted.append({"channel_created": channel.id})
 
-    def test_unregister_clears_registration(self):
-        self._register()
-        notifications.set_fullscreen_toast_active(True)
-        notifications.unregister_fullscreen_toast()
-        assert notifications._fullscreen_toast["container"] is None
-        assert notifications._fullscreen_toast["text"] is None
-        assert notifications._fullscreen_toast["active"] is False
 
-    def test_notify_after_unregister_does_not_crash(self):
-        notifications.unregister_fullscreen_toast()
-        notifications.notify("no chip registered")
+@pytest.fixture
+def fake_backend(monkeypatch):
+    fake = FakeService()
+    monkeypatch.setattr(notify_service, "_service", fake, raising=False)
+    monkeypatch.setattr(notify_service, "_started", True, raising=False)
+    monkeypatch.setattr(notify_service, "_ready", True, raising=False)
+    monkeypatch.setattr(notify_service, "_channels_made", True, raising=False)
+    monkeypatch.setattr(notify_service, "_tap_handler", None, raising=False)
+    return fake
 
-    @pytest.mark.asyncio
-    async def test_chip_auto_hides(self, monkeypatch):
-        monkeypatch.setattr(notifications, "_TOAST_HIDE_AFTER", 0.05)
-        container, _text = self._register()
-        notifications.set_fullscreen_toast_active(True)
-        notifications.notify("fade away")
-        # Await the scheduled hide task itself instead of sleeping past it:
-        # deterministic, no 3x timing margin.
-        task = notifications._hide_task
-        assert task is not None
-        await asyncio.wait_for(asyncio.shield(task), timeout=2)
-        notifications.set_fullscreen_toast_active(False)
-        assert container.visible is False
+
+@pytest.fixture(autouse=True)
+def _clean_state(monkeypatch):
+    monkeypatch.setattr(lc, "_was_dead", set(), raising=False)
+    monkeypatch.setattr(lc, "notify_service", notify_service, raising=False)
+
+
+@pytest.mark.anyio
+async def test_feedback_posts_on_the_silent_channel(fake_backend):
+    assert await notify_service.feedback("Screenshot saved", "a.mkv") is True
+    post = fake_backend.posted[-1]
+    assert post["title"] == "Screenshot saved"
+    assert post["channel"] == _CHANNEL_FEEDBACK
+
+
+@pytest.mark.anyio
+async def test_recovery_posts_on_the_alert_channel_with_a_deep_link(fake_backend):
+    """A tap must land in the player, so the payload is a ktv:// link."""
+    await notify_service.alert(
+        "X is back online", "Tap to watch", payload="ktv://play?url=AAA"
+    )
+    post = fake_backend.posted[-1]
+    assert post["channel"] == _CHANNEL_ALERT
+    assert post["payload"].startswith("ktv://play?url=")
+
+
+@pytest.mark.anyio
+async def test_live_on_first_sighting_is_not_announced():
+    """Starting on a healthy channel must not alert."""
+    posted = []
+
+    class Spy:
+        async def alert(self, title, body="", payload=""):
+            posted.append(title)
+
+    lc.notify_service = Spy()
+    await lc._maybe_announce_recovery("https://x/a.m3u8", True)
+    assert posted == []
+
+
+@pytest.mark.anyio
+async def test_dead_then_live_announces_once():
+    posted = []
+
+    class Spy:
+        async def alert(self, title, body="", payload=""):
+            posted.append((title, payload))
+
+    lc.notify_service = Spy()
+    url = "https://x/a.m3u8"
+    await lc._maybe_announce_recovery(url, False)
+    assert url in lc._was_dead
+    await lc._maybe_announce_recovery(url, True)
+    await lc._maybe_announce_recovery(url, True)
+    assert len(posted) == 1
+    assert posted[0][0].endswith("is back online")
+
+
+def test_missing_dependency_degrades_to_no_op(monkeypatch):
+    """Without flet_notifications installed nothing may raise."""
+    import services.notify_service as mod
+
+    monkeypatch.setattr(mod, "_HAS_NOTIFICATIONS", False)
+    assert asyncio.run(notify_service.feedback("t", "b")) is False
+    assert asyncio.run(notify_service.ensure_ready()) is False
+
+
+def test_tap_handler_is_applied_to_the_service(fake_backend, monkeypatch):
+    seen = []
+    monkeypatch.setattr(notify_service, "_service", fake_backend, raising=False)
+    notify_service.set_tap_handler(lambda e: seen.append(e))
+    assert fake_backend.on_tap is not None
+    fake_backend.on_tap("event")
+    assert seen == ["event"]
