@@ -13,6 +13,52 @@ logger = logging.getLogger("LocalScreen")
 _CONSENT_WAIT_POLLS = 40  # 40 x 0.5s = 20s
 _CONSENT_POLL_INTERVAL = 0.5
 
+
+def _video_paths(folders) -> set:
+    """Identity of every video under a folder list.
+
+    Compared by path, not by folder, because a scan can move a video
+    between folders and a rename changes the folder count without changing
+    anything the user cares about.
+    """
+    found: set = set()
+    for folder in folders or []:
+        for video in getattr(folder, "videos", None) or []:
+            path = getattr(video, "path", None)
+            if path:
+                found.add(str(path))
+    return found
+
+
+def _announce_scan_result(page, previous, result, *, background: bool) -> None:
+    """Post a notification when a scan found videos the grid did not have.
+
+    A scan is the longest local job and the one a user may start and walk
+    away from, so "scan finished, N new" is worth a shade entry. Only a real
+    gain is announced — an unchanged rescan, or the post-delete background
+    refresh (which just removed something), is silent. Fills the reserved
+    scan id slot in notify_service.
+    """
+    if page is None:
+        return
+    new = _video_paths(result)
+    if not new:
+        return
+    added = len(new - _video_paths(previous))
+    if added <= 0:
+        return
+    try:
+        from services.notify_service import notify_service
+
+        page.run_task(
+            notify_service.scan_finished,
+            "Videos found",
+            f"{added} new video{'s' if added != 1 else ''} on this device",
+        )
+    except Exception:
+        logger.debug("Scan notification failed", exc_info=True)
+
+
 import contextlib
 
 import anyio
@@ -269,6 +315,7 @@ def LocalScreen() -> Control:
                 logger.debug("Scan generation %d superseded, dropping", my_gen)
                 return []
             logger.info("Scan found %d folders", len(result))
+            _announce_scan_result(page, folders, result, background=background)
             set_folders(result)
             videos = [v for folder in result for v in folder.videos]
             if videos:

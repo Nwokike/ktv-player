@@ -306,3 +306,77 @@ async def test_update_payload_is_the_release_url(fake_backend, controller_for_up
     from core.deeplink import parse_deep_link
 
     assert parse_deep_link(payload) == (None, None, None, None)
+
+
+# --- local scan finished ---
+
+
+class _FakeVideo:
+    def __init__(self, path):
+        self.path = path
+
+
+class _FakeFolder:
+    def __init__(self, *paths):
+        self.videos = [_FakeVideo(p) for p in paths]
+
+
+class _FakePage:
+    """Records the (fn, args) pairs handed to run_task."""
+
+    def __init__(self):
+        self.calls = []
+
+    def run_task(self, fn, *args, **kwargs):
+        self.calls.append((fn, args))
+
+
+@pytest.mark.parametrize(
+    "previous,result,background,want",
+    [
+        # A real gain is announced.
+        ([], [_FakeFolder("/a.mp4", "/b.mp4")], False, 1),
+        ([], [_FakeFolder("/a.mp4")], False, 1),
+        # An unchanged rescan is silent.
+        ([_FakeFolder("/a.mp4")], [_FakeFolder("/a.mp4")], False, 0),
+        # The post-delete background refresh only removed something.
+        ([_FakeFolder("/a.mp4", "/b.mp4")], [_FakeFolder("/a.mp4")], True, 0),
+        # Videos moving between folders is not a gain.
+        (
+            [_FakeFolder("/a.mp4", "/b.mp4")],
+            [_FakeFolder("/a.mp4"), _FakeFolder("/b.mp4")],
+            False,
+            0,
+        ),
+        # Nothing found is silent.
+        ([_FakeFolder("/a.mp4")], [], False, 0),
+    ],
+)
+def test_scan_announces_only_a_real_gain(previous, result, background, want):
+    from screens.local_screen import _announce_scan_result
+
+    page = _FakePage()
+    _announce_scan_result(page, previous, result, background=background)
+    assert len(page.calls) == want
+
+
+@pytest.mark.anyio
+async def test_scan_uses_its_own_id(fake_backend):
+    """It fills the reserved scan slot, not the generic feedback id, so a
+    finished scan replaces any progress bar the same job was showing."""
+    await notify_service.scan_finished("Videos found", "2 new videos")
+    post = fake_backend.posted[-1]
+    assert post["title"] == "Videos found"
+    assert post["id"] == 4102
+
+
+def test_scan_wording_is_pluralised():
+    from screens.local_screen import _announce_scan_result
+
+    one = _FakePage()
+    _announce_scan_result(one, [], [_FakeFolder("/a.mp4")], background=False)
+    assert one.calls[0][1][1] == "1 new video on this device"
+
+    two = _FakePage()
+    _announce_scan_result(two, [], [_FakeFolder("/a.mp4", "/b.mp4")], background=False)
+    assert two.calls[0][1][1] == "2 new videos on this device"

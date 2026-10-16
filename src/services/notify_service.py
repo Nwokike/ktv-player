@@ -181,7 +181,12 @@ class NotifyService:
         )
 
     async def progress(self, title: str, body: str, done: int, total: int) -> bool:
-        """Update the one scan notification in place."""
+        """Update the one live-progress notification in place.
+
+        Re-showing the same id advances the existing bar rather than
+        stacking a new notification — that is how a minutes-long job stays a
+        single shade entry.
+        """
         return await self._post(
             _ID_SCAN,
             _CHANNEL_FEEDBACK,
@@ -191,6 +196,11 @@ class NotifyService:
             max_progress=total,
             progress=done,
         )
+
+    async def scan_finished(self, title: str, body: str) -> bool:
+        """A background job finished (scan), on its own stable id so it
+        replaces any progress bar the same job was showing."""
+        return await self._post(_ID_SCAN, _CHANNEL_FEEDBACK, title, body)
 
     async def _post(self, nid, channel, title, body, payload="", **kwargs) -> bool:
         if not await self.ensure_ready():
