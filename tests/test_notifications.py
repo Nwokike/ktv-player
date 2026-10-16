@@ -236,13 +236,13 @@ async def test_unlock_does_not_announce_from_recompute(
 def _update(**kw):
     from types import SimpleNamespace
 
-    base = dict(
-        version="2.4.0",
-        build_number=22,
-        type="update",
-        mandatory=False,
-        github_url="https://github.com/Nwokike/ktv-player/releases/latest",
-    )
+    base = {
+        "version": "2.4.0",
+        "build_number": 22,
+        "type": "update",
+        "mandatory": False,
+        "github_url": "https://github.com/Nwokike/ktv-player/releases/latest",
+    }
     base.update(kw)
     return SimpleNamespace(**base)
 
