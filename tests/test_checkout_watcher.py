@@ -192,9 +192,7 @@ async def test_watcher_gives_up_after_the_window_without_unlocking(
 
 @pytest.mark.parametrize("refusal", [_refused(), _payment_not_valid()])
 @pytest.mark.asyncio
-async def test_hard_refusal_aborts_the_watcher_after_one_poll(
-    fast_watcher, refusal
-):
+async def test_hard_refusal_aborts_the_watcher_after_one_poll(fast_watcher, refusal):
     from unittest import mock
 
     from services import kiri_license

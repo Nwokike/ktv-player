@@ -8,6 +8,7 @@ dead-to-live transition that decides when a "back online" alert is earned.
 """
 
 import asyncio
+from types import SimpleNamespace
 
 import pytest
 
@@ -20,11 +21,30 @@ from services.notify_service import (
 
 
 class FakeService:
-    """Records posts instead of reaching the OS."""
+    """Records posts instead of reaching the OS.
+
+    ``drain_posts`` runs the fire-and-forget tasks a caller scheduled through
+    the fake page: the real ``page.run_task`` takes a coroutine *function* and
+    schedules the result, so a post only becomes visible once the loop runs it.
+    ``page.run_task`` is stubbed by ``schedule`` so callers can be exercised
+    without a page at all.
+    """
 
     def __init__(self):
         self.posted = []
         self.on_tap = None
+        self._scheduled: list = []
+
+    def schedule(self, fn, *args, **kwargs):
+        coro = fn(*args, **kwargs)
+        self._scheduled.append(coro)
+        return coro
+
+    async def drain_posts(self):
+        pending, self._scheduled = self._scheduled, []
+        for coro in pending:
+            if hasattr(coro, "__await__"):
+                await coro
 
     async def show(self, id, title=None, body=None, payload="", channel_id=None, **kw):
         self.posted.append(
@@ -128,3 +148,83 @@ def test_tap_handler_is_applied_to_the_service(fake_backend, monkeypatch):
     assert fake_backend.on_tap is not None
     fake_backend.on_tap("event")
     assert seen == ["event"]
+
+
+# --- premium entitlement notifications ---
+
+
+@pytest.fixture
+def premium_with_backend(monkeypatch, fake_backend):
+    """A PremiumService whose licence verdict and page I control."""
+    from services.premium_service import PremiumService
+
+    svc = PremiumService.__new__(PremiumService)
+    # run_task -> the fake's schedule, so drains actually run the posts.
+    svc.page = SimpleNamespace(run_task=fake_backend.schedule)
+    svc._premium_announced = False
+    svc._listeners = []
+    svc._notify_listeners = lambda: None
+
+    class _Lic:
+        def __init__(self):
+            self.unlocked = True
+
+    svc.license = _Lic()
+    svc._recompute_premium = PremiumService._recompute_premium.__get__(svc)
+    return svc
+
+
+@pytest.mark.anyio
+async def test_revoke_announces_once(fake_backend, premium_with_backend):
+    """A revoke or expiry is silent today. One alert, not one per tick."""
+    from core.state import state
+
+    state.is_premium = True
+    premium_with_backend._recompute_premium()
+    assert fake_backend.posted == []
+
+    premium_with_backend.license.unlocked = False
+    for _ in range(3):
+        premium_with_backend._recompute_premium()
+    await fake_backend.drain_posts()
+
+    posts = [p for p in fake_backend.posted if p["title"] == "Premium ended"]
+    assert len(posts) == 1
+    assert posts[0]["channel"] == _CHANNEL_ALERT
+
+
+@pytest.mark.anyio
+async def test_relock_then_revoke_announces_again(fake_backend, premium_with_backend):
+    """The latch is per-downgrade, not permanent."""
+    from core.state import state
+
+    state.is_premium = True
+    premium_with_backend.license.unlocked = False
+    premium_with_backend._recompute_premium()
+    await fake_backend.drain_posts()
+    assert premium_with_backend._premium_announced is True
+
+    premium_with_backend.license.unlocked = True
+    premium_with_backend._recompute_premium()
+    assert premium_with_backend._premium_announced is False
+
+    premium_with_backend.license.unlocked = False
+    premium_with_backend._recompute_premium()
+    await fake_backend.drain_posts()
+    ended = [p for p in fake_backend.posted if p["title"] == "Premium ended"]
+    assert len(ended) == 2
+
+
+@pytest.mark.anyio
+async def test_unlock_does_not_announce_from_recompute(
+    fake_backend, premium_with_backend
+):
+    """An unlock has its own better-worded notification at the watcher, so
+    the shared funnel must not double up on it."""
+    from core.state import state
+
+    state.is_premium = False
+    premium_with_backend.license.unlocked = True
+    premium_with_backend._recompute_premium()
+    await fake_backend.drain_posts()
+    assert fake_backend.posted == []

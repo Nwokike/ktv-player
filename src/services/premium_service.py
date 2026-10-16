@@ -71,17 +71,50 @@ class PremiumService:
         self._reconcile_task: asyncio.Task | None = None
         # Negative so the very first resume check is never debounced away.
         self._last_reconcile_at = time.monotonic() - RESUME_DEBOUNCE
+        # Latches one "Premium ended" notification per downgrade, so the
+        # hourly reconcile cannot nag the user every tick.
+        self._premium_announced = False
         if CHANNEL == "play":
             # Free-only build: no purchase surface of any kind is wired up.
             logger.info("Play channel build — premium disabled, free tier with ads")
             return
         self.backend = "kiri"
 
+    def _notify_premium_change(self, title: str, body: str) -> None:
+        """Post a system notification about an entitlement change.
+
+        Fire-and-forget on the page loop: never awaited by the caller (this
+        runs from a listener or an event handler), and never allows a failed
+        post to break the state change that wanted it.
+        """
+        page = getattr(self, "page", None)
+        if page is None:
+            return
+        try:
+            from services.notify_service import notify_service
+
+            page.run_task(notify_service.alert, title, body)
+        except Exception:
+            logger.debug("Premium notification failed", exc_info=True)
+
     def _recompute_premium(self) -> None:
         """Mirror the license verdict into the app-wide premium flag."""
         unlocked = self.license.unlocked
         if state.is_premium != unlocked:
             logger.info("Premium state -> %s (kiri)", unlocked)
+            # Only announce a LOSS. A revoke or expiry is silent today — the
+            # premium pack vanishes and ads come back with no explanation —
+            # while an unlock already has its own, better-worded notification
+            # at the checkout watcher. `_premium_announced` makes it once per
+            # downgrade rather than once per reconcile tick.
+            if not unlocked and not self._premium_announced:
+                self._premium_announced = True
+                self._notify_premium_change(
+                    "Premium ended",
+                    "Premium channels and ad removal are no longer active",
+                )
+            elif unlocked:
+                self._premium_announced = False
         state.is_premium = unlocked
         self._notify_listeners()
 
@@ -270,6 +303,15 @@ class PremiumService:
                     status.status,
                 )
                 notify(premium_unlocked_message(self.page))
+                # The user pays in a browser tab, so the app is backgrounded
+                # at the exact moment this lands — the in-app toast above is
+                # invisible there. The system notification is the only
+                # confirmation that survives, and the payload returns them to
+                # the app.
+                self._notify_premium_change(
+                    "Premium unlocked",
+                    "Tap to see your premium channels",
+                )
                 return
         logger.info("Checkout watcher timed out — Restore purchases remains available")
 

@@ -65,13 +65,14 @@ class NotifyService:
         self._started = False
         self._channels_made = False
         self._ready = False
+        self._page = None
+        self._tap_handler = None
 
     # --- lifecycle ---
 
     def attach(self, page) -> None:
         """Remember the page used to schedule work on the UI loop."""
         self._page = page
-        self._tap_handler = None
 
     def set_tap_handler(self, handler) -> None:
         """Install the handler run when any notification is tapped.
