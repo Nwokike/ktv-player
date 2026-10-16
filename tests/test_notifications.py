@@ -456,3 +456,53 @@ async def test_channels_only_lost_is_reported(fake_backend, app_loader_state):
     app_loader_state._announce_refresh(_refresh_page(fake_backend), [{"url": "/a"}])
     await fake_backend.drain_posts()
     assert "1 channel no longer available" in fake_backend.posted[0]["body"]
+
+
+# --- foreground marks must never outlive their refresh ---
+
+
+@pytest.mark.anyio
+async def test_overlapping_foreground_refreshes_both_retire(
+    fake_backend, app_loader_state
+):
+    """A count, not a flag: two foreground refreshes need two consumes, and
+    a third (background) refresh after them must still announce."""
+    page = SimpleNamespace(run_task=fake_backend.schedule)
+    app_loader_state.begin_foreground_refresh()
+    app_loader_state.begin_foreground_refresh()
+    app_loader_state._announce_refresh(page, [{"url": "/a"}])
+    app_loader_state._announce_refresh(page, [{"url": "/b"}])
+    await fake_backend.drain_posts()
+    assert fake_backend.posted == []
+
+    app_loader_state._announce_refresh(page, [{"url": "/c"}])
+    await fake_backend.drain_posts()
+    assert len(fake_backend.posted) == 1
+
+
+@pytest.mark.anyio
+async def test_a_failed_load_does_not_strand_a_mark(fake_backend, app_loader_state):
+    """An exception path must retire the mark too, or it would silently
+    suppress the NEXT background refresh."""
+    app_loader_state.begin_foreground_refresh()
+    original = app_loader_state.channel_provider.get_all_channels
+
+    async def _boom(*a, **k):
+        raise RuntimeError("network down")
+
+    app_loader_state.channel_provider.get_all_channels = _boom
+    try:
+        await app_loader_state.load_all_channels(
+            SimpleNamespace(run_task=lambda *a: None), None
+        )
+    finally:
+        app_loader_state.channel_provider.get_all_channels = original
+
+    assert app_loader_state._foreground_refresh[0] == 0
+
+    # A background refresh right after the failure still announces.
+    app_loader_state._announce_refresh(
+        SimpleNamespace(run_task=fake_backend.schedule), [{"url": "/zz"}]
+    )
+    await fake_backend.drain_posts()
+    assert len(fake_backend.posted) == 1

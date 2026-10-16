@@ -231,7 +231,15 @@ jobs:
       # (the scan, reconcile and checkout poll are in-process page.run_task
       # loops), so that entry is deliberately left out.
       - name: Patch the generated Android project (notifications)
-        run: uv run flet-notifications-patch --project-root build/flutter
+        run: |
+          uv run flet-notifications-patch --project-root build/flutter
+          # The patcher pins desugar_jdk_libs 2.1.4, which silently shadows
+          # the 2.1.5 the guarded sed below would have installed. Normalise
+          # back to 2.1.5 so this file stays the source of truth for the
+          # version. (Without this the patcher wins purely by running first.)
+          GRADLE=build/flutter/android/app/build.gradle.kts
+          sed -i 's/desugar_jdk_libs:2.1.4/desugar_jdk_libs:2.1.5/g' "$GRADLE"
+          grep -n "desugar_jdk_libs" "$GRADLE"
       - name: Inject TV banner, icon & rebuild with banner
         env:
           FLET_ANDROID_SIGNING_KEY_STORE: ${{ github.workspace }}/kiri_keystore.jks
@@ -340,7 +348,15 @@ jobs:
       # (the scan, reconcile and checkout poll are in-process page.run_task
       # loops), so that entry is deliberately left out.
       - name: Patch the generated Android project (notifications)
-        run: uv run flet-notifications-patch --project-root build/flutter
+        run: |
+          uv run flet-notifications-patch --project-root build/flutter
+          # The patcher pins desugar_jdk_libs 2.1.4, which silently shadows
+          # the 2.1.5 the guarded sed below would have installed. Normalise
+          # back to 2.1.5 so this file stays the source of truth for the
+          # version. (Without this the patcher wins purely by running first.)
+          GRADLE=build/flutter/android/app/build.gradle.kts
+          sed -i 's/desugar_jdk_libs:2.1.4/desugar_jdk_libs:2.1.5/g' "$GRADLE"
+          grep -n "desugar_jdk_libs" "$GRADLE"
       - name: Inject TV banner, icon & rebuild with banner
         env:
           FLET_ANDROID_SIGNING_KEY_STORE: ${{ github.workspace }}/kiri_keystore.jks

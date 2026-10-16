@@ -1236,10 +1236,10 @@ async def main(page: ft.Page):
         with contextlib.suppress(Exception):
             if controller.premium:
                 # 2.2.0's PremiumService exposes the sync `shutdown()` only
-                # (no async `ashutdown`), so call that — an `await` on a
-                # missing name is swallowed by the suppress below and leaves
-                # the watcher tasks un-cancelled at close.
-                await controller.premium.shutdown()
+                # (no async `ashutdown`), so call it WITHOUT await — awaiting
+                # a sync function raises TypeError, which this suppress
+                # swallows, silently leaving the watcher tasks running.
+                controller.premium.shutdown()
         with contextlib.suppress(Exception):
             if controller.ad_service:
                 await controller.ad_service.close()

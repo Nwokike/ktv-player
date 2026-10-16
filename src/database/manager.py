@@ -363,6 +363,9 @@ class DatabaseManager:
         async with self._lock:
             self._data["playlists"] = []
             self._data["custom_channels"] = []
+            # Drop the removed cooldown's residue, so an existing install
+            # that wrote it during that window is not carrying it forever.
+            self._data.pop("playlist_failures", None)
             self._dirty = True
             return await self._save_now_locked()
 

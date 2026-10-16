@@ -16,12 +16,21 @@ logger = logging.getLogger(__name__)
 # action) so _announce_refresh stays quiet for it: those already post their
 # own in-app toast, and a shade entry on top of a toast the user is reading
 # is noise. Background refreshes — the premium tier flip — never set it.
-_foreground_refresh: list[bool] = [False]
+# A COUNT, not a flag: two foreground refreshes can overlap, and a load that
+# bails out before reaching _announce_refresh must still retire its own mark,
+# or it would silently suppress the next background refresh.
+_foreground_refresh: list[int] = [0]
 
 
 def begin_foreground_refresh() -> None:
     """Mark the next refresh as user-visible (a toast is already showing)."""
-    _foreground_refresh[0] = True
+    _foreground_refresh[0] += 1
+
+
+def _consume_foreground_refresh() -> None:
+    """Retire one mark, whichever way its load ends."""
+    if _foreground_refresh[0] > 0:
+        _foreground_refresh[0] -= 1
 
 
 def _announce_refresh(page_obj, channels: list[dict]) -> None:
@@ -38,7 +47,7 @@ def _announce_refresh(page_obj, channels: list[dict]) -> None:
     same list stays quiet.
     """
     if _foreground_refresh[0]:
-        _foreground_refresh[0] = False
+        _consume_foreground_refresh()
         return
     try:
         urls = {c.get("url") for c in channels if isinstance(c, dict) and c.get("url")}
@@ -307,3 +316,8 @@ async def load_all_channels(page_obj=None, loading_lock=None, force: bool = Fals
                 notify_error("Failed to load channels. Check your connection.")
             except Exception:
                 pass
+        finally:
+            # A load that ended without reaching _announce_refresh still used
+            # up its own foreground mark. Retire it here so a failed or empty
+            # refresh cannot silently suppress the next background one.
+            _consume_foreground_refresh()

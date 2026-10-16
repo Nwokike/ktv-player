@@ -306,11 +306,14 @@ class PremiumService:
                 # The user pays in a browser tab, so the app is backgrounded
                 # at the exact moment this lands — the in-app toast above is
                 # invisible there. The system notification is the only
-                # confirmation that survives, and the payload returns them to
-                # the app.
+                # confirmation that survives.
+                # No payload: the notification is a confirmation, not a
+                # deep link, so the wording must not promise a tap that
+                # would not do anything. The premium pack is already in the
+                # grid by the time this posts.
                 self._notify_premium_change(
                     "Premium unlocked",
-                    "Tap to see your premium channels",
+                    "Premium channels and ad removal are now active",
                 )
                 return
         logger.info("Checkout watcher timed out — Restore purchases remains available")
