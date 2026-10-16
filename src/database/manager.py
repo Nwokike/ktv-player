@@ -336,45 +336,6 @@ class DatabaseManager:
                 dict(p) for p in self._data.get("playlists", []) if isinstance(p, dict)
             ]
 
-    # --- Playlist failure memory ---
-    #
-    # A playlist URL that 404s (or whose host is dead) used to be refetched
-    # on every boot, and because the boot fetch is bounded by a single
-    # overall timeout, one dead URL could add its full timeout to every
-    # start. Remembering the failure lets the loader skip it for a cooldown
-    # instead of paying for it forever, while still retrying later so a
-    # temporarily down host eventually recovers.
-
-    async def record_playlist_failure(self, url: str, when: float) -> None:
-        """Remember that `url` failed to fetch at unix time `when`."""
-        async with self._lock:
-            failures = self._data.setdefault("playlist_failures", {})
-            if isinstance(failures, dict):
-                failures[url] = float(when)
-                self._dirty = True
-                await self._save_now_locked()
-
-    async def clear_playlist_failure(self, url: str) -> None:
-        """Forget a remembered failure (a successful fetch clears it)."""
-        async with self._lock:
-            failures = self._data.get("playlist_failures")
-            if isinstance(failures, dict) and url in failures:
-                del failures[url]
-                self._dirty = True
-                await self._save_now_locked()
-
-    async def get_playlist_failures(self) -> dict[str, float]:
-        """The remembered per-URL failure timestamps (copy)."""
-        async with self._lock:
-            failures = self._data.get("playlist_failures")
-            if not isinstance(failures, dict):
-                return {}
-            return {
-                str(k): float(v)
-                for k, v in failures.items()
-                if isinstance(v, (int, float))
-            }
-
     # --- Custom Channels ---
 
     async def add_custom_channel(
