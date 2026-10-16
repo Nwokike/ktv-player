@@ -12,6 +12,59 @@ from services.iptv_service import iptv_service
 
 logger = logging.getLogger(__name__)
 
+# Set by a foreground refresh (the Home refresh button, the settings reset
+# action) so _announce_refresh stays quiet for it: those already post their
+# own in-app toast, and a shade entry on top of a toast the user is reading
+# is noise. Background refreshes — the premium tier flip — never set it.
+_foreground_refresh: list[bool] = [False]
+
+
+def begin_foreground_refresh() -> None:
+    """Mark the next refresh as user-visible (a toast is already showing)."""
+    _foreground_refresh[0] = True
+
+
+def _announce_refresh(page_obj, channels: list[dict]) -> None:
+    """System notification when a BACKGROUND refresh changed the channel list.
+
+    A refresh the user asked for in the foreground already posts its own
+    in-app toast (home_screen's refresh button, the settings action), so
+    those are exempt — a shade entry on top of a toast the user is looking
+    at is noise. What is silent today is the background refresh: a premium
+    tier flip refetches behind the user's back, and the grid silently swaps
+    from the free list to the premium pack with nothing said.
+
+    Only a genuine change is announced, so a routine refresh that found the
+    same list stays quiet.
+    """
+    if _foreground_refresh[0]:
+        _foreground_refresh[0] = False
+        return
+    try:
+        urls = {c.get("url") for c in channels if isinstance(c, dict) and c.get("url")}
+    except Exception:
+        return
+    if not urls:
+        return
+    previous = {c.get("url") for c in (state.channels or []) if isinstance(c, dict)}
+    added = len(urls - previous)
+    removed = len(previous - urls)
+    if added <= 0 and removed <= 0:
+        return
+    try:
+        from services.notify_service import notify_service
+
+        if added > 0:
+            body = f"{added} new channel{'s' if added != 1 else ''}" + (
+                f", {removed} gone" if removed else ""
+            )
+        else:
+            body = f"{removed} channel{'s' if removed != 1 else ''} no longer available"
+        if page_obj is not None:
+            page_obj.run_task(notify_service.feedback, "Channels updated", body)
+    except Exception:
+        logger.debug("Refresh notification failed", exc_info=True)
+
 
 async def _reconcile_favorites(channels: list[dict]) -> None:
     """Re-key saved favorites after a playlist swap (URL-keyed storage).
@@ -236,6 +289,7 @@ async def load_all_channels(page_obj=None, loading_lock=None, force: bool = Fals
                 except Exception:
                     pass
                 return
+            _announce_refresh(page_obj, merged)
             state.set_channels(merged)
             await _reconcile_favorites(merged)
         except asyncio.CancelledError:

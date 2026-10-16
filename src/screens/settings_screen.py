@@ -9,6 +9,7 @@ import flet as ft
 from flet import Control
 
 from channels.provider import channel_provider
+from core.app_loader import begin_foreground_refresh
 from core.channel import CHANNEL
 from core.constants import (
     APP_NAME,
@@ -528,6 +529,9 @@ def SettingsScreen() -> Control:
         try:
             await db_manager.clear_custom_content()
             notify(LBL_LIBRARY_RESET)
+            # The toast above is the confirmation, so no system notification
+            # as well.
+            begin_foreground_refresh()
             await controller.refresh_channels()
         except Exception:
             logger.exception("Reset library failed")

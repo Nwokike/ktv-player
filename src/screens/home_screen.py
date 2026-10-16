@@ -205,9 +205,13 @@ def HomeScreen() -> Control:
     # --- Build tree ---
 
     def on_refresh_home():
+        from core.app_loader import begin_foreground_refresh
         from utils.notifications import notify
 
         notify("Refreshing channels...")
+        # The toast above is the user-visible confirmation, so the channel
+        # loader must not ALSO post a system notification for this refresh.
+        begin_foreground_refresh()
         try:
             from flet import context as _ctx
 

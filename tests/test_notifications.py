@@ -380,3 +380,79 @@ def test_scan_wording_is_pluralised():
     two = _FakePage()
     _announce_scan_result(two, [], [_FakeFolder("/a.mp4", "/b.mp4")], background=False)
     assert two.calls[0][1][1] == "2 new videos on this device"
+
+
+# --- playlist refresh results ---
+
+
+@pytest.fixture
+def app_loader_state(monkeypatch):
+    """A clean channel list plus a silenceable foreground flag."""
+    from core import app_loader
+    from core.state import state
+
+    state.channels = [{"url": "/a"}, {"url": "/b"}]
+    app_loader._foreground_refresh[0] = False
+    yield app_loader
+    app_loader._foreground_refresh[0] = False
+
+
+def _refresh_page(fake_backend):
+    return SimpleNamespace(run_task=fake_backend.schedule)
+
+
+@pytest.mark.anyio
+async def test_background_refresh_announces_the_delta(fake_backend, app_loader_state):
+    """A premium tier flip refetches behind the user's back and the grid
+    silently swaps — this is the case that had no feedback at all."""
+    app_loader_state._announce_refresh(
+        _refresh_page(fake_backend),
+        [{"url": "/a"}, {"url": "/b"}, {"url": "/c"}, {"url": "/d"}],
+    )
+    await fake_backend.drain_posts()
+    assert len(fake_backend.posted) == 1
+    assert fake_backend.posted[0]["title"] == "Channels updated"
+    assert "2 new channels" in fake_backend.posted[0]["body"]
+
+
+@pytest.mark.anyio
+async def test_foreground_refresh_is_exempt(fake_backend, app_loader_state):
+    """The refresh button already toasts, so no shade entry as well."""
+    app_loader_state.begin_foreground_refresh()
+    app_loader_state._announce_refresh(
+        _refresh_page(fake_backend),
+        [{"url": "/a"}, {"url": "/c"}],
+    )
+    await fake_backend.drain_posts()
+    assert fake_backend.posted == []
+
+
+@pytest.mark.anyio
+async def test_the_foreground_flag_resets(fake_backend, app_loader_state):
+    """Exempting one refresh must not disable every later one."""
+    app_loader_state.begin_foreground_refresh()
+    app_loader_state._announce_refresh(_refresh_page(fake_backend), [{"url": "/z"}])
+    await fake_backend.drain_posts()
+    assert fake_backend.posted == []
+
+    # A background refresh right after must still announce.
+    app_loader_state._announce_refresh(_refresh_page(fake_backend), [{"url": "/z"}])
+    await fake_backend.drain_posts()
+    assert len(fake_backend.posted) == 1
+
+
+@pytest.mark.anyio
+async def test_unchanged_refresh_is_silent(fake_backend, app_loader_state):
+    app_loader_state._announce_refresh(
+        _refresh_page(fake_backend), [{"url": "/a"}, {"url": "/b"}]
+    )
+    await fake_backend.drain_posts()
+    assert fake_backend.posted == []
+
+
+@pytest.mark.anyio
+async def test_channels_only_lost_is_reported(fake_backend, app_loader_state):
+    """A playlist going dead removes channels; that is worth saying."""
+    app_loader_state._announce_refresh(_refresh_page(fake_backend), [{"url": "/a"}])
+    await fake_backend.drain_posts()
+    assert "1 channel no longer available" in fake_backend.posted[0]["body"]
