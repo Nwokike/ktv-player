@@ -218,6 +218,20 @@ jobs:
           set -e
           test -f build/flutter/android/app/build.gradle.kts || exit $code
           echo "flet build exit $code — continuing; desugaring patch + gradle rebuild follow"
+      # ── Notifications: the generated project needs things pyproject cannot
+      # express. `flet build` does not declare POST_NOTIFICATIONS (neither does
+      # flet itself), and Android 13+ silently drops every notification without
+      # it — so without this step the app's system notifications do nothing on
+      # a modern phone. The patcher also injects the scheduled-notification
+      # receivers and the core-library desugaring flags (which partly duplicate
+      # the guarded seds below; those stay because IMA needs them too).
+      # Idempotent, and it runs before the rebuild so the patched files are
+      # what gradle compiles.
+      # NOTE: no --foreground-service-type: no KTV job needs to outlive the app
+      # (the scan, reconcile and checkout poll are in-process page.run_task
+      # loops), so that entry is deliberately left out.
+      - name: Patch the generated Android project (notifications)
+        run: uv run flet-notifications-patch --project-root build/flutter
       - name: Inject TV banner, icon & rebuild with banner
         env:
           FLET_ANDROID_SIGNING_KEY_STORE: ${{ github.workspace }}/kiri_keystore.jks
@@ -313,6 +327,20 @@ jobs:
           set -e
           test -f build/flutter/android/app/build.gradle.kts || exit $code
           echo "flet build exit $code — continuing; desugaring patch + gradle rebuild follow"
+      # ── Notifications: the generated project needs things pyproject cannot
+      # express. `flet build` does not declare POST_NOTIFICATIONS (neither does
+      # flet itself), and Android 13+ silently drops every notification without
+      # it — so without this step the app's system notifications do nothing on
+      # a modern phone. The patcher also injects the scheduled-notification
+      # receivers and the core-library desugaring flags (which partly duplicate
+      # the guarded seds below; those stay because IMA needs them too).
+      # Idempotent, and it runs before the rebuild so the patched files are
+      # what gradle compiles.
+      # NOTE: no --foreground-service-type: no KTV job needs to outlive the app
+      # (the scan, reconcile and checkout poll are in-process page.run_task
+      # loops), so that entry is deliberately left out.
+      - name: Patch the generated Android project (notifications)
+        run: uv run flet-notifications-patch --project-root build/flutter
       - name: Inject TV banner, icon & rebuild with banner
         env:
           FLET_ANDROID_SIGNING_KEY_STORE: ${{ github.workspace }}/kiri_keystore.jks
