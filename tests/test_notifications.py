@@ -228,3 +228,81 @@ async def test_unlock_does_not_announce_from_recompute(
     premium_with_backend._recompute_premium()
     await fake_backend.drain_posts()
     assert fake_backend.posted == []
+
+
+# --- new-version notification ---
+
+
+def _update(**kw):
+    from types import SimpleNamespace
+
+    base = dict(
+        version="2.4.0",
+        build_number=22,
+        type="update",
+        mandatory=False,
+        github_url="https://github.com/Nwokike/ktv-player/releases/latest",
+    )
+    base.update(kw)
+    return SimpleNamespace(**base)
+
+
+@pytest.fixture
+def controller_for_updates(fake_backend):
+    """An AppController with the fields _announce_update touches."""
+    from main import AppController
+
+    ctrl = object.__new__(AppController)
+    ctrl.page = SimpleNamespace(run_task=fake_backend.schedule)
+    ctrl._update_announced = None
+    ctrl.notify_service = notify_service
+    return ctrl
+
+
+@pytest.mark.anyio
+async def test_update_announces_once_per_version(fake_backend, controller_for_updates):
+    """A boot-time check runs every launch; it must not re-announce."""
+    controller_for_updates._announce_update(_update())
+    await fake_backend.drain_posts()
+    assert len(fake_backend.posted) == 1
+    assert "2.4.0 is available" in fake_backend.posted[0]["title"]
+
+    controller_for_updates._announce_update(_update())
+    await fake_backend.drain_posts()
+    assert len(fake_backend.posted) == 1, "same version re-announced"
+
+
+@pytest.mark.anyio
+async def test_new_version_announces_again(fake_backend, controller_for_updates):
+    controller_for_updates._announce_update(_update())
+    await fake_backend.drain_posts()
+    controller_for_updates._update_announced = None
+    controller_for_updates._announce_update(_update(version="2.5.0"))
+    await fake_backend.drain_posts()
+    titles = [p["title"] for p in fake_backend.posted]
+    assert "KTV Player 2.4.0 is available" in titles
+    assert "KTV Player 2.5.0 is available" in titles
+
+
+@pytest.mark.anyio
+async def test_mandatory_update_does_not_post(fake_backend, controller_for_updates):
+    """A mandatory update already opens the version dialog in the
+    foreground, so a shade entry adds nothing."""
+    controller_for_updates._announce_update(_update(mandatory=True))
+    await fake_backend.drain_posts()
+    assert fake_backend.posted == []
+
+
+@pytest.mark.anyio
+async def test_update_payload_is_the_release_url(fake_backend, controller_for_updates):
+    """The tap must open the browser, so the payload is a URL, and the tap
+    handler has to route http(s) differently from ktv:// links."""
+    controller_for_updates._announce_update(_update())
+    await fake_backend.drain_posts()
+    payload = fake_backend.posted[0]["payload"]
+    assert payload.startswith("https://")
+
+    # The deep-link parser gates to ktv:// only, so a URL must not reach it.
+    from core.deeplink import parse_deep_link
+
+    assert parse_deep_link(payload) == (None, None, None, None)

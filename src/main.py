@@ -113,6 +113,10 @@ class AppController:
         self.file_picker: ft.FilePicker | None = None
         self.update_service: UpdateService | None = None
         self._controller_methods: ControllerMethods | None = None
+        # Last version the user was already told about, so a boot-time
+        # update check does not re-announce the same release every time.
+        # Loaded from the DB in init(), and written when one is announced.
+        self._update_announced: str | None = None
 
     async def init(self):
         import sys
@@ -208,6 +212,11 @@ class AppController:
             self.page.theme_mode = ft.ThemeMode.DARK
         elif saved_theme == "light":
             self.page.theme_mode = ft.ThemeMode.LIGHT
+        # So a boot-time update check does not re-announce a release the
+        # user has already been told about.
+        self._update_announced = await db_manager.get_setting(
+            "update_announced_version"
+        )
 
         # Load favorites into state — convert set from DB to list for ObservableList support
         urls = await db_manager.get_favorite_urls()
@@ -332,6 +341,7 @@ class AppController:
                 update_info.build_number,
                 update_info.type,
             )
+            self._announce_update(update_info)
             if update_info.mandatory:
                 self.open_version_dialog()
         elif notify_if_latest:
@@ -346,6 +356,34 @@ class AppController:
         from components.version_dialog import show_version_dialog
 
         show_version_dialog(self.page)
+
+    def _announce_update(self, update_info) -> None:
+        """System notification for a newer build (non-mandatory ones only).
+
+        A non-mandatory update is silent today unless the user happens to
+        open Settings: the boot check fires as a bare task and nothing tells
+        anyone. Latch per version so every boot does not re-announce the
+        same release, and skip mandatory ones — those already open the
+        version dialog in the foreground, so a shade entry adds nothing.
+        """
+        if update_info.mandatory:
+            return
+        version = str(getattr(update_info, "version", "") or "")
+        if not version or version == self._update_announced:
+            return
+        self._update_announced = version
+        # Persisted so a reboot does not announce the same release again.
+        self.page.run_task(self._persist_announced_update, version)
+        url = str(getattr(update_info, "github_url", "") or "")
+        self._open_url_notification(
+            f"KTV Player {version} is available",
+            "Tap to see what changed",
+            url,
+        )
+
+    async def _persist_announced_update(self, version: str) -> None:
+        with contextlib.suppress(Exception):
+            await db_manager.set_setting("update_announced_version", version)
 
     def _on_connectivity_change(self, e):
         from flet import ConnectivityType
@@ -865,9 +903,13 @@ class AppController:
     def _wire_notification_taps(self) -> None:
         """A notification tap runs the same deep-link path as an external one.
 
-        Every notification carries a `ktv://play?url=...` payload, so one
-        handler covers them all: a tap while the app is closed starts it and
-        lands in the player, and a tap while it is open goes straight there.
+        Two payload kinds share this handler:
+        - ``ktv://play?url=...`` — run the internal deep-link path, so a tap
+          while the app is closed starts it and lands in the player, and a
+          tap while it is open goes straight there.
+        - ``https://...`` — open externally in the browser (release pages).
+          `parse_deep_link` gates to the ktv:// scheme only, so a URL
+          payload must not go through it.
         """
         svc = getattr(self, "notify_service", None)
         if svc is None:
@@ -878,12 +920,32 @@ class AppController:
             if not payload:
                 return
             logger.info("Notification tap: %s", payload)
-            self._handle_deep_link(payload)
+            if payload.startswith(("http://", "https://")):
+                self._launch_url(payload)
+            else:
+                self._handle_deep_link(payload)
 
         try:
             svc.set_tap_handler(_on_tap)
         except Exception:
             logger.debug("Could not wire notification taps", exc_info=True)
+
+    async def _launch_url(self, url: str) -> None:
+        """Open an external URL (release page) in the browser."""
+        try:
+            await ft.UrlLauncher().launch_url(url)
+        except Exception:
+            logger.debug("Could not launch %s", url)
+
+    def _open_url_notification(self, title: str, body: str, url: str) -> None:
+        """Post an alert whose tap opens a URL in the browser."""
+        svc = getattr(self, "notify_service", None)
+        if svc is None or not url:
+            return
+        try:
+            self.page.run_task(svc.alert, title, body, url)
+        except Exception:
+            logger.debug("Update notification failed", exc_info=True)
 
     # --- Routing ---
 
