@@ -44,6 +44,9 @@ media_kit_libs_windows_video = "^1.0.11"
 path = "src"
 
 [tool.flet.android]
+# Compress native libs in the APK (pre-0.86 behaviour): since 0.86 flet stores
+# them uncompressed by default, which doubled APK download size.
+legacy_packaging = true
 bundle_id = "ng.kiri.ktvplayer"
 dependencies = [
   "pyjnius"
